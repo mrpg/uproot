@@ -1,0 +1,34 @@
+en,de,es
+The Use of Knowledge in Society,The Use of Knowledge in Society,The Use of Knowledge in Society
+Welcome,Willkommen,Bienvenido
+Please wait,Bitte warten,Por favor espere
+Next,Weiter,Siguiente
+Back,Zurück,Atrás
+End,Ende,Fin
+You have reached the end of this study.,Sie haben das Ende dieser Studie erreicht.,Ha llegado al final de este estudio.
+You may now close this page.,Sie können diese Seite jetzt schließen.,Ahora puede cerrar esta página.
+Close,Schließen,Cerrar
+Remaining time on this page:,Verbleibende Zeit auf dieser Seite:,Tiempo restante en esta página:
+Error,Fehler,Error
+Login,Login,Iniciar sesión
+Username,Nutzername,Nombre de usuario
+Password,Kennwort,Contraseña
+Submit,Absenden,Enviar
+You provided invalid credentials.,Sie haben ungültige Anmeldedaten angegeben.,Ha proporcionado credenciales inválidas.
+(Or you were too fast.),(Oder Sie waren zu schnell.),(O ha sido demasiado rápido).
+Dashboard,Übersicht,Panel de control
+Send message,Nachricht senden,Enviar mensaje
+Insert fields,Felder einfügen,Insertar campos
+Reload page,Seite neu laden,Recargar página
+"You have selected <b><span class=""pcount""></span> subject(s)</b>.","Sie haben <b><span class=""pcount""></span> Versuchsperson(en)</b> ausgewählt.","Ha seleccionado <b><span class=""pcount""></span> sujeto(s)</b>."
+Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.,Das Einfügen von Feldern wird nicht als gute Praxis angesehen. Verwenden Sie diese Funktion nur zu Testzwecken oder in Notfällen. Manuelle Feldeinfügungen werden unwiderruflich als solche in der Datenbank gespeichert.,Insertar campos no se considera una buena práctica. Use esta función solo cuando esté probando o en emergencias. Las inserciones manuales de campos se registran irrevocablemente como tales en la base de datos.
+Mark as dropout,Als Dropout markieren,Marcar como abandono
+Put to end,Ans Ende stellen,Poner al final
+Advance by one page,Um eine Seite vorrücken,Avanzar una página
+Revert by one page,Um eine Seite zurückgehen,Retroceder una página
+Manage subjects,Versuchspersonen verwalten,Gestionar sujetos
+Select subjects,Versuchspersonen auswählen,Seleccionar sujetos
+Select all,Alle auswählen,Seleccionar todo
+Deselect all,Alle abwählen,Deseleccionar todo
+"Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):","Bitte geben Sie ein gültiges JSON-<i>Objekt</i> ein. Zum Beispiel fügt dies die Felder <code>foo</code> (eine Ganzzahl) und <code>bar</code> (eine Liste) hinzu:","Por favor ingrese un <i>objeto</i> JSON válido. Por ejemplo, esto inserta los campos <code>foo</code> (un entero) y <code>bar</code> (una lista):"
+View session details,Sessiondetails ansehen,Ver detalles de la sesión

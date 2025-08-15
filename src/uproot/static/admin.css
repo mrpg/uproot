@@ -1,0 +1,148 @@
+body {
+    min-height: 100vh; flex-direction: column; display: flex; justify-content: flex-start;
+}
+
+.heartbeat {
+    color: green;
+    font-size: 1em;
+    margin-left: 0.75em;
+    opacity: 0;
+}
+
+.heartbeat.active {
+    opacity: 1;
+}
+
+@keyframes flash {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.tooltip-inner {
+    max-width: 300px;
+    text-align: left;
+}
+
+.iframe-container {
+    position: absolute;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    resize: both;
+    overflow: hidden;
+    min-width: 200px;
+    min-height: 150px;
+}
+
+.iframe-container:hover {
+    border-color: #0d6efd;
+}
+
+.iframe-header {
+    background: #e9ecef;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-bottom: 1px solid #dee2e6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: move;
+    user-select: none;
+}
+
+.iframe-container.dragging {
+    z-index: 1001;
+    opacity: 0.8;
+}
+
+.iframe-container iframe {
+    width: 100%;
+    height: calc(100% - 25px);
+    border: none;
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-uproot);
+    border-color: var(--bs-uproot);
+}
+
+span.a-value {
+    cursor: pointer;
+    display: inline-block;
+    min-width: 1em;
+    min-height: 1em;
+}
+tr span.a-value {
+    border-bottom: 1px solid #fff;
+}
+tr:hover span.a-value {
+    border-bottom: 1px dotted var(--bs-light-text-emphasis);
+}
+
+footer a {
+    color: unset;
+}
+
+.btn-view-details {
+    border: none;
+    font-size: 1.6em;
+}
+.btn-launch {
+    border: none;
+    font-size: 2em;
+}
+
+.sort-indicator {
+    font-family: monospace;
+    color: var(--bs-uproot);
+}
+
+/* TODO: Fix left values of sticky columns on Monitor.html */
+/* Partially move formatting to .js files */
+
+/* Sticky column headers */
+.table-sticky thead th {
+    background-color: var(--bs-uproot-bg-light);
+    position: sticky;
+    top: 0;
+    z-index: 98;
+}
+/* Sticky row headers for first 3 columns */
+.table-sticky tr > th:nth-of-type(1),
+.table-sticky tr > th:nth-of-type(2),
+.table-sticky tr > th:nth-of-type(3) {
+    position: sticky;
+    z-index: 99;
+}
+.table-sticky tr > td:nth-of-type(1),
+.table-sticky tr > td:nth-of-type(2),
+.table-sticky tr > td:nth-of-type(3) {
+    font-weight: bolder;
+    position: sticky;
+    z-index: 97;
+}
+/* Positions to stick at for first column */
+.table-sticky tr > td:nth-of-type(1),
+.table-sticky tr > th:nth-of-type(1) {
+    left: 0em;
+}
+
+/* Surrounding divs to enable scrolling within table */
+.table-sticky-inner {
+    left: 50%;
+    height: 80vh;
+    max-height: 90vh;
+    max-width: 100vw;
+    overflow: auto;
+    position: absolute;
+    resize: both;
+    top: 0%;
+    transform: translate(-50%, 0%);
+    width: 100%;
+}
+.table-sticky-outer {
+    height: 90vh;
+    width: 100%;
+    overflow: visible;
+    position: relative;
+}

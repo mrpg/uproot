@@ -1,0 +1,73 @@
+{% if player is defined %}
+<footer class="alert border-uproot uproot-testing-only mt-5 p-0">
+    <div class="alert bg-uproot m-0 rounded-bottom-0 rounded-top-1 text-white">
+        <h4 class="fw-semibold px-2 mb-0">{% translate %}Data{% endtranslate %}</h4>
+    </div>
+    <div class="px-4 mb-2 table-responsive">
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th scope="col" class="ps-0">{% translate %}Field{% endtranslate %}</th>
+                    <th scope="col" class="epoch ps-0">{% translate %}Change at{% endtranslate %}</th>
+                    <th scope="col">{% translate %}Value{% endtranslate %}</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                {% for field, values in (player.__history__() | history2items) %}
+                <tr>
+                    <th rowspan="{{ values | length }}" scope="row" class="col-2 ps-0">
+                        <span class="font-monospace">
+                            {{ field }}
+                        </span>
+                    </th>
+                    <td class="epoch col-3 ps-0 font-monospace">
+                        {% if values | length == 1 %}
+                        <span class="fw-bold"
+                            title="{{ values[0].time | unixtime2datetime(True) }} @ {{ values[0].context }}">
+                            {% else %}
+                            <span class="text-muted"
+                                title="{{ values[0].time | unixtime2datetime(True) }} @ {{ values[0].context }}">
+                                {% endif %}
+                                {{ values[0].time | unixtime2datetime() }}
+                            </span>
+                    </td>
+                    <td class="font-monospace">
+                        {% if values | length == 1 %}
+                        <span class="fw-bold" title="{{ values[0].data | type }}">
+                            {% else %}
+                            <span class="text-muted" title="{{ values[0].data | type }}">
+                                {% endif %}
+                                {{ values[0].data | repr }}
+                            </span>
+                    </td>
+                </tr>
+
+                {% for entry in values[1:] %}
+                <tr>
+                    <td class="epoch ps-0 font-monospace">
+                        {% if loop.last %}
+                        <span class="fw-bold" title="{{ entry.time | unixtime2datetime(True) }} @ {{ entry.context }}">
+                            {% else %}
+                            <span class="text-muted"
+                                title="{{ entry.time | unixtime2datetime(True) }} @ {{ entry.context }}">
+                                {% endif %}
+                                {{ entry.time | unixtime2datetime() }}
+                            </span>
+                    </td>
+                    <td class="font-monospace">
+                        {% if loop.last %}
+                        <span class="fw-bold" title="{{ entry.data | type }}">
+                            {% else %}
+                            <span class="text-muted" title="{{ entry.data | type }}">
+                                {% endif %}
+                                {{ entry.data | repr }}
+                            </span>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</footer>
+{% endif %}

@@ -1,0 +1,49 @@
+{% extends "Admin.html" %}
+
+
+{% block title %}
+
+<div class="d-flex justify-content-between">
+    {% translate %}
+    All sessions
+    {% endtranslate %}
+    <a class="btn btn-uproot" href="../new_session/">{% translate %}New session{% endtranslate %}</a>
+</div>
+
+{% endblock title %}
+
+
+{% block main %}
+
+<h3 class="mb-3">
+    {% translate %}
+    Active sessions
+    {% endtranslate %}
+</h3>
+
+<div id="sessions-active-container">{% translate %}None.{% endtranslate %}</div>
+
+<h3 class="mb-3 mt-4">
+    {% translate %}
+    Inactive sessions
+    {% endtranslate %}
+</h3>
+
+<div id="sessions-inactive-container">{% translate %}None.{% endtranslate %}</div>
+
+{% endblock main %}
+
+
+{% block late %}
+
+<script>
+    uproot.onStart(() => {
+        const active = Object.values(uproot.vars.sessions).filter((s) => s.active);
+        const inactive = Object.values(uproot.vars.sessions).filter((s) => !s.active);
+
+        renderSessions(active, "sessions-active-container");
+        renderSessions(inactive, "sessions-inactive-container");
+    });
+</script>
+
+{% endblock late %}

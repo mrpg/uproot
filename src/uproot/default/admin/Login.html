@@ -1,0 +1,75 @@
+{% extends "Admin.html" %}
+
+
+{% set nonav = True %}
+
+
+{% block title %}
+
+{% translate %}
+Login
+{% endtranslate %}
+
+{% endblock title %}
+
+
+{% block titlearea %}
+
+{% endblock titlearea %}
+
+
+{% block _uproot_scripts %}
+
+{% endblock _uproot_scripts %}
+
+
+{% block main %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card mt-5 shadow">
+            <div class="card-body p-4">
+                <h3 class="card-title mb-4">
+                    {% translate %}
+                    Login
+                    {% endtranslate %}
+                </h3>
+                {% if bad %}
+                <div class="alert alert-danger" role="alert">
+                    {% translate %}
+                    You provided invalid credentials.
+                    {% endtranslate %}
+                    {% translate %}
+                    (Or you were too fast.)
+                    {% endtranslate %}
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <label for="user" class="form-label">
+                        {% translate %}
+                        Username
+                        {% endtranslate %}
+                    </label>
+                    <input type="text" class="form-control" id="user" name="user" required>
+                </div>
+                <div class="mb-3">
+                    <label for="pw" class="form-label">
+                        {% translate %}
+                        Password
+                        {% endtranslate %}
+                    </label>
+                    <input type="password" class="form-control" id="pw" name="pw" required>
+                </div>
+                <div class="d-grid pt-2">
+                    <button type="submit" class="btn btn-uproot">
+                        {% translate %}
+                        Submit
+                        {% endtranslate %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock main %}

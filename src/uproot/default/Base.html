@@ -1,0 +1,36 @@
+{% extends "Bare.html" %}
+
+{% if buttons is not defined %}
+{% set buttons = True %}
+{% endif %}
+
+{% block titlearea %}
+
+<h1 id="uproot-title" class="my-4">
+    {{ _uproot_title }}
+</h1>
+
+{% endblock titlearea %}
+
+{% block main2 %}
+
+{% if buttons %}
+<div class="d-flex justify-content-between my-3">
+    {% if page.allow_back %}
+    <button type="button" id="uproot-button-back" class="btn btn-outline-secondary">
+        {% translate %}
+        Back
+        {% endtranslate %}
+    </button>
+    {% else %}
+    <div></div>
+    {% endif %}
+    <button type="submit" id="uproot-button-next" class="btn btn-primary">
+        {% translate %}
+        Next
+        {% endtranslate %}
+    </button>
+</div>
+{% endif %}
+
+{% endblock main2 %}

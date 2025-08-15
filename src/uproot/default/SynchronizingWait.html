@@ -1,0 +1,49 @@
+{% extends "Base.html" %}
+{% set buttons = False %}
+
+{% block title %}
+{% translate %}
+Please wait
+{% endtranslate %}
+{% endblock title %}
+
+
+{% block main %}
+
+<div class="progress hidden" id="wait-progress-parent">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" id="wait-progress"></div>
+</div>
+
+<script>
+    let grouploop;
+
+    function updateBar(x) {
+        I("wait-progress").style.width = `${Math.round(100 * x)}%`;
+        I("wait-progress").ariaValueNow = x;
+    }
+
+    function showBar() {
+        I("wait-progress-parent").classList.remove("hidden");
+    }
+
+    function update(x) {
+        if (x[0] == "submit") {
+            uproot.submit();
+        }
+
+        updateBar(x[1]);
+        showBar();
+    }
+
+    uproot.onReady(() => {
+        uproot.invoke("wait").then(update);
+
+        grouploop = window.setInterval(() => {
+            uproot.invoke("wait").then(update);
+        }, 2000);
+    });
+
+    window.setInterval(uproot.reload, 30000);
+</script>
+
+{% endblock main %}

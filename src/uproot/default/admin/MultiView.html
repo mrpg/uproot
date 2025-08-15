@@ -1,0 +1,38 @@
+{% extends "Admin.html" %}
+
+
+{% block title %}
+
+{% translate %}
+Session
+{% endtranslate %}
+<a href="../" class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover">{{ sname }}</a>:
+{% translate %}
+Multi View
+{% endtranslate %}
+
+{% endblock title %}
+
+
+{% block head %}
+
+<style>
+    footer, #uproot-title, .navbar {
+        display: none;
+    }
+</style>
+
+{% endblock head %}
+
+
+{% block late %}
+
+<script src="{{ internal_static('multiview.js') }}"></script>
+<script>
+uproot.onStart(() => {
+    const urls = Object.keys(uproot.vars.info).map((uname) => `${uproot.vars.root}/p/${uproot.vars.sname}/${uname}`);
+    createIframes(urls);
+});
+</script>
+
+{% endblock late %}

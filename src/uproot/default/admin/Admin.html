@@ -1,0 +1,210 @@
+{% set _uproot_title %}
+
+{% block title %}
+
+{% endblock title %}
+
+{% endset %}
+
+
+<!doctype html>
+
+<html lang="{{ _uproot_internal.language }}" data-bs-theme="auto">
+    <head>
+        <title>
+            uproot: {{ _uproot_title | striptags }}
+        </title>
+
+        <meta charset="utf-8">
+        <meta name="generator" content="uproot">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="{{ internal_static('foreign/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ internal_static('style.css') }}">
+        <link rel="stylesheet" href="{{ internal_static('admin.css') }}">
+
+        {% block _uproot_scripts %}
+        <script src="{{ internal_static('uproot.js') }}"></script>
+        <script>
+            uproot.vars = {{ _uproot_js | tojson }};
+            uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}
+
+            uproot.wsurl = () => {
+                const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+                const host = window.location.host;
+
+                return `${protocol}//${host}${uproot.vars.root}/admin/ws/`;
+            };
+
+            uproot.onStart(() => {
+                uproot.wsstart();
+            });
+        </script>
+        <script src="{{ internal_static('admin.js') }}"></script>
+        {% endblock _uproot_scripts %}
+
+        <script src="{{ internal_static('foreign/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ internal_static('foreign/alpine.min.js') }}" defer></script>
+
+        {% block head %}
+        {% endblock head %}
+
+        {% include "ProjectAdminHead.html" ignore missing %}
+    </head>
+    <body>
+        <div class="modal fade" id="error-modal" tabindex="-1" aria-labelledby="error-modalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="error-modalLabel">
+                            {% translate %}
+                            Error
+                            {% endtranslate %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="error-modal-body"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                            {% translate %}
+                            Close
+                            {% endtranslate %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="alert-modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div id="alert-modal-body"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                            {% translate %}
+                            Close
+                            {% endtranslate %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if nonav is not defined %}
+        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm">
+            <div class="container">
+                <h1 class="fs-4 p-0 mb-1"><a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover" href="{{ _uproot_internal.root }}/admin/">uproot</a></h1>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/">{% translate %}Dashboard{% endtranslate %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/rooms/">{% translate %}Rooms{% endtranslate %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/sessions/">{% translate %}Sessions{% endtranslate %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/status/">{% translate %}Server status{% endtranslate %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/logout/">{% translate %}Logout{% endtranslate %}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        {% else %}
+        <!-- Name-only bar at top of login page -->
+        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm">
+            <div class="container">
+                <h1 class="fs-4 p-0 mb-1"><a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover" href="{{ _uproot_internal.root }}/admin/">uproot</a></h1>
+            </div>
+        </nav>
+        {% endif %}
+
+        <div class="container">
+            {% block start %}
+            {% endblock start %}
+
+            {% block titlearea %}
+            <h2 id="uproot-title" class="my-4">
+                {{ _uproot_title }}
+            </h2>
+            {% endblock titlearea %}
+
+            <main id="uproot-main">
+                {% if _uproot_errors %}
+                {% for error in _uproot_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form id="uproot-form" method="post" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
+                    <input type="hidden" name="_uproot_csrf" id="_uproot_csrf" value="">
+                    <input type="hidden" name="_uproot_from" id="_uproot_from" value="">
+
+                    {% block main %}
+                    {% endblock main %}
+                    {% block main2 %}
+                    {% endblock main2 %}
+                </form>
+
+                {% block main3 %}
+                {% endblock main3 %}
+            </main>
+
+            {% block footer %}
+            {% endblock footer %}
+        </div>
+
+        {% block late %}
+        {% endblock late %}
+        {% block late2 %}
+        {% endblock late2 %}
+
+        <footer class="bg-uproot-subtle border-uproot-subtle border-1 pt-2" style="margin-top: auto;">
+            <div class="container my-3">
+                <div class="mb-2 row">
+                    <div class="col-6">
+                        <a class="btn btn-xs btn-outline-uproot fw-semibold me-2 my-2" href="https://uproot.science/" target="_blank">uproot docs</a>
+                        <a class="btn btn-xs btn-outline-uproot me-2 my-2" href="https://github.com/mrpg/uproot-examples" target="_blank">uproot examples</a>
+                        <a class="btn btn-xs btn-outline-uproot me-2 my-2" href="https://github.com/mrpg/uproot" target="_blank">uproot on GitHub</a>
+                        <a class="btn btn-xs btn-outline-uproot my-2" href="https://q.mg.sb/uproot_faq" target="_blank">FAQ</a>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a class="btn btn-xs btn-outline-warning my-2" href="https://q.mg.sb/uproot_help" target="_blank">Get help</a>
+                        <a class="btn btn-xs btn-outline-success ms-2 my-2" href="https://q.mg.sb/uproot_praise" target="_blank">Submit praise</a>
+                        <a class="btn btn-xs btn-outline-danger ms-2 my-2" href="https://github.com/mrpg/uproot/issues" target="_blank">Report a bug</a>
+                    </div>
+                </div>
+                <hr class="border-uproot opacity-25">
+                <p class="fs-sm mb-2">If you find uproot useful, please <a class="link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover" href="#" onclick="showBibTeX()">cite it</a> in academic publications.</p>
+                <hr class="border-uproot opacity-25">
+                <div class="fs-sm mt-4">
+                    <p class="fw-semibold mb-2 text-uproot-dark">&copy; Max R. P. Grossmann, Holger Gerhardt, et al., 2025.</p>
+                    <div class="fs-sm row text-muted">
+                        <div class="col-6 mb-1 opacity-75">
+                            uproot is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+                        </div>
+                        <div class="col-6 mb-1 opacity-75">
+                            uproot is distributed in the hope that it will be useful, but <i>without any warranty</i>; without even the implied warranty of <i>merchantability</i> or <i>fitness for a particular purpose</i>. See the <a class="link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> for more details.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        {% include "ProjectAdminBody.html" ignore missing %}
+    </body>
+</html>

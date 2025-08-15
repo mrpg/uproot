@@ -1,0 +1,22 @@
+{% extends "Base.html" %}
+{% set buttons = False %}
+
+{% block title %}
+{% translate %}
+End
+{% endtranslate %}
+{% endblock title %}
+
+
+{% block main %}
+
+<p>
+    {% translate %}
+    You have reached the end of this study.
+    {% endtranslate %}
+    {% translate %}
+    You may now close this page.
+    {% endtranslate %}
+</p>
+
+{% endblock main %}

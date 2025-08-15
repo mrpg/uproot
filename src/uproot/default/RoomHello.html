@@ -1,0 +1,85 @@
+{% extends "Base.html" %}
+{% set buttons = False %}
+{% set noautostart = True %}
+
+{% block title %}
+{% if _uproot_internal.needlabel %}
+{% translate %}
+Welcome
+{% endtranslate %}
+{% else %}
+{% translate %}
+Please wait
+{% endtranslate %}
+{% endif %}
+{% endblock title %}
+
+
+{% block main3 %}
+
+{% if _uproot_internal.needlabel %}
+
+{% if _uproot_internal.bad %}
+
+<div class="alert alert-danger mb-4" role="alert">
+    {% translate %}
+    You provided invalid credentials.
+    {% endtranslate %}
+</div>
+
+{% endif %}
+
+<form method="get">
+    <div class="mb-3">
+        <label for="label" class="form-label">
+            {% translate %}
+            Please enter your Access Code.
+            {% endtranslate %}
+        </label>
+        <input type="hidden" name="bad" value="0">
+        <input type="text" class="form-control form-control-lg font-monospace" id="label" name="label" maxlength="128" required>
+    </div>
+
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg">
+            {% translate %}
+            Submit
+            {% endtranslate %}
+        </button>
+    </div>
+</form>
+
+{% else %}
+
+<p>
+    {% translate %}
+    This page will advance automatically.
+    {% endtranslate %}
+</p>
+
+<p>
+    <b>
+        {% translate %}
+        Keep this page open and watch it at all times.
+        {% endtranslate %}
+    </b>
+</p>
+
+<script>
+    uproot.wsurl = () => {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const host = window.location.host;
+        const ui = uproot.vars._uproot_internal;
+        const label = uproot.getParam("label") || "";
+
+        return `${protocol}//${host}${ui.root}/roomws/${ui.roomname}/?label=${label}`;
+    };
+
+    uproot.onStart(() => {
+        uproot.wsstart();
+    });
+</script>
+
+{% endif %}
+
+{% endblock main3 %}

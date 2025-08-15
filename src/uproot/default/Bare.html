@@ -1,0 +1,208 @@
+{% set _uproot_title %}
+{% block title %}
+{% endblock title %}
+{% endset %}
+<!doctype html>{% import "Macros.html" as uproot %}
+<html lang="{{ _uproot_internal.language }}" data-bs-theme="auto">
+    <head>
+        <title>
+            {{ _uproot_title | striptags }}
+        </title>
+
+        <meta charset="utf-8">
+        <meta name="generator" content="uproot">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        {% if nobootstrap is not defined %}
+        <link rel="stylesheet" href="{{ internal_static('foreign/bootstrap.min.css') }}">
+        <script src="{{ internal_static('foreign/bootstrap.bundle.min.js') }}"></script>
+        {% endif %}
+
+        <link rel="stylesheet" href="{{ internal_static('style.css') }}">
+
+        <script src="{{ internal_static('uproot.js') }}"></script>
+        <script>
+            uproot.vars = {{ _uproot_js | tojson }};
+            {% if noterms is not defined %}
+            uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}
+            {% endif %}
+            {% if noautostart is not defined %}
+            uproot.onStart(() => {
+                uproot.init();
+                uproot.wsstart();
+            });
+            {% endif %}
+        </script>
+
+        <script src="{{ internal_static('foreign/alpine.min.js') }}" defer></script>
+
+        {% block head %}
+        {% endblock head %}
+
+        {% include "ProjectHead.html" ignore missing %}
+    </head>
+    <body>
+        <div class="modal fade" id="error-modal" tabindex="-1" aria-labelledby="error-modalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="error-modalLabel">
+                            {% translate %}
+                            Error
+                            {% endtranslate %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="error-modal-body"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                            {% translate %}
+                            Close
+                            {% endtranslate %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="alert-modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div id="alert-modal-body"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                            {% translate %}
+                            Close
+                            {% endtranslate %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="adminmessage-modal" tabindex="-1" aria-labelledby="adminmessage-modalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="adminmessage-modalLabel">
+                            {% translate %}
+                            Chat with Research Coordinator
+                            {% endtranslate %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="adminmessage-modal-body"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                            {% translate %}
+                            Close
+                            {% endtranslate %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="uproot-buddy">
+            <img src="{{ internal_static('buddy.svg') }}" width="142" height="142" onclick="uproot.adminMessage()" alt="Smiley face" title="Show message">
+        </div>
+
+        <div id="uproot-main-container" class="container">
+            {% if _uproot_testing %}
+            {% include "TestingHead.html" %}
+            {% endif %}
+
+            {% block timeoutbox %}
+            <div class="alert alert-light" role="alert" id="uproot-timeout">
+                {% translate %}
+                Remaining time on this page:
+                {% endtranslate %}
+                <span id="uproot-time-remaining">60:00</span>.
+            </div>
+            {% endblock timeoutbox %}
+
+            {% block start %}
+            {% endblock start %}
+
+            {% block titlearea %}
+            {% endblock titlearea %}
+
+            <main id="uproot-main">
+                {% if _uproot_errors %}
+                {% for error in _uproot_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form id="uproot-form" method="post" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
+                    <input type="hidden" name="_uproot_csrf" id="_uproot_csrf" value="">
+                    <input type="hidden" name="_uproot_from" id="_uproot_from" value="">
+
+                    {% block main %}
+                    {% endblock main %}
+                    {% block main2 %}
+                    {% endblock main2 %}
+                </form>
+
+                {% block main3 %}
+                {% endblock main3 %}
+            </main>
+
+            {% block footer %}
+            {% endblock footer %}
+
+            {% if _uproot_testing %}
+            {% include "DataHistory.html" %}
+            {% endif %}
+        </div>
+
+        {% block late %}
+        {% endblock late %}
+        {% block late2 %}
+        {% endblock late2 %}
+
+        <script>
+            uproot.onStart(() => {
+                const ui = uproot.vars._uproot_internal;
+
+                // initialize timeout
+
+                if (ui.remaining_seconds !== undefined) {
+                    uproot.setPageTimeout(ui.remaining_seconds);
+                }
+
+                // deanchor sliders
+
+                uproot.slidersWithoutAnchoring();
+            });
+
+            uproot.onReady(() => {
+                document.querySelectorAll(".uproot-chat").forEach((el) => {
+                    const chatId = el.dataset.chatid;
+
+                    uproot.api("chat_get", chatId).
+                        then(uproot.chat.messagesFromServer).
+                        then(() => {
+                            el.classList.remove("hidden");
+                            el.children[0].scroll(0, 1e6);
+                        });
+                });
+
+                {% if player is not none and player._uproot_adminchat is not none %}
+                uproot.chat.create(I("adminmessage-modal-body"), {{ player._uproot_adminchat.mname | tojson }});
+                uproot.ensureBuddy();
+                {% endif %}
+            });
+        </script>
+
+        {% include "ProjectBody.html" ignore missing %}
+    </body>
+</html>

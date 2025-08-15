@@ -1,0 +1,229 @@
+@import url("fonts/inter.css");
+
+/* Extending Bootstrap’s default fonts */
+:root {
+    --bs-font-monospace: "IBM Plex Mono", "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --bs-font-sans-serif: Inter, system-ui, ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --bs-font-serif: ui-serif, "IBM Plex Serif", "New York", serif;
+    --bs-body-font-family: var(--bs-font-sans-serif);
+}
+/* Adjustments for Inter web font */
+:root {
+    font-variant: tabular-nums;
+    font-feature-settings:
+    "ss01",  /* “Open” digits */
+    "cv05",  /* Lowercase l with tail */
+    "cv07";  /* Alternate German ß */
+}
+
+/* uproot color scheme */
+:root{
+    --bs-uproot: #7700cc;
+    --bs-uproot-rgb: 119, 0, 204;
+    --bs-uproot-bg-light: #f1e5f9;
+    --bs-uproot-bg-subtle: #fbf6ff;
+    --bs-uproot-border-light: #bb7fe5;
+    --bs-uproot-border-light-rgb: 187, 127, 229;
+    --bs-uproot-border-subtle: #d6b2ef;
+    --bs-uproot-border-subtle-rgb: 214, 178, 239;
+    --bs-uproot-dark: #550091;
+    --bs-uproot-dark-rgb: 85, 0, 145;
+}
+
+.bg-uproot {
+    background-color: var(--bs-uproot) !important;
+}
+.bg-uproot-light {
+    background-color: var(--bs-uproot-bg-light) !important;
+}
+.bg-uproot-subtle {
+    background-color: var(--bs-uproot-bg-subtle) !important;
+}
+
+.border-uproot {
+    --bs-border-opacity: 1;
+    border-color: rgba(var(--bs-uproot-rgb), var(--bs-border-opacity)) !important;
+}
+.border-uproot-light {
+    --bs-border-opacity: 1;
+    border-color: rgba(var(--bs-uproot-border-light-rgb), var(--bs-border-opacity)) !important;
+}
+.border-uproot-subtle {
+    --bs-border-opacity: 1;
+    border-color: rgba(var(--bs-uproot-border-subtle-rgb), var(--bs-border-opacity)) !important;
+}
+
+.btn-uproot {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--bs-uproot);
+    --bs-btn-border-color: var(--bs-uproot);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--bs-uproot-dark);
+    --bs-btn-hover-border-color: var(--bs-uproot-dark);
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--bs-uproot-dark);
+    --bs-btn-active-border-color: var(--bs-uproot-dark);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--bs-uproot);
+    --bs-btn-disabled-border-color: var(--bs-uproot);
+}
+.btn-outline-uproot {
+    --bs-btn-color: var(--bs-uproot);
+    --bs-btn-border-color: var(--bs-uproot);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--bs-uproot);
+    --bs-btn-hover-border-color: var(--bs-uproot);
+    --bs-btn-focus-shadow-rgb: 13, 110, 253;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--bs-uproot);
+    --bs-btn-active-border-color: var(--bs-uproot);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: var(--bs-uproot);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--bs-uproot);
+    --bs-gradient: none;
+}
+.btn-xs {
+    --bs-btn-font-size: .75rem;
+    --bs-btn-padding-x: .5rem;
+    --bs-btn-padding-y: .25rem;
+    --bs-btn-border-radius: var(--bs-border-radius-sm);
+}
+
+.fs-sm {
+    font-size: small;
+}
+.fs-xs {
+    font-size: x-small;
+}
+.fs-xxs {
+    font-size: xx-small;
+}
+
+.link-underline-uproot {
+    -webkit-text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity)) !important;
+    text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity)) !important;
+}
+
+.text-uproot {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-uproot-rgb), var(--bs-text-opacity)) !important;
+}
+
+.text-uproot-dark {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-uproot-dark-rgb), var(--bs-text-opacity)) !important;
+}
+
+/* main style */
+body {
+    overflow-y: scroll;
+}
+header {
+    margin-bottom: 1em;
+}
+main {
+    margin-top: 1em;
+    margin-bottom: 3em;
+}
+footer {
+    border-top: 1px solid lightgrey;
+}
+.font-monospaced {
+    font-family: "Cascadia Mono", var(--bs-font-monospace);
+}
+.hidden {
+    display: none;
+}
+.uproot-formlabel {
+    font-weight: bold;
+    display: block;
+}
+.uproot-formdesc {
+    display: block;
+}
+.form-group {
+    margin-bottom: 1em;
+}
+.form-group ul {
+    list-style-type: none;
+    list-style-position: inside;
+    margin: 0;
+    padding: 0;
+}
+#data {
+    margin-top: 1em;
+    text-align: left;
+}
+/* Class for text in sans-serif font */
+.font-sans-serif {
+    font-family: var(--bs-font-sans-serif);
+}
+/* Class for text in serif font */
+.font-serif {
+    font-family: var(--bs-font-serif);
+}
+input[type="radio"].form-check-input {
+    border-color: var(--bs-gray-500);
+}
+#error-modal {
+    z-index: 9999;
+}
+#uproot-buddy {
+    display: none;
+    position: fixed;
+    left: 2em;
+    bottom: 2em;
+    opacity: 0.9;
+}
+#uproot-buddy img {
+    cursor: pointer;
+}
+#uproot-main-container {
+    margin-bottom: 250px;
+}
+#uproot-timeout {
+    display: none;
+}
+#uproot-timeout #uproot-time-remaining {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+div.without-anchoring-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 100, 255, 0.7);
+    cursor: pointer;
+    z-index: 10;
+}
+.uproot-testing-only {
+    display: none;
+}
+#uproot-testing-button-wrapper {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+}
+#uproot-testing-button-wrapper button {
+    max-width: 96px;
+}
+@media (max-width: 576px) {
+    #uproot-testing-button-wrapper button {
+        display: none;
+    }
+}
+.message-hover:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+}
+.messages-container {
+    height: 280px;
+    overflow-y: scroll;
+}
+.messages-container .sender {
+    font-family: monospace;
+}

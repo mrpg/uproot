@@ -1,0 +1,147 @@
+{% extends "Admin.html" %}
+
+
+{% block title %}
+
+{% translate %}
+Room
+{% endtranslate %}
+<span class="font-monospace">{{ roomname }}</span>
+
+{% endblock title %}
+
+
+{% block main %}
+
+{# TODO: what if sname is set? #}
+
+<h3>{% translate %}New session{% endtranslate %}</h3>
+
+<script>
+    const defaultConfig = uproot.vars.room.config || "";
+</script>
+
+{% include "CreateSession.html" %}
+
+<input type="hidden" name="assignees" id="assignees" value="">
+
+<button type="button" class="btn btn-uproot mt-3" onclick="createSession()">Create session</button>
+
+<h3 class="mt-4">{% translate %}Traces{% endtranslate %}</h3>
+
+<h4>{% translate %}Recently seen{% endtranslate %}</h4>
+
+<p class="mb-0"><i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></p>
+
+<div id="recently-seen"></div>
+
+<h4>{% translate %}Not recently seen{% endtranslate %}</h4>
+<div id="not-recently-seen"></div>
+
+{% endblock main %}
+
+
+{% block late %}
+
+<script>
+    // TODO: init with .online, .info
+
+    const expectedLabels = uproot.vars.room.labels || [];
+    const seen = {};
+    const recent = 30; // TODO: Holger, take the wheel!
+
+    let currentRecentLabels = [];
+
+    function preSubmit() {
+        I("assignees").value = currentRecentLabels.join("|");
+    }
+
+    function createTooltip(element, time) {
+        try {
+            if (window.bootstrap?.Tooltip) {
+                return new window.bootstrap.Tooltip(element, { title: time, placement: "top" });
+            } else {
+                element.setAttribute("title", time);
+                return null;
+            }
+        } catch {
+            element.setAttribute("title", time);
+            return null;
+        }
+    }
+
+    function updateUI() {
+        const now = Date.now();
+        const recentlySeenDiv = document.getElementById('recently-seen');
+        const notRecentlySeenDiv = document.getElementById('not-recently-seen');
+
+        const recentLabels = Object.keys(seen)
+            .filter(label => now - seen[label] <= 1000 * recent)
+            .sort();
+
+        [...document.querySelectorAll(".n-here")].forEach((el) => el.textContent = recentLabels.length);
+
+        if (JSON.stringify(recentLabels) !== JSON.stringify(currentRecentLabels)) {
+            recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
+                const tooltip = window.bootstrap?.Tooltip?.getInstance(element);
+                if (tooltip) tooltip.dispose();
+            });
+
+            recentlySeenDiv.innerHTML = recentLabels
+                .map(label => `<span class="badge bg-success me-1" data-label="${label}">${label}</span>`)
+                .join('');
+
+            recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
+                const label = element.getAttribute('data-label');
+                const time = new Date(seen[label]).toLocaleTimeString();
+                createTooltip(element, time);
+            });
+
+            currentRecentLabels = recentLabels;
+        } else {
+            recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
+                const label = element.getAttribute('data-label');
+                const time = new Date(seen[label]).toLocaleTimeString();
+                const tooltip = window.bootstrap?.Tooltip?.getInstance(element);
+                if (tooltip) {
+                    tooltip.setContent({ '.tooltip-inner': time });
+                }
+            });
+        }
+
+        const notRecentLabels = expectedLabels
+            .filter(label => !recentLabels.includes(label))
+            .sort();
+
+        notRecentlySeenDiv.innerHTML = notRecentLabels
+            .map(label => `<span class="badge bg-secondary me-1">${label}</span>`)
+            .join('');
+    }
+
+    function cleanupOld() {
+        const now = Date.now();
+        Object.keys(seen).forEach(label => {
+            if (now - seen[label] > 1000 * recent) {
+                delete seen[label];
+            }
+        });
+        updateUI();
+    }
+
+    uproot.onStart(() => {
+        uproot.invoke("subscribe_to_attendance", `^${uproot.vars.roomname}`);
+        setInterval(cleanupOld, 1000);
+
+        document.querySelector("label[for='nplayers']").innerHTML += " (<b>#n# recently seen</b>)".replace("#n#", "<span class='n-here'>0</span>");
+    });
+
+    uproot.onCustomEvent("Attended", (event) => {
+        const label = event?.detail?.uname;
+        if (!label) return;
+        seen[label] = Date.now();
+        updateUI();
+    });
+
+</script>
+
+{% endblock late %}

@@ -1,0 +1,36 @@
+{% extends "Admin.html" %}
+
+
+{% block title %}
+
+<div class="d-flex justify-content-between">
+    {% translate %}
+    Waiting rooms (Lobbies)
+    {% endtranslate %}
+    <a class="btn btn-uproot" href="../new_room/">{% translate %}New room{% endtranslate %}</a>
+</div>
+
+{% endblock title %}
+
+
+{% block main %}
+
+<h3 class="mb-3">{% translate %}Existing rooms{% endtranslate %}</h3>
+
+<div class="mb-4" id="rooms-container"></div>
+
+{# TODO: Scheduling of sessions (setting date and start time). #}
+
+
+{% endblock main %}
+
+
+{% block late %}
+
+<script>
+    uproot.onStart(() => {
+        renderRooms(uproot.vars.rooms, "rooms-container");
+    });
+</script>
+
+{% endblock late %}

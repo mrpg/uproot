@@ -1,0 +1,96 @@
+{% extends "Base.html" %}
+{% set buttons = False %}
+
+{% block title %}
+{% translate %}
+Internal Server Error
+{% endtranslate %}
+{% endblock title %}
+
+
+{% block main %}
+
+<p>
+    {% translate %}
+    An internal server error has occurred.
+    {% endtranslate %}
+    {% translate %}
+    Please keep this page open.
+    {% endtranslate %}
+</p>
+
+{# TODO: i18n #}
+
+{% if _uproot_internal.is_admin %}
+
+<div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">
+        <span class="badge bg-danger me-2">{{ exception_type }}</span>
+        Exception
+    </h4>
+    <p class="mb-0">{{ error_message }}</p>
+</div>
+
+<div class="accordion" id="errorAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stackTrace">
+                Stack Trace
+            </button>
+        </h2>
+        <div id="stackTrace" class="accordion-collapse collapse" data-bs-parent="#errorAccordion">
+            <div class="accordion-body">
+                {% for frame in stack_frames %}
+                <div class="card mb-2">
+                    <div class="card-header">
+                        <strong>{{ frame.function }}</strong>
+                        <small class="text-muted">{{ frame.filename }}:{{ frame.lineno }}</small>
+                    </div>
+                    <div class="card-body">
+                        <pre><code>{{ frame.code }}</code></pre>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#localVars">
+                Local Variables
+            </button>
+        </h2>
+        <div id="localVars" class="accordion-collapse collapse" data-bs-parent="#errorAccordion">
+            <div class="accordion-body">
+                <pre><code>{% for name, value in local_vars.items() %}{{ name }} = {{ value }}
+{% endfor %}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fullTraceback">
+                Full Traceback
+            </button>
+        </h2>
+        <div id="fullTraceback" class="accordion-collapse collapse" data-bs-parent="#errorAccordion">
+            <div class="accordion-body">
+                <pre><code>{{ traceback }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+<div class="alert alert-secondary" role="alert">
+    {% translate %}
+    Log in as admin to view more information on this page.
+    {% endtranslate %}
+</div>
+
+{% endif %}
+
+{% endblock main %}

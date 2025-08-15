@@ -1,0 +1,62 @@
+{% extends "Admin.html" %}
+
+
+{% block title %}
+
+{% translate %}
+Dashboard
+{% endtranslate %}
+
+{% endblock title %}
+
+
+{% block main %}
+
+<h3 class="mb-3">
+    {% translate %}
+    Waiting rooms (Lobbies)
+    {% endtranslate %}
+</h3>
+
+<div class="mb-4" id="rooms-container"></div>
+
+<h3 class="mb-3">
+    {% translate %}
+    Active sessions
+    {% endtranslate %}
+</h3>
+
+<div class="mb-4" id="sessions-container"></div>
+
+<h3 class="mb-3 mt-4">
+    {% translate %}
+    Configs
+    {% endtranslate %}
+</h3>
+
+<div class="mb-4" id="configs-container"></div>
+
+<h3 class="mb-3 mt-4">
+    {% translate %}
+    Apps
+    {% endtranslate %}
+</h3>
+
+<div class="mb-4" id="apps-container"></div>
+
+{% endblock main %}
+
+
+{% block late %}
+
+<script>
+    uproot.onStart(() => {
+        // From top to bottom
+        renderRooms(uproot.vars.rooms, "rooms-container");
+        renderSessions(uproot.vars.sessions, "sessions-container");
+        renderConfigsAppsCards(uproot.vars.configs, "configs-container", "configs");
+        renderConfigsAppsCards(uproot.vars.configs, "apps-container", "apps");
+    });
+</script>
+
+{% endblock late %}

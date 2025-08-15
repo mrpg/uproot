@@ -1,0 +1,188 @@
+{% macro errors(field) %}
+    {% if field.errors %}
+        <div class="card text-bg-danger" role="alert">
+            {% for error in field.errors %}
+                <div class="card-body pb-2 pt-2">
+                    <small>{{ error }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro error_class(field) %}{% if field.errors %}alert alert-danger text-black{% endif %}{% endmacro %}
+
+
+{% macro likert_matrix() %}
+    {% set field0 = varargs.0 %}
+    <table class="table w-100">
+        <tr>
+            <td class="border-0"></td>
+            <td colspan="{{ field0.max - field0.min + 1 }}">
+                <div class="d-flex justify-content-between">
+                    <div>{{ field0.label_min }}</div>
+                    <div>{{ field0.label_max }}</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            {% for subfield in field0 %}
+                <td>
+                    {% if field0.render_kw and field0.render_kw.class %}
+                        <div class="{{ field0.render_kw.class }}">
+                    {% else %}
+                        <div class="text-body-tertiary text-center">
+                    {% endif %}
+                    {{ subfield.label(class_="form-check-label me-0") | replace("-", "&minus;") }}
+                    </div>
+                </td>
+            {% endfor %}
+        </tr>
+        {% for field_ in varargs %}
+            <tr>
+                <td class="ps-0">
+                    {{ field_.label(class_="form-label uproot-formlabel") }}
+                    {% if field_.description %}
+                        <small class="form-text text-muted uproot-formdesc">{{ field_.description }}</small>
+                    {% endif %}
+                </td>
+                {% for subfield in field_ %}
+                    <td class="text-center likert-cell" onclick="this.children[0].click()">
+                        {{ subfield(class_="form-check-input") }}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %} 
+    </table>
+{% endmacro %}
+
+
+{% macro field(field) %}
+    <div class="form-group {{ error_class(field) }}">
+    {% if field.type == "BooleanField" %}
+        <div class="form-check">
+            {% set class_list = ["form-check-input"] %}
+            {% if field.render_kw and field.render_kw.class %}
+                {% set _ = class_list.append(field.render_kw.class) %}
+            {% endif %}
+            {{ field(class_=" ".join(class_list)) | safe }}
+            {{ field.label(class_="form-check-label uproot-formlabel") }}
+            {% if field.description %}
+                <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            {% endif %}
+        </div>
+    {% elif field.type == "DecimalRangeField" %}
+        {{ field.label(class_="form-label uproot-formlabel") }}
+        {% set class_list = ["form-range"] %}
+        {% if field.render_kw and field.render_kw.class %}
+            {% set _ = class_list.append(field.render_kw.class) %}
+        {% endif %}
+        {% if not field.anchoring %}
+            {% set _ = class_list.append("without-anchoring") %}
+        {% endif %}
+        {{ field(class_=" ".join(class_list)) | safe }}
+        {% if field.description %}
+            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+        {% endif %}
+    {% elif field.type == "EmailField" %}
+        {{ field.label(class_="form-label uproot-formlabel") }}
+        <div class="form-floating">
+            {% set class_list = ["form-control"] %}
+            {% if field.render_kw and field.render_kw.class %}
+                {% set _ = class_list.append(field.render_kw.class) %}
+            {% endif %}
+            {{ field(class_=" ".join(class_list)) | safe }}
+            <label class="pb-0 pt-2 text-body-tertiary bg-transparent">E-Mail</label>
+        </div>
+        {% if field.description %}
+            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+        {% endif %}
+    {% elif field.type == "LikertField" %}
+        {{ field.label(class_="form-label uproot-formlabel") }}
+        <table class="table w-100">
+            <tr>
+                <td class="w-10"></td>
+                {% for subfield in field %}
+                    <td class="text-center w-auto">
+                        {% if field.render_kw and field.render_kw.class %}
+                            <div class="{{ field.render_kw.class }}">
+                        {% else %}
+                            <div class="text-body-tertiary">
+                        {% endif %}
+                            {{ subfield.label(class_="form-check-label me-0") | replace("-", "&minus;") }}
+                        </div>
+                    </td>
+                {% endfor %}
+                <td class="w-10"></td>
+            </tr>
+            <tr>
+                <td class="text-end pe-3 ps-0">{{ field.label_min }}</td>
+                {% for subfield in field %}
+                    <td class="text-center likert-cell" onclick="this.children[0].click()">
+                        {{ subfield(class_="form-check-input") }}
+                    </td>
+                {% endfor %}
+                <td class="text-start pe-0 ps-3">{{ field.label_max }}</td>
+            </tr>
+        </table>
+        {% if field.description %}
+            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+        {% endif %}
+    {% elif field.type == "RadioField" %}
+        {{ field.label(class_="form-label uproot-formlabel") }}
+        {% for subfield in field %}
+            {% set div_class_list = ["form-check"] %}
+            {% if field.render_kw and field.render_kw.class %}
+                {% set _ = div_class_list.append(field.render_kw.class) %}
+            {% endif %}
+            <div class="{{ " ".join(div_class_list) }}">
+                {{ subfield(class_="form-check-input") }}
+                {{ subfield.label(class_="form-check-label") }}
+            </div>
+        {% endfor %}
+        {% if field.description %}
+            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+        {% endif %}
+    {% elif field.type == "SelectField" %}
+        {{ field.label(class_="form-label uproot-formlabel") }}
+        {% set class_list = ["form-select"] %}
+        {% if field.render_kw and field.render_kw.class %}
+            {% set _ = class_list.append(field.render_kw.class) %}
+        {% endif %}
+        {{ field(class_=" ".join(class_list)) | safe }}
+        {% if field.description %}
+            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+        {% endif %}
+    {% elif field.type == "StringField" or field.type == "TextAreaField" %}
+        {{ field.label(class_="form-label uproot-formlabel") }}
+        <div class="form-floating">
+            {% set class_list = ["form-control"] %}
+            {% if field.render_kw and field.render_kw.class %}
+                {% set _ = class_list.append(field.render_kw.class) %}
+            {% endif %}
+            {{ field(class_=" ".join(class_list)) | safe }}
+            <label class="pb-0 pt-2 text-body-tertiary bg-transparent">Text</label>
+        </div>
+        {% if field.description %}
+            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+        {% endif %}
+    {% else %}
+        {# DateField, FileField, IntegerField, DecimalField #}
+        {{ field.label(class_="form-label uproot-formlabel") }}
+        {% set class_list = ["form-control"] %}
+        {% if field.render_kw and field.render_kw.class %}
+            {% set _ = class_list.append(field.render_kw.class) %}
+        {% endif %}
+        {{ field(class_=" ".join(class_list)) | safe }}
+        {% if field.description %}
+            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+        {% endif %}
+    {% endif %}
+    {{ errors(field) }}
+    </div>
+{% endmacro %}
+
+
+{# Reminder for potential filter: {{ x | default("") }} #}

@@ -1,0 +1,22 @@
+{% extends "Admin.html" %}
+
+{% block title %}
+
+{% translate %}
+New session
+{% endtranslate %}
+
+{% endblock title %}
+
+
+{% block main %}
+
+<script>
+    const defaultConfig = uproot.getParam("config");
+</script>
+
+{% include "CreateSession.html" %}
+
+<button type="button" class="btn btn-uproot mt-3" onclick="createSession()">Create session</button>
+
+{% endblock main %}

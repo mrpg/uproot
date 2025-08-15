@@ -1,0 +1,128 @@
+{% extends "Admin.html" %}
+
+{% block title %}
+{% translate %}
+Session
+{% endtranslate %}
+<a href="../" class="font-monospace link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover">{{ sname }}</a>
+<span class="fw-light text-secondary">> {% translate %}
+Download data
+{% endtranslate %}</span>
+{% endblock title %}
+
+
+{% block main3 %}
+
+<form method="GET" action="../data/" target="_blank">
+    <h3 class="mb-3">
+        {% translate %}
+        Select format
+        {% endtranslate %}
+    </h3>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="format" id="option1" value="ultralong">
+        <label class="form-check-label" for="option1">{% translate %}Ultra Long{% endtranslate %}</label>
+        <div class="form-text">
+            {% translate %}
+            Raw event log where every single change to any field becomes its own row.
+            {% endtranslate %}
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="format" id="option2" value="sparse">
+        <label class="form-check-label" for="option2">{% translate %}Sparse{% endtranslate %}</label>
+        <div class="form-text">
+            {% translate %}
+            Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.
+            {% endtranslate %}
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="format" id="option3" value="latest">
+        <label class="form-check-label" for="option3">{% translate %}Latest{% endtranslate %}</label>
+        <div class="form-text">
+            {% translate %}
+            One row per player showing their final state: just the last/current value of every field.
+            {% endtranslate %}
+        </div>
+    </div>
+
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="format" id="option4" value="latest">
+        <label class="form-check-label" for="option4">{% translate %}Latest &times; Field(s){% endtranslate %}</label>
+        <div class="form-text">
+            {% translate %}
+            One row per player per specified grouping (like per round): shows what each participant's state was at the end of each round, condition, or other grouping you specify.
+            {% endtranslate %}
+        </div>
+    </div>
+
+    <div id="customInputs" class="mb-4" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">{% translate %}Grouping variables{% endtranslate %}</h6>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="addInput">
+                <i class="bi bi-plus"></i> {% translate %}Add grouping variable{% endtranslate %}
+            </button>
+        </div>
+
+        <div id="inputContainer">
+            <div class="input-group mb-2">
+                <input type="text" class="form-control" name="gvar" placeholder="{% translate %}e.g., round{% endtranslate %}">
+                <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <input type="text" name="filetype" value="csv" class="d-inline-block form-control me-3 w-auto">
+        <button type="submit" class="btn btn-uproot">{% translate %}Submit{% endtranslate %}</button>
+    </div>
+</form>
+
+{% endblock main3 %}
+
+
+{% block late %}
+
+<script>
+    const option4 = document.getElementById("option4");
+    const customInputs = document.getElementById("customInputs");
+    const addButton = document.getElementById("addInput");
+    const inputContainer = document.getElementById("inputContainer");
+
+    document.querySelectorAll("input[name='format']").forEach(radio => {
+        radio.addEventListener("change", () => {
+            if (option4.checked) {
+                customInputs.style.display = "block";
+            } else {
+                customInputs.style.display = "none";
+                document.querySelectorAll("input[name='gvar']").forEach(input => {
+                    input.value = "";
+                });
+            }
+        });
+    });
+
+    addButton.addEventListener("click", () => {
+        const inputGroup = document.createElement("div");
+        inputGroup.className = "input-group mb-2";
+        inputGroup.innerHTML = `
+            <input type="text" class="form-control" name="gvar">
+            <button type="button" class="btn btn-outline-danger remove-input">${_("Remove")}</button>
+        `;
+        inputContainer.appendChild(inputGroup);
+    });
+
+    inputContainer.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-input")) {
+            if (inputContainer.children.length > 1) {
+                e.target.parentElement.remove();
+            }
+        }
+    });
+</script>
+
+{% endblock late %}
