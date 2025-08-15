@@ -9,7 +9,7 @@
 Run this from within a Python venv:
 
 ```console
-(env) you@computer:~$ pip install -U 'uproot-science[dev] @  https://github.com/mrpg/uproot/archive/master.zip'
+(env) you@computer:~$ pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
 ```
 
 Then, you may do:
