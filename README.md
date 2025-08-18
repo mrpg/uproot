@@ -18,7 +18,7 @@ We are working on producing the first alpha version (0.0.1), and invite you to j
 Run this from within a Python venv:
 
 ```console
-pip install -U 'uproot-science[dev] @  https://github.com/mrpg/uproot/archive/master.zip'
+pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
 ```
 
 Then, you may do:
