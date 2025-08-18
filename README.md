@@ -1,29 +1,40 @@
 # uproot
 
-*uproot* is a modern experimental framework built on FastAPI. We are working on producing the first alpha version (0.0.1), and invite you to join us. *uproot* is 100% [Free/Libre Open Source Software](https://en.wikipedia.org/wiki/Free_and_open-source_software), and contains only unencumbered code.
+## About
 
-**NOTE**: This repository contains a *pre-alpha version* -- **DO NOT USE IN PRODUCTION**.
+*uproot* is a modern software framework for developing and conducting browser-based behavioral experiments. This includes studies with hundreds of participants such as large-scale surveys and experiments with real-time interaction between the participants.
 
-# Getting started
+*uproot* is 100% [Free/Libre Open Source Software](https://en.wikipedia.org/wiki/Free_and_open-source_software), and contains only unencumbered code.
+
+We are working on producing the first alpha version (0.0.1), and invite you to join us.
+
+***Note: This repository contains a pre-alpha version—DO NOT USE IN PRODUCTION.**
+
+
+## Getting started
+
+### Installing uproot via the command line
 
 Run this from within a Python venv:
 
 ```console
-(env) you@computer:~$ pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
+pip install -U 'uproot-science[dev] @  https://github.com/mrpg/uproot/archive/master.zip'
 ```
 
 Then, you may do:
 
 ```console
-(env) you@computer:~$ uproot setup my_project
+uproot setup my_project
 ```
 
 The resulting output shows you how to proceed. Have fun!
 
-PS: Example apps may be found [here](https://github.com/mrpg/uproot-examples).
+### Example apps
 
-# License
+Example apps may be found [here](https://github.com/mrpg/uproot-examples).
 
-*uproot* is licensed under the GNU LGPL version 3.0, or, at your option, any later version. Among other things, that means: (1) there is no warranty; (2) changes to uproot's core are automatically licensed under the LGPL as well, (3) you are free to license your own experiments under whatever license you deem appropriate, or no license at all.
+## License
+
+*uproot* is licensed under the GNU LGPL version 3.0, or, at your option, any later version. Among other things, that means: (1) there is no warranty; (2) changes to uproot’s core are automatically licensed under the LGPL as well, (3) you are free to license your own experiments under whatever license you deem appropriate, or no license at all.
 
 © [Max R. P. Grossmann](https://max.pm/), [Holger Gerhardt](https://www.econ.uni-bonn.de/iame/en/team/gerhardt), et al., 2025. A full alphabetical overview of contributors may be viewed [here](CONTRIBUTORS).
