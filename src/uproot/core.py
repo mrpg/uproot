@@ -142,6 +142,7 @@ def initialize_player(
         player.page_order = u.CONFIGS_PPATHS[config]
         player._uproot_adminchat = None
         player._uproot_dropout = False
+        player._uproot_group = None
         player._uproot_session = t.SessionIdentifier(pid.sname)
         player._uproot_timeouts_until = dict()
 

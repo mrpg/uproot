@@ -160,7 +160,9 @@ def here(
 
 async def mkgroup(sname: Sessionname, show_page: int, group_size: int) -> None:
     while True:
-        same_page = [pid for pid in here(sname, show_page) if pid().group is None]
+        same_page = [
+            pid for pid in here(sname, show_page) if pid()._uproot_group is None
+        ]
 
         if len(same_page) == 0:
             return

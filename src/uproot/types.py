@@ -553,8 +553,8 @@ class GroupCreatingWait(InternalPage):
 
             ungrouped = [
                 pid
-                for pid in here(player._uproot_session.name, player.show_page)
-                if pid().group is None
+                for pid in here(player._uproot_session, player.show_page)
+                if pid()._uproot_group is None
             ]
 
             return "wait", len(ungrouped) / page.group_size
@@ -594,9 +594,9 @@ class SynchronizingWait(InternalPage):
     @classmethod
     def wait_for(page, player: "Storage") -> list[PlayerIdentifier]:
         if page.synchronize == "group":
-            s = player._uproot_group()
+            s = player.group
         elif page.synchronize == "session":
-            s = player._uproot_session()
+            s = player.session
         else:
             raise NotImplementedError
 
@@ -608,7 +608,7 @@ class SynchronizingWait(InternalPage):
         from uproot.jobs import here
 
         wf = page.wait_for(player)
-        h = here(player._uproot_session.name, player.show_page, wf, False)
+        h = here(player._uproot_session, player.show_page, wf, False)
 
         if len(h) == len(wf):
             return "submit", 1
@@ -632,7 +632,7 @@ class SynchronizingWait(InternalPage):
                         group=group,
                     )
             elif page.synchronize == "session":
-                session = player._uproot_session()
+                session = player.session
 
                 with session:
                     await optional_call_once(
