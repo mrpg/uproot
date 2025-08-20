@@ -100,6 +100,9 @@ async def render(
     if context is None:
         context = dict()
 
+    if context_nojson is None:
+        context_nojson = dict()
+
     context |= dict(
         language=d.LANGUAGE,
         root=d.ROOT,
