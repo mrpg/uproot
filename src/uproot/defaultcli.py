@@ -58,6 +58,8 @@ def setup(
 
         click.echo("📂 A new project has been created in '" + path + "'.")
         click.echo("✅ 'main.py' and some other files have been written.")
+        click.echo("⬇️  Go to the new project directory by running")
+        click.echo("\tcd " + path)
         click.echo("🔍 Get started by reading 'main.py'.")
         click.echo("🚀 Then you may run this project using")
         click.echo("\tpython main.py run")
@@ -65,6 +67,7 @@ def setup(
         click.echo("📰 The following commands provide additional information:")
         click.echo("\tpython main.py --help")
         click.echo("\tpython main.py run --help")
+        click.echo("🤯 Help, docs & code can be found at https://uproot.science/")
 
 
 if __name__ == "__main__":
