@@ -5,6 +5,7 @@
 # the Storage instance is "below" or "a member of" the entity being
 # created, initialized, and so on.
 
+import importlib.metadata
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence
 
 import uproot as u
@@ -50,6 +51,10 @@ def create_session(
         session.groups = list()
         session.models = list()
         session.players = list()
+        session.packages = {
+            dist.metadata["name"]: dist.version
+            for dist in importlib.metadata.distributions()
+        }
         session._uproot_session = ~session
 
         admin.sessions.append(sname)
