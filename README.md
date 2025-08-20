@@ -21,6 +21,12 @@ Run this from within a Python venv:
 pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
 ```
 
+**If this does not work, try**:
+
+```console
+pip install -U 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main'
+```
+
 Then, you may do:
 
 ```console
