@@ -9,6 +9,7 @@ This file implements admin routes.
 
 import asyncio
 import builtins
+import importlib.metadata
 import os
 from itertools import zip_longest
 from random import shuffle
@@ -36,6 +37,7 @@ from fastapi.responses import (
 )
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 from pydantic import validate_call
+from sortedcontainers import SortedDict
 
 import uproot as u
 import uproot.admin as a
@@ -90,7 +92,11 @@ async def auth_required(request: Request):
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
 
 
-async def render(ppath: str, context: Optional[dict[str, Any]] = None) -> str:
+async def render(
+    ppath: str,
+    context: Optional[dict[str, Any]] = None,
+    context_nojson: Optional[dict[str, Any]] = None,
+) -> str:
     if context is None:
         context = dict()
 
@@ -99,7 +105,7 @@ async def render(ppath: str, context: Optional[dict[str, Any]] = None) -> str:
         root=d.ROOT,
     )
 
-    full_context = (
+    intermediate_context = (
         context
         | BUILTINS
         | dict(
@@ -111,7 +117,9 @@ async def render(ppath: str, context: Optional[dict[str, Any]] = None) -> str:
         )
     )
 
-    return await ENV.get_template(ppath).render_async(**full_context)
+    return await ENV.get_template(ppath).render_async(
+        **(intermediate_context | context_nojson)
+    )
 
 
 @router.get("/logout/")
@@ -200,8 +208,14 @@ async def status(
     return HTMLResponse(
         await render(
             "ServerStatus.html",
+            None,
             dict(
-                sessions=[],
+                packages=SortedDict(
+                    {
+                        dist.metadata["name"]: dist.version
+                        for dist in importlib.metadata.distributions()
+                    }
+                ).items(),
             ),
         )
     )

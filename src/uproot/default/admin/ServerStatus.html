@@ -15,13 +15,31 @@ Server status
 <p class="text-danger fw-bold">Not yet implemented (TODO)</p>
 
 <p>
-    <ul>
-        <li>Current size of the database?</li>
-        <li>Installed uproot version!</li>
-        <li>Info about the most recent version?</li>
-        <li>All installed packages and their versions.</li>
-    </ul>
+<ul>
+    <li>Current size of the database?</li>
+    <li>Installed uproot version!</li>
+    <li>Info about the most recent version?</li>
+</ul>
 </p>
+
+<h3>{% translate %}Installed packages{% endtranslate %}</h3>
+
+<table class="table table-hover table-sm">
+    <thead>
+        <tr>
+            <th scope="col">{% translate %}Package{% endtranslate %}</th>
+            <th scope="col">{% translate %}Version{% endtranslate %}</th>
+        </tr>
+    </thead>
+    <tbody class="font-monospace">
+        {% for pkg, version in packages %}
+        <tr {% if pkg=="uproot-science" %} class="table-active" {% endif %}>
+            <td>{{ pkg }}</td>
+            <td>{{ version }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock main %}
 
