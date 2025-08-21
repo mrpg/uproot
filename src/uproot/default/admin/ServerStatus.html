@@ -22,7 +22,22 @@ Server status
 </ul>
 </p>
 
-<h3>{% translate %}Installed packages{% endtranslate %}</h3>
+<h3>{% translate %}Download database dump{% endtranslate %}</h3>
+
+<p class="text-muted">
+    {% translate %}
+    This is a complete machine-readable record of all data. It may be re-imported using
+    <code>python main.py restore</code>.
+    {% endtranslate %}
+</p>
+
+<a class="btn btn-lg btn-uproot" href="../dump/">
+    {% translate %}
+    Download
+    {% endtranslate %}
+</a>
+
+<h3 class="mt-5">{% translate %}Installed packages{% endtranslate %}</h3>
 
 <p class="text-muted">
     {% translate %}
