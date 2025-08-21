@@ -55,6 +55,7 @@ def create_session(
             dist.metadata["name"]: dist.version
             for dist in importlib.metadata.distributions()
         }
+        session._uproot_secret = t.token_unchecked(8)
         session._uproot_session = ~session
 
         admin.sessions.append(sname)

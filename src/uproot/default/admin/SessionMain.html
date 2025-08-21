@@ -35,11 +35,13 @@ Session
         <div class="col-6">
             <h5 class="mb-3">{% translate %}Description{% endtranslate %}</h5>
             <p>{{ description }}</p>
-            <p><a class="btn btn-sm btn-uproot disabled" href="....../">Change description</a> <span class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+            <p><a class="btn btn-sm btn-uproot disabled" href="....../">Change description</a> <span
+                    class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
             <h5 class="mb-3 mt-4">{% translate %}Players{% endtranslate %}</h5> {# TODO #}
             <p>Total: {{ len(info) }}</p>
-            <p>Started: <span class="text-danger fw-bold">Not yet implemented</span></p>  {# TODO #}
-            <p class="mb-0"><a class="btn btn-sm btn-uproot disabled" href="....../">Add players</a> <span class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+            <p>Started: <span class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+            <p class="mb-0"><a class="btn btn-sm btn-uproot disabled" href="....../">Add players</a> <span
+                    class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
         </div>
         <div class="col-6">
             <h5 class="mb-3">{% translate %}Actions{% endtranslate %}</h5> {# TODO #}
@@ -47,7 +49,8 @@ Session
             <p><a class="btn btn-uproot" href="monitor/">Monitor</a></p>
             <p><a class="btn btn-uproot" href="multiview/" target="_blank">Multiview</a></p>
             <p><a class="btn btn-uproot" href="selectdata/">Download data</a></p>
-            <p class="mb-0 mt-4"><a class="btn btn-danger disabled" href="....../">Set inactive</a> <span class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+            <p class="mb-0 mt-4"><a class="btn btn-danger disabled" href="....../">Set inactive</a> <span
+                    class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
         </div>
     </div>
 </div>
@@ -57,18 +60,25 @@ Session
         <h4 class="mt-2">{% translate %}Player URLs{% endtranslate %}</h4>
     </div>
     <div class="card-body">
+        {% if not secret is none %}
         <p>{% translate %}The general player URL for accessing this session is{% endtranslate %}:</p>
         <ul>
             <li>
-                <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="../../../p/{{ sname }}/" target="_blank">{{ root }}/p/{{ sname }}/</a>
-                <span class="text-danger fw-bold">Not yet implemented/dubious if desirable</span> {# TODO #}
+                <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover"
+                    href="../../../s/{{ sname }}/{{ secret }}/" target="_blank">
+                    {{ root }}/s/{{ sname }}/{{ secret}}/
+                </a>
             </li>
         </ul>
+        {% endif %}
+
         {% if len(info) > 0 %}
         <p>{% translate %}The individual player URLs for accessing this session are{% endtranslate %}</p>
         <ol class="mb-2">
             {% for key in info %}
-            <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a></li>
+            <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+                    href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a>
+            </li>
             {% endfor %}
         </ol>
         {% endif %}

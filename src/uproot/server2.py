@@ -476,19 +476,19 @@ async def sessionmain(
 ) -> Response:
     session_exists(sname)
 
-    description = None
-
-    # TODO: Remove this, as all sessions now have a .description
     with Session(sname) as session:
-        try:
-            description = session.description
-        except Exception:
-            pass
+        description = session.get("description")
+        secret = session.get("_uproot_secret")
 
     return HTMLResponse(
         await render(
             "SessionMain.html",
-            dict(sname=sname, description=description) | a.info_online(sname),
+            dict(
+                sname=sname,
+                description=description,
+                secret=secret,
+            )
+            | a.info_online(sname),
         )
     )
 

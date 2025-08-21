@@ -135,6 +135,7 @@ async def roommain(
                     request,
                     None,
                     path2page("RoomFull.html"),
+                    metadata=dict(called_from="room"),
                 ),
                 status_code=423,
             )

@@ -43,7 +43,15 @@ from uproot.pages import (
     validate,
     verify_csrf,
 )
-from uproot.storage import Player, Session, Storage
+from uproot.storage import (
+    Admin,
+    Player,
+    Session,
+    Storage,
+    field_from_paths,
+    mkpath,
+    mktrail,
+)
 
 router = APIRouter(prefix=d.ROOT)
 
@@ -275,6 +283,70 @@ def nocache(response: Response) -> None:
     response.headers["X-Accel-Expires"] = "0"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-Content-Type-Options"] = "nosniff"
+
+
+def session_exists(sname: t.Sessionname) -> None:
+    # TODO: DRY violation with server3.py, but admin.py does not concern itself with
+    # HTTPExceptions, so cannot be easily moved there
+
+    with Admin() as admin:
+        if sname not in admin.sessions:
+            raise HTTPException(status_code=400, detail="Invalid session")
+
+
+@router.get("/s/{sname}/{secret}/")
+async def general(
+    request: Request,
+    sname: t.Sessionname,
+    secret: str,
+) -> RedirectResponse:
+    # Verify sname and secret
+    session_exists(sname)
+
+    with Session(sname) as session:
+        if not secret == session._uproot_secret:
+            raise HTTPException(status_code=401)
+
+        pids = session.players
+
+    paths = [
+        mkpath("player", sname, uname) for sname, uname in pids
+    ]  # This has players in order
+    all_started = field_from_paths(paths, "started")
+
+    free_uname = None
+
+    for path in paths:
+        dbfield = f"{path}:started"
+
+        if not dbfield in all_started or all_started[dbfield].unavailable:
+            # Should not be possible, but skip if it happens
+            pass
+        elif all_started[dbfield].data:
+            # This player has started, so also skip
+            pass
+        else:
+            _, _, free_uname, _ = mktrail(dbfield)
+            break
+
+    # Redirect to player
+    if free_uname is None:
+        # Session is full, so to speak
+        return HTMLResponse(
+            await render(
+                request.app,
+                request,
+                None,
+                path2page("RoomFull.html"),
+                metadata=dict(called_from="session"),
+            ),
+            status_code=423,
+        )
+    else:
+        with Player(sname, free_uname) as p:
+            p.started = True  # This prevents race conditions
+
+        return RedirectResponse(f"{d.ROOT}/p/{sname}/{free_uname}/", status_code=303)
 
 
 @router.get("/p/{sname}/{uname}/")
