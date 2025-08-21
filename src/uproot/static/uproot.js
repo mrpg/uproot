@@ -191,9 +191,9 @@ window.uproot = {
     },
 
     api(endpoint, data = null) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const futid = this.uuid();
-            this.futStore[futid] = resolve;
+            this.futStore[futid] = { resolve, reject };
 
             this.ws.send(JSON.stringify({
                 endpoint: endpoint,
@@ -260,7 +260,13 @@ window.uproot = {
 
         if (kind == "invoke" && "future" in payload) {
             const fut = this.futStore[payload.future];
-            fut(payload.data);
+
+            if (!payload.error) {
+                fut.resolve(payload.data);
+            }
+            else {
+                fut.reject(new Error("Server-side Exception occurred"));
+            }
 
             delete this.futStore[payload.future];
         }

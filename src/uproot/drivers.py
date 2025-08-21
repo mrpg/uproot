@@ -5,7 +5,6 @@
 This file exposes an internal API that end users MUST NOT rely upon. Rely upon storage.py instead.
 """
 
-import os
 import sqlite3
 import threading
 from abc import ABC

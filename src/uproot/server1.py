@@ -8,6 +8,7 @@ This file implements player routes.
 import asyncio
 import hashlib
 import os.path
+import traceback
 from datetime import datetime, timezone
 from email.utils import formatdate, parsedate_to_datetime
 from pathlib import Path
@@ -456,6 +457,7 @@ async def ws(
                     e.set_attendance(pid)
                     invoke_respond = True
                     invoke_response = None
+                    invoke_exception = False
 
                     session = Session(sname)
 
@@ -485,19 +487,23 @@ async def ws(
                                 ppath = show2path(player.page_order, player.show_page)
                                 page = path2page(ppath)
 
-                                live_method = getattr(page, mname)
+                                try:
+                                    live_method = getattr(page, mname)
 
-                                if not hasattr(live_method, "__live__"):
-                                    d.LOGGER.error(
-                                        f"{live_method} must be decorated with @live"
-                                    )
-                                    invoke_respond = False
-                                else:
-                                    invoke_response = await live_method(
-                                        player,
-                                        *margs,
-                                        **mkwargs,
-                                    )
+                                    if not hasattr(live_method, "__live__"):
+                                        raise TypeError(
+                                            f"{live_method} must be decorated with @live"
+                                        )
+                                    else:
+                                        invoke_response = await live_method(
+                                            player,
+                                            *margs,
+                                            **mkwargs,
+                                        )
+                                except Exception as _e:
+                                    traceback.print_exc()
+                                    invoke_exception = True
+
                             case {"endpoint": "chat_add", "payload": payload} if (
                                 len(payload) == 2
                                 and isinstance(payload[0], str)
@@ -564,6 +570,7 @@ async def ws(
                                 payload=dict(
                                     data=invoke_response,
                                     future=result["future"],
+                                    error=invoke_exception,
                                 ),
                             )
                         )
