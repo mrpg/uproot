@@ -17,9 +17,37 @@ Server status
 <p>
 <ul>
     <li>Current size of the database?</li>
-    <li>Info about the most recent version?</li>
 </ul>
 </p>
+
+<h3 class="mt-5">{% translate %}uproot version{% endtranslate %}</h3>
+
+<p>
+    {% translate %}
+    You are currently running uproot {{ versions.uproot }}.
+    {% endtranslate %}
+</p>
+
+<button type="button" class="btn btn-lg btn-success" onclick="announcements()">
+    {% translate %}
+    Check for important annoucements
+    {% endtranslate %}
+</button>
+
+<h3 class="mt-5">{% translate %}Python version{% endtranslate %}</h3>
+
+<p class="font-monospace">{{ versions.python }}</p>
+
+<h3 class="mt-5">{% translate %}Database{% endtranslate %}</h3>
+
+<table class="table w-50">
+    <tbody>
+        <tr>
+            <th scope="row">{% translate %}Database driver{% endtranslate %}</th>
+            <td class="font-monospace">{{ deployment.DATABASE.__class__.__name__ }}</td>
+        </tr>
+    </tbody>
+</table>
 
 <h3 class="mt-5">{% translate %}Download database dump{% endtranslate %}</h3>
 
@@ -35,14 +63,6 @@ Server status
     Download
     {% endtranslate %}
 </a>
-
-<h3 class="mt-5">{% translate %}Python version{% endtranslate %}</h3>
-
-<p class="font-monospace">{{ versions.python }}</p>
-
-<h3 class="mt-5">{% translate %}uproot version{% endtranslate %}</h3>
-
-<p class="font-monospace">{{ versions.uproot }}</p>
 
 <h3 class="mt-5">{% translate %}Installed packages{% endtranslate %}</h3>
 
@@ -73,5 +93,75 @@ Server status
 
 
 {% block late %}
+
+<script>
+    function parseVersion(versionString) {
+        return versionString.split(".").map(Number);
+    }
+
+    function isCurrentVersion(currentVersion, requiredVersion) {
+        const current = Array.isArray(currentVersion) ? currentVersion : parseVersion(currentVersion);
+        const required = Array.isArray(requiredVersion) ? requiredVersion : parseVersion(requiredVersion);
+
+        for (let i = 0; i < Math.max(current.length, required.length); i++) {
+            const c = current[i] || 0;
+            const r = required[i] || 0;
+            if (c > r) return true;
+            if (c < r) return false;
+        }
+
+        return true;
+    }
+
+    function announcements() {
+        const i_am = parseVersion(uproot.vars.versions.uproot);
+
+        uproot.invoke("announcements").then((data) => {
+            const recommended = parseVersion(data.recommendedVersion);
+            let safeHTML = "<p>";
+
+            safeHTML += _("You are running version #i_am#. The current version is #recommended#.")
+                .replace("#i_am#", uproot.escape(uproot.vars.versions.uproot))
+                .replace("#recommended#", uproot.escape(data.recommendedVersion));
+
+            safeHTML += "</p>";
+
+            if (data.generalAnnouncement !== null) {
+                safeHTML += `<div class="alert alert-success" role="alert">
+                                 <b>${_("General announcement")}</b>: 
+                                 ${uproot.escape(data.generalAnnouncement)}
+                             </div>`;
+            }
+
+            if (isCurrentVersion(i_am, recommended)) {
+                if (!data.announcements.hasOwnProperty(uproot.vars.versions.uproot)) {
+                    safeHTML += "<p><i>";
+                    safeHTML += _("Your version appears to be up to date.");
+                    safeHTML += "</i></p>";
+                }
+                else {
+                    safeHTML += '<p class="alert alert-danger" role="alert">';
+                    safeHTML += `<b>${_("Announcement for your version")}</b>: `;
+                    safeHTML += uproot.escape(data.announcements[uproot.vars.versions.uproot]);
+                    safeHTML += "</p>";
+                }
+            }
+            else {
+                safeHTML += "<p><b>";
+                safeHTML += _("Your version is outdated. Please update as soon as possible.");
+                safeHTML += "</b></p>";
+
+                if (data.announcements.hasOwnProperty(uproot.vars.versions.uproot)) {
+                    safeHTML += '<p class="alert alert-danger" role="alert">';
+                    safeHTML += `<b>${_("Announcement for your version")}</b>: `;
+                    safeHTML += uproot.escape(data.announcements[uproot.vars.versions.uproot]);
+                    safeHTML += "</p>";
+                }
+            }
+
+            uproot.alert(safeHTML);
+        });
+    }
+</script>
 
 {% endblock late %}

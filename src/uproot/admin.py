@@ -5,6 +5,7 @@ import asyncio
 from itertools import chain
 from typing import Any, AsyncGenerator, Callable, Iterator, Optional
 
+import aiohttp
 from sortedcontainers import SortedDict
 
 import uproot as u
@@ -64,6 +65,16 @@ async def advance_by_one(
                 )
 
     return info_online(sname)
+
+
+async def announcements() -> dict[str, Any]:
+    ANNOUNCEMENTS_URL = (
+        "https://raw.githubusercontent.com/mrpg/uproot/refs/heads/main/info.json"
+    )
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(ANNOUNCEMENTS_URL) as response:
+            return await response.json(content_type="text/plain")
 
 
 def config_summary(cname: str) -> str:

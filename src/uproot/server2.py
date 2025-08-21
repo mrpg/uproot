@@ -212,18 +212,20 @@ async def status(
     return HTMLResponse(
         await render(
             "ServerStatus.html",
-            None,
             dict(
+                versions=dict(
+                    uproot=u.__version__,
+                    python=sys.version,
+                ),
+            ),
+            dict(
+                deployment=d,
                 packages=SortedDict(
                     {
                         dist.metadata["name"]: dist.version
                         for dist in importlib.metadata.distributions()
                     }
                 ).items(),
-                versions=dict(
-                    uproot=u.__version__,
-                    python=sys.version,
-                ),
             ),
         )
     )
@@ -707,4 +709,5 @@ FUNS = dict(
     mark_dropout=a.mark_dropout,
     adminmessage=a.adminmessage,
     viewdata=a.viewdata,
+    announcements=a.announcements,
 )
