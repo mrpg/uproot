@@ -40,8 +40,8 @@ if DBENV == "sqlite3":
         os.getenv("UPROOT_SQLITE3", "uproot.sqlite3"), TBLEXTRA
     )
 elif DBENV == "memory":
-    DATABASE = uproot.drivers.InMemory()
-    # LOGGER.warning("Using InMemory() database driver. Data will not persist.")
+    DATABASE = uproot.drivers.Memory()
+    # LOGGER.warning("Using Memory() database driver. Data will not persist.")
 elif DBENV == "postgresql":
     DATABASE = uproot.drivers.PostgreSQL(os.getenv("UPROOT_POSTGRESQL", ""), TBLEXTRA)
 else:

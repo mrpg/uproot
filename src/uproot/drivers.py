@@ -198,7 +198,7 @@ class DBDriver(ABC):
             self.reset()
 
 
-class InMemory(DBDriver):
+class Memory(DBDriver):
     """High-performance in-memory implementation with optimized data structures."""
 
     def __init__(self) -> None:
