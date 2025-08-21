@@ -363,7 +363,7 @@ class Storage:
             )
 
     def __getattribute__(self, name: str) -> Any:
-        if name in ("name", "_cache_ref", "flush") or (
+        if name in ("name", "_cache_ref", "flush", "get") or (
             name.startswith("__") and name.endswith("__")
         ):
             return object.__getattribute__(self, name)
@@ -443,6 +443,12 @@ class Storage:
         if len(self.__trail__) == 1:
             return f"{self.__trail__[0].capitalize()}()"
         return f"{self.__trail__[0].capitalize()}(*{repr(self.__trail__[1:])})"
+
+    def get(self, name: str, default: Any = None) -> Any:
+        try:
+            return getattr(self, name)
+        except AttributeError:
+            return default
 
 
 def Admin() -> Storage:
