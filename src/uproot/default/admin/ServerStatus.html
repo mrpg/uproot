@@ -17,12 +17,11 @@ Server status
 <p>
 <ul>
     <li>Current size of the database?</li>
-    <li>Installed uproot version!</li>
     <li>Info about the most recent version?</li>
 </ul>
 </p>
 
-<h3>{% translate %}Download database dump{% endtranslate %}</h3>
+<h3 class="mt-5">{% translate %}Download database dump{% endtranslate %}</h3>
 
 <p class="text-muted">
     {% translate %}
@@ -36,6 +35,14 @@ Server status
     Download
     {% endtranslate %}
 </a>
+
+<h3 class="mt-5">{% translate %}Python version{% endtranslate %}</h3>
+
+<p class="font-monospace">{{ versions.python }}</p>
+
+<h3 class="mt-5">{% translate %}uproot version{% endtranslate %}</h3>
+
+<p class="font-monospace">{{ versions.uproot }}</p>
 
 <h3 class="mt-5">{% translate %}Installed packages{% endtranslate %}</h3>
 

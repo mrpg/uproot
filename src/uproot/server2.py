@@ -11,6 +11,7 @@ import asyncio
 import builtins
 import importlib.metadata
 import os
+import sys
 from itertools import zip_longest
 from random import shuffle
 from time import perf_counter as now
@@ -219,6 +220,10 @@ async def status(
                         for dist in importlib.metadata.distributions()
                     }
                 ).items(),
+                versions=dict(
+                    uproot=u.__version__,
+                    python=sys.version,
+                ),
             ),
         )
     )
