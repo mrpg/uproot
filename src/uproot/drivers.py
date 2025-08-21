@@ -5,10 +5,11 @@
 This file exposes an internal API that end users MUST NOT rely upon. Rely upon storage.py instead.
 """
 
+import os
 import sqlite3
 import threading
 from abc import ABC
-from typing import Any, Iterator, cast
+from typing import Any, Iterator, Optional, cast
 
 import msgpack
 
@@ -79,6 +80,10 @@ class DBDriver(ABC):
         if namespace:
             return f"{namespace}:{field}"
         return field
+
+    def size(self) -> Optional[int]:
+        """Returns approximate database size in octets if possible, else None."""
+        raise NotImplementedError
 
     def dump(self) -> Iterator[bytes]:
         """Serialize all data as msgpack bytes for backup/migration."""
@@ -207,6 +212,9 @@ class InMemory(DBDriver):
 
     def test_tables(self) -> None:
         pass
+
+    def size(self) -> Optional[int]:
+        return None
 
     def dump(self) -> Iterator[bytes]:
         with self._lock:
@@ -550,6 +558,17 @@ class PostgreSQL(DBDriver):
                 )
                 ((value,),) = cur
                 assert value == 1
+
+    def size(self) -> Optional[int]:
+        with self.pool.connection() as conn:
+            with conn.transaction(), conn.cursor() as cur:
+                cur.execute(
+                    f"""SELECT COALESCE(
+                    pg_total_relation_size('uproot{self.tblextra}_values'::regclass) +
+                    pg_total_relation_size('uproot{self.tblextra}_keys'::regclass), 0
+                    )"""
+                )
+                return cur.fetchone()[0]
 
     def dump(self) -> Iterator[bytes]:
         with self.pool.connection() as conn:
@@ -984,6 +1003,14 @@ class Sqlite3(DBDriver):
         )
         ((value,),) = cursor
         assert value == 1
+
+    def size(self) -> Optional[int]:
+        conn = self._get_connection()
+
+        page_size = conn.execute("PRAGMA page_size").fetchone()[0]
+        page_count = conn.execute("PRAGMA page_count").fetchone()[0]
+
+        return page_size * page_count
 
     def dump(self) -> Iterator[bytes]:
         conn = self._get_connection()

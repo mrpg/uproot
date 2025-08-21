@@ -49,7 +49,7 @@ import uproot.i18n as i18n
 import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
-from uproot.pages import static_factory
+from uproot.pages import static_factory, to_filter
 from uproot.storage import Admin, Session
 
 router = APIRouter(prefix=f"{d.ROOT}/admin")
@@ -80,6 +80,7 @@ ENV = Environment(
     auto_reload=True,
     enable_async=True,
 )
+ENV.filters["to"] = to_filter
 
 
 async def auth_required(request: Request):
@@ -209,10 +210,16 @@ async def status(
     request: Request,
     auth=Depends(auth_required),
 ) -> Response:
+    dbsize = d.DATABASE.size()
+
+    if dbsize is not None:
+        dbsize /= 1024**2
+
     return HTMLResponse(
         await render(
             "ServerStatus.html",
             dict(
+                dbsize=dbsize,
                 versions=dict(
                     uproot=u.__version__,
                     python=sys.version,

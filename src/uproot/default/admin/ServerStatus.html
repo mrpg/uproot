@@ -12,14 +12,6 @@ Server status
 
 {% block main %}
 
-<p class="text-danger fw-bold">Not yet implemented (TODO)</p>
-
-<p>
-<ul>
-    <li>Current size of the database?</li>
-</ul>
-</p>
-
 <h3 class="mt-5">{% translate %}uproot version{% endtranslate %}</h3>
 
 <p>
@@ -46,6 +38,12 @@ Server status
             <th scope="row">{% translate %}Database driver{% endtranslate %}</th>
             <td class="font-monospace">{{ deployment.DATABASE.__class__.__name__ }}</td>
         </tr>
+        {% if dbsize is not none %}
+        <tr>
+            <th scope="row">{% translate %}Database size{% endtranslate %}</th>
+            <td class="font-monospace">{{ dbsize | to(1) }}&nbsp;MiB</td>
+        </tr>
+        {% endif %}
     </tbody>
 </table>
 
