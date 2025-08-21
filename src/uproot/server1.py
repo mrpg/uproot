@@ -319,7 +319,7 @@ async def general(
     for path in paths:
         dbfield = f"{path}:started"
 
-        if not dbfield in all_started or all_started[dbfield].unavailable:
+        if dbfield not in all_started or all_started[dbfield].unavailable:
             # Should not be possible, but skip if it happens
             pass
         elif all_started[dbfield].data:
