@@ -8,14 +8,14 @@
 
 We are working on producing the first alpha version (0.0.1), and invite you to join us.
 
-***Note: This repository contains a pre-alpha version—DO NOT USE IN PRODUCTION.**
+***Note: This repository contains a pre-alpha version. Breaking changes are made with reckless abandon. DO NOT USE IN PRODUCTION.**
 
 
 ## Getting started
 
 ### Installing uproot via the command line
 
-Run this from within a Python venv:
+1. Run this from within a Python venv:
 
 ```console
 pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
@@ -27,13 +27,13 @@ pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/mai
 pip install -U 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main'
 ```
 
-Then, you may do:
+2. Then, you may do:
 
 ```console
 uproot setup my_project
 ```
 
-The resulting output shows you how to proceed. Have fun!
+3. The resulting output shows you how to proceed. Have fun!
 
 ### Example apps
 
