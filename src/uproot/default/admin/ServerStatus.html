@@ -95,9 +95,9 @@ Server status
             </thead>
             <tbody class="font-monospace">
                 {% for pkg, version in packages %}
-                <tr {% if pkg=="uproot-science" %} class="table-active" {% endif %}>
-                    <td class="ps-0">{{ pkg }}</td>
-                    <td>{{ version }}</td>
+                <tr>
+                    <td class="ps-0 {% if pkg=='uproot-science' %} fw-bold text-uproot {% endif %}">{{ pkg }}</td>
+                    <td {% if pkg=="uproot-science" %} class="fw-bold text-uproot" {% endif %}>{{ version }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
