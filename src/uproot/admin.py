@@ -307,31 +307,31 @@ def sessions() -> dict[str, dict[str, Any]]:
         sname: {
             "sname": sname,
             "active": data["active"]
-            .get(f"session/{sname}:active", t.Value(0.0, False, False))
+            .get((f"session/{sname}", "active"), t.Value(0.0, False, False))
             .data,
             "config": data["config"]
-            .get(f"session/{sname}:config", t.Value(0.0, False, None))
+            .get((f"session/{sname}", "config"), t.Value(0.0, False, None))
             .data,
             "room": data["room"]
-            .get(f"session/{sname}:room", t.Value(0.0, False, None))
+            .get((f"session/{sname}", "room"), t.Value(0.0, False, None))
             .data,
             "description": data["description"]
-            .get(f"session/{sname}:description", t.Value(0.0, False, None))
+            .get((f"session/{sname}", "description"), t.Value(0.0, False, None))
             .data,
             "n_players": len(
                 data["players"]
-                .get(f"session/{sname}:players", t.Value(0.0, False, []))
+                .get((f"session/{sname}", "players"), t.Value(0.0, False, []))
                 .data
                 or []
             ),
             "n_groups": len(
                 data["groups"]
-                .get(f"session/{sname}:groups", t.Value(0.0, False, []))
+                .get((f"session/{sname}", "groups"), t.Value(0.0, False, []))
                 .data
                 or []
             ),
             "started": data["config"]
-            .get(f"session/{sname}:config", t.Value(0.0, False, None))
+            .get((f"session/{sname}", "config"), t.Value(0.0, False, None))
             .time,
         }
         for sname in snames

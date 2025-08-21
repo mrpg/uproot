@@ -131,7 +131,7 @@ def db_request(
             mpaths: list[str]
 
             mpaths, mkey = cast(tuple[list[str], str], extra)
-            rval = DATABASE.get_many([f"{path}:{mkey}" for path in mpaths])
+            rval = DATABASE.get_many(mpaths, mkey)
         case "get_latest", "", None if isinstance(extra, tuple):
             mpath: str
             since: float
@@ -169,7 +169,7 @@ def mktrail(path: str) -> tuple[str, ...]:
     return tuple(main.split("/") + [last])
 
 
-def field_from_paths(paths: list[str], field: str) -> dict[str, Value]:
+def field_from_paths(paths: list[str], field: str) -> dict[tuple[str, str], Value]:
     return cast(
         dict[str, Value],
         db_request(

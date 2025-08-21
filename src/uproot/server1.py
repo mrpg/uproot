@@ -50,7 +50,6 @@ from uproot.storage import (
     Storage,
     field_from_paths,
     mkpath,
-    mktrail,
 )
 
 router = APIRouter(prefix=d.ROOT)
@@ -317,16 +316,16 @@ async def general(
     free_uname = None
 
     for path in paths:
-        dbfield = f"{path}:started"
+        key = path, "started"
 
-        if dbfield not in all_started or all_started[dbfield].unavailable:
+        if key not in all_started or all_started[key].unavailable:
             # Should not be possible, but skip if it happens
             pass
-        elif all_started[dbfield].data:
+        elif all_started[key].data:
             # This player has started, so also skip
             pass
         else:
-            _, _, free_uname, _ = mktrail(dbfield)
+            _, _, free_uname = path.split("/")
             break
 
     # Redirect to player

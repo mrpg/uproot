@@ -46,7 +46,8 @@ class DBDriver(ABC):
        - namespace: hierarchical prefix (can contain colons, e.g., "session/123")
        - field: the specific field name (no colons allowed)
        The old-style "namespace:field" dbfield format is split into separate columns
-       for efficient querying and indexing.
+       for efficient querying and indexing. dbfields are deprecated and should be
+       avoided and removed (TODO: remove dbfields everywhere).
 
     6. CURRENT STATE: get() and get_many() check the most recent entry for each key.
        If the latest entry is a tombstone (unavailable==True), the key is treated as
@@ -111,8 +112,10 @@ class DBDriver(ABC):
         """Get latest values for a specific field across all namespaces."""
         raise NotImplementedError
 
-    def get_many(self, dbfields: list[str]) -> dict[str, t.Value]:
-        """Get current values for multiple keys. Missing keys are omitted."""
+    def get_many(
+        self, namespaces: list[str], field: str
+    ) -> dict[tuple[str, str], t.Value]:
+        """Get current values for single field across multiple namespaces. Missing keys are omitted."""
         raise NotImplementedError
 
     def get_field_history(self, namespace: str, field: str) -> list[t.Value]:
@@ -322,17 +325,18 @@ class InMemory(DBDriver):
 
         return rval
 
-    def get_many(self, dbfields: list[str]) -> dict[str, t.Value]:
+    def get_many(
+        self, namespaces: list[str], field: str
+    ) -> dict[tuple[str, str], t.Value]:
         rval = {}
         with self._lock:
-            for dbfield in dbfields:
-                namespace, field = self._split_dbfield(dbfield)
+            for namespace in namespaces:
                 if namespace in self.log and field in self.log[namespace]:
                     values = self.log[namespace][field]
                     if values:
                         latest = values[-1]
                         if not latest.unavailable:
-                            rval[dbfield] = latest
+                            rval[namespace, field] = latest
         return rval
 
     def get_within_context(
@@ -522,7 +526,7 @@ class PostgreSQL(DBDriver):
             "delete": f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, NULL, %s, %s)",
             "get": f"SELECT current_value FROM uproot{self.tblextra}_keys WHERE namespace = %s AND field = %s",
             "get_latest": f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE %s || '%%' AND last_updated_at > %s",
-            "get_many": f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE (namespace, field) IN (SELECT * FROM UNNEST(%s::text[], %s::text[]))",
+            "get_many": f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace LIKE %s || '%%' AND field = %s",
             "fields": f"SELECT DISTINCT field FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE %s || '%%'",
             "has_fields": f"SELECT EXISTS(SELECT 1 FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE %s || '%%')",
             "history": f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values WHERE namespace || ':' || field LIKE %s || '%%' ORDER BY created_at ASC",
@@ -723,26 +727,26 @@ class PostgreSQL(DBDriver):
 
         return rval
 
-    def get_many(self, dbfields: list[str]) -> dict[str, t.Value]:
-        if not dbfields:
+    def get_many(
+        self, namespaces: list[str], field: str
+    ) -> dict[tuple[str, str], t.Value]:
+        if not namespaces:
             return {}
 
-        namespaces = []
-        fields = []
-        for dbfield in dbfields:
-            namespace, field = self._split_dbfield(dbfield)
-            namespaces.append(namespace)
-            fields.append(field)
-
         rval = {}
+        namespaceprefix = t.longest_common_prefix(namespaces)
+
+        namespaces = set(namespaces)
+
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
-                cur.execute(self._queries["get_many"], (namespaces, fields))
+                cur.execute(self._queries["get_many"], (namespaceprefix, field))
 
                 for namespace, field, value, time, context in cur:
-                    dbfield = self._join_dbfield(namespace, field)
-                    if value is not None:
-                        rval[dbfield] = t.Value(time, False, decode(value), context)
+                    if namespace in namespaces and value is not None:
+                        rval[namespace, field] = t.Value(
+                            time, False, decode(value), context
+                        )
 
         return rval
 
@@ -1180,31 +1184,25 @@ class Sqlite3(DBDriver):
 
         return rval
 
-    def get_many(self, dbfields: list[str]) -> dict[str, t.Value]:
-        if not dbfields:
+    def get_many(
+        self, namespaces: list[str], field: str
+    ) -> dict[tuple[str, str], t.Value]:
+        if not namespaces:
             return {}
 
         rval = {}
         conn = self._get_connection()
 
-        # Build WHERE clause for multiple namespace/field pairs
-        conditions = []
-        params = []
-        for dbfield in dbfields:
-            namespace, field = self._split_dbfield(dbfield)
-            conditions.append("(namespace = ? AND field = ?)")
-            params.extend([namespace, field])
-
-        where_clause = " OR ".join(conditions)
         cursor = conn.execute(
-            f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE {where_clause}",
-            params,
+            f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace LIKE ? || '%' AND field = ?",
+            (t.longest_common_prefix(namespaces), field),
         )
 
+        namespaces = set(namespaces)
+
         for namespace, field, value, time, context in cursor:
-            dbfield = self._join_dbfield(namespace, field)
-            if value is not None:
-                rval[dbfield] = t.Value(time, False, decode(value), context)
+            if namespace in namespaces and value is not None:
+                rval[namespace, field] = t.Value(time, False, decode(value), context)
 
         return rval
 
