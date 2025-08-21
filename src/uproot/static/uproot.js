@@ -466,6 +466,13 @@ window.uproot = {
         return Math.sqrt(variance);
     },
 
+    escape(text) {
+        const span = document.createElement("span");
+        span.textContent = text;
+
+        return span.innerHTML;
+    },
+
     ensureBuddy() {
         this.I("uproot-buddy").style.display = "block";
     },
@@ -654,11 +661,7 @@ window._ = (s) => {
 };
 
 window.alert = (message) => {
-    const alert_inner = document.createElement("p");
-    alert_inner.style.marginBottom = 0;
-    alert_inner.textContent = message;
-
-    window.uproot.alert(alert_inner.outerHTML);
+    window.uproot.alert(uproot.escape(message));
 };
 
 window.I = (id_) => document.getElementById(id_);
