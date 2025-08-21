@@ -654,7 +654,11 @@ window._ = (s) => {
 };
 
 window.alert = (message) => {
-    window.uproot.alert(message);
+    const alert_inner = document.createElement("p");
+    alert_inner.style.marginBottom = 0;
+    alert_inner.textContent = message;
+
+    window.uproot.alert(alert_inner.outerHTML);
 };
 
 window.I = (id_) => document.getElementById(id_);
