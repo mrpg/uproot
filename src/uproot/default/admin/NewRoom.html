@@ -83,16 +83,16 @@ New room/lobby
     </div>
 </div>
 
-<div x-data="{useSize: false}">
+<div x-data="{useCapacity: false}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="use_size" name="use_size" value="1"
-            @click="useSize = !useSize">
-        <label for="use_size">Limit size of resulting session</label>
+        <input class="form-check-input" type="checkbox" id="use_capacity" name="use_capacity" value="1"
+            @click="useCapacity = !useCapacity">
+        <label for="use_capacity">Limit capacity of resulting session</label>
     </div>
-    <div class="form-floating mt-3" x-show="useSize">
-        <input type="number" class="form-control w-auto" id="size" name="size"
+    <div class="form-floating mt-3" x-show="useCapacity">
+        <input type="number" class="form-control w-auto" id="capacity" name="capacity"
             placeholder="{% translate %}Maximum players{% endtranslate %}" min="1" value="1">
-        <label for="size" class="form-label">{% translate %}Maximum players{% endtranslate %}</label>
+        <label for="capacity" class="form-label">{% translate %}Maximum players{% endtranslate %}</label>
     </div>
 </div>
 

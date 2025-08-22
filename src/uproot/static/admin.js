@@ -104,7 +104,7 @@ function renderRooms(rooms, containerId) {
         }
         leftCol.appendChild(labelsBadge);
 
-        const freejoin = room.labels == null && room.size == null;
+        const freejoin = room.labels == null && room.capacity == null;
         const freejoinBadge = document.createElement("div");
         freejoinBadge.className = "mb-2";
         if (freejoin) {
@@ -153,7 +153,7 @@ function renderRooms(rooms, containerId) {
 
         cardBody.appendChild(links);
 
-        // Right column for size badges
+        // Right column for capacity badges
 
         const badges = document.createElement("div");
         badges.className = "align-items-end col d-flex flex-column justify-content-center";
@@ -165,42 +165,42 @@ function renderRooms(rooms, containerId) {
             n_players = uproot.vars.sessions[room.sname].n_players;
         }
 
-        const sizeBadge = document.createElement("span");
-        if (room.size != null) {
+        const capacityBadge = document.createElement("span");
+        if (room.capacity != null) {
             if (room.start) {
                 // If session is full, show as success, otherwise warning
-                sizeBadge.className =
-                    n_players < room.size ? "badge bg-warning border border-warning fs-6 text-dark" : "badge bg-success border border-success fs-6";
+                capacityBadge.className =
+                    n_players < room.capacity ? "badge bg-warning border border-warning fs-6 text-dark" : "badge bg-success border border-success fs-6";
                 // If session is less than 90% full, show as danger
-                sizeBadge.className =
-                    n_players < 0.9 * room.size ? "badge bg-danger border border-danger fs-6" : "badge bg-warning border border-warning fs-6";
+                capacityBadge.className =
+                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger fs-6" : "badge bg-warning border border-warning fs-6";
             } else {
-                sizeBadge.className = "badge border border-danger fs-6 ms-2 text-danger"
+                capacityBadge.className = "badge border border-danger fs-6 ms-2 text-danger"
             }
-            sizeBadge.textContent = `${_("Size")}: ${room.size}`;
+            capacityBadge.textContent = `${_("Capacity")}: ${room.capacity}`;
         } else {
             if (room.start) {
-                sizeBadge.className = "badge bg-success border border-success fs-6";
-                sizeBadge.textContent = _("Size") + ": " + _("any");
+                capacityBadge.className = "badge bg-success border border-success fs-6";
+                capacityBadge.textContent = _("Capacity") + ": " + _("any");
             } else {
-                sizeBadge.className = "badge border border-success fs-6 text-success";
-                sizeBadge.textContent = _("Size") + ": " + _("any");
+                capacityBadge.className = "badge border border-success fs-6 text-success";
+                capacityBadge.textContent = _("Capacity") + ": " + _("any");
             }
         }
-        badgesRow1.appendChild(sizeBadge);
+        badgesRow1.appendChild(capacityBadge);
 
         const badgesRow2 = document.createElement("div");
         badgesRow2.className = "mb-2";
 
                 const nPlayersBadge = document.createElement("span");
         if (room.sname && uproot.vars.sessions[room.sname]) {
-            if (room.size != null) {
+            if (room.capacity != null) {
                 // If session is full, show as success, otherwise warning
                 nPlayersBadge.className =
-                    n_players < room.size ? "badge bg-warning border border-warning fs-6 ms-2 text-dark" : "badge bg-success boder border-success fs-6";
+                    n_players < room.capacity ? "badge bg-warning border border-warning fs-6 ms-2 text-dark" : "badge bg-success boder border-success fs-6";
                 // If session is less than 90% full, show as danger
                 nPlayersBadge.className =
-                    n_players < 0.9 * room.size ? "badge bg-danger border border-danger fs-6 ms-2" : "badge bg-warning border border-warning fs-6 ms-2";
+                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger fs-6 ms-2" : "badge bg-warning border border-warning fs-6 ms-2";
                 nPlayersBadge.textContent = `${_("Players")}: ${n_players}`;
             } else {
                 nPlayersBadge.className = "badge bg-success border border-success fs-6 ms-2";

@@ -85,12 +85,12 @@ async def roommain(
 
         # room is ready - attempt to join
 
-        size = 0
+        capacity = 0
 
         if room["labels"] is not None:
-            size = len(room["labels"])
-        elif room["size"] is not None:
-            size = room["size"]
+            capacity = len(room["labels"])
+        elif room["capacity"] is not None:
+            capacity = room["capacity"]
 
         if room["sname"] is None:
             room["sname"] = c.create_session(admin, room["config"])
@@ -118,7 +118,7 @@ async def roommain(
     # try to add new player
 
     with session:
-        if ur.freejoin(room) or len(session.players) < size:
+        if ur.freejoin(room) or len(session.players) < capacity:
             with session:
                 pid = c.create_player(session)
 

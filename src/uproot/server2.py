@@ -332,8 +332,8 @@ async def new_room(
     config: Optional[str] = Form(""),
     use_labels: Optional[bool] = Form(False),
     labels: Optional[str] = Form(""),
-    use_size: Optional[bool] = Form(False),
-    size: Optional[int] = Form(1),
+    use_capacity: Optional[bool] = Form(False),
+    capacity: Optional[int] = Form(1),
     use_session: Optional[bool] = Form(False),
     sname: Optional[str] = Form(""),
     start: Optional[bool] = Form(False),
@@ -351,7 +351,7 @@ async def new_room(
                 if use_labels
                 else None
             ),
-            size=(size if use_size else None),
+            capacity=(capacity if use_capacity else None),
             start=bool(start),
             sname=(sname if use_session and sname.strip() else None),
         )

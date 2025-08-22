@@ -17,9 +17,9 @@ State 1:
 
     If no session is associated with the room, one is created and associated.
 
-    - labels is not None or size is not None:
+    - labels is not None or capacity is not None:
         add player only if associated session has free slots.
-    - labels=None and size=None:
+    - labels=None and capacity=None:
         a 'freejoin' room adds players to sessions.
 """
 
@@ -34,7 +34,7 @@ def room(
     name: str,
     config: Optional[str] = None,
     labels: Optional[list[str]] = None,
-    size: Optional[int] = None,
+    capacity: Optional[int] = None,
     start: bool = False,
     sname: Optional[Sessionname] = None,
 ) -> RoomType:
@@ -50,14 +50,14 @@ def room(
         name=name,
         config=config,
         labels=labels,
-        size=size,
+        capacity=capacity,
         start=start,
         sname=sname,
     )
 
 
 def freejoin(room: RoomType) -> bool:
-    return room["labels"] is None and room["size"] is None
+    return room["labels"] is None and room["capacity"] is None
 
 
 def labels_file(filename: str) -> set[str]:
