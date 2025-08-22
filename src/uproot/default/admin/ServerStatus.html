@@ -12,80 +12,98 @@ Server status
 
 {% block main %}
 
-<h3 class="mt-5">{% translate %}uproot version{% endtranslate %}</h3>
+<div class="card mb-4">
+    <div class="card-header">
+        <h4 class="fw-semibold mt-2">{% translate %}Database{% endtranslate %}</h4>
+    </div>
+    <div class="card-body pb-1">
+        <table class="table table-sm">
+            <tbody>
+                <tr>
+                    <th class="fw-semibold ps-0" scope="row">{% translate %}Database driver{% endtranslate %}</th>
+                    <td class="col-4 font-monospace">{{ deployment.DATABASE.__class__.__name__ }}</td>
+                </tr>
+                {% if dbsize is not none %}
+                <tr>
+                    <th class="fw-semibold ps-0" scope="row">{% translate %}Database size{% endtranslate %}</th>
+                    <td class="font-monospace">{{ dbsize | to(1) }}&nbsp;MiB</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <div class="mt-4 row">
+            <div class="col pe-4">
+                <h5 class="mb-3">{% translate %}Download database dump{% endtranslate %}</h5>
+                <p class="mb-1 text-muted">
+                    {% translate %}
+                    This creates a complete machine-readable record of all data.
+                    {% endtranslate %}
+                </p>
+                <p class="text-muted">
+                    {% translate %}
+                    It may be re-imported using <code>python main.py restore</code>.
+                    {% endtranslate %}
+                </p>
+            </div>
+            <div class="col-4 ps-0">
+                <a class="btn btn-uproot" href="../dump/">
+                    {% translate %}
+                    Download
+                    {% endtranslate %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<p>
-    {% translate %}
-    You are currently running uproot {{ versions.uproot }}.
-    {% endtranslate %}
-</p>
-
-<button type="button" class="btn btn-lg btn-success" onclick="announcements()">
-    {% translate %}
-    Check for important annoucements
-    {% endtranslate %}
-</button>
-
-<h3 class="mt-5">{% translate %}Python version{% endtranslate %}</h3>
-
-<p class="font-monospace">{{ versions.python }}</p>
-
-<h3 class="mt-5">{% translate %}Database{% endtranslate %}</h3>
-
-<table class="table w-50">
-    <tbody>
-        <tr>
-            <th scope="row">{% translate %}Database driver{% endtranslate %}</th>
-            <td class="font-monospace">{{ deployment.DATABASE.__class__.__name__ }}</td>
-        </tr>
-        {% if dbsize is not none %}
-        <tr>
-            <th scope="row">{% translate %}Database size{% endtranslate %}</th>
-            <td class="font-monospace">{{ dbsize | to(1) }}&nbsp;MiB</td>
-        </tr>
-        {% endif %}
-    </tbody>
-</table>
-
-<h3 class="mt-5">{% translate %}Download database dump{% endtranslate %}</h3>
-
-<p class="text-muted">
-    {% translate %}
-    This is a complete machine-readable record of all data. It may be re-imported using
-    <code>python main.py restore</code>.
-    {% endtranslate %}
-</p>
-
-<a class="btn btn-lg btn-uproot" href="../dump/">
-    {% translate %}
-    Download
-    {% endtranslate %}
-</a>
-
-<h3 class="mt-5">{% translate %}Installed packages{% endtranslate %}</h3>
-
-<p class="text-muted">
-    {% translate %}
-    Each session also stores which packages were installed when it was created. See <code>session.packages</code>.
-    {% endtranslate %}
-</p>
-
-<table class="table table-hover table-sm">
-    <thead>
-        <tr>
-            <th scope="col">{% translate %}Package{% endtranslate %}</th>
-            <th scope="col">{% translate %}Version{% endtranslate %}</th>
-        </tr>
-    </thead>
-    <tbody class="font-monospace">
-        {% for pkg, version in packages %}
-        <tr {% if pkg=="uproot-science" %} class="table-active" {% endif %}>
-            <td>{{ pkg }}</td>
-            <td>{{ version }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="card mb-4">
+    <div class="card-header">
+        <h4 class="fw-semibold mt-2">{% translate %}Version information{% endtranslate %}</h4>
+    </div>
+    <div class="card-body pb-1">
+        <div class="mt-1 row">
+            <div class="col pe-4">
+                <h5 class="mb-3">{% translate %}uproot version{% endtranslate %}</h5>
+                <p>
+                    {% translate %}
+                    You are currently running uproot {{ versions.uproot }}.
+                    {% endtranslate %}
+                </p>
+            </div>
+            <div class="col-4 ps-0">
+                <button type="button" class="btn btn-outline-danger" onclick="announcements()">
+                    {% translate %}
+                    Check for important annoucements
+                    {% endtranslate %}
+                </button>
+            </div>
+        </div>
+        <h5 class="mb-3 mt-2">{% translate %}Python version{% endtranslate %}</h5>
+        <p class="font-monospace">{{ versions.python }}</p>
+        <h5 class="mb-3 mt-4">{% translate %}Installed packages{% endtranslate %}</h5>
+        <p class="text-muted">
+            {% translate %}
+            For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.
+            {% endtranslate %}
+        </p>
+        <table class="table table-hover table-sm">
+            <thead>
+                <tr>
+                    <th class="fw-semibold ps-0" scope="col">{% translate %}Package{% endtranslate %}</th>
+                    <th class="col-4 fw-semibold" scope="col">{% translate %}Version{% endtranslate %}</th>
+                </tr>
+            </thead>
+            <tbody class="font-monospace">
+                {% for pkg, version in packages %}
+                <tr>
+                    <td class="ps-0 {% if pkg=='uproot-science' %} fw-bold text-uproot {% endif %}">{{ pkg }}</td>
+                    <td {% if pkg=="uproot-science" %} class="fw-bold text-uproot" {% endif %}>{{ version }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% endblock main %}
 
