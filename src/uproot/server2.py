@@ -196,7 +196,7 @@ async def sessions(
 ) -> Response:
     return HTMLResponse(
         await render(
-            "WaitingRooms.html",
+            "Rooms.html",
             dict(
                 rooms=a.rooms(),
                 sessions=a.sessions(),
