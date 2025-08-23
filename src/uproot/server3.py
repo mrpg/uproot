@@ -42,7 +42,7 @@ async def roommain(
         room = admin.rooms[roomname]
         needs_label = room["labels"] is not None
 
-        # handle label entry for rooms that require labels
+        # Handle label entry for rooms that require labels
 
         if needs_label:
             if label == "" and not bad:
@@ -70,7 +70,7 @@ async def roommain(
                     ),
                 )
 
-        # room not open - show waiting page
+        # Room not open - show waiting page
 
         if room["sname"] is None and (room["config"] is None or not room["start"]):
             return HTMLResponse(
@@ -83,7 +83,7 @@ async def roommain(
                 ),
             )
 
-        # room is ready - attempt to join
+        # Room is ready - attempt to join
 
         capacity = 0
 
@@ -93,16 +93,16 @@ async def roommain(
             capacity = room["capacity"]
 
         if room["sname"] is None:
-            room["sname"] = c.create_session(admin, room["config"])
-
-    assert isinstance(room["sname"], str)
+            room["sname"] = c.create_session(
+                admin, room["config"]
+            )  # TODO: remove side effect
 
     session = Session(room["sname"])
 
-    # check for existing player with same label
+    # Check for existing player with same label
 
     def heresession(dbfield: str) -> bool:
-        t1, t2, t3, field = mktrail(dbfield)
+        t1, t2, _, _ = mktrail(dbfield)
 
         return t1 == "player" and t2 == room["sname"]
 
@@ -110,12 +110,10 @@ async def roommain(
         for dbfield, labelvalue in field_from_all("label", heresession).items():
             _, sname, uname, _ = mktrail(dbfield)
 
-            print(labelvalue, label)
-
             if labelvalue.data == label:
                 return RedirectResponse(f"{d.ROOT}/p/{sname}/{uname}/", status_code=303)
 
-    # try to add new player
+    # Try to add new player
 
     with session:
         if ur.freejoin(room) or len(session.players) < capacity:
@@ -158,9 +156,9 @@ async def ws(
     needs_label = room["labels"] is not None
 
     if label == "" and not needs_label:
-        local_context = "#" + t.token_unchecked(6).upper()  # implement fingerprinting?
+        local_context = "#" + t.token_unchecked(6).upper()  # Implement fingerprinting?
     elif not needs_label or label in room["labels"]:
-        # case 1 eagerly accepts the label
+        # Eagerly accept label
         local_context = label
     else:
         raise HTTPException(status_code=401)
@@ -201,7 +199,7 @@ async def ws(
                 if fname == "from_websocket":
                     u.set_online(pid)
                     e.set_attendance(pid)
-                    # otherwise ignore messages (for now)
+                    # Otherwise ignore messages (for now)
                 elif fname == "subscribe_to_room":
                     await websocket.send_json(
                         dict(
@@ -212,12 +210,12 @@ async def ws(
                         )
                     )
                 elif fname == "timer":
-                    pass  # placeholder for the future
+                    pass  # Placeholder for the future
                 else:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:
-                # unlike the main ws, this really means the person went away
-                u.set_offline(t.PlayerIdentifier(f"^{roomname}", local_context))
+                # Unlike the main ws, this really means the person went away
+                u.set_offline(pid)
 
                 for task in tasks:
                     task.cancel()
