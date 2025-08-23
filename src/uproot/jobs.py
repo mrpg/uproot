@@ -59,7 +59,8 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
                 # player is online or assumed to be
                 pass
             else:
-                # u.set_offline(pid) # TODO
+                u.set_offline(pid)
+
                 with pid() as player:
                     player._uproot_dropout = True
 
