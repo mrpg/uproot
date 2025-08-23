@@ -465,6 +465,12 @@ async def ws(
                         match result:
                             case {"endpoint": "hello"}:
                                 pass
+                            case {"endpoint": "jserrors", "payload": msg} if isinstance(
+                                msg, str
+                            ):
+                                d.LOGGER.error(
+                                    f"JavaScript error [{d.ROOT}/p/{sname}/{uname}/]: {msg[:256]}"
+                                )
                             case {
                                 "endpoint": "skip",
                                 "payload": new_show_page,
