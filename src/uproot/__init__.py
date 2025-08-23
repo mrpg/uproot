@@ -49,6 +49,14 @@ PAGES: dict[str, Union[tuple[str, str], type[Page]]] = {
             template="Initialize.html",
         ),
     ),
+    "JustPOST.html": type(
+        "JustPOST",
+        (InternalPage,),
+        dict(
+            show=True,
+            template="JustPOST.html",
+        ),
+    ),
     "RoomHello.html": type(
         "RoomHello",
         (InternalPage,),

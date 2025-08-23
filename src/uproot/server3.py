@@ -24,7 +24,7 @@ from uproot.storage import Admin, Session, field_from_all, mktrail
 router = APIRouter(prefix=d.ROOT)
 
 
-@router.get("/room/{roomname}/", response_class=HTMLResponse)
+@router.post("/room/{roomname}/")
 async def roommain(
     request: Request,
     roomname: str,

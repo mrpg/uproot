@@ -1,0 +1,14 @@
+{% extends "Bare.html" %}
+{% set noautostart = True %}
+
+{% block main %}
+
+{% endblock main %}
+
+{% block late %}
+
+<script>
+    uproot.onStart(() => document.forms[0].submit());
+</script>
+
+{% endblock late %}

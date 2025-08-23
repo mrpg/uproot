@@ -297,6 +297,21 @@ def session_exists(sname: t.Sessionname) -> None:
 
 
 @router.get("/s/{sname}/{secret}/")
+@router.get("/room/{roomname}/")
+async def avoid_side_effects_when_previewing(
+    request: Request,
+) -> HTMLResponse:
+    return HTMLResponse(
+        await render(
+            request.app,
+            request,
+            None,
+            path2page("JustPOST.html"),
+        ),
+    )
+
+
+@router.post("/s/{sname}/{secret}/")
 async def sessionwide(
     request: Request,
     sname: t.Sessionname,
