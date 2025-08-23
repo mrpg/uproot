@@ -76,7 +76,9 @@
         }
         else {
             if (typeof preSubmit !== "undefined") {
-                preSubmit();
+                if (!preSubmit()) {
+                    return false;
+                }
             }
 
             document.forms[0].submit();

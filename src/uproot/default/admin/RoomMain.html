@@ -25,7 +25,29 @@ Room
 
 <input type="hidden" name="assignees" id="assignees" value="">
 
-<button type="button" class="btn btn-uproot mt-3" onclick="createSession()">Create session</button>
+<div x-data="{}">
+    <div class="form-check mt-3">
+        <input class="form-check-input" type="checkbox" id="nogrow" name="nogrow" value="1" checked>
+        <label for="nogrow">Set room capacity to number of players</label>
+        <small class="d-block form-text pt-2 text-muted">
+            {% translate %}
+            If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.
+            {% endtranslate %}
+
+            {% if room.capacity is none %}
+            {% translate %}
+            This room’s capacity is infinite.
+            {% endtranslate %}
+            {% else %}
+            {% translate %}
+            This room’s capacity is {{ room.capacity }}.
+            {% endtranslate %}
+            {% endif %}
+        </small>
+    </div>
+</div>
+
+<button type="button" class="btn btn-uproot mt-4" onclick="createSession()">Create session</button>
 
 <h3 class="mt-4">{% translate %}Traces{% endtranslate %}</h3>
 
@@ -54,6 +76,8 @@ Room
 
     function preSubmit() {
         I("assignees").value = currentRecentLabels.join("|");
+
+        return true; // can add further checks here
     }
 
     function createTooltip(element, time) {

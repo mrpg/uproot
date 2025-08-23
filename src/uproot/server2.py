@@ -441,13 +441,19 @@ async def new_session_in_room(
     automatic_unames: Optional[bool] = Form(False),
     sname: Optional[str] = Form(""),
     unames: Optional[str] = Form(""),
+    nogrow: Optional[bool] = Form(False),
     auth=Depends(auth_required),
 ) -> Response:
-    assignees = assignees.split("|")
-    assert all(ass.lstrip("#").isidentifier() for ass in assignees)
-    shuffle(assignees)
+    # TODO: fix this
+    if assignees:
+        assignees = assignees.split("|")
+        assert all(ass.lstrip("#").isidentifier() for ass in assignees)
+        shuffle(assignees)
+    else:
+        assignees = []
 
     data = []
+    nplayers = max(nplayers, len(assignees))
 
     for _, label in zip_longest(range(nplayers), assignees):
         if label is None:
@@ -466,6 +472,9 @@ async def new_session_in_room(
 
         admin.rooms[roomname]["sname"] = sid.sname
         admin.rooms[roomname]["start"] = True
+
+        if nogrow:
+            admin.rooms[roomname]["capacity"] = nplayers
 
     with sid() as session:
         c.create_players(
