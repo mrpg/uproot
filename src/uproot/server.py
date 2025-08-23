@@ -80,7 +80,7 @@ uproot_server.include_router(router3)
 
 @uproot_server.get("/favicon.ico")
 async def favicon(request: Request) -> RedirectResponse:
-    return RedirectResponse(f"{d.ROOT}/static/uproot/favicon.ico")
+    return RedirectResponse(f"{d.ROOT}/static/uproot/favicon.ico", status_code=301)
 
 
 @validate_call(config=dict(arbitrary_types_allowed=True))
