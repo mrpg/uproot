@@ -191,7 +191,7 @@ def info_online(
     info = u.INFO[sname]
     online = {
         uname: u.find_online(t.PlayerIdentifier(sname, uname)) for uname in info.keys()
-    }
+    }  # TODO: this seems inefficient
 
     return dict(info=info, online=online)
 

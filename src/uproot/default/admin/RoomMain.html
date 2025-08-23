@@ -136,6 +136,7 @@ Room
     });
 
     uproot.onCustomEvent("Attended", (event) => {
+        // TODO: handle event?.detail?.online == null
         const label = event?.detail?.uname;
         if (!label) return;
         seen[label] = Date.now();

@@ -299,6 +299,7 @@ window.mmodal = function mmodal(moname) {
 };
 
 window.uproot?.onCustomEvent("Attended", (event) => {
+    // TODO: handle event?.detail?.online == null
     const uname = event?.detail?.uname;
     const info = event?.detail?.info;
     if (!uname || !Array.isArray(info)) return;

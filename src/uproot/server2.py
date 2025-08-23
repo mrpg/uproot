@@ -673,9 +673,8 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             pass
                             # ~ raise NotImplementedError(result)
                 elif fname == "subscribe_to_attendance":
-                    uname = result
-                    sname = args[fname]["sname"]
-                    info = u.get_info(t.PlayerIdentifier(sname, uname))
+                    pid = t.PlayerIdentifier(args[fname]["sname"], result)
+                    info = u.get_info(pid)
 
                     await websocket.send_json(
                         dict(
@@ -683,9 +682,10 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             payload=dict(
                                 event="Attended",
                                 detail=dict(
-                                    uname=uname,
+                                    uname=pid.uname,
                                     info=info,
-                                ),  # TODO: add ONLINE here
+                                    online=u.find_online(pid),
+                                ),
                             ),
                         )
                     )

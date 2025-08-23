@@ -60,6 +60,7 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
                 pass
             else:
                 u.set_offline(pid)
+                e.set_attendance(pid)
 
                 with pid() as player:
                     player._uproot_dropout = True

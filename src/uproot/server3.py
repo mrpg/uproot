@@ -216,6 +216,7 @@ async def ws(
             except WebSocketDisconnect:
                 # Unlike the main ws, this really means the person went away
                 u.set_offline(pid)
+                e.set_attendance(pid)
 
                 for task in tasks:
                     task.cancel()
