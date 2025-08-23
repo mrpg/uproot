@@ -673,7 +673,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             pass
                             # ~ raise NotImplementedError(result)
                 elif fname == "subscribe_to_attendance":
-                    uname, show_page_from_attendance = result
+                    uname = result
                     sname = args[fname]["sname"]
                     info = u.get_info(t.PlayerIdentifier(sname, uname))
 
@@ -684,9 +684,8 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                 event="Attended",
                                 detail=dict(
                                     uname=uname,
-                                    show_page_from_attendance=show_page_from_attendance,
                                     info=info,
-                                ),
+                                ),  # TODO: add ONLINE here
                             ),
                         )
                     )

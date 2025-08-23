@@ -249,7 +249,7 @@ async def show_page(
 
     u.set_info(pid, None, player.page_order, player.show_page)
     u.set_online(pid)
-    e.set_attendance(pid, player.show_page)
+    e.set_attendance(pid)
 
     await t.optional_call_once(
         page,

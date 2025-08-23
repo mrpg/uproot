@@ -12,7 +12,7 @@ import uproot.deployment as d
 import uproot.events as e
 import uproot.queues as q
 import uproot.storage as s
-from uproot.types import PlayerIdentifier, Sessionname, Value, optional_call
+from uproot.types import PlayerIdentifier, Sessionname, Username, Value, optional_call
 
 BACKGROUND_TASKS: dict[Any, asyncio.Task] = dict()
 
@@ -27,9 +27,9 @@ async def from_websocket(websocket: WebSocket) -> dict[str, Any]:
 
 async def subscribe_to_attendance(
     sname: Sessionname,
-) -> tuple[PlayerIdentifier, Optional[int]]:
+) -> Username:
     return cast(
-        tuple[PlayerIdentifier, Optional[int]],
+        Username,
         await e.ATTENDANCE[sname].wait(),
     )
 
