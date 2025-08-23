@@ -143,7 +143,9 @@ async def show_page(
         if player.show_page == send_from and verify_csrf(page, player, formdata):
             # case 3
             if player.show_page == -1:  # Initialize.html
-                player.started = True
+                if not player.started:
+                    player.started = True
+
                 proceed = True
             else:  # any other page - need to validate
                 form, valid, custom_errors = await validate(page, player, formdata)
