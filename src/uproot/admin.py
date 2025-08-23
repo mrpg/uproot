@@ -69,7 +69,7 @@ async def advance_by_one(
 
 async def announcements() -> dict[str, Any]:
     ANNOUNCEMENTS_URL = (
-        "https://raw.githubusercontent.com/mrpg/uproot/refs/heads/main/info.json"
+        "https://raw.githubusercontent.com/mrpg/uproot/refs/heads/main/announcements.json"
     )
 
     async with aiohttp.ClientSession() as session:
