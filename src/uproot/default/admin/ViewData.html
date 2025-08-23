@@ -45,14 +45,14 @@ Data
 
 {% block main %}
 
-<div class="d-flex flex-row justify-content-between mb-4">
+<div class="d-flex flex-row justify-content-between mb-3">
     <div>
-        <button type="button" class="btn btn-outline-uproot me-2" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
-        <button type="button" class="btn btn-outline-uproot" data-bs-toggle="modal" data-bs-target="#tableModal">{% translate %}Full-screen table{% endtranslate %}</button>
+        <button type="button" class="btn btn-outline-uproot mb-2 me-2" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
+        <button type="button" class="btn btn-outline-uproot mb-2" data-bs-toggle="modal" data-bs-target="#tableModal">{% translate %}Full-screen table{% endtranslate %}</button>
     </div>
     <div>
-        <a class="btn btn-uproot me-2" href="../selectdata/">{% translate %}Download data{% endtranslate %}</a>
-        <a class="btn btn-uproot" href="../monitor/">{% translate %}Monitor{% endtranslate %}</a>
+        <a class="btn btn-uproot mb-2 me-2" href="../selectdata/">{% translate %}Download data{% endtranslate %}</a>
+        <a class="btn btn-uproot mb-2" href="../monitor/">{% translate %}Monitor{% endtranslate %}</a>
     </div>
 </div>
 

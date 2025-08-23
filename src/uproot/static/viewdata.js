@@ -1,7 +1,7 @@
 const dataTable = new TableManager("data");
 const ignoredFields = Array("session", "key");
 
-const priorityFields = ["page_order", "show_page", "started", "round", "group"];
+const priorityFields = ["id", "label", "page_order", "show_page", "started", "round", "group"];
 
 let lastData, lastUpdate = 0;
 
@@ -19,8 +19,6 @@ async function updateData() {
     [lastData, lastUpdate] = await uproot.invoke("viewdata", uproot.vars.sname, lastUpdate);
 
     for (const [uname, allfields] of Object.entries(lastData)) {
-        dataTable.getCell(uname, "id").textContent = "";
-        dataTable.getCell(uname, "label").textContent = ""; 
         dataTable.getCell(uname, "player").textContent = uname;
 
         for (const [field, payload] of Object.entries(allfields).sort(prioritizeFields)) {
