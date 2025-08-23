@@ -297,7 +297,7 @@ def session_exists(sname: t.Sessionname) -> None:
 
 
 @router.get("/s/{sname}/{secret}/")
-async def general(
+async def sessionwide(
     request: Request,
     sname: t.Sessionname,
     secret: str,
