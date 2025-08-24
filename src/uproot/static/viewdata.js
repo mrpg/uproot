@@ -20,7 +20,12 @@ function prioritizeFields(a, b) {
 function transformedRepresentation(field_, payload_) {
     if (field_ == "_uproot_group") {
         field_ = "(group)";
-        payload_.value_representation = payload_.value_representation.match(/gname='([^']+)'/)[1];
+        gname_match = payload_.value_representation.match(/gname='([^']+)'/);
+
+        if (gname_match) {
+            payload_.value_representation = gname_match[1];
+        }
+
         payload_.no_details = true;
     }
 
