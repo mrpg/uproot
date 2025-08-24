@@ -324,6 +324,10 @@ class StorageBunch:
             return [fun(p, *args, **kwargs) for p in self.l]
 
 
+def noop(s: str) -> str:
+    return s
+
+
 def token_unchecked(outlen: int) -> str:
     """This function generates a random Python identifier."""
     assert outlen > 0
@@ -334,7 +338,7 @@ def token_unchecked(outlen: int) -> str:
 
 
 @validate_call
-def token(not_in: list[str] | Bunch) -> str:
+def token(not_in: list[str] | Bunch, postprocess: Callable[str, str] = noop) -> str:
     if not_in and isinstance(not_in[0], PlayerIdentifier):
         not_in = cast(Bunch, not_in)
         not_in = [el.uname for el in not_in]
@@ -349,7 +353,7 @@ def token(not_in: list[str] | Bunch) -> str:
         )
 
     while True:
-        token_str = token_unchecked(length)
+        token_str = postprocess(token_unchecked(length))
 
         if token_str not in not_in:
             return token_str

@@ -46,7 +46,7 @@ class TableManager {
         const indicator = document.createElement("span");
         indicator.className = "sort-indicator"; // will show ascending/descending indicators
         indicator.style.marginLeft = "0.35em";
-        indicator.innerHTML = "&#9676;";
+        indicator.innerHTML = "&#9676;"; // SAFE
 
         th.appendChild(label);
         th.appendChild(indicator);
@@ -206,11 +206,11 @@ class TableManager {
                 th.setAttribute("aria-sort",
                     direction === "asc" ? "ascending" :
                         direction === "desc" ? "descending" : "none");
-                if (ind) ind.innerHTML = direction === "asc" ? "&#9650;" : direction === "desc" ? "&#9660;" : "&#9676;";
+                if (ind) ind.innerHTML = direction === "asc" ? "&#9650;" : direction === "desc" ? "&#9660;" : "&#9676;"; // SAFE
             } else {
                 th.dataset.sortState = "original";
                 th.setAttribute("aria-sort", "none");
-                if (ind) ind.innerHTML = "&#9676;";
+                if (ind) ind.innerHTML = "&#9676;"; // SAFE
             }
         });
     }

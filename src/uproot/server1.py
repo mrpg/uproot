@@ -31,7 +31,6 @@ import uproot as u
 import uproot.admin as a
 import uproot.chat as chat
 import uproot.deployment as d
-import uproot.events as e
 import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
@@ -251,7 +250,6 @@ async def show_page(
 
     u.set_info(pid, None, player.page_order, player.show_page)
     u.set_online(pid)
-    e.set_attendance(pid)
 
     await t.optional_call_once(
         page,
@@ -471,7 +469,6 @@ async def ws(
                             )
                 elif fname == "from_websocket":
                     u.set_online(pid)
-                    e.set_attendance(pid)
                     invoke_respond = True
                     invoke_response = None
                     invoke_exception = False

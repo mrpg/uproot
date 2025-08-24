@@ -10,6 +10,7 @@ This file implements admin routes.
 import asyncio
 import builtins
 import importlib.metadata
+import json
 import os
 import sys
 from itertools import zip_longest
@@ -444,10 +445,9 @@ async def new_session_in_room(
     nogrow: Optional[bool] = Form(False),
     auth=Depends(auth_required),
 ) -> Response:
-    # TODO: fix this
     if assignees:
-        assignees = assignees.split("|")
-        assert all(ass.lstrip("#").isidentifier() for ass in assignees)
+        assignees = json.loads(assignees)
+        assert all(isinstance(ass, str) for ass in assignees)
         shuffle(assignees)
     else:
         assignees = []

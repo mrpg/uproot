@@ -22,7 +22,7 @@ function renderRooms(rooms, containerId) {
     const sortedRooms = Object.values(rooms).sort((a, b) => a.name.localeCompare(b.name));
 
     if (sortedRooms.length > 0) {
-        container.innerHTML = "";
+        container.innerHTML = ""; // SAFE
     }
 
     sortedRooms.forEach(room => {
@@ -97,10 +97,10 @@ function renderRooms(rooms, containerId) {
         const labelsBadge = document.createElement("div");
         //labelsBadge.className = "mb-2";
         if (room.labels != null && room.labels.length > 0) {
-            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> ${room.labels.length}`;
+            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> ${room.labels.length}`; // SAFE
             labelsBadge.title = room.labels.slice(0, 5).join(", ") + (room.labels.length > 5 ? "..." : "");
         } else{
-            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> N/A`;
+            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> N/A`; // SAFE
         }
         leftCol.appendChild(labelsBadge);
 
@@ -108,9 +108,9 @@ function renderRooms(rooms, containerId) {
         const freejoinBadge = document.createElement("div");
         freejoinBadge.className = "mb-2";
         if (freejoin) {
-            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("free join")}`;
+            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("free join")}`; // SAFE
         } else {
-            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("restricted")}`;
+            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("restricted")}`; // SAFE
         }
         leftCol.appendChild(freejoinBadge);
 
@@ -125,14 +125,14 @@ function renderRooms(rooms, containerId) {
             const sessionLink = document.createElement("a");
             sessionLink.href = `${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}/`;
             sessionLink.className = "btn btn-sm btn-outline-uproot btn-view-details d-block me-2 py-0";
-            sessionLink.innerHTML = "&boxbox;";
+            sessionLink.innerHTML = "&boxbox;"; // SAFE
             sessionLink.title = _("View session");
             links.appendChild(sessionLink);
         } else {
             const sessionLink = document.createElement("button");
             sessionLink.disabled = true;
             sessionLink.className = "btn btn-sm btn-view-details d-block me-2 py-0 opacity-25";
-            sessionLink.innerHTML = "&boxbox;";
+            sessionLink.innerHTML = "&boxbox;"; // SAFE
             links.appendChild(sessionLink);
         }
 
@@ -140,14 +140,14 @@ function renderRooms(rooms, containerId) {
         joinLink.href = `${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}/`;
         //joinLink.setAttribute("target", "_blank");
         joinLink.className = "btn btn-sm btn-outline-uproot btn-view-details";
-        joinLink.innerHTML = "&rarr;";
+        joinLink.innerHTML = "&rarr;"; // SAFE
         joinLink.title = _("View room");
         links.appendChild(joinLink);
         /*const joinLink = document.createElement("a");
         joinLink.href = `${uproot.vars.root}/room/${encodeURIComponent(room.name)}/`;
         joinLink.setAttribute("target", "_blank");
         joinLink.className = "fs-sm fw-bolder link-danger link-offset-2 link-underline-danger link-underline-opacity-0 link-underline-opacity-100-hover";
-        joinLink.innerHTML = _("Enter room as a participant");
+        joinLink.textContent = _("Enter room as a participant");
         joinLink.title = _("Enter room as a participant");
         links.appendChild(joinLink);*/
 
@@ -231,7 +231,7 @@ function renderSessions(sessions, containerId) {
     const sortedSessions = Object.values(sessions).sort((a, b) => (b.started || 0) - (a.started || 0));
 
     if (sortedSessions.length > 0) {
-        container.innerHTML = "";
+        container.innerHTML = ""; // SAFE
     }
 
     sortedSessions.forEach(session => {
@@ -263,7 +263,7 @@ function renderSessions(sessions, containerId) {
             const detailsLink = document.createElement("a");
             detailsLink.href = `${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/`;
             detailsLink.className = "btn btn-sm btn-outline-uproot btn-view-details py-0";
-            detailsLink.innerHTML = "&boxbox;";
+            detailsLink.innerHTML = "&boxbox;"; // SAFE
             detailsLink.title = _("View session details");
             cardHeader.appendChild(detailsLink);
         }
@@ -371,7 +371,7 @@ function renderConfigsApps(data, containerId) {
     });
 
     container.appendChild(select);
-    container.innerHTML +=
+    container.innerHTML += // SAFE
         "<label for='configs-apps-select'>" + _("Config or app") + "</label>";
 }
 
@@ -418,7 +418,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         const detailsLink = document.createElement("a");
         detailsLink.href = `${uproot.vars.root}/admin/new_session/?config=${encodeURIComponent(key)}`;
         detailsLink.className = "btn btn-sm btn-outline-uproot btn-launch";
-        detailsLink.innerHTML = "&neArr;";
+        detailsLink.innerHTML = "&neArr;"; // SAFE
         detailsLink.title = _("Start session");
         item.appendChild(detailsLink);
 

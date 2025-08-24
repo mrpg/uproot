@@ -75,7 +75,7 @@ Room
     let currentRecentLabels = [];
 
     function preSubmit() {
-        I("assignees").value = currentRecentLabels.join("|");
+        I("assignees").value = JSON.stringify(currentRecentLabels);
 
         return true; // can add further checks here
     }
@@ -111,8 +111,8 @@ Room
                 if (tooltip) tooltip.dispose();
             });
 
-            recentlySeenDiv.innerHTML = recentLabels
-                .map(label => `<span class="badge bg-success me-1" data-label="${label}">${label}</span>`)
+            recentlySeenDiv.innerHTML = /* SAFE */ recentLabels
+                .map(label => `<span class="badge bg-success me-1" data-label="${label}">${uproot.escape(label)}</span>`)
                 .join('');
 
             recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
@@ -137,8 +137,8 @@ Room
             .filter(label => !recentLabels.includes(label))
             .sort();
 
-        notRecentlySeenDiv.innerHTML = notRecentLabels
-            .map(label => `<span class="badge bg-secondary me-1">${label}</span>`)
+        notRecentlySeenDiv.innerHTML = /* SAFE */ notRecentLabels
+            .map(label => `<span class="badge bg-secondary me-1">${uproot.escape(label)}</span>`)
             .join('');
     }
 
@@ -156,7 +156,7 @@ Room
         uproot.invoke("subscribe_to_attendance", `^${uproot.vars.roomname}`);
         setInterval(cleanupOld, 1000);
 
-        document.querySelector("label[for='nplayers']").innerHTML += " (<b>#n# recently seen</b>)".replace("#n#", "<span class='n-here'>0</span>");
+        document.querySelector("label[for='nplayers']").innerHTML += /* SAFE */ " (<b>#n# recently seen</b>)".replace("#n#", "<span class='n-here'>0</span>");
     });
 
     uproot.onCustomEvent("Attended", (event) => {
