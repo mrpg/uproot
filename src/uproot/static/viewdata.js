@@ -89,9 +89,15 @@ function createColumns(data) {
 
     // Sort fields by priority
     const sortedFields = Array.from(allFields).sort(prioritizeFields);
-
+    
+    const numericFields = ["id", "member_id", "show_page"];
     // Create columns for each field
     sortedFields.forEach((field, index) => {
+        if (numericFields.includes(field)) {
+            colSorter = "number";
+        } else {
+            colSorter = "string";
+        }
         columns.push({
             title: field,
             field: field,
@@ -110,7 +116,7 @@ function createColumns(data) {
                     showCellDetails(field, metadata);
                 }
             },
-            sorter: "string"
+            sorter: colSorter
         });
     });
 

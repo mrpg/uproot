@@ -10,7 +10,6 @@
     </span>
     <div class="btn-group mb-2 mx-2" id="buttongroup-normal-table">
         <button type="button" class="btn btn-outline-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
-        {#<button type="button" class="btn btn-outline-uproot mb-2" data-bs-toggle="modal" data-bs-target="#tableModal">{% translate %}Full-screen table{% endtranslate %}</button>#}
         <button type="button" class="btn btn-outline-uproot" onclick="fullScreenTable()">{% translate %}Full-screen table{% endtranslate %}</button>
     </div>
     <div id="buttons-normal-table">
@@ -87,30 +86,6 @@
     </div>
 </div>
 
-{#
-<!-- Modal -->
-<!--<div class="fade modal" id="tableContainer" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">-->
-<div class="container mt-3 table-sticky-outer" id="tableContainer" style="background-color: var(--bs-uproot-bg-subtle); border: 5px solid gold;">
-<!--class="container mt-3 table-sticky-outer"-->
-    <!--<div class="modal-dialog modal-dialog-scrollable modal-fullscreen">-->
-    <div id="becomes-modal-fullscreen">
-        <!--<div class="modal-content">-->
-        <div id="becomes-modal-content">
-            <!--<div class="modal-header py-2">-->
-            <div id="becomes-modal-header">
-                <button type="button" class="btn btn-outline-uproot btn-sm" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
-                <button type="button" class="btn-close btn-sm" onclick="normalTable()"></button>
-            </div>
-            <!--<div class="modal-body px-3 py-0" id="tableInModal">-->
-            <div class="border-bottom border-top border-uproot-subtle p-0 table-sticky-inner" id="tableMain">
-                <div id="tableOuter">
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-#}
-
 {% endblock main %}
 
 
@@ -119,14 +94,10 @@
 <script src="{{ internal_static('viewdata.js') }}"></script>
 <script>
     uproot.onStart(() => initializeTable());
-    //I("tableContainer").classList.remove("fade");
-    //I("tableContainer").classList.remove("modal");
-    //I("tableContainer").classList.add("container");
     function fullScreenTable() {
         I("uproot-footer").classList.add("d-none");
         I("uproot-navbar").classList.add("d-none");
         I("tableContainer").setAttribute("class", "position-absolute h-fullscreen-table start-fullscreen w-fullscreen");
-        //I("tableOuter").classList.add("mx-3");
         I("buttongroup-normal-table").classList.add("d-none");
         I("buttons-normal-table").classList.add("d-none");
         I("buttons-fullscreen-table").classList.remove("d-none");
@@ -134,11 +105,6 @@
         I("uproot-title").classList.add("h-fullscreen-title");
         I("uproot-title").classList.add("mt-3");
         I("uproot-title").classList.remove("my-4");
-        //I("becomes-modal-fullscreen").setAttribute("class", "modal-dialog modal-dialog-scrollable modal-fullscreen");
-        //I("becomes-modal-content").setAttribute("class", "modal-content");
-        //I("becomes-modal-header").setAttribute("class", "modal-header py-2");
-        //I("tableMain").setAttribute("class", "modal-body px-3 py-0");
-        //return new bootstrap.Modal(I("tableContainer"));
     }
     function normalTable() {
         I("uproot-footer").classList.remove("d-none");
