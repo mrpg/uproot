@@ -89,7 +89,7 @@ function createColumns(data) {
 
     // Sort fields by priority
     const sortedFields = Array.from(allFields).sort(prioritizeFields);
-    
+
     const numericFields = ["id", "member_id", "show_page"];
     // Create columns for each field
     sortedFields.forEach((field, index) => {
