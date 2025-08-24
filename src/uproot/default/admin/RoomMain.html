@@ -75,7 +75,7 @@ Room
     let currentRecentLabels = [];
 
     function preSubmit() {
-        I("assignees").value = currentRecentLabels.join("|");
+        I("assignees").value = JSON.stringify(currentRecentLabels);
 
         return true; // can add further checks here
     }
@@ -112,7 +112,7 @@ Room
             });
 
             recentlySeenDiv.innerHTML = recentLabels
-                .map(label => `<span class="badge bg-success me-1" data-label="${label}">${label}</span>`)
+                .map(label => `<span class="badge bg-success me-1" data-label="${label}">${uproot.escape(label)}</span>`)
                 .join('');
 
             recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
@@ -138,7 +138,7 @@ Room
             .sort();
 
         notRecentlySeenDiv.innerHTML = notRecentLabels
-            .map(label => `<span class="badge bg-secondary me-1">${label}</span>`)
+            .map(label => `<span class="badge bg-secondary me-1">${uproot.escape(label)}</span>`)
             .join('');
     }
 

@@ -155,7 +155,8 @@ async def ws(
     needs_label = room["labels"] is not None
 
     if label == "" and not needs_label:
-        local_context = "#" + t.token_unchecked(6).upper()  # Implement fingerprinting?
+        existing_labels = [pid.uname for pid in u.who_online(sname=f"^{roomname}")]
+        local_context = t.token(existing_labels, str.upper)  # Implement fingerprinting?
     elif not needs_label or label in room["labels"]:
         # Eagerly accept label
         local_context = label
@@ -201,9 +202,12 @@ async def ws(
                 elif fname == "subscribe_to_room":
                     await websocket.send_json(
                         dict(
-                            kind="action",
+                            kind="event",
                             payload=dict(
-                                action="reload",
+                                event="RoomStarted",
+                                detail=dict(
+                                    label=local_context,
+                                ),
                             ),
                         )
                     )
