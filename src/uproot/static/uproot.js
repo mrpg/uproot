@@ -423,7 +423,7 @@ window.uproot = {
 
         let errorModal = bootstrap.Modal.getOrCreateInstance(this.I("error-modal"), { "backdrop": "static" });
 
-        this.I("error-modal-body").innerHTML = html;
+        this.I("error-modal-body").innerHTML = html; // SAFE (users need to be careful!)
 
         errorModal.show();
         errorModal._backdrop._element.style.backgroundColor = "red";
@@ -449,7 +449,7 @@ window.uproot = {
 
         let alertModal = bootstrap.Modal.getOrCreateInstance(this.I("alert-modal"), { "backdrop": "static" });
 
-        this.I("alert-modal-body").innerHTML = html;
+        this.I("alert-modal-body").innerHTML = html; // SAFE (users need to be careful, and prefer window.alert()!)
 
         alertModal.show();
 
@@ -476,7 +476,7 @@ window.uproot = {
         const span = document.createElement("span");
         span.textContent = text;
 
-        return span.innerHTML;
+        return span.innerHTML; // SAFE
     },
 
     ensureBuddy() {
@@ -567,7 +567,9 @@ window.uproot = {
 
     chat: {
         create(el, chatId) {
-            el.innerHTML = `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
+            chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
+
+            el.innerHTML = /* SAFE */ `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
                 <div class="messages-container border rounded bg-white mb-3" role="log" aria-label="Chat messages" aria-live="polite">
                     <ul class="list-unstyled mb-0 p-0" id="messages-chat-${chatId}">
                     </ul>
@@ -596,6 +598,9 @@ window.uproot = {
         },
 
         addMessage(chatId, username, message, timestamp, cls = "text-primary") {
+            username = uproot.escape(username);
+            message = uproot.escape(message);
+
             const messagesList = document.querySelector(`#messages-chat-${chatId}`);
             const time = new Date(1000 * timestamp);
             const timeString = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -603,7 +608,7 @@ window.uproot = {
 
             const messageElement = document.createElement("li");
             messageElement.className = "px-3 py-2 message-hover";
-            messageElement.innerHTML = `
+            messageElement.innerHTML = /* SAFE */ `
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <span class="fw-semibold ${cls} sender">${username}</span>
                             <time class="text-muted small time" title="${isoString}" datetime="${isoString}">${timeString}</time>

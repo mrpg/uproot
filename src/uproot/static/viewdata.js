@@ -60,7 +60,7 @@ async function updateData() {
                 }
                 else {
                     herefield.classList.add("text-muted");
-                    herefield.innerHTML = "<small>(deleted)</small>";
+                    herefield.innerHTML = "<small>(deleted)</small>"; // SAFE
                 }
 
                 const details = document.createElement("div");
@@ -72,10 +72,10 @@ async function updateData() {
                 const detailsContent = document.createElement("textarea");
 
                 detailsHeader.textContent = field;
-                detailsType.innerHTML = `${_("Type")}: `;
+                detailsType.textContent = `${_("Type")}: `;
                 detailsTypeActual.textContent = payload.type_representation;
                 detailsType.appendChild(detailsTypeActual);
-                detailsUpdate.innerHTML = `${_("Last changed")}: `;
+                detailsUpdate.textContent = `${_("Last changed")}: `;
                 detailsUpdateActual.textContent = herefield.title;
                 detailsUpdate.appendChild(detailsUpdateActual);
                 detailsContent.classList.add("form-control");
@@ -90,11 +90,11 @@ async function updateData() {
 
                 if (!payload.no_details) {
                     herefield.onclick = () => {
-                        uproot.alert(details.innerHTML);
+                        uproot.alert(details.innerHTML); // SAFE
                     };
                 }
 
-                dataTable.getCell(uname, field).innerHTML = "";
+                dataTable.getCell(uname, field).innerHTML = ""; // SAFE
                 dataTable.getCell(uname, field).appendChild(herefield);
             }
         }
