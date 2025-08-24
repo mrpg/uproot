@@ -101,6 +101,10 @@ footer a {
 /* Partially move formatting to .js files */
 
 /* Sticky column headers */
+.table-sticky {
+    border-collapse: separate; /* Don't collapse */
+    border-spacing: 0;
+}
 .table-sticky thead th {
     background-color: var(--bs-uproot-bg-light);
     position: sticky;
@@ -130,12 +134,12 @@ footer a {
 /* Surrounding divs to enable scrolling within table */
 .table-sticky-inner {
     left: 50%;
-    height: 80vh;
+    height: 99%;
     max-height: 90vh;
     max-width: 100vw;
     overflow: auto;
     position: absolute;
-    resize: both;
+    resize: both !important;
     top: 0%;
     transform: translate(-50%, 0%);
     width: 100%;

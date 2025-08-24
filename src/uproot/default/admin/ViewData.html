@@ -16,28 +16,41 @@ Session
 <style>
     #data-table {
         font-family: var(--bs-font-monospace);
+        height: 100% !important;
+        background-color: aqua;
     }
-    
+    #data-table .tabulator-frozen-left {
+        border: 0px;
+    }
     #data-table .tabulator-row {
-        background-color: transparent;
+        background-color: white;
     }
- 
     #data-table .tabulator-row:hover {
         background-color: #eee;
     }
-
     /* Sticky column styling for Tabulator */
-    .tabulator-col[tabulator-field="id"] {
+    .tabulator-cell[tabulator-field="id"], .tabulator-col[tabulator-field="id"] {
         color: var(--bs-uproot);
     }
-    
+    .tabulator-cell[tabulator-field="id"], .tabulator-cell[tabulator-field="label"], .tabulator-cell[tabulator-field="player"] {
+        font-weight: bolder;
+    }
+    .tabulator-col-content {
+        background-color: var(--bs-uproot-bg-light);
+        border-bottom: 1px solid var(--bs-uproot-border-subtle);
+        border-right: 1px dashed var(--bs-uproot-border-subtle);
+    }
+    .tabulator-header {
+        border-bottom: 0px !important;
+    }
     /* Full height for modal */
     #tableModalInner {
         height: 95vh;
+        background-color: blue;
     }
-    
-    #tableModalInner #data-table {
-        height: 100%;
+    input[type=search] {
+        font-size: small !important;
+        margin-top: 2px;
     }
 </style>
 
@@ -57,9 +70,22 @@ Session
     </div>
 </div>
 
-<div id="tableOuter">
-    <div id="data-table"></div>
+<div class="border-bottom border-top border-uproot-subtle mt-3 no-active table-sticky-outer" id="tableOuter">
+    <div class="border-bottom border-top border-uproot-subtle container p-0 table-sticky-inner">
+        <div id="data-table"></div>
+    </div>
 </div>
+
+{#
+<div class="mt-3 no-active table-sticky-outer">
+    <div class="container p-0 table-sticky-inner">
+        <table class="align-middle mt-0 table table-hover table-responsive table-sticky text-nowrap" id="players">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+#}
 
 <!-- Modal -->
 <div class="fade modal" id="tableModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">

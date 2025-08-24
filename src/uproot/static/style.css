@@ -92,6 +92,14 @@
     --bs-btn-border-radius: var(--bs-border-radius-sm);
 }
 
+.font-sans-serif {
+    font-family: var(--bs-font-sans-serif);
+}
+
+.font-serif {
+    font-family: var(--bs-font-serif);
+}
+
 .fs-sm {
     font-size: small;
 }
