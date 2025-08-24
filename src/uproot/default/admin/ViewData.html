@@ -14,27 +14,30 @@ Session
 {% block head %}
 
 <style>
-    /* Color of `id` column */
-    #data.table-sticky tr > td:nth-of-type(1),
-    #data.table-sticky tr > th:nth-of-type(1) {
+    #data-table {
+        font-family: monospace;
+    }
+    
+    #data-table .tabulator-row {
+        background-color: transparent;
+    }
+ 
+    #data-table .tabulator-row:hover {
+        background-color: #eee;
+    }
+
+    /* Sticky column styling for Tabulator */
+    .tabulator-col[tabulator-field="id"] {
         color: var(--bs-uproot);
     }
-    /* Position to stick at for columns 2, 3 */
-    #data.table-sticky tr > td:nth-of-type(2),  /* `label` */
-    #data.table-sticky tr > th:nth-of-type(2) {
-        left: 3em;
+    
+    /* Full height for modal */
+    #tableModalInner {
+        height: 95vh;
     }
-    #data.table-sticky tr > td:nth-of-type(3),  /* `player` */
-    #data.table-sticky tr > th:nth-of-type(3) {
-        left: 6em;
-    }
-    #tableModalInner .table-sticky-inner {
-        height: 100% !important;
-        max-height: 94vh !important;
-        resize: none !important;
-    }
-    #tableModalInner .table-sticky-outer {
-        height: 95vh !important;
+    
+    #tableModalInner #data-table {
+        height: 100%;
     }
 </style>
 
@@ -55,16 +58,7 @@ Session
 </div>
 
 <div id="tableOuter">
-    <div class="mt-3 table-sticky-outer">
-        <div class="container p-0 table-sticky-inner">
-            <table class="align-middle font-monospace mt-0 table table-hover table-responsive table-sticky text-nowrap" id="data">
-                <thead>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <div id="data-table"></div>
 </div>
 
 <!-- Modal -->
@@ -86,24 +80,35 @@ Session
 
 {% block late %}
 
-<script src="{{ internal_static('tables.js') }}"></script>
 <script src="{{ internal_static('viewdata.js') }}"></script>
 <script>
-    const dataTableEl = document.querySelector("#tableOuter .table-sticky-outer");
-    const dataTableParent1 = I("tableOuter");
-    const dataTableParent2 = I("tableModalInner");
-    const tableModal = I("tableModal");
+    const tableModal = document.getElementById("tableModal");
+    let isModalView = false;
 
-    uproot.onStart(
-        () => refreshData(true)
-    );
+    uproot.onStart(() => initializeTable());
 
     tableModal.addEventListener("shown.bs.modal", () => {
-        dataTableParent2.appendChild(dataTableEl);
+        isModalView = true;
+        createTable("tableModalInner");
+        // Refresh with current data after switching to modal
+        if (Object.keys(fullDataset).length > 0) {
+            const transformedData = transformDataForTabulator(fullDataset);
+            const columns = createColumns(fullDataset);
+            table.setColumns(columns);
+            table.setData(transformedData);
+        }
     });
 
     tableModal.addEventListener("hidden.bs.modal", () => {
-        dataTableParent1.appendChild(dataTableEl);
+        isModalView = false;
+        createTable("tableOuter");
+        // Refresh with current data after switching back
+        if (Object.keys(fullDataset).length > 0) {
+            const transformedData = transformDataForTabulator(fullDataset);
+            const columns = createColumns(fullDataset);
+            table.setColumns(columns);
+            table.setData(transformedData);
+        }
     });
 </script>
 
