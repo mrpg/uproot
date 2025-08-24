@@ -66,6 +66,22 @@ function showCellDetails(field, metadata) {
     uproot.alert(details);
 }
 
+function detectColumnType(field, data) {
+    for (const playerData of Object.values(data)) {
+        if (playerData[field] && playerData[field].type_representation) {
+            const type = playerData[field].type_representation.toLowerCase();
+            if (type.includes("int") || type.includes("float") || type.includes("decimal")) {
+                return "number";
+            }
+            if (type.includes("bool")) {
+                return "boolean";
+            }
+        }
+    }
+
+    return "string"; // default
+}
+
 function createColumns(data) {
     const columns = [{
         title: "player",
@@ -90,20 +106,16 @@ function createColumns(data) {
     // Sort fields by priority
     const sortedFields = Array.from(allFields).sort(prioritizeFields);
 
-    const numericFields = ["id", "member_id", "show_page"];
-    // Create columns for each field
     sortedFields.forEach((field, index) => {
-        if (numericFields.includes(field)) {
-            colSorter = "number";
-        } else {
-            colSorter = "string";
-        }
+        const detectedType = detectColumnType(field, data);
+
         columns.push({
             title: field,
             field: field,
-            frozen: index < 3, // Keep first few columns sticky
+            frozen: index < 3,
             width: 150,
             headerFilter: "input",
+            sorter: detectedType, // Use detected type
             formatter: function(cell, formatterParams, onRendered) {
                 const value = cell.getValue();
                 const metadata = cell.getRow().getData()[field + "_meta"];
@@ -112,11 +124,10 @@ function createColumns(data) {
             cellClick: function(e, cell) {
                 const field = cell.getColumn().getField();
                 const metadata = cell.getRow().getData()[field + "_meta"];
-                if (field !== "player") { // Don't show details for player column
+                if (field !== "player") {
                     showCellDetails(field, metadata);
                 }
-            },
-            sorter: colSorter
+            }
         });
     });
 
