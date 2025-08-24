@@ -17,7 +17,11 @@ Session
     #data-table {
         font-family: var(--bs-font-monospace);
         height: 100% !important;
-        background-color: aqua;
+        background-color: var(--bs-uproot-bg-subtle);
+    }
+    #data-table input[type=search] {
+        font-size: small !important;
+        margin-top: 2px;
     }
     #data-table .tabulator-frozen-left {
         border: 0px;
@@ -26,7 +30,7 @@ Session
         background-color: white;
     }
     #data-table .tabulator-row:hover {
-        background-color: #eee;
+        background-color: #eeeeee;
     }
     /* Sticky column styling for Tabulator */
     .tabulator-cell[tabulator-field="id"], .tabulator-col[tabulator-field="id"] {
@@ -46,11 +50,7 @@ Session
     /* Full height for modal */
     #tableModalInner {
         height: 95vh;
-        background-color: blue;
-    }
-    input[type=search] {
-        font-size: small !important;
-        margin-top: 2px;
+        background-color: var(--bs-uproot-bg-light);
     }
 </style>
 
@@ -70,22 +70,12 @@ Session
     </div>
 </div>
 
-<div class="border-bottom border-top border-uproot-subtle mt-3 no-active table-sticky-outer" id="tableOuter">
-    <div class="border-bottom border-top border-uproot-subtle container p-0 table-sticky-inner">
-        <div id="data-table"></div>
+<div class="mt-3 table-sticky-outer">
+    <div class="border-bottom border-top border-uproot-subtle container p-0 table-sticky-inner" id="tableOuter">
+        <div id="data-table">
+        </div>
     </div>
 </div>
-
-{#
-<div class="mt-3 no-active table-sticky-outer">
-    <div class="container p-0 table-sticky-inner">
-        <table class="align-middle mt-0 table table-hover table-responsive table-sticky text-nowrap" id="players">
-            <thead></thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-#}
 
 <!-- Modal -->
 <div class="fade modal" id="tableModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
