@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 
 from sortedcontainers import SortedList
 
+import uproot.events as e
 from uproot.types import InternalPage, Page, PlayerIdentifier, Sessionname, Username
 
 if TYPE_CHECKING:
@@ -112,12 +113,16 @@ def set_offline(pid: PlayerIdentifier) -> None:
     except Exception:
         pass
 
+    e.set_attendance(pid)
+
 
 def set_online(pid: PlayerIdentifier) -> None:
     t = time()
 
     ONLINE[pid] = t
     ONLINE_SORTED.add((t, pid))
+
+    e.set_attendance(pid)
 
 
 def who_online(tolerance: float, sname: Optional[str] = None) -> set[PlayerIdentifier]:

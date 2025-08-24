@@ -14,7 +14,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 import uproot as u
 import uproot.core as c
 import uproot.deployment as d
-import uproot.events as e
 import uproot.jobs as j
 import uproot.rooms as ur
 import uproot.types as t
@@ -198,7 +197,6 @@ async def ws(
 
                 if fname == "from_websocket":
                     u.set_online(pid)
-                    e.set_attendance(pid)
                     # Otherwise ignore messages (for now)
                 elif fname == "subscribe_to_room":
                     await websocket.send_json(
@@ -216,7 +214,6 @@ async def ws(
             except WebSocketDisconnect:
                 # Unlike the main ws, this really means the person went away
                 u.set_offline(pid)
-                e.set_attendance(pid)
 
                 for task in tasks:
                     task.cancel()
