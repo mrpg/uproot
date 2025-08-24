@@ -1,7 +1,9 @@
+// This file mixes camelCase and snake_case as much data comes from Python
+
 const dataTable = new TableManager("data");
 const ignoredFields = Array("session", "key");
 
-const priorityFields = ["id", "label", "page_order", "show_page", "started", "round", "group"];
+const priorityFields = ["id", "label", "_uproot_group", "member_id", "page_order", "show_page", "started", "round"]; // this must include the untransformed fields
 
 let lastData, lastUpdate = 0;
 
@@ -15,13 +17,25 @@ function prioritizeFields(a, b) {
     return a[0].localeCompare(b[0]);             // alphabetical for the rest
 }
 
+function transformedRepresentation(field_, payload_) {
+    if (field_ == "_uproot_group") {
+        field_ = "(group)";
+        payload_.value_representation = payload_.value_representation.match(/gname='([^']+)'/)[1];
+        payload_.no_details = true;
+    }
+
+    return [field_, payload_];
+}
+
 async function updateData() {
     [lastData, lastUpdate] = await uproot.invoke("viewdata", uproot.vars.sname, lastUpdate);
 
     for (const [uname, allfields] of Object.entries(lastData)) {
         dataTable.getCell(uname, "player").textContent = uname;
 
-        for (const [field, payload] of Object.entries(allfields).sort(prioritizeFields)) {
+        for (const [field_, payload_] of Object.entries(allfields).sort(prioritizeFields)) {
+            const [field, payload] = transformedRepresentation(field_, payload_);
+
             if (!field.startsWith("_uproot_") && !ignoredFields.includes(field)) {
                 let herefield = document.createElement("span");
 
@@ -69,9 +83,11 @@ async function updateData() {
                 details.appendChild(detailsUpdate);
                 details.appendChild(detailsContent);
 
-                herefield.onclick = () => {
-                    uproot.alert(details.innerHTML);
-                };
+                if (!payload.no_details) {
+                    herefield.onclick = () => {
+                        uproot.alert(details.innerHTML);
+                    };
+                }
 
                 dataTable.getCell(uname, field).innerHTML = "";
                 dataTable.getCell(uname, field).appendChild(herefield);
