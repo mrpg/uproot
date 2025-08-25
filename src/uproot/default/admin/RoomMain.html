@@ -66,12 +66,10 @@ Room
 {% block late %}
 
 <script>
-    // TODO: init with .online, .info
-
     const expectedLabels = uproot.vars.room.labels || [];
-    const seen = {};
     const recent = 30; // TODO: Holger, take the wheel!
 
+    let seen = uproot.vars.online;
     let currentRecentLabels = [];
 
     function preSubmit() {
@@ -95,12 +93,12 @@ Room
     }
 
     function updateUI() {
-        const now = Date.now();
+        const now = Date.now() / 1000;
         const recentlySeenDiv = document.getElementById('recently-seen');
         const notRecentlySeenDiv = document.getElementById('not-recently-seen');
 
         const recentLabels = Object.keys(seen)
-            .filter(label => now - seen[label] <= 1000 * recent)
+            .filter(label => now - seen[label] <= recent)
             .sort();
 
         [...document.querySelectorAll(".n-here")].forEach((el) => el.textContent = recentLabels.length);
@@ -143,9 +141,9 @@ Room
     }
 
     function cleanupOld() {
-        const now = Date.now();
+        const now = Date.now() / 1000;
         Object.keys(seen).forEach(label => {
-            if (now - seen[label] > 1000 * recent) {
+            if (now - seen[label] > recent) {
                 delete seen[label];
             }
         });
@@ -153,6 +151,8 @@ Room
     }
 
     uproot.onStart(() => {
+        updateUI();
+
         uproot.invoke("subscribe_to_attendance", `^${uproot.vars.roomname}`);
         setInterval(cleanupOld, 1000);
 
@@ -164,7 +164,7 @@ Room
         if (!label) return;
 
         if (event?.detail?.online !== null) {
-            seen[label] = Date.now();
+            seen[label] = Date.now() / 1000;
         }
         else {
             delete seen[label];
