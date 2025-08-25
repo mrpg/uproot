@@ -2,6 +2,10 @@ body {
     min-height: 100vh; flex-direction: column; display: flex; justify-content: flex-start;
 }
 
+.cell-updated {
+    background-color: var(--bs-success-bg-subtle);
+}
+
 .heartbeat {
     color: green;
     font-size: 1em;
