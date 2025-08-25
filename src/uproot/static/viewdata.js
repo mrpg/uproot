@@ -7,6 +7,7 @@ let lastData, lastUpdate = 0;
 let table;
 let currentContainer = "tableOuter";
 let fullDataset = {};
+let recentlyUpdated = new Set();
 
 function prioritizeFields(a, b) {
     const ai = priorityFields.indexOf(a);
@@ -116,12 +117,28 @@ function createColumns(data) {
             width: 150,
             headerFilter: "input",
             sorter: detectedType, // Use detected type
-            formatter: function(cell, formatterParams, onRendered) {
+            formatter: function (cell, formatterParams, onRendered) {
                 const value = cell.getValue();
                 const metadata = cell.getRow().getData()[field + "_meta"];
-                return formatCellValue(value, metadata);
+                const cellKey = `${cell.getRow().getData().player}:${field}`;
+                const isUpdated = recentlyUpdated.has(cellKey);
+
+                const formattedValue = formatCellValue(value, metadata);
+
+                if (isUpdated) {
+                    // Add table-active class to the cell element
+                    onRendered(function () {
+                        cell.getElement().classList.add('table-active');
+
+                        window.setTimeout(function () {
+                            cell.getElement().classList.remove('table-active');
+                        }, 1000);
+                    });
+                }
+
+                return formattedValue;
             },
-            cellClick: function(e, cell) {
+            cellClick: function (e, cell) {
                 const field = cell.getColumn().getField();
                 const metadata = cell.getRow().getData()[field + "_meta"];
                 if (field !== "player") {
@@ -175,8 +192,8 @@ function createTable(containerId) {
         table.destroy();
     }
 
-    const container = containerId === "tableOuter" ? 
-        document.querySelector("#tableOuter") : 
+    const container = containerId === "tableOuter" ?
+        document.querySelector("#tableOuter") :
         document.getElementById(containerId);
 
     // Create table element
@@ -201,6 +218,9 @@ function createTable(containerId) {
 }
 
 function mergeDiffIntoDataset(diffData) {
+    // Clear previous updates and track new ones
+    recentlyUpdated.clear();
+
     // Merge the diff data into our full dataset
     for (const [uname, fields] of Object.entries(diffData)) {
         if (!fullDataset[uname]) {
@@ -210,6 +230,8 @@ function mergeDiffIntoDataset(diffData) {
         // Update only the changed fields for this user
         for (const [field, payload] of Object.entries(fields)) {
             fullDataset[uname][field] = payload;
+            // Track this cell as recently updated
+            recentlyUpdated.add(`${uname}:${transformField(field)}`);
         }
     }
 }
