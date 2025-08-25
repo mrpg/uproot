@@ -187,9 +187,7 @@ def info_online(
     sname: t.Sessionname,
 ) -> dict[str, Any]:
     info = u.INFO[sname]
-    online = {
-        uname: u.find_online(t.PlayerIdentifier(sname, uname)) for uname in info.keys()
-    }  # TODO: this seems inefficient
+    online = u.ONLINE[sname]
 
     return dict(info=info, online=online)
 
