@@ -66,16 +66,14 @@ Room
 {% block late %}
 
 <script>
-    // TODO: init with .online, .info
-
     const expectedLabels = uproot.vars.room.labels || [];
-    const seen = {};
     const recent = 30; // TODO: Holger, take the wheel!
 
+    let seen = uproot.vars.online;
     let currentRecentLabels = [];
 
     function preSubmit() {
-        I("assignees").value = currentRecentLabels.join("|");
+        I("assignees").value = JSON.stringify(currentRecentLabels);
 
         return true; // can add further checks here
     }
@@ -95,12 +93,12 @@ Room
     }
 
     function updateUI() {
-        const now = Date.now();
+        const now = Date.now() / 1000;
         const recentlySeenDiv = document.getElementById('recently-seen');
         const notRecentlySeenDiv = document.getElementById('not-recently-seen');
 
         const recentLabels = Object.keys(seen)
-            .filter(label => now - seen[label] <= 1000 * recent)
+            .filter(label => now - seen[label] <= recent)
             .sort();
 
         [...document.querySelectorAll(".n-here")].forEach((el) => el.textContent = recentLabels.length);
@@ -111,8 +109,8 @@ Room
                 if (tooltip) tooltip.dispose();
             });
 
-            recentlySeenDiv.innerHTML = recentLabels
-                .map(label => `<span class="badge bg-success me-1" data-label="${label}">${label}</span>`)
+            recentlySeenDiv.innerHTML = /* SAFE */ recentLabels
+                .map(label => `<span class="badge bg-success me-1" data-label="${label}">${uproot.escape(label)}</span>`)
                 .join('');
 
             recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
@@ -137,15 +135,15 @@ Room
             .filter(label => !recentLabels.includes(label))
             .sort();
 
-        notRecentlySeenDiv.innerHTML = notRecentLabels
-            .map(label => `<span class="badge bg-secondary me-1">${label}</span>`)
+        notRecentlySeenDiv.innerHTML = /* SAFE */ notRecentLabels
+            .map(label => `<span class="badge bg-secondary me-1">${uproot.escape(label)}</span>`)
             .join('');
     }
 
     function cleanupOld() {
-        const now = Date.now();
+        const now = Date.now() / 1000;
         Object.keys(seen).forEach(label => {
-            if (now - seen[label] > 1000 * recent) {
+            if (now - seen[label] > recent) {
                 delete seen[label];
             }
         });
@@ -153,10 +151,12 @@ Room
     }
 
     uproot.onStart(() => {
+        updateUI();
+
         uproot.invoke("subscribe_to_attendance", `^${uproot.vars.roomname}`);
         setInterval(cleanupOld, 1000);
 
-        document.querySelector("label[for='nplayers']").innerHTML += " (<b>#n# recently seen</b>)".replace("#n#", "<span class='n-here'>0</span>");
+        document.querySelector("label[for='nplayers']").innerHTML += /* SAFE */ " (<b>#n# recently seen</b>)".replace("#n#", "<span class='n-here'>0</span>");
     });
 
     uproot.onCustomEvent("Attended", (event) => {
@@ -164,7 +164,7 @@ Room
         if (!label) return;
 
         if (event?.detail?.online !== null) {
-            seen[label] = Date.now();
+            seen[label] = Date.now() / 1000;
         }
         else {
             delete seen[label];

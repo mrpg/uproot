@@ -69,6 +69,7 @@ def constrain_label(label: Any) -> str:
     if not isinstance(label, str):
         return ""
     else:
+        # TODO: constrain further?
         return label[:128]
 
 

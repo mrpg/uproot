@@ -109,7 +109,7 @@ Session
     addButton.addEventListener("click", () => {
         const inputGroup = document.createElement("div");
         inputGroup.className = "input-group mb-2";
-        inputGroup.innerHTML = `
+        inputGroup.innerHTML = /* SAFE */ `
             <input type="text" class="form-control" name="gvar">
             <button type="button" class="btn btn-outline-danger remove-input">${_("Remove")}</button>
         `;

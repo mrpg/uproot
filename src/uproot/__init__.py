@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 
 from sortedcontainers import SortedList
 
+import uproot.events as e
 from uproot.types import InternalPage, Page, PlayerIdentifier, Sessionname, Username
 
 if TYPE_CHECKING:
@@ -31,7 +32,10 @@ INFO: defaultdict[
         ],
     ],
 ] = defaultdict(dict)
-ONLINE: dict[PlayerIdentifier, float] = dict()
+ONLINE: defaultdict[
+    Sessionname,
+    dict[Username, float],
+] = defaultdict(dict)
 ONLINE_SORTED: SortedList[tuple[float, PlayerIdentifier]] = SortedList()
 MANUAL_DROPOUTS: set[PlayerIdentifier] = set()
 WATCH: set[tuple[PlayerIdentifier, float, str, str]] = set()
@@ -105,37 +109,55 @@ def get_info(pid: PlayerIdentifier) -> tuple[Optional[int], list[str], int]:
 
 def set_offline(pid: PlayerIdentifier) -> None:
     try:
-        t = ONLINE[pid]
+        t = ONLINE[pid.sname][pid.uname]
 
-        del ONLINE[pid]
+        del ONLINE[pid.sname][pid.uname]
         ONLINE_SORTED.remove((t, pid))
     except Exception:
         pass
+
+    e.set_attendance(pid)
 
 
 def set_online(pid: PlayerIdentifier) -> None:
     t = time()
 
-    ONLINE[pid] = t
+    ONLINE[pid.sname][pid.uname] = t
     ONLINE_SORTED.add((t, pid))
 
+    e.set_attendance(pid)
 
-def who_online(tolerance: float, sname: Optional[str] = None) -> set[PlayerIdentifier]:
-    t = time()
+
+def who_online(
+    tolerance: Optional[float] = None,
+    sname: Optional[str] = None,
+) -> set[PlayerIdentifier]:
     online = set()
 
-    for e in reversed(ONLINE_SORTED):
-        if t - e[0] <= tolerance and (sname is None or e[1].sname == sname):
-            online.add(e[1])
+    if tolerance is None:
+        if sname is None:
+            for sessionname, users in ONLINE.items():
+                for username in users.keys():
+                    online.add(PlayerIdentifier(sname=sessionname, uname=username))
         else:
-            break
+            if sname in ONLINE:
+                for username in ONLINE[sname].keys():
+                    online.add(PlayerIdentifier(sname=sname, uname=username))
+    else:
+        t = time()
+
+        for e in reversed(ONLINE_SORTED):
+            if t - e[0] <= tolerance and (sname is None or e[1].sname == sname):
+                online.add(e[1])
+            else:
+                break
 
     return online
 
 
 def find_online(pid: PlayerIdentifier) -> Optional[float]:
     try:
-        return ONLINE[pid]
+        return ONLINE[pid.sname][pid.uname]
     except KeyError:
         pass
 
@@ -144,7 +166,7 @@ def find_online(pid: PlayerIdentifier) -> Optional[float]:
 
 def find_online_delta(pid: PlayerIdentifier) -> Optional[float]:
     try:
-        return time() - ONLINE[pid]
+        return time() - ONLINE[pid.sname][pid.uname]
     except KeyError:
         pass
 

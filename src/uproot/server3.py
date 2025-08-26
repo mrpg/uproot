@@ -14,7 +14,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 import uproot as u
 import uproot.core as c
 import uproot.deployment as d
-import uproot.events as e
 import uproot.jobs as j
 import uproot.rooms as ur
 import uproot.types as t
@@ -156,7 +155,8 @@ async def ws(
     needs_label = room["labels"] is not None
 
     if label == "" and not needs_label:
-        local_context = "#" + t.token_unchecked(6).upper()  # Implement fingerprinting?
+        existing_labels = [pid.uname for pid in u.who_online(sname=f"^{roomname}")]
+        local_context = t.token(existing_labels, str.upper)  # Implement fingerprinting?
     elif not needs_label or label in room["labels"]:
         # Eagerly accept label
         local_context = label
@@ -198,14 +198,16 @@ async def ws(
 
                 if fname == "from_websocket":
                     u.set_online(pid)
-                    e.set_attendance(pid)
                     # Otherwise ignore messages (for now)
                 elif fname == "subscribe_to_room":
                     await websocket.send_json(
                         dict(
-                            kind="action",
+                            kind="event",
                             payload=dict(
-                                action="reload",
+                                event="RoomStarted",
+                                detail=dict(
+                                    label=local_context,
+                                ),
                             ),
                         )
                     )
@@ -216,7 +218,6 @@ async def ws(
             except WebSocketDisconnect:
                 # Unlike the main ws, this really means the person went away
                 u.set_offline(pid)
-                e.set_attendance(pid)
 
                 for task in tasks:
                     task.cancel()

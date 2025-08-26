@@ -1,7 +1,6 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from html import escape
 from typing import Any, Iterator, Optional
 from uuid import uuid4
 
@@ -61,7 +60,7 @@ def show_msg(
         id=msg.id,
         sender=sender_representation,
         time=msg.time or with_time,  # type: ignore[attr-defined]
-        text=escape(msg.text),
+        text=msg.text,
     )
 
 

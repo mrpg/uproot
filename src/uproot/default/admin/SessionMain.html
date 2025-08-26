@@ -3,10 +3,18 @@
 
 {% block title %}
 
-{% translate %}
-Session
-{% endtranslate %}
-<span class="font-monospace">{{ sname }}</span>
+<div class="d-flex justify-content-between">
+    <span>
+        {% translate %}Session{% endtranslate %}
+        <span class="font-monospace">{{ sname }}</span>
+    </span>
+    <div>
+        <a class="btn btn-outline-uproot mb-2" href="multiview/" target="_blank">Multiview</a>
+        <a class="btn btn-uproot mb-2" href="selectdata/">Download data</a>
+        <a class="btn btn-uproot mb-2" href="viewdata/">View data</a>
+        <a class="btn btn-uproot mb-2" href="monitor/">Monitor</a>
+    </div>
+</div>
 
 {% endblock title %}
 
@@ -47,10 +55,12 @@ Session
         </div>
         <div class="col">
             <h5 class="mb-3">{% translate %}Actions{% endtranslate %}</h5> {# TODO #}
+            {#
             <p class="mb-2"><a class="btn btn-uproot" href="viewdata/">View data</a></p>
             <p class="mb-2"><a class="btn btn-uproot" href="monitor/">Monitor</a></p>
             <p class="mb-2"><a class="btn btn-uproot" href="multiview/" target="_blank">Multiview</a></p>
             <p class="mb-3"><a class="btn btn-uproot" href="selectdata/">Download data</a></p>
+            #}
             <p><a class="btn btn-danger disabled" href="....../">Set inactive</a> <span
                     class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
         </div>
@@ -78,7 +88,7 @@ Session
         {% if len(info) > 0 %}
         <div class="col">
             <p>{% translate %}The individual player URLs for accessing this session are{% endtranslate %}</p>
-            <ol class="mb-2">
+            <ol class="mb-3">
                 {% for key in info %}
                 <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
                         href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a>

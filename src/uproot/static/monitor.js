@@ -103,7 +103,7 @@ class PlayerMonitor {
             replaceChildren(playerCell, label);
             playerCell.dataset.wired = "1";
         }
-        playerCell.querySelector(".player-name").innerHTML =
+        playerCell.querySelector(".player-name").innerHTML = // SAFE
             `<a
                 class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover"
                 href="${uproot.vars.root}/p/${uproot.vars.sname}/${uname}/" target="_blank">${uname}
@@ -133,7 +133,7 @@ class PlayerMonitor {
         const lastSeenHhMmSs =
             `${lastSeen.slice(-8, -3)}<span class='text-secondary opacity-50'>${lastSeen.slice(-3)}</span>`
         const lastSeenCell = this.tm.getCell(uname, "lastSeen");
-        lastSeenCell.innerHTML =
+        lastSeenCell.innerHTML = // SAFE
             `<span class="lastSeen-indicator" title="${lastSeen}">${lastSeenHhMmSs}</span>`;
         let indicatorLastSeen = lastSeenCell.querySelector(".lastSeen-indicator");
         this._initLastSeenTooltip(indicatorLastSeen, lastSeen);
@@ -321,7 +321,7 @@ window.uproot?.onStart(() => {
     }
     window.uproot?.invoke("subscribe_to_attendance", window.uproot?.vars?.sname);
     monitor.tm._applySort("id", "asc");
-    document.querySelector("th[data-col-id='check']").innerHTML =
+    document.querySelector("th[data-col-id='check']").innerHTML = // SAFE
         "<input class='form-check-input' id='checkAll' onclick='monitor.checkAll(this.checked)' type='checkbox'>";
     document.querySelector("th[data-col-id='check']").classList.remove("sortable");
 });

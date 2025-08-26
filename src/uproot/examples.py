@@ -128,24 +128,25 @@ class Dilemma(Page):
     )
 
 
+def set_payoff(player):
+    other = other_in_group(player)
+
+    match player.cooperate, other.cooperate:
+        case True, True:
+            player.payoff = 10
+        case True, False:
+            player.payoff = 0
+        case False, True:
+            player.payoff = 15
+        case False, False:
+            player.payoff = 3
+
+
 class Sync(SynchronizingWait):
     @classmethod
-    def set_payoff(page, player):
-        other = other_in_group(player)
-
-        match player.cooperate, other.cooperate:
-            case True, True:
-                player.payoff = 10
-            case True, False:
-                player.payoff = 0
-            case False, True:
-                player.payoff = 15
-            case False, False:
-                player.payoff = 3
-
-    @classmethod
     def all_here(page, group):
-        players(group).apply(page.set_payoff)
+        for player in players(group):
+            set_payoff(player)
 
 
 class Results(Page):
