@@ -35,7 +35,7 @@ body {
 }
 
 .iframe-container:hover {
-    border-color: #0d6efd;
+    border-color: var(--bs-uproot);
 }
 
 .iframe-header {
@@ -101,6 +101,10 @@ footer a {
 /* Partially move formatting to .js files */
 
 /* Sticky column headers */
+.table-sticky {
+    border-collapse: separate; /* Don't collapse */
+    border-spacing: 0;
+}
 .table-sticky thead th {
     background-color: var(--bs-uproot-bg-light);
     position: sticky;
@@ -130,12 +134,11 @@ footer a {
 /* Surrounding divs to enable scrolling within table */
 .table-sticky-inner {
     left: 50%;
-    height: 80vh;
-    max-height: 90vh;
+    height: 100%;
     max-width: 100vw;
     overflow: auto;
     position: absolute;
-    resize: both;
+    resize: both !important;
     top: 0%;
     transform: translate(-50%, 0%);
     width: 100%;

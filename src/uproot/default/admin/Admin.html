@@ -20,6 +20,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" href="{{ internal_static('foreign/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ internal_static('foreign/tabulator_bootstrap5.min.css') }}">
         <link rel="stylesheet" href="{{ internal_static('style.css') }}">
         <link rel="stylesheet" href="{{ internal_static('admin.css') }}">
 
@@ -44,6 +45,7 @@
         {% endblock _uproot_scripts %}
 
         <script src="{{ internal_static('foreign/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ internal_static('foreign/tabulator.min.js') }}"></script>
         <script src="{{ internal_static('foreign/alpine.min.js') }}" defer></script>
 
         {% block head %}
@@ -95,7 +97,7 @@
         </div>
 
         {% if nonav is not defined %}
-        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm">
+        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm" id="uproot-navbar">
             <div class="container">
                 <h1 class="fs-4 p-0 mb-1"><a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover" href="{{ _uproot_internal.root }}/admin/">uproot</a></h1>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -116,7 +118,7 @@
                             <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/status/">{% translate %}Server status{% endtranslate %}</a>
                         </li>
                         <li class="nav-item">
-                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/logout/">{% translate %}Logout{% endtranslate %}</a>
+                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover ms-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/logout/">{% translate %}Logout{% endtranslate %}</a>
                         </li>
                     </ul>
                 </div>
@@ -124,7 +126,7 @@
         </nav>
         {% else %}
         <!-- Name-only bar at top of login page -->
-        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm">
+        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm" id="uproot-navbar">
             <div class="container">
                 <h1 class="fs-4 p-0 mb-1"><a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover" href="{{ _uproot_internal.root }}/admin/">uproot</a></h1>
             </div>
@@ -173,7 +175,7 @@
         {% block late2 %}
         {% endblock late2 %}
 
-        <footer class="bg-uproot-subtle border-uproot-subtle border-1 pt-2" style="margin-top: auto;">
+        <footer class="bg-uproot-subtle border-uproot-subtle border-1 pt-2" id="uproot-footer" style="margin-top: auto;">
             <div class="container my-3">
                 <div class="mb-2 row">
                     <div class="col-6">

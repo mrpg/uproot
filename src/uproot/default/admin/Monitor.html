@@ -2,11 +2,27 @@
 
 {% block title %}
 
-{% translate %}
-Session
-{% endtranslate %}
-<a href="../" class="font-monospace link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover">{{ sname }}</a>
-<span class="fw-light text-secondary">&gt; {% translate %}Monitor{% endtranslate %}</span>
+<div class="d-flex justify-content-between">
+    <span>
+        {% translate %}Session{% endtranslate %}
+        <a href="../" class="font-monospace link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover">{{ sname }}</a>
+        <span class="fw-light text-secondary">&gt; {% translate %}Monitor{% endtranslate %}</span>
+    </span>
+    <div class="btn-group mb-2 me-2" role="group" aria-label="Basic outlined example">
+        <button type="button" class="btn btn-outline-uproot" onclick="mmodal('manage')">
+            {% translate %}Manage subjects{% endtranslate %}
+        </button>
+        <button type="button" class="btn btn-outline-uproot" onclick="mmodal('insert')">
+            {% translate %}Insert fields{% endtranslate %}
+        </button>
+        <button type="button" class="btn btn-outline-uproot" onclick="mmodal('adminmessage_send')">
+            {% translate %}Send message{% endtranslate %}
+        </button>
+    </div>
+    <div>
+        <a class="btn btn-uproot mb-2" href="../viewdata/">View data</a>
+    </div>
+</div>
 
 {% endblock title %}
 
@@ -56,35 +72,10 @@ Session
 
 {% block main %}
 
-<div class="d-flex flex-row justify-content-between mb-3">
-    <div class="btn-group mb-2 me-2" role="group" aria-label="Basic outlined example">
-        <button type="button" class="btn btn-outline-uproot" onclick="mmodal('manage')">
-            {% translate %}
-            Manage subjects
-            {% endtranslate %}
-        </button>
-
-        <button type="button" class="btn btn-outline-uproot" onclick="mmodal('insert')">
-            {% translate %}
-            Insert fields
-            {% endtranslate %}
-        </button>
-
-        <button type="button" class="btn btn-outline-uproot" onclick="mmodal('adminmessage_send')">
-            {% translate %}
-            Send message
-            {% endtranslate %}
-        </button>
-    </div>
-    <div>
-        <a class="btn btn-uproot mb-2" href="../viewdata/">View data</a>
-    </div>
-</div>
-
 <div class="mt-3 no-active table-sticky-outer">
-    <div class="container p-0 table-sticky-inner">
+    <div class="border-bottom border-top border-uproot-subtle container p-0 table-sticky-inner">
         <table class="align-middle mt-0 table table-hover table-responsive table-sticky text-nowrap" id="players">
-            <thead></thead>
+            <thead class="border-bottom border-uproot-subtle"></thead>
             <tbody></tbody>
         </table>
     </div>
