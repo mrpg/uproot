@@ -46,6 +46,9 @@
         background-color: #eeeeee;
     }
     /* Sticky column styling for Tabulator */
+    .tabulator-col[aria-sort="ascending"] .tabulator-col-content, .tabulator-col[aria-sort="descending"] .tabulator-col-content {
+        background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
+    }
     .tabulator-cell[tabulator-field="id"], .tabulator-col[tabulator-field="id"] {
         color: var(--bs-uproot);
     }

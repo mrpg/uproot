@@ -181,10 +181,10 @@ function renderRooms(rooms, containerId) {
         } else {
             if (room.start) {
                 capacityBadge.className = "badge bg-success border border-success fs-6";
-                capacityBadge.textContent = _("Capacity") + ": " + _("any");
+                capacityBadge.textContent = _("Capacity") + ": ∞";
             } else {
                 capacityBadge.className = "badge border border-success fs-6 text-success";
-                capacityBadge.textContent = _("Capacity") + ": " + _("any");
+                capacityBadge.textContent = _("Capacity") + ": ∞";
             }
         }
         badgesRow1.appendChild(capacityBadge);
