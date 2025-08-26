@@ -21,6 +21,7 @@
 - **Admin Messaging**: Send messages directly to participants during experiments
 
 ## Data Collection & Export
+- **Real-Time Data Explorer**: Live data inspection during experiments
 - **Append-Only Log**: Complete audit trail of all data changes
 - **Hierarchical Data Model**: Admin/Session/Player/Group/Model data structure
 - **Automatic Data Persistence**: All interactions and responses automatically stored
@@ -29,7 +30,6 @@
   - Ultra-long format (raw event data)
   - Sparse format (wide data structure)
   - Latest format (most recent values only)
-- **Real-Time Data Viewing**: Live data inspection during experiments
 - **Stealth Fields**: Store sensitive data elsewhere
 
 ## Form Fields & Input Components
