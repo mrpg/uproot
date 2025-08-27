@@ -716,13 +716,13 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 
 
 FUNS = dict(
+    adminmessage=a.adminmessage,
     advance_by_one=a.advance_by_one,
-    revert_by_one=a.revert_by_one,
+    announcements=a.announcements,
     insert_fields=a.insert_fields,
+    mark_dropout=a.mark_dropout,
     put_to_end=a.put_to_end,
     reload=a.reload,
-    mark_dropout=a.mark_dropout,
-    adminmessage=a.adminmessage,
+    revert_by_one=a.revert_by_one,
     viewdata=a.viewdata,
-    announcements=a.announcements,
 )
