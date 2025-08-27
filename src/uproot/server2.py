@@ -438,6 +438,8 @@ async def new_session_in_room(
     nogrow: Optional[bool] = Form(False),
     auth=Depends(auth_required),
 ) -> Response:
+    a.room_exists(roomname)
+
     if assignees:
         assignees = json.loads(assignees)
         assert all(isinstance(ass, str) for ass in assignees)
@@ -455,7 +457,7 @@ async def new_session_in_room(
             data.append({"label": label})
 
     with Admin() as admin:
-        assert roomname in admin.rooms and admin.rooms[roomname]["sname"] is None
+        assert admin.rooms[roomname]["sname"] is None
 
         sid = c.create_session(
             admin,
