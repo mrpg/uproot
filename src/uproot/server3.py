@@ -95,9 +95,7 @@ async def roommain(
 
         if room["sname"] is None:
             # TODO: move this elsewhere entirely
-            room["sname"] = c.create_session(
-                admin, room["config"]
-            )
+            room["sname"] = c.create_session(admin, room["config"])
             new_session = True
 
     session = Session(room["sname"])
