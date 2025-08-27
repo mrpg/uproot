@@ -306,9 +306,21 @@ def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
                 raise ValueError("Invalid session")
 
 
+def room_exists(roomname: str, raise_http: bool = True) -> None:
+    with Admin() as admin:
+        if roomname not in admin.rooms:
+            if raise_http:
+                raise HTTPException(status_code=400, detail="Invalid room")
+            else:
+                raise ValueError("Invalid room")
+
+
 def disassociate(roomname: str, sname: t.Sessionname) -> None:
+    room_exists(roomname, False)
+    session_exists(sname, False)
+
     with s.Admin() as admin:
-        pass  # TODO
+        admin.rooms[roomname]["sname"] = None
 
 
 def rooms() -> SortedDict[str, dict]:
