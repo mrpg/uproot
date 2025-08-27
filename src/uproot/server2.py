@@ -356,7 +356,7 @@ async def new_room(
             sname=(sname if use_session and sname.strip() else None),
         )
 
-    return RedirectResponse(f"{d.ROOT}/admin/rooms/", status_code=303)
+    return RedirectResponse(f"{d.ROOT}/admin/room/{name}/", status_code=303)
 
 
 @router.post("/new_session/")
