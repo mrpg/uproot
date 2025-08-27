@@ -31,6 +31,25 @@ def set_ulimit() -> None:
             pass
 
 
+def do_reset(ctx: click.Context, yes: bool) -> None:
+    if not yes:
+        user_says = input("Please type YES to reset the database: ")
+
+        if user_says != "YES":
+            click.echo("Aborting.")
+            ctx.exit(1)
+
+        for i in range(3):
+            # we are nice
+            print(f"{3-i}...")
+            time.sleep(1)
+
+    d.DATABASE.reset()
+
+    if not yes:
+        click.echo("Database was reset.")
+
+
 @click.group()
 def cli() -> None:
     pass
@@ -63,22 +82,7 @@ def run(ctx: click.Context, host: str, port: int) -> None:
 @click.pass_context
 # fmt: on
 def reset(ctx: click.Context, yes: bool) -> None:
-    if not yes:
-        user_says = input("Please type YES to reset the database: ")
-
-        if user_says != "YES":
-            click.echo("Aborting.")
-            ctx.exit(1)
-
-        for i in range(3):
-            # we are nice
-            print(f"{3-i}...")
-            time.sleep(1)
-
-    d.DATABASE.reset()
-
-    if not yes:
-        click.echo("Database was reset.")
+    return do_reset(ctx, yes)
 
 
 # fmt: off
@@ -95,11 +99,17 @@ def dump(ctx: click.Context, file: str) -> None:
 # fmt: off
 @click.command(help="Restore database from file")
 @click.option("--file", required=True, help="Input file.")
+@click.option("--yes", is_flag=True, help="Do not ask for confirmation.")
 @click.pass_context
 # fmt: on
-def restore(ctx: click.Context, file: str) -> None:
+def restore(ctx: click.Context, file: str, yes: bool) -> None:
+    do_reset(ctx, yes)
+
     with open(file, "rb") as f:
         d.DATABASE.restore(f)
+
+    if not yes:
+        click.echo("Database was restored.")
 
 
 # fmt: off
