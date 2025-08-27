@@ -24,6 +24,7 @@ from fastapi import (
     Depends,
     Form,
     Header,
+    HTTPException,
     Query,
     Request,
     WebSocket,
