@@ -20,6 +20,8 @@ EXPORT_NAMESPACES = ("player/*/", "group/*/", "model/*/", "session/*")
 
 
 async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> None:
+    session_exists(sname, False)
+
     for uname in unames:
         ptuple = sname, uname
 
@@ -217,6 +219,8 @@ async def insert_fields(
 
 
 async def mark_dropout(sname: t.Sessionname, unames: list[str]) -> None:
+    session_exists(sname, False)
+
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
@@ -224,6 +228,8 @@ async def mark_dropout(sname: t.Sessionname, unames: list[str]) -> None:
 
 
 async def put_to_end(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]:
+    session_exists(sname, False)
+
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
@@ -253,6 +259,8 @@ async def put_to_end(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]
 
 
 async def reload(sname: t.Sessionname, unames: list[str]) -> None:
+    session_exists(sname, False)
+
     for uname in unames:
         ptuple = sname, uname
 
@@ -269,6 +277,8 @@ async def reload(sname: t.Sessionname, unames: list[str]) -> None:
 
 
 async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]:
+    session_exists(sname, False)
+
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
@@ -385,6 +395,8 @@ def verify_secret(user: str, secret: str) -> Optional[str]:
 async def viewdata(
     sname: t.Sessionname, since_epoch: float = 0
 ) -> tuple[SortedDict, float]:
+    session_exists(sname, False)
+
     rval: SortedDict = SortedDict()
     latest: dict = s.fields_from_session(sname, since_epoch)
     last_update: float = since_epoch
