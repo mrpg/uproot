@@ -416,7 +416,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         item.appendChild(content);
 
         const detailsLink = document.createElement("a");
-        detailsLink.href = `${uproot.vars.root}/admin/new_session/?config=${encodeURIComponent(key)}`;
+        detailsLink.href = `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(key)}`;
         detailsLink.className = "btn btn-sm btn-outline-uproot btn-launch";
         detailsLink.innerHTML = "&neArr;"; // SAFE
         detailsLink.title = _("Start session");

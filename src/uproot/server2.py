@@ -298,7 +298,7 @@ async def session_data(
         raise NotImplementedError
 
 
-@router.get("/new_session/")
+@router.get("/sessions/new/")
 async def new_session(
     request: Request,
     auth=Depends(auth_required),
@@ -306,7 +306,7 @@ async def new_session(
     return HTMLResponse(await render("NewSession.html", dict(configs=a.configs())))
 
 
-@router.get("/new_room/")
+@router.get("/rooms/new/")
 async def new_room(
     request: Request,
     auth=Depends(auth_required),
@@ -324,7 +324,7 @@ async def new_room(
         )
 
 
-@router.post("/new_room/")
+@router.post("/rooms/new/")
 async def new_room(
     request: Request,
     name: str = Form(),
@@ -365,7 +365,7 @@ async def new_room(
     return RedirectResponse(f"{d.ROOT}/admin/room/{name}/", status_code=303)
 
 
-@router.post("/new_session/")
+@router.post("/sessions/new/")
 async def new_session(
     request: Request,
     config: str = Form(),
