@@ -470,6 +470,8 @@ async def new_session_in_room(
             admin.rooms[roomname]["capacity"] = nplayers
 
     with sid() as session:
+        session.room = roomname
+
         c.create_players(
             session,
             n=nplayers,

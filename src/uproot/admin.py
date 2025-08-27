@@ -322,6 +322,9 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     with s.Admin() as admin:
         admin.rooms[roomname]["sname"] = None
 
+    with s.Session() as session:
+        session.room = None
+
 
 def rooms() -> SortedDict[str, dict]:
     with s.Admin() as admin:

@@ -32,6 +32,8 @@ async def roommain(
 ) -> Response:
     assert roomname.isidentifier()
 
+    new_session = False
+
     with Admin() as admin:
         label = ur.constrain_label(label)
 
@@ -92,9 +94,11 @@ async def roommain(
             capacity = room["capacity"]
 
         if room["sname"] is None:
+            # TODO: move this elsewhere entirely
             room["sname"] = c.create_session(
                 admin, room["config"]
-            )  # TODO: remove side effect
+            )
+            new_session = True
 
     session = Session(room["sname"])
 
@@ -115,6 +119,9 @@ async def roommain(
     # Try to add new player
 
     with session:
+        if new_session:
+            session.room = roomname
+
         if ur.freejoin(room) or len(session.players) < capacity:
             with session:
                 pid = c.create_player(session)
