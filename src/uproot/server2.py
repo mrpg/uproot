@@ -339,6 +339,9 @@ async def new_room(
     start: Optional[bool] = Form(False),
     auth=Depends(auth_required),
 ) -> Response:
+    if sname:
+        a.session_exists(sname)
+
     with Admin() as admin:
         if name in admin.rooms:
             raise HTTPException(status_code=400, detail="Room name already exists")
@@ -355,6 +358,9 @@ async def new_room(
             start=bool(start),
             sname=(sname if use_session and sname.strip() else None),
         )
+
+    with Session(sname) as session:
+        session.room = name
 
     return RedirectResponse(f"{d.ROOT}/admin/room/{name}/", status_code=303)
 
