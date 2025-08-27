@@ -88,7 +88,7 @@ function createColumns(data) {
         title: "player",
         field: "player",
         frozen: true,
-        width: 120,
+        width: 110,
         headerFilter: "input"
     }];
 
@@ -109,12 +109,12 @@ function createColumns(data) {
 
     sortedFields.forEach((field, index) => {
         const detectedType = detectColumnType(field, data);
-
+        const colWidth = field == "id" ? 110 : (field == "page_order" ? 325 : 150);
         columns.push({
             title: field,
             field: field,
-            frozen: index < 3,
-            width: 150,
+            frozen: index < 2,
+            width: colWidth,
             headerFilter: "input",
             sorter: detectedType, // Use detected type
             formatter: function (cell, formatterParams, onRendered) {
@@ -128,11 +128,11 @@ function createColumns(data) {
                 if (isUpdated) {
                     // Add table-active class to the cell element
                     onRendered(function () {
-                        cell.getElement().classList.add('table-active');
-
+                        //cell.getElement().classList.add('bg-opacity-75');
+                        cell.getElement().classList.add('bg-success-subtle');
                         window.setTimeout(function () {
-                            cell.getElement().classList.remove('table-active');
-                        }, 1000);
+                            cell.getElement().classList.remove('bg-success-subtle');
+                        }, 3000);
                     });
                 }
 
