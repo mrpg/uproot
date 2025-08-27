@@ -97,9 +97,6 @@ footer a {
     color: var(--bs-uproot);
 }
 
-/* TODO: Fix left values of sticky columns on Monitor.html */
-/* Partially move formatting to .js files */
-
 /* Sticky column headers */
 .table-sticky {
     border-collapse: separate; /* Don't collapse */
@@ -148,4 +145,12 @@ footer a {
     width: 100%;
     overflow: visible;
     position: relative;
+}
+
+.tabulator-cell .a-value {
+    display: inline-block;
+    overflow: hidden;
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
