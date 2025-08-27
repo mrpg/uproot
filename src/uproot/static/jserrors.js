@@ -1,4 +1,4 @@
-const jserrorsTarget = `${uproot.vars._uproot_internal.root}/jserrors/`;
+const jserrorsAlreadyReported = Array();
 
 function isConsoleError(source, stack) {
     const consolePatterns = [
@@ -24,8 +24,12 @@ function jserrorsSend(message, source = "unknown", lineno = "?", colno = "?", st
     
     const timestamp = new Date().toISOString();
     const locationInfo = source ? ` [${source}:${lineno}:${colno}]` : "";
+    const fullMessage = `${message}${locationInfo}`;
 
-    return uproot.api("jserrors", `${message}${locationInfo}`);
+    if (!jserrorsAlreadyReported.includes(fullMessage)) {
+        jserrorsAlreadyReported.push(fullMessage);  // ignore API failure here
+        return uproot.api("jserrors", fullMessage);
+    }
 }
 
 function jserrorsLocation(stack) {
@@ -53,7 +57,7 @@ function jserrorsLocation(stack) {
 window.onerror = (message, source, lineno, colno, error) => {
     const stack = error ? error.stack : '';
 
-    jserrorsSend(`Global error: ${message}`, source, lineno, colno, stack);
+    jserrorsSend(message, source, lineno, colno, stack);
 
     return false;
 };
@@ -64,7 +68,7 @@ window.addEventListener("unhandledrejection", (event) => {
     const errorLocation = stack ? jserrorsLocation(stack) : {};
 
     jserrorsSend(
-        `Unhandled promise rejection: ${event.reason}`,
+        event.reason,
         errorLocation.source,
         errorLocation.line,
         errorLocation.column,
@@ -76,7 +80,7 @@ window.addEventListener("error", (event) => {
     const stack = event.error ? event.error.stack : '';
 
     jserrorsSend(
-        `Error event: ${event.message}`,
+        event.message,
         event.filename,
         event.lineno,
         event.colno,
