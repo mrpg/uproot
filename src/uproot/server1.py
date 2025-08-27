@@ -44,7 +44,6 @@ from uproot.pages import (
     verify_csrf,
 )
 from uproot.storage import (
-    Admin,
     Player,
     Session,
     Storage,
@@ -285,15 +284,6 @@ def nocache(response: Response) -> None:
     response.headers["X-Content-Type-Options"] = "nosniff"
 
 
-def session_exists(sname: t.Sessionname) -> None:
-    # TODO: DRY violation with server3.py, but admin.py does not concern itself with
-    # HTTPExceptions, so cannot be easily moved there
-
-    with Admin() as admin:
-        if sname not in admin.sessions:
-            raise HTTPException(status_code=400, detail="Invalid session")
-
-
 @router.get("/s/{sname}/{secret}/")
 @router.get("/room/{roomname}/")
 async def avoid_side_effects_when_previewing(
@@ -316,7 +306,7 @@ async def sessionwide(
     secret: str,
 ) -> RedirectResponse:
     # Verify sname and secret
-    session_exists(sname)
+    a.session_exists(sname)
 
     with Session(sname) as session:
         if not secret == session._uproot_secret:

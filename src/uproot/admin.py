@@ -6,6 +6,7 @@ from itertools import chain
 from typing import Any, AsyncGenerator, Callable, Iterator, Optional
 
 import aiohttp
+from fastapi import HTTPException
 from sortedcontainers import SortedDict
 
 import uproot as u
@@ -294,6 +295,20 @@ async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, di
                 )
 
     return info_online(sname)
+
+
+def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
+    with Admin() as admin:
+        if sname not in admin.sessions:
+            if raise_http:
+                raise HTTPException(status_code=400, detail="Invalid session")
+            else:
+                raise ValueError("Invalid session")
+
+
+def disassociate(roomname: str, sname: t.Sessionname) -> None:
+    with s.Admin() as admin:
+        pass  # TODO
 
 
 def rooms() -> SortedDict[str, dict]:

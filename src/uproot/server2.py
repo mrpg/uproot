@@ -24,7 +24,6 @@ from fastapi import (
     Depends,
     Form,
     Header,
-    HTTPException,
     Query,
     Request,
     WebSocket,
@@ -274,7 +273,7 @@ async def session_data(
     filetype: str = "csv",
     auth=Depends(auth_required),
 ) -> Response:
-    session_exists(sname)
+    a.session_exists(sname)
 
     if filetype == "csv":
         t0 = now()
@@ -390,19 +389,13 @@ async def new_session(
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 
 
-def session_exists(sname: t.Sessionname) -> None:
-    with Admin() as admin:
-        if sname not in admin.sessions:
-            raise HTTPException(status_code=400, detail="Invalid session")
-
-
 @router.get("/session/{sname}/monitor/")
 async def session_monitor(
     request: Request,
     sname: t.Sessionname,
     auth=Depends(auth_required),
 ) -> Response:
-    session_exists(sname)
+    a.session_exists(sname)
 
     return HTMLResponse(
         await render("Monitor.html", dict(sname=sname) | a.info_online(sname))
@@ -497,7 +490,7 @@ async def sessionmain(
     sname: t.Sessionname,
     auth=Depends(auth_required),
 ) -> Response:
-    session_exists(sname)
+    a.session_exists(sname)
 
     with Session(sname) as session:
         description = session.get("description")
@@ -522,7 +515,7 @@ async def session_viewdata(
     sname: t.Sessionname,
     auth=Depends(auth_required),
 ) -> Response:
-    session_exists(sname)
+    a.session_exists(sname)
     return HTMLResponse(await render("ViewData.html", dict(sname=sname)))
 
 
@@ -532,7 +525,7 @@ async def session_selectdata(
     sname: t.Sessionname,
     auth=Depends(auth_required),
 ) -> Response:
-    session_exists(sname)
+    a.session_exists(sname)
     return HTMLResponse(await render("SelectData.html", dict(sname=sname)))
 
 
@@ -542,7 +535,7 @@ async def session_multiview(
     sname: t.Sessionname,
     auth=Depends(auth_required),
 ) -> Response:
-    session_exists(sname)
+    a.session_exists(sname)
 
     return HTMLResponse(
         await render("MultiView.html", dict(sname=sname) | a.info_online(sname))
@@ -719,6 +712,7 @@ FUNS = dict(
     adminmessage=a.adminmessage,
     advance_by_one=a.advance_by_one,
     announcements=a.announcements,
+    disassociate=a.disassociate,
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,
     put_to_end=a.put_to_end,
