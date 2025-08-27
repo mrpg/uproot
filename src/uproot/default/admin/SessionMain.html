@@ -35,81 +35,89 @@
 
 {# TODO #}
 
-{% if room is none %}
-
-<p>{% translate %}This session is not associated with a room.{% endtranslate %}</p>
-
-{% else %}
-
-<p>{% translate %}This session is associated with room <a href="../../room/{{ room }}/">{{ room }}</a>.{% endtranslate %}</p>
-<button type="button" class="btn btn-danger mb-4" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
-
-{% endif %}
-
-<div class="card mb-4">
-    <div class="card-header">
-        <h4 class="fw-semibold mt-2">{% translate %}Management{% endtranslate %}</h4>
+<div class="row row-cols-1 row-cols-lg-2">
+    <div class="col">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="fw-semibold mt-2">{% translate %}Room{% endtranslate %}</h4>
+            </div>
+            <div class="card-body">
+                {% if room is none %}
+                <p>{% translate %}This session is not associated with a room.{% endtranslate %}</p>
+                {% else %}
+                <p>{% translate %}This session is associated with room{% endtranslate %} <a class="font-monospace link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="../../room/{{ room }}/">{{ room }}</a>.</p>
+                <button type="button" class="btn btn-danger mb-4" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="fw-semibold mt-2">{% translate %}Management{% endtranslate %}</h4>
+            </div>
+            <div class="card-body pb-1 row row-cols-1 row-cols-lg-3">
+                <div class="col">
+                    <h5 class="mb-3">{% translate %}Description{% endtranslate %}</h5>
+                    <p>{{ description }}</p>
+                    <p><a class="btn btn-uproot disabled" href="....../">{% translate %}Change{% endtranslate %}</a> <span
+                            class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+                </div>
+                <div class="col">
+                    <h5 class="mb-3">{% translate %}Players{% endtranslate %}</h5>
+                    <p>Total: {{ len(info) }}</p>
+                    <p>Started: <span class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+                    <p><a class="btn btn-uproot disabled" href="....../">Add players</a> <span
+                            class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+                </div>
+                <div class="col">
+                    <h5 class="mb-3">{% translate %}Actions{% endtranslate %}</h5> {# TODO #}
+                    {#
+                    <p class="mb-2"><a class="btn btn-uproot" href="viewdata/">View data</a></p>
+                    <p class="mb-2"><a class="btn btn-uproot" href="monitor/">Monitor</a></p>
+                    <p class="mb-2"><a class="btn btn-uproot" href="multiview/" target="_blank">Multiview</a></p>
+                    <p class="mb-3"><a class="btn btn-uproot" href="selectdata/">Download data</a></p>
+                    #}
+                    <p><a class="btn btn-danger disabled" href="....../">Set inactive</a> <span
+                            class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body pb-1 row row-cols-1 row-cols-lg-3">
-        <div class="col">
-            <h5 class="mb-3">{% translate %}Description{% endtranslate %}</h5>
-            <p>{{ description }}</p>
-            <p><a class="btn btn-uproot disabled" href="....../">{% translate %}Change{% endtranslate %}</a> <span
-                    class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
-        </div>
-        <div class="col">
-            <h5 class="mb-3">{% translate %}Players{% endtranslate %}</h5>
-            <p>Total: {{ len(info) }}</p>
-            <p>Started: <span class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
-            <p><a class="btn btn-uproot disabled" href="....../">Add players</a> <span
-                    class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
-        </div>
-        <div class="col">
-            <h5 class="mb-3">{% translate %}Actions{% endtranslate %}</h5> {# TODO #}
-            {#
-            <p class="mb-2"><a class="btn btn-uproot" href="viewdata/">View data</a></p>
-            <p class="mb-2"><a class="btn btn-uproot" href="monitor/">Monitor</a></p>
-            <p class="mb-2"><a class="btn btn-uproot" href="multiview/" target="_blank">Multiview</a></p>
-            <p class="mb-3"><a class="btn btn-uproot" href="selectdata/">Download data</a></p>
-            #}
-            <p><a class="btn btn-danger disabled" href="....../">Set inactive</a> <span
-                    class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="fw-semibold mt-2">{% translate %}Player URLs{% endtranslate %}</h4>
+            </div>
+            <div class="card-body">
+                {% if not secret is none %}
+                <p>{% translate %}The sessionwide URL is{% endtranslate %}:</p>
+                <ul>
+                    <li>
+                        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+                            href="../../../s/{{ sname }}/{{ secret }}/" target="_blank">
+                            {{ root }}/s/{{ sname }}/{{ secret}}/
+                        </a>
+                    </li>
+                </ul>
+                {% endif %}
+                {% if len(info) > 0 %}
+                <p>{% translate %}The individual player URLs for accessing this session are{% endtranslate %}</p>
+                <ol class="mb-3">
+                    {% for key in info %}
+                    <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+                            href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a>
+                    </li>
+                    {% endfor %}
+                </ol>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h4 class="fw-semibold mt-2">{% translate %}Player URLs{% endtranslate %}</h4>
-    </div>
-    <div class="card-body pb-2 row row-cols-1 row-cols-lg-2">
-        {% if not secret is none %}
-        <div class="col">
-            <p>{% translate %}The sessionwide URL is{% endtranslate %}:</p>
-            <ul>
-                <li>
-                    <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover"
-                        href="../../../s/{{ sname }}/{{ secret }}/" target="_blank">
-                        {{ root }}/s/{{ sname }}/{{ secret}}/
-                    </a>
-                </li>
-            </ul>
-        </div>
-        {% endif %}
-        {% if len(info) > 0 %}
-        <div class="col">
-            <p>{% translate %}The individual player URLs for accessing this session are{% endtranslate %}</p>
-            <ol class="mb-3">
-                {% for key in info %}
-                <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
-                        href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a>
-                </li>
-                {% endfor %}
-            </ol>
-        </div>
-        {% endif %}
-    </div>
-</div>
+{% endblock main %}
+
+
+{% block late %}
 
 <script>
     function disassociate() {
@@ -119,4 +127,4 @@
     }
 </script>
 
-{% endblock main %}
+{% endblock late %}

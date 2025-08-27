@@ -11,6 +11,18 @@ Room
 {% endblock title %}
 
 
+{% block head %}
+
+<style>
+    /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
+    .player-url:visited {
+        color: var(--bs-uproot) !important;
+    }
+</style>
+
+{% endblock head %}
+
+
 {% block main %}
 
 {% if room.sname is none %}
@@ -174,10 +186,18 @@ Room
 
 <h3>{% translate %}Existing session{% endtranslate %}</h3>
 
-<p>{% translate %}This room is associated with session <a href="../../session/{{ room.sname }}/">{{ room.sname }}</a>.{% endtranslate %}</p>
+<p>{% translate %}This room is associated with session{% endtranslate %} <a class="font-monospace link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>.</p>
 
-<button type="button" class="btn btn-danger" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+<p><button type="button" class="btn btn-danger" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button></p>
 
+<p>The player URL for entering this room is </p>
+<ul>
+    <li>
+        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+    </li>
+</ul>
+                
 <script>
     function disassociate() {
         uproot.invoke("disassociate", uproot.vars.room.name, uproot.vars.room.sname).then(() => {
