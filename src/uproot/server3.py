@@ -115,6 +115,7 @@ async def roommain(
                 return RedirectResponse(f"{d.ROOT}/p/{sname}/{uname}/", status_code=303)
 
     # Try to add new player
+    # TODO: Or use free slot!
 
     with session:
         if new_session:
