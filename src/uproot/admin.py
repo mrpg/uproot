@@ -315,7 +315,7 @@ def room_exists(roomname: str, raise_http: bool = True) -> None:
                 raise ValueError("Invalid room")
 
 
-def disassociate(roomname: str, sname: t.Sessionname) -> None:
+async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     room_exists(roomname, False)
     session_exists(sname, False)
 
