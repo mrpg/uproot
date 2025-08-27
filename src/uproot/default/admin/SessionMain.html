@@ -35,6 +35,17 @@
 
 {# TODO #}
 
+{% if room is none %}
+
+<p>{% translate %}This session is not associated with a room.{% endtranslate %}</p>
+
+{% else %}
+
+<p>{% translate %}This session is associated with room <a href="../../room/{{ room }}/">{{ room }}</a>.{% endtranslate %}</p>
+<button type="button" class="btn btn-danger mb-4" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+
+{% endif %}
+
 <div class="card mb-4">
     <div class="card-header">
         <h4 class="fw-semibold mt-2">{% translate %}Management{% endtranslate %}</h4>
@@ -99,5 +110,13 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    function disassociate() {
+        uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(() => {
+            uproot.reload();
+        });
+    }
+</script>
 
 {% endblock main %}

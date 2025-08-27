@@ -505,6 +505,7 @@ async def sessionmain(
 
     with Session(sname) as session:
         description = session.get("description")
+        room = session.get("room")
         secret = session.get("_uproot_secret")
 
     return HTMLResponse(
@@ -513,6 +514,7 @@ async def sessionmain(
             dict(
                 sname=sname,
                 description=description,
+                room=room,
                 secret=secret,
             )
             | a.info_online(sname),

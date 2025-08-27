@@ -13,7 +13,7 @@ Room
 
 {% block main %}
 
-{# TODO: what if sname is set? #}
+{% if room.sname is none %}
 
 <h3>{% translate %}New session{% endtranslate %}</h3>
 
@@ -59,11 +59,6 @@ Room
 
 <h4>{% translate %}Not recently seen{% endtranslate %}</h4>
 <div id="not-recently-seen"></div>
-
-{% endblock main %}
-
-
-{% block late %}
 
 <script>
     const expectedLabels = uproot.vars.room.labels || [];
@@ -175,4 +170,22 @@ Room
 
 </script>
 
-{% endblock late %}
+{% else %}
+
+<h3>{% translate %}Existing session{% endtranslate %}</h3>
+
+<p>{% translate %}This room is associated with session <a href="../../session/{{ room.sname }}/">{{ room.sname }}</a>.{% endtranslate %}</p>
+
+<button type="button" class="btn btn-danger" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+
+<script>
+    function disassociate() {
+        uproot.invoke("disassociate", uproot.vars.room.name, uproot.vars.room.sname).then(() => {
+            uproot.reload();
+        });
+    }
+</script>
+
+{% endif %}
+
+{% endblock main %}

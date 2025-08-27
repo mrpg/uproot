@@ -308,7 +308,7 @@ async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, di
 
 
 def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
-    with Admin() as admin:
+    with s.Admin() as admin:
         if sname not in admin.sessions:
             if raise_http:
                 raise HTTPException(status_code=400, detail="Invalid session")
@@ -317,7 +317,7 @@ def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
 
 
 def room_exists(roomname: str, raise_http: bool = True) -> None:
-    with Admin() as admin:
+    with s.Admin() as admin:
         if roomname not in admin.rooms:
             if raise_http:
                 raise HTTPException(status_code=400, detail="Invalid room")
@@ -332,7 +332,7 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     with s.Admin() as admin:
         admin.rooms[roomname]["sname"] = None
 
-    with s.Session() as session:
+    with s.Session(sname) as session:
         session.room = None
 
 
