@@ -360,8 +360,9 @@ async def new_room(
             sname=(sname if use_session and sname.strip() else None),
         )
 
-    with Session(sname) as session:
-        session.room = name
+    if sname:
+        with Session(sname) as session:
+            session.room = name
 
     return RedirectResponse(f"{d.ROOT}/admin/room/{name}/", status_code=303)
 
