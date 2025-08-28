@@ -1,8 +1,9 @@
+@import url("fonts/CascadiaCode-2407.24/CascadiaMono.css");
 @import url("fonts/inter.css");
 
 /* Extending Bootstrap’s default fonts */
 :root {
-    --bs-font-monospace: "IBM Plex Mono", "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --bs-font-monospace: "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --bs-font-sans-serif: Inter, system-ui, ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --bs-font-serif: ui-serif, "IBM Plex Serif", "New York", serif;
     --bs-body-font-family: var(--bs-font-sans-serif);
@@ -108,6 +109,38 @@
 }
 .fs-xxs {
     font-size: xx-small;
+}
+
+/* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
+.fw-100 {
+    font-weight: 100 !important;  /* Thin (Hairline) */
+}
+.fw-200 {
+    font-weight: 200 !important;  /* ExtraLight/UltraLight */
+}
+.fw-300 {
+    font-weight: 300 !important;  /* Light */
+}
+.fw-400 {
+    font-weight: 400 !important;  /* Normal/Regular */
+}
+.fw-500 {
+    font-weight: 500 !important;  /* Medium */
+}
+.fw-600 {
+    font-weight: 600 !important;  /* SemiBold/DemiBold */
+}
+.fw-700 {
+    font-weight: 700 !important;  /* Bold */
+}
+.fw-800 {
+    font-weight: 800 !important;  /* ExtraBold/UltraBold */
+}
+.fw-900 {
+    font-weight: 900 !important;  /* Black/Heavy */
+}
+.fw-950 {
+    font-weight: 950 !important;  /* ExtraBlack/UltraBlack */
 }
 
 .link-underline-uproot {

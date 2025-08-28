@@ -1,0 +1,84 @@
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url("CascadiaMono-ExtraLight.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: italic;
+    font-weight: 200;
+    font-display: swap;
+    src: url("CascadiaMono-ExtraLightItalic.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url("CascadiaMono-Light.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: italic;
+    font-weight: 300;
+    font-display: swap;
+    src: url("CascadiaMono-LightItalic.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("CascadiaMono-SemiLight.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url("CascadiaMono-SemiLightItalic.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("CascadiaMono-Regular.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: italic;
+    font-weight: 500;
+    font-display: swap;
+    src: url("CascadiaMono-Italic.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("CascadiaMono-SemiBold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: italic;
+    font-weight: 600;
+    font-display: swap;
+    src: url("CascadiaMono-SemiBoldItalic.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("CascadiaMono-Bold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cascadia Mono";
+    font-style: italic;
+    font-weight: 700;
+    font-display: swap;
+    src: url("CascadiaMono-BoldItalic.woff2") format("woff2");
+}

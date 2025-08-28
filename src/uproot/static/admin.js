@@ -22,7 +22,7 @@ function renderRooms(rooms, containerId) {
     const sortedRooms = Object.values(rooms).sort((a, b) => a.name.localeCompare(b.name));
 
     if (sortedRooms.length > 0) {
-        container.innerHTML = ""; // SAFE
+        container.innerHTML = "";  // SAFE
     }
 
     sortedRooms.forEach(room => {
@@ -35,15 +35,16 @@ function renderRooms(rooms, containerId) {
         cardHeader.className = "align-items-center bg-uproot-light border-uproot-light card-header d-flex justify-content-between py-2 text-uproot";
 
         const title = document.createElement("h5");
-        title.className = "fw-bold font-monospace mb-0 me-3";
-        title.textContent = room.name;
+        title.className = "fw-semibold font-monospace mb-0 me-3";
+        title.innerHTML =
+            `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}">${encodeURIComponent(room.name)}</a>`;
         cardHeader.appendChild(title);
 
         const rightCol = document.createElement("div");
         //rightCol.className = "text-end";
         const statusBadge = document.createElement("span");
         statusBadge.className =
-            room.start ? "badge bg-success border border-success fs-6 my-1" : "badge border border-danger fs-6 my-1 text-danger";
+            room.start ? "badge bg-success border border-success my-1" : "badge border border-danger my-1 text-danger";
         statusBadge.textContent = room.start ? _("Started") : _("Inactive");
         rightCol.appendChild(statusBadge);
 
@@ -63,7 +64,7 @@ function renderRooms(rooms, containerId) {
         const configItem = document.createElement("div");
         configItem.className = "mb-0";
         const configLabel = document.createElement("span");
-        configLabel.className = "fw-bold";
+        configLabel.className = "fw-semibold";
         configLabel.textContent = `${_("Config")}: `;
         const configValue = document.createElement("span");
         if (room.config) {
@@ -80,12 +81,13 @@ function renderRooms(rooms, containerId) {
         const sessionItem = document.createElement("div");
         //sessionItem.className = "mb-2";
         const sessionLabel = document.createElement("span");
-        sessionLabel.className = "fw-bold";
+        sessionLabel.className = "fw-semibold";
         sessionLabel.textContent = `${_("Session")}: `;
         const sessionValue = document.createElement("span");
         if (room.sname) {
             sessionValue.className = "font-monospace";
-            sessionValue.textContent = room.sname;
+            sessionValue.innerHTML =
+                `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}">${encodeURIComponent(room.sname)}</a>`
         } else {
             sessionValue.textContent = _("N/A");
             sessionValue.className = "text-muted";
@@ -97,10 +99,10 @@ function renderRooms(rooms, containerId) {
         const labelsBadge = document.createElement("div");
         //labelsBadge.className = "mb-2";
         if (room.labels != null && room.labels.length > 0) {
-            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> ${room.labels.length}`; // SAFE
+            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> ${room.labels.length}`;  // SAFE
             labelsBadge.title = room.labels.slice(0, 5).join(", ") + (room.labels.length > 5 ? "..." : "");
         } else{
-            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> N/A`; // SAFE
+            labelsBadge.innerHTML = `<b>${_("Labels")}:</b> N/A`;  // SAFE
         }
         leftCol.appendChild(labelsBadge);
 
@@ -108,9 +110,9 @@ function renderRooms(rooms, containerId) {
         const freejoinBadge = document.createElement("div");
         freejoinBadge.className = "mb-2";
         if (freejoin) {
-            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("free join")}`; // SAFE
+            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("free join")}`;  // SAFE
         } else {
-            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("restricted")}`; // SAFE
+            freejoinBadge.innerHTML = `<b>${_("Join mode")}:</b> ${_("restricted")}`;  // SAFE
         }
         leftCol.appendChild(freejoinBadge);
 
@@ -121,35 +123,41 @@ function renderRooms(rooms, containerId) {
         const links = document.createElement("div");
         links.className = "d-flex flex-column justify-content-center";
 
+        /*
         if (room.sname) {
             const sessionLink = document.createElement("a");
             sessionLink.href = `${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}/`;
             sessionLink.className = "btn btn-sm btn-outline-uproot btn-view-details d-block me-2 py-0";
-            sessionLink.innerHTML = "&boxbox;"; // SAFE
+            sessionLink.innerHTML = "&boxbox;";  // SAFE
             sessionLink.title = _("View session");
             links.appendChild(sessionLink);
         } else {
             const sessionLink = document.createElement("button");
             sessionLink.disabled = true;
             sessionLink.className = "btn btn-sm btn-view-details d-block me-2 py-0 opacity-25";
-            sessionLink.innerHTML = "&boxbox;"; // SAFE
+            sessionLink.innerHTML = "&boxbox;";  // SAFE
             links.appendChild(sessionLink);
         }
+            */
 
+        /*
         const joinLink = document.createElement("a");
         joinLink.href = `${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}/`;
         //joinLink.setAttribute("target", "_blank");
         joinLink.className = "btn btn-sm btn-outline-uproot btn-view-details";
-        joinLink.innerHTML = "&rarr;"; // SAFE
+        joinLink.innerHTML = "&rarr;";  // SAFE
         joinLink.title = _("View room");
         links.appendChild(joinLink);
-        /*const joinLink = document.createElement("a");
+        */
+        /*
+        const joinLink = document.createElement("a");
         joinLink.href = `${uproot.vars.root}/room/${encodeURIComponent(room.name)}/`;
         joinLink.setAttribute("target", "_blank");
         joinLink.className = "fs-sm fw-bolder link-danger link-offset-2 link-underline-danger link-underline-opacity-0 link-underline-opacity-100-hover";
         joinLink.textContent = _("Enter room as a participant");
         joinLink.title = _("Enter room as a participant");
-        links.appendChild(joinLink);*/
+        links.appendChild(joinLink);
+        */
 
         cardBody.appendChild(links);
 
@@ -170,20 +178,20 @@ function renderRooms(rooms, containerId) {
             if (room.start) {
                 // If session is full, show as success, otherwise warning
                 capacityBadge.className =
-                    n_players < room.capacity ? "badge bg-warning border border-warning fs-6 text-dark" : "badge bg-success border border-success fs-6";
+                    n_players < room.capacity ? "badge bg-warning border border-warning text-dark" : "badge bg-success border border-success";
                 // If session is less than 90% full, show as danger
                 capacityBadge.className =
-                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger fs-6" : "badge bg-warning border border-warning fs-6";
+                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger" : "badge bg-warning border border-warning";
             } else {
-                capacityBadge.className = "badge border border-danger fs-6 ms-2 text-danger"
+                capacityBadge.className = "badge border border-danger ms-2 text-danger"
             }
             capacityBadge.textContent = `${_("Capacity")}: ${room.capacity}`;
         } else {
             if (room.start) {
-                capacityBadge.className = "badge bg-success border border-success fs-6";
+                capacityBadge.className = "badge bg-success border border-success";
                 capacityBadge.textContent = _("Capacity") + ": ∞";
             } else {
-                capacityBadge.className = "badge border border-success fs-6 text-success";
+                capacityBadge.className = "badge border border-success text-success";
                 capacityBadge.textContent = _("Capacity") + ": ∞";
             }
         }
@@ -192,22 +200,22 @@ function renderRooms(rooms, containerId) {
         const badgesRow2 = document.createElement("div");
         badgesRow2.className = "mb-2";
 
-                const nPlayersBadge = document.createElement("span");
+        const nPlayersBadge = document.createElement("span");
         if (room.sname && uproot.vars.sessions[room.sname]) {
             if (room.capacity != null) {
                 // If session is full, show as success, otherwise warning
                 nPlayersBadge.className =
-                    n_players < room.capacity ? "badge bg-warning border border-warning fs-6 ms-2 text-dark" : "badge bg-success boder border-success fs-6";
+                    n_players < room.capacity ? "badge bg-warning border border-warning ms-2 text-dark" : "badge bg-success boder border-success";
                 // If session is less than 90% full, show as danger
                 nPlayersBadge.className =
-                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger fs-6 ms-2" : "badge bg-warning border border-warning fs-6 ms-2";
+                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger ms-2" : "badge bg-warning border border-warning ms-2";
                 nPlayersBadge.textContent = `${_("Players")}: ${n_players}`;
             } else {
-                nPlayersBadge.className = "badge bg-success border border-success fs-6 ms-2";
+                nPlayersBadge.className = "badge bg-success border border-success ms-2";
                 nPlayersBadge.textContent = `${_("Players")}: ${n_players}`;
             }
         } else {
-            nPlayersBadge.className = room.start ? "badge bg-danger border border-danger fs-6 ms-2" : "badge border border-danger fs-6 ms-2 text-danger";
+            nPlayersBadge.className = room.start ? "badge bg-danger border border-danger ms-2" : "badge border border-danger ms-2 text-danger";
             nPlayersBadge.textContent = `${_("Players")}: 0`;
         }
         badgesRow2.appendChild(nPlayersBadge);
@@ -231,7 +239,7 @@ function renderSessions(sessions, containerId) {
     const sortedSessions = Object.values(sessions).sort((a, b) => (b.started || 0) - (a.started || 0));
 
     if (sortedSessions.length > 0) {
-        container.innerHTML = ""; // SAFE
+        container.innerHTML = "";  // SAFE
     }
 
     sortedSessions.forEach(session => {
@@ -239,14 +247,16 @@ function renderSessions(sessions, containerId) {
         card.className = "border-uproot-light card mb-3";
 
         const cardHeader = document.createElement("div");
-        cardHeader.className = "align-items-center bg-uproot-light border-uproot-light card-header d-flex justify-content-between py-1";
+        cardHeader.className = "bg-uproot-light border-uproot-light card-header py-1";
 
         const headerContent = document.createElement("div");
+        headerContent.className = "align-items-center d-flex justify-content-between"
 
         if (session.sname) {
             const title = document.createElement("h5");
-            title.className = "d-inline-block fw-bold font-monospace mb-0 me-5";
-            title.textContent = session.sname;
+            title.className = "d-inline-block fw-semibold font-monospace mb-2 me-5 mt-1";
+            title.innerHTML =
+                `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/">${encodeURIComponent(session.sname)}</a>`
             headerContent.appendChild(title);
         }
 
@@ -259,39 +269,60 @@ function renderSessions(sessions, containerId) {
 
         cardHeader.appendChild(headerContent);
 
+        /*
         if (session.sname) {
             const detailsLink = document.createElement("a");
             detailsLink.href = `${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/`;
             detailsLink.className = "btn btn-sm btn-outline-uproot btn-view-details py-0";
-            detailsLink.innerHTML = "&boxbox;"; // SAFE
+            detailsLink.innerHTML = "&boxbox;";  // SAFE
             detailsLink.title = _("View session details");
             cardHeader.appendChild(detailsLink);
         }
+        */
 
         const cardBody = document.createElement("div");
         cardBody.className = "bg-light card-body d-flex flex-row justify-content-between pb-2 pt-2 rounded-bottom";
 
+        const configRoomItem = document.createElement("div");
+        configRoomItem.className = "mt-1";
+        const roomItem = document.createElement("div");
+        const roomLabel = document.createElement("span");
+        roomLabel.className = "fw-semibold";
+        roomLabel.textContent = `${_("Room")}: `;
+        const roomValue = document.createElement("span");
+        if (session.room) {
+            roomValue.innerHTML = 
+                `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="${uproot.vars.root}/admin/room/${encodeURIComponent(session.room)}/">${encodeURIComponent(session.room)}</a>`;
+            roomValue.className = "font-monospace";
+        } else {
+            roomValue.textContent = _("N/A");
+            roomValue.className = "text-muted";
+        }
+        roomItem.appendChild(roomLabel)
+        roomItem.appendChild(roomValue)
+        configRoomItem.appendChild(roomItem);
         const configItem = document.createElement("div");
-        configItem.className = "mt-1";
         const configLabel = document.createElement("span");
-        configLabel.className = "fw-bold";
+        configLabel.className = "fw-semibold";
         configLabel.textContent = `${_("Config")}: `;
         const configValue = document.createElement("span");
         if (session.config) {
             configValue.textContent = session.config;
+            configValue.className = "font-monospace";
         } else {
             configValue.textContent = _("N/A");
             configValue.className = "text-muted";
         }
         configItem.appendChild(configLabel);
         configItem.appendChild(configValue);
-        cardBody.appendChild(configItem);
+        configRoomItem.appendChild(configItem);
+        cardBody.appendChild(configRoomItem);
 
         if (session.description) {
             const descItem = document.createElement("div");
             descItem.className = "mt-1";
             const descLabel = document.createElement("span");
-            descLabel.className = "fw-bold";
+            descLabel.className = "fw-semibold";
             descLabel.textContent = `${_("Description")}: `;
             const descValue = document.createElement("span");
             descValue.textContent = session.description;
@@ -303,24 +334,26 @@ function renderSessions(sessions, containerId) {
         const badges = document.createElement("div");
         badges.className = "";
 
+        /*
+        if (session.room) {
+            const badge = document.createElement("span");
+            badge.className = "badge bg-uproot-light border border-uproot mb-1 me-2 text-uproot";
+            badge.textContent = `${_("Room")}: ` + session.room;
+            badges.appendChild(badge);
+        }
+        */
+
         if (session.n_players != null) {
             const badge = document.createElement("span");
-            badge.className = "badge bg-uproot border border-uproot me-2 mb-1 mt-2";
+            badge.className = "badge bg-uproot border border-uproot mb-1 me-2 mt-2";
             badge.textContent = session.n_players + " players";
             badges.appendChild(badge);
         }
 
         if (session.n_groups != null) {
             const badge = document.createElement("span");
-            badge.className = "badge bg-white border border-uproot me-2 text-uproot";
+            badge.className = "badge bg-white border border-uproot me-0 text-uproot";
             badge.textContent = session.n_groups + " groups";
-            badges.appendChild(badge);
-        }
-
-        if (session.room) {
-            const badge = document.createElement("span");
-            badge.className = "badge bg-info";
-            badge.textContent = `${_("Room")}: ` + session.room;
             badges.appendChild(badge);
         }
 
@@ -402,7 +435,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         const key_ = key.startsWith("~") ? key.substr(1) : key;
 
         const title = document.createElement("div");
-        title.className = "fw-bold";
+        title.className = "fw-semibold h5 font-monospace";
         title.textContent = key_;
         content.appendChild(title);
 
@@ -418,7 +451,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         const detailsLink = document.createElement("a");
         detailsLink.href = `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(key)}`;
         detailsLink.className = "btn btn-sm btn-outline-uproot btn-launch";
-        detailsLink.innerHTML = "&neArr;"; // SAFE
+        detailsLink.innerHTML = "&neArr;";  // SAFE
         detailsLink.title = _("Start session");
         item.appendChild(detailsLink);
 
