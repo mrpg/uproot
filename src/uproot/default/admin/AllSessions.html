@@ -13,21 +13,24 @@
 
 {% block main %}
 
-<h3 class="mb-3">
-    {% translate %}
-    Active sessions
-    {% endtranslate %}
-</h3>
-
-<div id="sessions-active-container">{% translate %}None.{% endtranslate %}</div>
-
-<h3 class="mb-3 mt-4">
-    {% translate %}
-    Inactive sessions
-    {% endtranslate %}
-</h3>
-
-<div id="sessions-inactive-container">{% translate %}None.{% endtranslate %}</div>
+<div class="row">
+    <div class="col-12 col-lg-6">
+        <h3 class="mb-3">
+            {% translate %}
+            Active sessions
+            {% endtranslate %}
+        </h3>
+        <div id="sessions-active-container">{% translate %}None.{% endtranslate %}</div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <h3 class="mb-3">
+            {% translate %}
+            Inactive sessions
+            {% endtranslate %}
+        </h3>
+        <div id="sessions-inactive-container">{% translate %}None.{% endtranslate %}</div>
+    </div>
+</div>
 
 {% endblock main %}
 
