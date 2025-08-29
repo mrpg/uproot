@@ -37,7 +37,7 @@ function renderRooms(rooms, containerId) {
         const title = document.createElement("h5");
         title.className = "fw-semibold font-monospace mb-0 me-3";
         title.innerHTML =
-            `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}">${encodeURIComponent(room.name)}</a>`;
+            `<a class="link-underline-uproot link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}">${encodeURIComponent(room.name)}</a>`;
         cardHeader.appendChild(title);
 
         const rightCol = document.createElement("div");
@@ -87,7 +87,7 @@ function renderRooms(rooms, containerId) {
         if (room.sname) {
             sessionValue.className = "font-monospace";
             sessionValue.innerHTML =
-                `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}">${encodeURIComponent(room.sname)}</a>`
+                `<a class="link-subtle" href="${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}">${encodeURIComponent(room.sname)}</a>`
         } else {
             sessionValue.textContent = _("N/A");
             sessionValue.className = "text-muted";
@@ -256,7 +256,7 @@ function renderSessions(sessions, containerId) {
             const title = document.createElement("h5");
             title.className = "d-inline-block fw-semibold font-monospace mb-2 me-5 mt-1";
             title.innerHTML =
-                `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/">${encodeURIComponent(session.sname)}</a>`
+                `<a class="link-subtle" href="${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/">${encodeURIComponent(session.sname)}</a>`
             headerContent.appendChild(title);
         }
 
@@ -292,7 +292,7 @@ function renderSessions(sessions, containerId) {
         const roomValue = document.createElement("span");
         if (session.room) {
             roomValue.innerHTML = 
-                `<a class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="${uproot.vars.root}/admin/room/${encodeURIComponent(session.room)}/">${encodeURIComponent(session.room)}</a>`;
+                `<a class="link-subtle" href="${uproot.vars.root}/admin/room/${encodeURIComponent(session.room)}/">${encodeURIComponent(session.room)}</a>`;
             roomValue.className = "font-monospace";
         } else {
             roomValue.textContent = _("N/A");

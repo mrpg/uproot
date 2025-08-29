@@ -93,14 +93,17 @@
     --bs-btn-border-radius: var(--bs-border-radius-sm);
 }
 
+/* Class for text in sans-serif font */
 .font-sans-serif {
     font-family: var(--bs-font-sans-serif);
 }
 
+/* Class for text in serif font */
 .font-serif {
     font-family: var(--bs-font-serif);
 }
 
+/* Extension of the Bootstrap .fs- classes */
 .fs-sm {
     font-size: small;
 }
@@ -111,7 +114,7 @@
     font-size: xx-small;
 }
 
-/* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
+/* Extension of the Bootstrap .fw- classes */
 .fw-100 {
     font-weight: 100 !important;  /* Thin (Hairline) */
 }
@@ -142,10 +145,33 @@
 .fw-950 {
     font-weight: 950 !important;  /* ExtraBlack/UltraBlack */
 }
+/* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
+
+/* In-text hyperlink with gray underline that turns black on hover */
+.link-subtle {
+    color: var(--bs-dark) !important;  /* link-dark */
+    text-decoration-line: underline;
+    text-underline-offset: .25rem !important;  /* link-offset-2 */
+    --bs-link-underline-opacity: .25;  /* .link-underline-opacity-25 */
+    text-decoration-color:
+        rgba(var(--bs-dark-rgb), var(--bs-link-underline-opacity)) !important;
+        /* .link-underline-dark */
+}
+.link-subtle:hover, .link-subtle:focus {
+    color: var(--bs-dark) !important;
+    --bs-link-underline-opacity: 1;  /* link-underline-opacity-100-hover */
+    text-decoration-color:
+        rgba(var(--bs-dark-rgb), var(--bs-link-underline-opacity)) !important;
+}
 
 .link-underline-uproot {
     -webkit-text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity)) !important;
     text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity)) !important;
+}
+.link-underline-uproot:hover, .link-underline-uproot:focus {
+    color: var(--bs-uproot) !important;
+    text-decoration-color:
+        rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity)) !important;
 }
 
 .text-uproot {
@@ -198,20 +224,15 @@ footer {
     margin-top: 1em;
     text-align: left;
 }
-/* Class for text in sans-serif font */
-.font-sans-serif {
-    font-family: var(--bs-font-sans-serif);
-}
-/* Class for text in serif font */
-.font-serif {
-    font-family: var(--bs-font-serif);
-}
+
 input[type="radio"].form-check-input {
     border-color: var(--bs-gray-500);
 }
+
 #error-modal {
     z-index: 9999;
 }
+
 #uproot-buddy {
     display: none;
     position: fixed;
@@ -222,9 +243,11 @@ input[type="radio"].form-check-input {
 #uproot-buddy img {
     cursor: pointer;
 }
+
 #uproot-main-container {
     margin-bottom: 250px;
 }
+
 #uproot-timeout {
     display: none;
 }
@@ -232,6 +255,7 @@ input[type="radio"].form-check-input {
     font-weight: bold;
     font-variant-numeric: tabular-nums;
 }
+
 div.without-anchoring-overlay {
     position: absolute;
     top: 0;
@@ -242,9 +266,11 @@ div.without-anchoring-overlay {
     cursor: pointer;
     z-index: 10;
 }
+
 .uproot-testing-only {
     display: none;
 }
+
 #uproot-testing-button-wrapper {
     position: absolute;
     top: 1em;
@@ -258,6 +284,7 @@ div.without-anchoring-overlay {
         display: none;
     }
 }
+
 .message-hover:hover {
     background-color: rgba(13, 110, 253, 0.05) !important;
 }

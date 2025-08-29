@@ -45,7 +45,7 @@
                 {% if room is none %}
                 <p>{% translate %}This session is not associated with a room.{% endtranslate %}</p>
                 {% else %}
-                <p>{% translate %}This session is associated with room{% endtranslate %} <a class="font-monospace link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover" href="../../room/{{ room }}/">{{ room }}</a>.</p>
+                <p>{% translate %}This session is associated with room{% endtranslate %} <a class="font-monospace link-subtle" href="../../room/{{ room }}/">{{ room }}</a>.</p>
                 <button type="button" class="btn btn-danger mb-4" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
                 {% endif %}
             </div>
