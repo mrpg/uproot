@@ -538,7 +538,7 @@ async def session_multiview(
 
     return HTMLResponse(
         await render("SessionMultiview.html", dict(sname=sname) | a.info_online(sname))
-    )  # HACK
+    )
 
 
 @router.get("/login/")
