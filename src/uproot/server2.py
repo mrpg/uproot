@@ -251,20 +251,6 @@ async def dump(
     )
 
 
-@router.get("/devinfo/")
-async def devinfo(
-    request: Request,
-    auth=Depends(auth_required),
-) -> Response:
-    # to be extended
-
-    return JSONResponse(
-        dict(
-            missing_terms=list(i18n.MISSING),
-        )
-    )
-
-
 @router.get("/session/{sname}/data/")
 async def session_data(
     request: Request,
