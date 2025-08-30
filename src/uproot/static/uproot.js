@@ -138,6 +138,7 @@ window.uproot = {
     timeoutUntil: null,
     timeout1: null,
     timeout2: null,
+    verbose: false,
     I: (id_) => document.getElementById(id_),
 
     aer1945() {
@@ -253,7 +254,9 @@ window.uproot = {
             return;
         }
 
-        console.log(msg);
+        if (this.verbose) {
+            console.log(msg);
+        }
 
         this.msgStore.push(msg); // TODO: clean up/queue
         this.serverThere = Date.now();
@@ -666,7 +669,10 @@ window._ = (s) => {
         return window.uproot.terms[s];
     }
     else {
-        console.log(`Missing translation into of: '${s}'`);
+        if (this.verbose) {
+            console.log(`Missing translation into of: '${s}'`);
+        }
+
         return s;
     }
 };
@@ -681,8 +687,7 @@ uproot.onInternalEvent("Received", (event) => {
     const entry = event.detail;
 
     if (uproot.receive === null) {
-        console.log("Ignored data received from server. Please define uproot.receive().");
-        console.log(entry);
+        throw new Error(`Please define uproot.receive(). Ignored data received from server: ${entry}`);
     }
     else {
         uproot.receive(entry.data);
