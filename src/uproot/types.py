@@ -583,13 +583,14 @@ class GroupCreatingWait(InternalPage):
         if player._uproot_group is not None:
             group = player._uproot_group()
 
-            await optional_call_once(
-                page,
-                "after_grouping",
-                storage=group,
-                show_page=player.show_page,
-                group=group,
-            )
+            with group:
+                await optional_call_once(
+                    page,
+                    "after_grouping",
+                    storage=group,
+                    show_page=player.show_page,
+                    group=group,
+                )
 
             # This is safe because all_here and after_grouping must not be async
 
