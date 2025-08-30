@@ -182,7 +182,7 @@ async def sessions(
 ) -> Response:
     return HTMLResponse(
         await render(
-            "AllSessions.html",
+            "Sessions.html",
             dict(
                 sessions=a.sessions(),
             ),
@@ -218,7 +218,7 @@ async def status(
 
     return HTMLResponse(
         await render(
-            "ServerStatus.html",
+            "Status.html",
             dict(
                 dbsize=dbsize,
                 versions=dict(
@@ -251,7 +251,7 @@ async def dump(
     )
 
 
-@router.get("/session/{sname}/data/")
+@router.get("/session/{sname}/data/get/")
 async def session_data(
     request: Request,
     sname: t.Sessionname,
@@ -290,7 +290,7 @@ async def new_session(
     request: Request,
     auth=Depends(auth_required),
 ) -> Response:
-    return HTMLResponse(await render("NewSession.html", dict(configs=a.configs())))
+    return HTMLResponse(await render("SessionsNew.html", dict(configs=a.configs())))
 
 
 @router.get("/rooms/new/")
@@ -301,7 +301,7 @@ async def new_room(
     with Admin() as admin:
         return HTMLResponse(
             await render(
-                "NewRoom.html",
+                "RoomsNew.html",
                 dict(
                     configs=a.configs(),
                     rooms_available=[*admin.rooms.keys()],
@@ -392,7 +392,7 @@ async def session_monitor(
     a.session_exists(sname)
 
     return HTMLResponse(
-        await render("Monitor.html", dict(sname=sname) | a.info_online(sname))
+        await render("SessionMonitor.html", dict(sname=sname) | a.info_online(sname))
     )
 
 
@@ -407,7 +407,7 @@ async def roommain(
 
         return HTMLResponse(
             await render(
-                "RoomMain.html",
+                "Room.html",
                 dict(
                     roomname=roomname,
                     room=admin.rooms[roomname],
@@ -495,7 +495,7 @@ async def sessionmain(
 
         return HTMLResponse(
             await render(
-                "SessionMain.html",
+                "Session.html",
                 dict(
                     sname=sname,
                     description=session.get("description"),
@@ -515,17 +515,17 @@ async def session_viewdata(
     auth=Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    return HTMLResponse(await render("ViewData.html", dict(sname=sname)))
+    return HTMLResponse(await render("SessionViewdata.html", dict(sname=sname)))
 
 
-@router.get("/session/{sname}/selectdata/")
-async def session_selectdata(
+@router.get("/session/{sname}/data/")
+async def session_data(
     request: Request,
     sname: t.Sessionname,
     auth=Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    return HTMLResponse(await render("SelectData.html", dict(sname=sname)))
+    return HTMLResponse(await render("SessionData.html", dict(sname=sname)))
 
 
 @router.get("/session/{sname}/multiview/")
@@ -537,7 +537,7 @@ async def session_multiview(
     a.session_exists(sname)
 
     return HTMLResponse(
-        await render("MultiView.html", dict(sname=sname) | a.info_online(sname))
+        await render("SessionMultiview.html", dict(sname=sname) | a.info_online(sname))
     )  # HACK
 
 
