@@ -13,10 +13,10 @@ def ensure(
     exctype: type[Exception] = ValueError,
     msg: Optional[str] = None,
 ) -> None:
-    if msg:
-        msg = "Constraint violation: " + msg
-    else:
-        msg = "Constraint violation"
-
     if not condition:
+        if msg:
+            msg = "Constraint violation: " + msg
+        else:
+            msg = "Constraint violation"
+
         raise exctype(msg)
