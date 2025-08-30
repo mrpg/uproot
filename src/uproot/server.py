@@ -36,6 +36,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         j.synchronize_rooms(app, admin)
         j.restore(app, admin)
 
+    d.LOGGER.info(f"This is uproot {u.__version__} (https://uproot.science/)")
     d.LOGGER.info(f"Server is running at http://{d.HOST}:{d.PORT}{d.ROOT}/")
     d.LOGGER.info(f"Admin panel is at http://{d.HOST}:{d.PORT}{d.ROOT}/admin/")
 
