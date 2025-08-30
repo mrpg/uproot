@@ -32,14 +32,13 @@ from fastapi import (
 )
 from fastapi.responses import (
     HTMLResponse,
-    JSONResponse,
     RedirectResponse,
     Response,
     StreamingResponse,
 )
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 from pydantic import validate_call
-from sortedcontainers import SortedDict, SortedList
+from sortedcontainers import SortedDict
 
 import uproot as u
 import uproot.admin as a
