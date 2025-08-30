@@ -39,7 +39,7 @@ from fastapi.responses import (
 )
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 from pydantic import validate_call
-from sortedcontainers import SortedDict
+from sortedcontainers import SortedDict, SortedList
 
 import uproot as u
 import uproot.admin as a
@@ -212,15 +212,22 @@ async def status(
     auth=Depends(auth_required),
 ) -> Response:
     dbsize = d.DATABASE.size()
+    missing = dict()
 
     if dbsize is not None:
         dbsize /= 1024**2
+
+    for term, lang in sorted(i18n.MISSING):
+        if term not in missing:
+            missing[term] = list()
+        missing[term].append(lang)
 
     return HTMLResponse(
         await render(
             "Status.html",
             dict(
                 dbsize=dbsize,
+                missing=missing,
                 versions=dict(
                     uproot=u.__version__,
                     python=sys.version,

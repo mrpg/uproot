@@ -110,6 +110,26 @@ Server status
     </div>
 </div>
 
+<div x-data="{ show: false }" class="mt-5">
+    <button class="btn btn-outline-secondary" type="button" @click="show = !show">
+        <span x-show="!show">
+        {% translate %}Show information for <i>uproot</i> developers{% endtranslate %}
+        </span>
+        <span x-show="show">
+        {% translate %}Hide information for <i>uproot</i> developers{% endtranslate %}
+        </span>
+    </button>
+
+    {# No i18n needed here #}
+
+    <div x-show="show" class="mt-3">
+        <h3>Missing terms</h3>
+
+        <textarea class="form-control" rows="10" readonly>{{ missing | tojson }}</textarea>
+    </div>
+</div>
+
+
 {% endblock main %}
 
 
