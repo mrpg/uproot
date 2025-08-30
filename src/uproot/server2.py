@@ -505,22 +505,21 @@ async def sessionmain(
     a.session_exists(sname)
 
     with Session(sname) as session:
-        description = session.get("description")
-        room = session.get("room")
-        secret = session.get("_uproot_secret")
+        # TODO: Eliminate use of session.get()
 
-    return HTMLResponse(
-        await render(
-            "SessionMain.html",
-            dict(
-                sname=sname,
-                description=description,
-                room=room,
-                secret=secret,
+        return HTMLResponse(
+            await render(
+                "SessionMain.html",
+                dict(
+                    sname=sname,
+                    description=session.get("description"),
+                    room=session.get("room"),
+                    secret=session.get("_uproot_secret"),
+                    active=session.active,
+                )
+                | a.info_online(sname),
             )
-            | a.info_online(sname),
         )
-    )
 
 
 @router.get("/session/{sname}/viewdata/")
@@ -727,6 +726,7 @@ FUNS = dict(
     advance_by_one=a.advance_by_one,
     announcements=a.announcements,
     disassociate=a.disassociate,
+    flip_active=a.flip_active,
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,
     put_to_end=a.put_to_end,

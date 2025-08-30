@@ -385,6 +385,13 @@ def sessions() -> dict[str, dict[str, Any]]:
     }
 
 
+async def flip_active(sname: t.Sessionname) -> None:
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        session.active = not session.active
+
+
 def verify_secret(user: str, secret: str) -> Optional[str]:
     if user in d.ADMINS and secret == get_secret(user, d.ADMINS[user]):
         return user

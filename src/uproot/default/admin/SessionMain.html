@@ -76,8 +76,13 @@
                     <p class="mb-2"><a class="btn btn-uproot" href="multiview/" target="_blank">Multiview</a></p>
                     <p class="mb-3"><a class="btn btn-uproot" href="selectdata/">Download data</a></p>
                     #}
-                    <p><a class="btn btn-danger disabled" href="....../">Set inactive</a> <span
-                            class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+                    <button type="button" class="btn btn-danger" onclick="flip_active()">
+                        {% if active %}
+                        {% translate %}Set inactive{% endtranslate %}
+                        {% else %}
+                        {% translate %}Set active{% endtranslate %}
+                        {% endif %}
+                    </button>
                 </div>
             </div>
         </div>
@@ -121,9 +126,11 @@
 
 <script>
     function disassociate() {
-        uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(() => {
-            uproot.reload();
-        });
+        uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(uproot.reload);
+    }
+
+    function flip_active() {
+        uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
     }
 </script>
 
