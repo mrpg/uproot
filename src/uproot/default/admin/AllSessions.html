@@ -18,16 +18,22 @@
     Active sessions
     {% endtranslate %}
 </h3>
+<div class="mb-4 row row-cols-1 row-cols-lg-2" id="sessions-active-container">
+    <div class="col">
+        {% translate %}None{% endtranslate %}.
+    </div>
+</div>
 
-<div id="sessions-active-container">{% translate %}None.{% endtranslate %}</div>
-
-<h3 class="mb-3 mt-4">
+<h3 class="mb-3">
     {% translate %}
     Inactive sessions
     {% endtranslate %}
 </h3>
-
-<div id="sessions-inactive-container">{% translate %}None.{% endtranslate %}</div>
+<div class="mb-4 row row-cols-1 row-cols-lg-2" id="sessions-inactive-container">
+    <div class="col">
+        {% translate %}None{% endtranslate %}.
+    </div>
+</div>
 
 {% endblock main %}
 

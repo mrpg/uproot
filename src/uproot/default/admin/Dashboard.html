@@ -12,37 +12,43 @@ Dashboard
 
 {% block main %}
 
-<h3 class="mb-3">
-    {% translate %}
-    Active sessions
-    {% endtranslate %}
-</h3>
+<div class="row">
+    <div class="col-12 col-lg-6">
+        <h3 class="mb-3">
+            {% translate %}
+            Rooms
+            {% endtranslate %}
+        </h3>
+        <div class="col mb-4" id="rooms-container"></div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <h3 class="mb-3">
+            {% translate %}
+            Active sessions
+            {% endtranslate %}
+        </h3>
+        <div class="col mb-4" id="sessions-container"></div>
+    </div>
+</div>
 
-<div class="mb-4" id="sessions-container"></div>
-
-<h3 class="mb-3">
-    {% translate %}
-    Rooms
-    {% endtranslate %}
-</h3>
-
-<div class="mb-4" id="rooms-container"></div>
-
-<h3 class="mb-3 mt-4">
-    {% translate %}
-    Configs
-    {% endtranslate %}
-</h3>
-
-<div class="mb-4" id="configs-container"></div>
-
-<h3 class="mb-3 mt-4">
-    {% translate %}
-    Apps
-    {% endtranslate %}
-</h3>
-
-<div class="mb-4" id="apps-container"></div>
+<div class="row">
+    <div class="col-12 col-lg-6">
+        <h3 class="mb-3 mt-4">
+            {% translate %}
+            Configs
+            {% endtranslate %}
+        </h3>
+        <div class="mb-4" id="configs-container"></div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <h3 class="mb-3 mt-4">
+            {% translate %}
+            Apps
+            {% endtranslate %}
+        </h3>
+        <div class="mb-4" id="apps-container"></div>
+    </div>
+</div>
 
 {% endblock main %}
 

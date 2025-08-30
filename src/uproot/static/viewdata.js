@@ -40,7 +40,8 @@ function formatCellValue(value, metadata) {
     }
 
     const str = String(value);
-    const displayValue = str.length > 28 ? str.substr(0, 28) + "…" : str;
+    const displayValue = str.length > 30 ? str.substr(0, 27) + "..." : str;
+        // 27, since "...".length = 3
 
     // Add tooltip and click styling if metadata exists
     if (metadata && metadata.time) {
@@ -109,7 +110,7 @@ function createColumns(data) {
 
     sortedFields.forEach((field, index) => {
         const detectedType = detectColumnType(field, data);
-        const colWidth = field == "id" ? 110 : (field == "page_order" ? 325 : 150);
+        const colWidth = field == "id" ? 110 : (field == "page_order" ? 330 : 150);
         columns.push({
             title: field,
             field: field,

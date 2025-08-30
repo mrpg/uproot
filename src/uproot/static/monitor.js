@@ -105,7 +105,7 @@ class PlayerMonitor {
         }
         playerCell.querySelector(".player-name").innerHTML = // SAFE
             `<a
-                class="link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover"
+                class="link-subtle"
                 href="${uproot.vars.root}/p/${uproot.vars.sname}/${uname}/" target="_blank">${uname}
             </a>`;
 

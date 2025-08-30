@@ -5,7 +5,7 @@
 <div class="d-flex justify-content-between">
     <span id="page-title">
         {% translate %}Session{% endtranslate %}
-        <a href="../" class="font-monospace link-dark link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover">{{ sname }}</a>
+        <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
         <span class="fw-light text-secondary">&gt; {% translate %}Data{% endtranslate %}</span>
     </span>
     <div class="btn-group mb-2 mx-2" id="buttongroup-normal-table">
@@ -74,6 +74,9 @@
     }
     .w-fullscreen {
         width: 98.7vw;
+    }
+    .modal .modal-body textarea {
+        font-family: var(--bs-font-monospace);
     }
 </style>
 

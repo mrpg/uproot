@@ -13,11 +13,30 @@
 
 {% block main %}
 
-<h3 class="mb-3">{% translate %}Existing rooms{% endtranslate %}</h3>
+<h3 class="mb-3">
+    {% translate %}
+    Currently open rooms
+    {% endtranslate %}
+</h3>
+<div class="mb-4 row row-cols-1 row-cols-lg-2" id="rooms-container">
+    <div class="col">
+        {% translate %}None{% endtranslate %}.
+    </div>
+</div>
 
-<div class="mb-4" id="rooms-container"></div>
-
-{# TODO: Scheduling of sessions (setting date and start time). #}
+{#
+<h3 class="mb-3">
+    {% translate %}
+    Currently closed rooms
+    {% endtranslate %}
+</h3>
+<div class="mb-4 row row-cols-1 row-cols-lg-2" id="rooms-container">
+    <div class="col">
+        {% translate %}None{% endtranslate %}.
+    </div>
+</div>
+#}
+{# TODO: Scheduling of rooms (setting date and time when “doors open”). #}
 
 
 {% endblock main %}
