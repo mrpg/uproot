@@ -17,6 +17,7 @@ import uproot.deployment as d
 import uproot.jobs as j
 import uproot.rooms as ur
 import uproot.types as t
+from uproot.constraints import ensure
 from uproot.pages import path2page, render
 from uproot.storage import Admin, Session, field_from_all, mktrail
 
@@ -30,7 +31,7 @@ async def roommain(
     label: Optional[str] = None,
     bad: Optional[bool] = False,
 ) -> Response:
-    assert roomname.isidentifier()
+    ensure(roomname.isidentifier())
 
     new_session = False
 
