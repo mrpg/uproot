@@ -26,8 +26,10 @@ function renderRooms(rooms, containerId) {
     }
 
     sortedRooms.forEach(room => {
+        const col = document.createElement("div");
+        col.className = "col";
         const card = document.createElement("div");
-        card.className = "border-uproot-light card mb-3";
+        card.className = "border-uproot-light card col mb-3";
 
         // Card header with room name and status
 
@@ -234,7 +236,8 @@ function renderRooms(rooms, containerId) {
         if (cardBody.children.length > 0) {
             card.appendChild(cardBody);
         }
-        container.appendChild(card);
+        col.appendChild(card);
+        container.appendChild(col);
     });
 }
 
@@ -247,6 +250,8 @@ function renderSessions(sessions, containerId) {
     }
 
     sortedSessions.forEach(session => {
+        const col = document.createElement("div");
+        col.className = "col";
         const card = document.createElement("div");
         card.className = "border-uproot-light card mb-3";
 
@@ -378,7 +383,8 @@ function renderSessions(sessions, containerId) {
         if (cardBody.children.length > 0) {
             card.appendChild(cardBody);
         }
-        container.appendChild(card);
+        col.appendChild(card);
+        container.appendChild(col);
     });
 }
 
