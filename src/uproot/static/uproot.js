@@ -687,7 +687,7 @@ uproot.onInternalEvent("Received", (event) => {
     const entry = event.detail;
 
     if (uproot.receive === null) {
-        throw new Error(`Please define uproot.receive(). Ignored data received from server: ${entry}`);
+        throw new Error(`Please define uproot.receive(). Ignored data received from server: ${JSON.stringify(entry.data)}`);
     }
     else {
         uproot.receive(entry.data);
