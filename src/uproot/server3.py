@@ -31,7 +31,7 @@ async def roommain(
     label: Optional[str] = None,
     bad: Optional[bool] = False,
 ) -> Response:
-    ensure(roomname.isidentifier())
+    ensure(roomname.isidentifier(), ValueError, "Room name must be a valid identifier")
 
     new_session = False
 

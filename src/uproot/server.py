@@ -21,6 +21,7 @@ import uproot as u
 import uproot.core as c
 import uproot.deployment as d
 import uproot.jobs as j
+from uproot.constraints import ensure
 from uproot.modules import ModuleManager
 from uproot.pages import page2path
 from uproot.server1 import router as router1
@@ -88,7 +89,7 @@ async def favicon(request: Request) -> RedirectResponse:
 def load_config(
     server: FastAPI, config: str, apps: list[str], extra: Optional[Any] = None
 ) -> None:
-    assert not config.startswith("~")
+    ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
 
     if not hasattr(u, "APPS"):
         u.APPS = ModuleManager()

@@ -34,6 +34,7 @@ import uproot.deployment as d
 import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
+from uproot.constraints import ensure
 from uproot.pages import (
     path2page,
     render,
@@ -133,9 +134,9 @@ async def show_page(
         formdata = await request.form()
 
         try:
-            assert isinstance(formdata["_uproot_from"], str)
+            ensure(isinstance(formdata["_uproot_from"], str), ValueError)
             send_from = int(formdata["_uproot_from"])
-        except (AssertionError, ValueError):
+        except ValueError:
             send_from = -1000
 
         if player.show_page == send_from and verify_csrf(page, player, formdata):

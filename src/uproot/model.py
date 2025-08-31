@@ -19,6 +19,7 @@ from pydantic.dataclasses import dataclass as validated_dataclass
 
 import uproot.core as c
 import uproot.storage as s
+from uproot.constraints import ensure
 from uproot.flexibility import flexible
 from uproot.types import (
     FrozenDottedDict,
@@ -116,11 +117,13 @@ def add(
         entry_as_dict = dict(entry)
         time_removable = False
 
-    assert pyall(
-        (isinstance(k, str) and k.isidentifier()) for k in entry_as_dict.keys()
-    ), (
-        "Custom model entries must be convertable into dict[str, Any], with all "
-        "keys being valid Python identifiers."
+    ensure(
+        pyall((isinstance(k, str) and k.isidentifier()) for k in entry_as_dict.keys()),
+        ValueError,
+        (
+            "Custom model entries must be convertable into dict[str, Any], with all "
+            "keys being valid Python identifiers."
+        ),
     )
 
     new_entry = {

@@ -18,6 +18,7 @@ import uproot.admin as a
 import uproot.deployment as d
 import uproot.i18n as i18n
 import uproot.types as t
+from uproot.constraints import ensure
 from uproot.storage import Storage
 from uproot.storage import within as s_within
 
@@ -336,7 +337,7 @@ async def validate(
         if isinstance(errors_from_page, str):
             errors = [errors_from_page]
         else:
-            assert isinstance(errors, list)
+            ensure(isinstance(errors, list), TypeError, "Errors must be a list")
             errors = errors_from_page
 
     return form, not errors, errors

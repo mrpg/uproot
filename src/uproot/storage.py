@@ -10,6 +10,7 @@ from typing import Any, Callable, Iterator, Optional, Union, cast
 
 from typing_extensions import Literal
 
+from uproot.constraints import ensure
 from uproot.deployment import DATABASE
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import (
@@ -92,7 +93,11 @@ def db_request(
         ]
     ] = None,
 ) -> Any:
-    assert key == "" or key.isidentifier()
+    ensure(
+        key == "" or key.isidentifier(),
+        ValueError,
+        "Key must be empty or a valid identifier",
+    )
     rval = None
 
     if caller is not None:
@@ -279,10 +284,12 @@ class Storage:
         *trail: str,
         virtual: Optional[dict[str, Callable[["Storage"], Any]]] = None,
     ):
-        assert all(
-            t.isidentifier() for t in trail
-        ), f"{repr(trail)} has invalid identifiers"
-        assert trail[0] in VALID_TRAIL0
+        ensure(
+            all(t.isidentifier() for t in trail),
+            ValueError,
+            f"{repr(trail)} has invalid identifiers",
+        )
+        ensure(trail[0] in VALID_TRAIL0, ValueError, "Invalid trail start")
 
         object.__setattr__(self, "name", trail[-1])
         object.__setattr__(self, "__path__", mkpath(*trail))
@@ -319,10 +326,16 @@ class Storage:
         return hash(self.__trail__)
 
     def __setattr__(self, name: str, value: Any) -> None:
-        assert name.isidentifier()
+        ensure(
+            name.isidentifier(), ValueError, "Attribute name must be a valid identifier"
+        )
 
         if name == "name" or (name.startswith("__") and name.endswith("__")):
-            assert name in self.__slots__
+            ensure(
+                name in self.__slots__,
+                AttributeError,
+                f"Attribute '{name}' not in __slots__",
+            )
             return object.__setattr__(self, name, value)
 
         virtual = object.__getattribute__(self, "__virtual__")

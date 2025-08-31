@@ -11,6 +11,7 @@ from pathlib import Path
 
 import uproot as u
 import uproot.types as t
+from uproot.constraints import ensure
 
 LICENSE_PATH = Path(__file__).parent / "static" / "uproot_license.txt"
 
@@ -235,7 +236,11 @@ def setup_mere_project(path: Path) -> None:
 
 
 def setup_mere_app(path: Path, app: str = "prisoners_dilemma") -> None:
-    assert app.isidentifier(), "Apps must have valid Python identifiers as names."
+    ensure(
+        app.isidentifier(),
+        ValueError,
+        "Apps must have valid Python identifiers as names.",
+    )
     appdir = path / app
 
     appdir.mkdir(exist_ok=False)

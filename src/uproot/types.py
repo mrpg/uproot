@@ -35,6 +35,7 @@ from uuid import uuid4
 from pydantic import validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
 
+from uproot.constraints import ensure
 from uproot.queries import Comparison, FieldReferent
 
 ALPHANUMERIC: str = ascii_lowercase + digits
@@ -228,7 +229,11 @@ async def optional_call_once(
 
 class StorageBunch:
     def __init__(self, iterable: Iterable["Storage"] = ()) -> None:
-        assert all(hasattr(item, "__trail__") for item in iterable)
+        ensure(
+            all(hasattr(item, "__trail__") for item in iterable),
+            TypeError,
+            "All items must have __trail__ attribute",
+        )
 
         self.l = tuple(iterable)
         self.s = set(self.l)
@@ -296,10 +301,14 @@ class StorageBunch:
 
         for k in keys:
             if isinstance(k, str):
-                assert "." not in k
+                ensure("." not in k, ValueError, "Key cannot contain dots")
                 rkeys.append(k)
             elif isinstance(k, FieldReferent):
-                assert len(k.path) == 1
+                ensure(
+                    len(k.path) == 1,
+                    ValueError,
+                    "FieldReferent path must have exactly one element",
+                )
                 rkeys.append(k.path[-1])
 
         dtuple = namedtuple("data", rkeys)  # type: ignore[misc]
@@ -330,7 +339,7 @@ def noop(s: str) -> str:
 
 def token_unchecked(outlen: int) -> str:
     """This function generates a random Python identifier."""
-    assert outlen > 0
+    ensure(outlen > 0, ValueError, "Output length must be positive")
 
     return random.choice(ascii_lowercase) + "".join(
         random.choices(ALPHANUMERIC, k=outlen - 1)
@@ -514,11 +523,15 @@ def internal_live(method: Callable[..., Any]) -> Callable[..., Any]:
 
 def context(frame: FrameType | None) -> str:
     try:
-        assert frame is not None  # for type checker
+        ensure(
+            frame is not None, RuntimeError, "Frame cannot be None"
+        )  # for type checker
 
         caller_frame = frame.f_back
 
-        assert caller_frame is not None  # for type checker
+        ensure(
+            caller_frame is not None, RuntimeError, "Caller frame cannot be None"
+        )  # for type checker
 
         caller_function = caller_frame.f_code.co_name
         caller_lineno = caller_frame.f_lineno

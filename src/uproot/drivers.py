@@ -13,6 +13,7 @@ from typing import Any, Iterator, Optional, cast
 import msgpack
 
 import uproot.types as t
+from uproot.constraints import ensure
 from uproot.stable import decode, encode
 
 
@@ -493,7 +494,11 @@ class PostgreSQL(DBDriver):
     ) -> None:
         import psycopg_pool
 
-        assert tblextra == "" or tblextra.isidentifier()
+        ensure(
+            tblextra == "" or tblextra.isidentifier(),
+            ValueError,
+            "tblextra must be empty or valid identifier",
+        )
 
         self.pool = psycopg_pool.ConnectionPool(
             conninfo,
@@ -524,7 +529,9 @@ class PostgreSQL(DBDriver):
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute("SELECT 1")
                 ((value,),) = cur
-                assert value == 1
+                ensure(
+                    value == 1, RuntimeError, "Expected exactly one row to be affected"
+                )
 
     def test_tables(self) -> None:
         with self.pool.connection() as conn:
@@ -535,7 +542,9 @@ class PostgreSQL(DBDriver):
                     f"AND EXISTS(SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'uproot{self.tblextra}_keys')"
                 )
                 ((value,),) = cur
-                assert value == 1
+                ensure(
+                    value == 1, RuntimeError, "Expected exactly one row to be affected"
+                )
 
     def size(self) -> Optional[int]:
         with self.pool.connection() as conn:
@@ -909,7 +918,11 @@ class Sqlite3(DBDriver):
     def __init__(
         self, db_path: str = "uproot.sqlite3", tblextra: str = "", **kwargs: Any
     ) -> None:
-        assert tblextra == "" or tblextra.isidentifier()
+        ensure(
+            tblextra == "" or tblextra.isidentifier(),
+            ValueError,
+            "tblextra must be empty or valid identifier",
+        )
 
         if "isolation_level" not in kwargs:
             kwargs["isolation_level"] = "IMMEDIATE"
@@ -945,7 +958,7 @@ class Sqlite3(DBDriver):
         conn = self._get_connection()
         cursor = conn.execute("SELECT 1")
         ((value,),) = cursor
-        assert value == 1
+        ensure(value == 1, RuntimeError, "Database connection test failed")
 
     def test_tables(self) -> None:
         conn = self._get_connection()
@@ -955,7 +968,7 @@ class Sqlite3(DBDriver):
             f"AND EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'uproot{self.tblextra}_keys')"
         )
         ((value,),) = cursor
-        assert value == 1
+        ensure(value == 1, RuntimeError, "Required database tables do not exist")
 
     def size(self) -> Optional[int]:
         conn = self._get_connection()

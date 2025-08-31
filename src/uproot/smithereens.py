@@ -8,6 +8,7 @@ from pydantic import validate_call
 import uproot as u
 import uproot.chat
 import uproot.types as t
+from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
 from uproot.pages import page2path
 from uproot.queries import FieldReferent
@@ -79,7 +80,7 @@ def others_in_group(player: Storage) -> t.StorageBunch:
 def other_in_group(player: Storage) -> Storage:
     others = others_in_group(player)
 
-    assert len(others) == 1
+    ensure(len(others) == 1, ValueError, "Expected exactly one other player in group")
 
     return others[0]
 
@@ -88,7 +89,7 @@ def other_in_group(player: Storage) -> Storage:
 def other_in_session(player: Storage) -> Storage:
     others = others_in_session(player)
 
-    assert len(others) == 1
+    ensure(len(others) == 1, ValueError, "Expected exactly one other player in session")
 
     return others[0]
 
@@ -155,8 +156,10 @@ def watch_for_dropout(
 ) -> None:
     triplet = (tolerance, fun.__module__, fun.__name__)
 
-    assert callable(fun) and (
-        isinstance(tolerance, int) or isinstance(tolerance, float)
+    ensure(
+        callable(fun) and (isinstance(tolerance, int) or isinstance(tolerance, float)),
+        TypeError,
+        "Function must be callable and tolerance must be int or float",
     )
 
     if not hasattr(player, "_uproot_watch"):

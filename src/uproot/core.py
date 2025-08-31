@@ -12,6 +12,7 @@ import uproot as u
 import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
+from uproot.constraints import ensure
 
 if TYPE_CHECKING:
     pass
@@ -40,7 +41,11 @@ def create_session(
     if sname is None:
         sname = t.token(admin.sessions)
     elif check_unique:
-        assert not any(s == sname for s in admin.sessions)
+        ensure(
+            not any(s == sname for s in admin.sessions),
+            ValueError,
+            "Session name already exists",
+        )
 
     with s.Session(sname) as session:
         session.active = True
@@ -82,7 +87,11 @@ def create_model(
     if mname is None:
         mname = t.token(session.models)
     elif check_unique:
-        assert not any(mname_ == mname for mname_ in session.models)
+        ensure(
+            not any(mname_ == mname for mname_ in session.models),
+            ValueError,
+            "Model name already exists",
+        )
 
     mid = t.ModelIdentifier(sname, mname)
 
@@ -112,7 +121,7 @@ def create_group(
     if gname is None:
         gname = t.token(session.groups)
     elif check_unique:
-        assert gname not in session.groups
+        ensure(gname not in session.groups, ValueError, "Group name already exists")
 
     gid = t.GroupIdentifier(sname, gname)
 
@@ -125,7 +134,11 @@ def create_group(
 
         for i, pid in enumerate(members):
             with pid() as player:
-                assert overwrite or player._uproot_group is None
+                ensure(
+                    overwrite or player._uproot_group is None,
+                    RuntimeError,
+                    "Player already belongs to a group and overwrite=False",
+                )
 
                 player._uproot_group = gid
                 player.member_id = i
@@ -209,17 +222,27 @@ def create_players(
         unames_ = list(t.tokens(session.players, n))
     elif unames is not None:
         if check_unique:
-            assert not any((p.uname in unames) for p in session.players)
+            ensure(
+                not any((p.uname in unames) for p in session.players),
+                ValueError,
+                "Username already exists",
+            )
 
         unames_ = unames
-        assert len(set(unames_)) == len(unames)
+        ensure(
+            len(set(unames_)) == len(unames), ValueError, "Duplicate usernames provided"
+        )
     else:
         raise ValueError("Invalid invocation.")
 
     if data is None:
         data_ = [None] * len(unames_)
     else:
-        assert len(data) == len(unames_) and all(isinstance(d, dict) for d in data)
+        ensure(
+            len(data) == len(unames_) and all(isinstance(d, dict) for d in data),
+            ValueError,
+            "Data length must match usernames length and all items must be dicts",
+        )
 
         data_ = data
 

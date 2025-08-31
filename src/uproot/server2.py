@@ -49,6 +49,7 @@ import uproot.i18n as i18n
 import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
+from uproot.constraints import ensure
 from uproot.pages import static_factory, to_filter
 from uproot.storage import Admin, Session
 
@@ -417,7 +418,7 @@ async def roommain(
     auth=Depends(auth_required),
 ) -> Response:
     with Admin() as admin:
-        assert roomname in admin.rooms
+        ensure(roomname in admin.rooms, ValueError, "Room not found")
 
         return HTMLResponse(
             await render(
@@ -450,7 +451,11 @@ async def new_session_in_room(
 
     if assignees:
         assignees = json.loads(assignees)
-        assert all(isinstance(ass, str) for ass in assignees)
+        ensure(
+            all(isinstance(ass, str) for ass in assignees),
+            ValueError,
+            "All assignees must be strings",
+        )
         shuffle(assignees)
     else:
         assignees = []
@@ -465,7 +470,11 @@ async def new_session_in_room(
             data.append({"label": label})
 
     with Admin() as admin:
-        assert admin.rooms[roomname]["sname"] is None
+        ensure(
+            admin.rooms[roomname]["sname"] is None,
+            RuntimeError,
+            "Room already has an active session",
+        )
 
         sid = c.create_session(
             admin,

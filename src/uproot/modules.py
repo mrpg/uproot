@@ -12,6 +12,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 import uproot.deployment as d
+from uproot.constraints import ensure
 
 
 class ModuleManager:
@@ -60,7 +61,11 @@ class ModuleManager:
 
         spec = importlib.util.spec_from_file_location(module_name, module_file)
 
-        assert spec is not None
+        ensure(
+            spec is not None,
+            ImportError,
+            f"Could not create spec for module {module_name}",
+        )
 
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)  # type: ignore[union-attr]

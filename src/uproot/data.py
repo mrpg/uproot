@@ -8,6 +8,7 @@ from typing import Any, AsyncGenerator, Callable, Iterable, Iterator, Optional, 
 import orjson as json
 
 import uproot.deployment as d
+from uproot.constraints import ensure
 from uproot.types import RawValue
 
 
@@ -55,8 +56,10 @@ def partial_matrix(
         ):
             continue
 
-        assert (
-            previous_field != field or cast(float, v.time) >= previous_time
+        ensure(
+            previous_field != field or cast(float, v.time) >= previous_time,
+            RuntimeError,
+            "Time ordering violation in data stream",
         )  # guaranteed by contract
 
         yield {
