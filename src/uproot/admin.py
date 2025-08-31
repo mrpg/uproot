@@ -42,11 +42,6 @@ def admins() -> str:
     return t.sha256("\n".join(f"{user}\t{pw}" for user, pw in d.ADMINS.items()))
 
 
-def _get_token_storage() -> s.Storage:
-    """Get storage for authentication tokens."""
-    return s.Admin()
-
-
 def _get_serializer() -> URLSafeTimedSerializer:
     """Get configured token serializer."""
     # Use deployment salt + key + admins hash as secret key for maximum security
@@ -56,13 +51,13 @@ def _get_serializer() -> URLSafeTimedSerializer:
 
 def _get_active_tokens() -> set[str]:
     """Get set of currently active tokens from storage."""
-    with _get_token_storage() as admin:
+    with s.Admin() as admin:
         return getattr(admin, "active_auth_tokens", set())
 
 
 def _store_active_tokens(tokens: set[str]) -> None:
     """Store set of active tokens to storage."""
-    with _get_token_storage() as admin:
+    with s.Admin() as admin:
         admin.active_auth_tokens = tokens
 
 
