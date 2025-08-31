@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 import os.path
 import traceback
+from collections import deque
 from datetime import datetime, timezone
 from email.utils import formatdate, parsedate_to_datetime
 from pathlib import Path
@@ -52,6 +53,7 @@ from uproot.storage import (
     mkpath,
 )
 
+PROCESSED_FUTURES = deque(maxlen=32 * 1024)
 router = APIRouter(prefix=d.ROOT)
 
 
@@ -463,10 +465,15 @@ async def ws(
                             )
                 elif fname == "from_websocket":
                     u.set_online(pid)
+
+                    if "future" in result and result["future"] in PROCESSED_FUTURES:
+                        continue
+                    elif "future" in result:
+                        PROCESSED_FUTURES.append(result["future"])
+
                     invoke_respond = True
                     invoke_response = None
                     invoke_exception = False
-
                     session = Session(sname)
 
                     with player:

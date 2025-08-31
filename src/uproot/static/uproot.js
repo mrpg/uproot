@@ -4,11 +4,7 @@ class RobustWebSocket {
         this.options = options;
         this.ws = null;
         this.messageQueue = [];
-        this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = options.maxReconnectAttempts || Infinity;
         this.reconnectInterval = options.reconnectInterval || 1000;
-        this.maxReconnectInterval = options.maxReconnectInterval || 30000;
-        this.reconnectDecay = options.reconnectDecay || 1.5;
         this.isConnected = false;
         this.shouldReconnect = true;
 
@@ -21,7 +17,6 @@ class RobustWebSocket {
 
             this.ws.onopen = () => {
                 this.isConnected = true;
-                this.reconnectAttempts = 0;
                 this.processQueue();
                 this.options.onOpen?.(this);
             };
@@ -49,43 +44,24 @@ class RobustWebSocket {
     }
 
     scheduleReconnect() {
-        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            this.options.onMaxReconnectAttemptsReached?.(this);
-            return;
-        }
-
-        const timeout = Math.min(
-            this.reconnectInterval * Math.pow(this.reconnectDecay, this.reconnectAttempts),
-            this.maxReconnectInterval
-        );
-
         setTimeout(() => {
-            this.reconnectAttempts++;
             this.connect();
-        }, timeout);
+        }, this.reconnectInterval);
     }
 
     async send(message) {
-        // Store message in queue first
         const queueItem = {
-            id: Date.now() + Math.random(),
             message: message,
             timestamp: Date.now()
         };
 
-        try {
-            // Successfully store in queue
-            this.messageQueue.push(queueItem);
+        this.messageQueue.push(queueItem);
 
-            // Try to send immediately if connected
-            if (this.isConnected && this.ws.readyState === WebSocket.OPEN) {
-                this.processQueue();
-            }
-
-            return queueItem.id;
-        } catch (error) {
-            throw new Error("Failed to queue message: " + error.message);
+        if (this.isConnected && this.ws.readyState === WebSocket.OPEN) {
+            this.processQueue();
         }
+
+        return queueItem;
     }
 
     processQueue() {
@@ -94,17 +70,19 @@ class RobustWebSocket {
         }
 
         while (this.messageQueue.length > 0) {
-            const item = this.messageQueue[0];
+            const item = this.messageQueue.shift();
+
             try {
                 this.ws.send(item.message);
-                this.messageQueue.shift(); // Remove from queue after successful send
                 this.options.onMessageSent?.(item, this);
             } catch (error) {
+                this.messageQueue.unshift(item);
                 this.options.onSendError?.(error, item, this);
-                break; // Stop processing on error
+                break;
             }
         }
     }
+
 
     close() {
         this.shouldReconnect = false;
@@ -195,11 +173,13 @@ window.uproot = {
             const futid = this.uuid();
             this.futStore[futid] = { resolve, reject };
 
-            this.ws.send(JSON.stringify({
+            const message = JSON.stringify({
                 endpoint: endpoint,
                 payload: data,
                 future: futid,
-            }));
+            });
+
+            this.ws.send(message);
         });
     },
 
