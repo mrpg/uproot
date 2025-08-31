@@ -547,6 +547,8 @@ window.uproot = {
     },
 
     chat: {
+        messageStore: {},
+
         create(el, chatId) {
             chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
 
@@ -570,6 +572,10 @@ window.uproot = {
 
             const ch = el.children[0];
 
+            if (!this.messageStore[chatId]) {
+                this.messageStore[chatId] = new Set();
+            }
+
             uproot.api("chat_get", chatId).
                 then(uproot.chat.messagesFromServer).
                 then(() => {
@@ -579,10 +585,27 @@ window.uproot = {
         },
 
         addMessage(chatId, username, message, timestamp, cls = "text-primary") {
-            username = uproot.escape(username);
-            message = uproot.escape(message);
+            if (!this.messageStore[chatId]) {
+                this.messageStore[chatId] = new Set();
+            }
+
+            const escapedUsername = uproot.escape(username);
+            const escapedMessage = uproot.escape(message);
+
+            const messageKey = `${escapedUsername}:${escapedMessage}:${timestamp}`;
+
+            if (this.messageStore[chatId].has(messageKey)) {
+                return; // Skip duplicate message
+            }
+
+            this.messageStore[chatId].add(messageKey);
 
             const messagesList = document.querySelector(`#messages-chat-${chatId}`);
+            if (!messagesList) {
+                console.error(`Chat messages list not found for chatId: ${chatId}`);
+                return;
+            }
+
             const time = new Date(1000 * timestamp);
             const timeString = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
             const isoString = time.toISOString();
@@ -591,18 +614,26 @@ window.uproot = {
             messageElement.className = "px-3 py-2 message-hover";
             messageElement.innerHTML = /* SAFE */ `
                         <div class="d-flex justify-content-between align-items-start mb-1">
-                            <span class="fw-semibold ${cls} sender">${username}</span>
+                            <span class="fw-semibold ${cls} sender">${escapedUsername}</span>
                             <time class="text-muted small time" title="${isoString}" datetime="${isoString}">${timeString}</time>
                         </div>
-                        <div class="text-break">${message}</div>
+                        <div class="text-break">${escapedMessage}</div>
                     `;
 
             messagesList.appendChild(messageElement);
-            messagesList.parentElement.scrollTop = messagesList.parentElement.scrollHeight;
+            if (messagesList.parentElement) {
+                messagesList.parentElement.scrollTop = messagesList.parentElement.scrollHeight;
+            }
         },
 
         sendMessage(chatId) {
             const input = document.querySelector(`#message-input-chat-${chatId}`);
+
+            if (!input) {
+                console.error(`Chat input not found for chatId: ${chatId}`);
+                return;
+            }
+
             const message = input.value.trim();
 
             if (message) {
@@ -612,7 +643,7 @@ window.uproot = {
             }
         },
 
-        messagesFromServer(msgs) { // TODO: duplicates when eagerly refreshing
+        messagesFromServer(msgs) {
             if (msgs) {
                 msgs.forEach((msg) => {
                     if (msg.cname && I(`chat-${msg.cname}`)) {
@@ -674,12 +705,6 @@ uproot.onInternalEvent("Received", (event) => {
 
 uproot.onInternalEvent("Chatted", (event) => {
     window.uproot.chat.messagesFromServer([event.detail.data]);
-});
-
-uproot.onInternalEvent("AdminMessaged", (event) => {
-    const entry = event.detail;
-
-    uproot.adminMessage(entry.data);
 });
 
 uproot.onInternalEvent("AdminMessaged", (event) => {
