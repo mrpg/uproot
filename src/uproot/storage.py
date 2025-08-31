@@ -434,6 +434,15 @@ class Storage:
         return cast(list[str], db_request(self, "fields"))
 
     def __bool__(self) -> bool:
+        if CACHE_ENABLED:
+            cache_ref = self._cache_ref
+
+            if cache_ref:
+                for value in cache_ref.values():
+                    if value is not None:
+                        return True
+                return False
+
         return cast(bool, db_request(self, "has_fields"))
 
     def __history__(self) -> Iterator[tuple[str, Value]]:
