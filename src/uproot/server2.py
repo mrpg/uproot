@@ -226,12 +226,15 @@ async def status(
             missing[term] = list()
         missing[term].append(lang)
 
+    sessions = a.get_active_sessions()
+
     return HTMLResponse(
         await render(
             "Status.html",
             dict(
                 dbsize=dbsize,
                 missing=missing,
+                sessions=sessions,
                 versions=dict(
                     uproot=u.__version__,
                     python=sys.version,
@@ -598,7 +601,7 @@ async def login_post(
     return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
 
-@router.get("/logout-all/")
+@router.get("/status/logout-all/")
 async def logout_all(
     request: Request,
     auth=Depends(auth_required),
@@ -616,24 +619,6 @@ async def logout_all(
     response.delete_cookie("uauth", path=f"{d.ROOT}/")
 
     return response
-
-
-@router.get("/auth-status/")
-async def auth_status(
-    request: Request,
-    auth=Depends(auth_required),
-) -> Response:
-    """Show authentication status and active sessions."""
-    sessions = a.get_active_sessions()
-
-    return HTMLResponse(
-        await render(
-            "AuthStatus.html",
-            dict(
-                sessions=sessions,
-            ),
-        )
-    )
 
 
 @router.get("/")
