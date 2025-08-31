@@ -130,7 +130,6 @@ window.uproot = {
     form: null,
     dirty: false,
     futStore: {},
-    msgStore: [],
     vars: {},
     receive: null,
     terms: {},
@@ -258,7 +257,6 @@ window.uproot = {
             console.log(msg);
         }
 
-        this.msgStore.push(msg); // TODO: clean up/queue
         this.serverThere = Date.now();
 
         if (kind == "invoke" && "future" in payload) {
