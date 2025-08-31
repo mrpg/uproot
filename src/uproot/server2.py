@@ -90,7 +90,7 @@ async def auth_required(request: Request):
 
     data = a.from_cookie(uauth)
 
-    if a.verify_secret(**data) is None:
+    if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
 
 
@@ -129,27 +129,32 @@ async def render(
 
 @router.get("/logout/")
 def logout(
+    request: Request,
     auth=Depends(auth_required),
 ) -> RedirectResponse:
+    """Logout and revoke the current authentication token."""
+    uauth = request.cookies.get("uauth")
+    if uauth:
+        # Revoke the specific token
+        a.revoke_auth_token(uauth)
+
     response = RedirectResponse(f"{d.ROOT}/admin/login/")
-    response.delete_cookie("uauth")
+    response.delete_cookie("uauth", path=f"{d.ROOT}/")
 
     return response
 
 
 @validate_call(config=dict(arbitrary_types_allowed=True))
-def set_cookie(
+def set_auth_cookie(
     response: Response,
-    user: str,
-    secret: str,
+    token: str,
     secure: bool,
 ) -> None:
-    assert ":" not in secret
-
+    """Set authentication cookie with secure token."""
     response.set_cookie(
         key="uauth",
-        value=f"{user}:{secret}",
-        max_age=86400,
+        value=token,
+        max_age=86400,  # 24 hours
         path=f"{d.ROOT}/",
         httponly=True,
         secure=secure,
@@ -570,23 +575,65 @@ async def login_post(
 ) -> Response:
     global LAST_FAILED_LOGIN
 
-    if now() - LAST_FAILED_LOGIN > 5.0 and user in d.ADMINS and d.ADMINS[user] == pw:
+    # Rate limiting: require 5 second delay after failed login
+    if now() - LAST_FAILED_LOGIN <= 5.0:
+        LAST_FAILED_LOGIN = now()
+        return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
+
+    # Attempt to create authentication token
+    token = a.create_auth_token(user, pw)
+    if token is not None:
         response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
-        set_cookie(
+        set_auth_cookie(
             response,
-            user,
-            a.get_secret(user, pw),
+            token,
             x_forwarded_proto.lower() == "https"
             or not (
                 host.startswith("localhost") or host.startswith("127.0.0.")
             ),  # Safari really sucks
         )
-
         return response
 
     LAST_FAILED_LOGIN = now()
-
     return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
+
+
+@router.post("/logout-all/")
+async def logout_all(
+    request: Request,
+    auth=Depends(auth_required),
+) -> Response:
+    """Logout from all sessions by revoking all tokens for the current user."""
+    uauth = request.cookies.get("uauth")
+    if uauth:
+        data = a.from_cookie(uauth)
+        user = data.get("user", "")
+        if user:
+            revoked_count = a.revoke_all_user_tokens(user)
+            d.LOGGER.info(f"Revoked {revoked_count} tokens for user {user}")
+
+    response = RedirectResponse(f"{d.ROOT}/admin/login/", status_code=303)
+    response.delete_cookie("uauth", path=f"{d.ROOT}/")
+
+    return response
+
+
+@router.get("/auth-status/")
+async def auth_status(
+    request: Request,
+    auth=Depends(auth_required),
+) -> Response:
+    """Show authentication status and active sessions."""
+    sessions = a.get_active_sessions()
+
+    return HTMLResponse(
+        await render(
+            "AuthStatus.html",
+            dict(
+                sessions=sessions,
+            ),
+        )
+    )
 
 
 @router.get("/")
@@ -599,8 +646,12 @@ async def home(
 
 @router.websocket("/ws/")
 async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
-    if uauth is None or a.verify_secret(**a.from_cookie(uauth)) is None:
-        raise HTTPException(status_code=403, detail="Bad user")
+    if uauth is None:
+        raise HTTPException(status_code=403, detail="No authentication token")
+
+    data = a.from_cookie(uauth)
+    if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
+        raise HTTPException(status_code=403, detail="Invalid authentication token")
 
     await websocket.accept()
 

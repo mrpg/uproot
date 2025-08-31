@@ -390,7 +390,10 @@ async def ws(
     await websocket.accept()
 
     pid = cast(t.PlayerIdentifier, ~player)
-    is_admin = uauth is not None and a.verify_secret(**a.from_cookie(uauth)) is not None
+    data = a.from_cookie(uauth) if uauth else {"user": "", "token": ""}
+    is_admin = (
+        a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+    )
 
     tasks = dict()
     args: dict[str, dict[str, Any]] = dict(

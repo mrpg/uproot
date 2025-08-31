@@ -1,0 +1,125 @@
+{% extends "Admin.html" %}
+
+
+{% block title %}
+{% translate %}
+Authentication Status
+{% endtranslate %}
+{% endblock title %}
+
+
+{% block main %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    {% translate %}
+                    Active Authentication Sessions
+                    {% endtranslate %}
+                </h4>
+                <form action="{{ root }}/admin/logout-all/" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{% translate %}Are you sure you want to logout from all sessions?{% endtranslate %}')">
+                        {% translate %}
+                        Logout All Sessions
+                        {% endtranslate %}
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                {% if sessions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    {% translate %}
+                                    User
+                                    {% endtranslate %}
+                                </th>
+                                <th>
+                                    {% translate %}
+                                    Active Tokens
+                                    {% endtranslate %}
+                                </th>
+                                <th>
+                                    {% translate %}
+                                    Session Created
+                                    {% endtranslate %}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user, info in sessions.items() %}
+                            <tr>
+                                <td><strong>{{ user }}</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">{{ info.token_count }}</span>
+                                </td>
+                                <td>
+                                    {% for created_at in info.created_at %}
+                                        <small class="text-muted d-block">{{ created_at }}</small>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% translate %}
+                    No active authentication sessions found.
+                    {% endtranslate %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    {% translate %}
+                    Security Information
+                    {% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-success me-2"></i>
+                        {% translate %}
+                        Authentication tokens are cryptographically signed and expire after 24 hours
+                        {% endtranslate %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-clock text-info me-2"></i>
+                        {% translate %}
+                        Expired tokens are automatically cleaned up
+                        {% endtranslate %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-key text-warning me-2"></i>
+                        {% translate %}
+                        Each token contains a unique nonce to prevent reuse
+                        {% endtranslate %}
+                    </li>
+                    <li>
+                        <i class="bi bi-lock text-primary me-2"></i>
+                        {% translate %}
+                        Tokens are stored securely and can be revoked individually
+                        {% endtranslate %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock main %}

@@ -2,11 +2,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
+import secrets
+from datetime import datetime
 from itertools import chain
 from typing import Any, AsyncGenerator, Callable, Iterator, Optional
 
 import aiohttp
 from fastapi import HTTPException
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sortedcontainers import SortedDict
 
 import uproot as u
@@ -37,6 +40,47 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
 
 def admins() -> str:
     return t.sha256("\n".join(f"{user}\t{pw}" for user, pw in d.ADMINS.items()))
+
+
+def _get_token_storage() -> s.Storage:
+    """Get storage for authentication tokens."""
+    return s.Admin()
+
+
+def _get_serializer() -> URLSafeTimedSerializer:
+    """Get configured token serializer."""
+    # Use deployment salt + key + admins hash as secret key for maximum security
+    secret_key = t.sha256(f"{d.SALT}:{u.KEY}:{admins()}")
+    return URLSafeTimedSerializer(secret_key)
+
+
+def _get_active_tokens() -> set[str]:
+    """Get set of currently active tokens from storage."""
+    with _get_token_storage() as admin:
+        return getattr(admin, "active_auth_tokens", set())
+
+
+def _store_active_tokens(tokens: set[str]) -> None:
+    """Store set of active tokens to storage."""
+    with _get_token_storage() as admin:
+        admin.active_auth_tokens = tokens
+
+
+def _cleanup_expired_tokens() -> None:
+    """Remove expired tokens from storage."""
+    serializer = _get_serializer()
+    active_tokens = _get_active_tokens()
+    valid_tokens = set()
+
+    for token in active_tokens:
+        try:
+            serializer.loads(token, max_age=86400)  # 24 hours
+            valid_tokens.add(token)
+        except (BadSignature, SignatureExpired):
+            continue  # Token is expired or invalid, don't keep it
+
+    if len(valid_tokens) != len(active_tokens):
+        _store_active_tokens(valid_tokens)
 
 
 async def advance_by_one(
@@ -113,12 +157,30 @@ def displaystr(s: str) -> str:
 
 
 def from_cookie(uauth: str) -> dict[str, str]:
-    try:
-        user, secret = uauth.split(":")
+    """Parse authentication token from cookie.
 
-        return dict(user=user, secret=secret)
-    except Exception:
-        return dict(user="", secret="")
+    Returns dict with 'user' and 'token' keys, or empty strings if invalid.
+    """
+    try:
+        # Clean up expired tokens periodically
+        _cleanup_expired_tokens()
+
+        serializer = _get_serializer()
+        active_tokens = _get_active_tokens()
+
+        # Verify token is in active set and not expired
+        if uauth not in active_tokens:
+            return dict(user="", token="")
+
+        # Verify token signature and expiration (24 hours)
+        data = serializer.loads(uauth, max_age=86400)
+
+        if not isinstance(data, dict) or "user" not in data:
+            return dict(user="", token="")
+
+        return dict(user=data["user"], token=uauth)
+    except (BadSignature, SignatureExpired, Exception):
+        return dict(user="", token="")
 
 
 def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
@@ -180,10 +242,108 @@ async def generate_json(
         await asyncio.sleep(0)
 
 
-def get_secret(user: str, pw: str) -> str:
-    salted = "/".join([user, pw, u.KEY, d.SALT, admins()])
+def create_auth_token(user: str, pw: str) -> Optional[str]:
+    """Create a new authentication token for a user.
 
-    return t.sha256(salted)
+    Args:
+        user: Username
+        pw: Password
+
+    Returns:
+        Signed token string if credentials are valid, None otherwise
+    """
+    # Verify credentials first
+    if user not in d.ADMINS or d.ADMINS[user] != pw:
+        return None
+
+    # Create token data
+    token_data = {
+        "user": user,
+        "created_at": datetime.utcnow().isoformat(),
+        "nonce": secrets.token_hex(16),  # Prevent token reuse across sessions
+    }
+
+    # Sign the token
+    serializer = _get_serializer()
+    token = serializer.dumps(token_data)
+
+    # Store token in active set
+    active_tokens = _get_active_tokens()
+    active_tokens.add(token)
+    _store_active_tokens(active_tokens)
+
+    return token
+
+
+def revoke_auth_token(token: str) -> bool:
+    """Revoke a specific authentication token.
+
+    Args:
+        token: Token to revoke
+
+    Returns:
+        True if token was revoked, False if it wasn't active
+    """
+    active_tokens = _get_active_tokens()
+    if token in active_tokens:
+        active_tokens.remove(token)
+        _store_active_tokens(active_tokens)
+        return True
+    return False
+
+
+def revoke_all_user_tokens(user: str) -> int:
+    """Revoke all authentication tokens for a specific user.
+
+    Args:
+        user: Username whose tokens should be revoked
+
+    Returns:
+        Number of tokens revoked
+    """
+    serializer = _get_serializer()
+    active_tokens = _get_active_tokens()
+    tokens_to_keep = set()
+    revoked_count = 0
+
+    for token in active_tokens:
+        try:
+            data = serializer.loads(token, max_age=86400)
+            if isinstance(data, dict) and data.get("user") != user:
+                tokens_to_keep.add(token)
+            else:
+                revoked_count += 1
+        except (BadSignature, SignatureExpired):
+            revoked_count += 1  # Count expired tokens as revoked
+
+    _store_active_tokens(tokens_to_keep)
+    return revoked_count
+
+
+def get_active_sessions() -> dict[str, dict[str, Any]]:
+    """Get information about all active authentication sessions.
+
+    Returns:
+        Dict mapping usernames to session info
+    """
+    serializer = _get_serializer()
+    active_tokens = _get_active_tokens()
+    sessions = {}
+
+    for token in active_tokens:
+        try:
+            data = serializer.loads(token, max_age=86400)
+            if isinstance(data, dict) and "user" in data:
+                user = data["user"]
+                if user not in sessions:
+                    sessions[user] = {"token_count": 0, "created_at": []}
+                sessions[user]["token_count"] += 1
+                if "created_at" in data:
+                    sessions[user]["created_at"].append(data["created_at"])
+        except (BadSignature, SignatureExpired):
+            continue
+
+    return sessions
 
 
 def info_online(
@@ -392,11 +552,36 @@ async def flip_active(sname: t.Sessionname) -> None:
         session.active = not session.active
 
 
-def verify_secret(user: str, secret: str) -> Optional[str]:
-    if user in d.ADMINS and secret == get_secret(user, d.ADMINS[user]):
-        return user
+def verify_auth_token(user: str, token: str) -> Optional[str]:
+    """Verify an authentication token.
 
-    return None
+    Args:
+        user: Expected username
+        token: Token to verify
+
+    Returns:
+        Username if token is valid, None otherwise
+    """
+    try:
+        # Clean up expired tokens periodically
+        _cleanup_expired_tokens()
+
+        serializer = _get_serializer()
+        active_tokens = _get_active_tokens()
+
+        # Check if token is in active set
+        if token not in active_tokens:
+            return None
+
+        # Verify token signature and expiration
+        data = serializer.loads(token, max_age=86400)
+
+        if not isinstance(data, dict) or data.get("user") != user:
+            return None
+
+        return user
+    except (BadSignature, SignatureExpired, Exception):
+        return None
 
 
 async def viewdata(
