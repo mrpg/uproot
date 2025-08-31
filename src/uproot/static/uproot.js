@@ -584,7 +584,7 @@ window.uproot = {
                 });
         },
 
-        addMessage(chatId, username, message, timestamp, cls = "text-primary") {
+        addMessage(chatId, msgId, username, message, timestamp, cls = "text-primary") {
             if (!this.messageStore[chatId]) {
                 this.messageStore[chatId] = new Set();
             }
@@ -592,13 +592,11 @@ window.uproot = {
             const escapedUsername = uproot.escape(username);
             const escapedMessage = uproot.escape(message);
 
-            const messageKey = `${escapedUsername}:${escapedMessage}:${timestamp}`;
-
-            if (this.messageStore[chatId].has(messageKey)) {
+            if (this.messageStore[chatId].has(msgId)) {
                 return; // Skip duplicate message
             }
 
-            this.messageStore[chatId].add(messageKey);
+            this.messageStore[chatId].add(msgId);
 
             const messagesList = document.querySelector(`#messages-chat-${chatId}`);
             if (!messagesList) {
@@ -661,6 +659,7 @@ window.uproot = {
 
                         window.uproot.chat.addMessage(
                             msg.cname,
+                            msg.id,
                             senderRepresentation,
                             msg.text,
                             msg.time,
