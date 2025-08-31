@@ -46,8 +46,7 @@ class DBDriver(ABC):
        - namespace: hierarchical prefix (can contain colons, e.g., "session/123")
        - field: the specific field name (no colons allowed)
        The old-style "namespace:field" dbfield format is split into separate columns
-       for efficient querying and indexing. dbfields are deprecated and should be
-       avoided and removed (TODO: remove dbfields everywhere).
+       for efficient querying and indexing.
 
     6. CURRENT STATE: get() and get_many() check the most recent entry for each key.
        If the latest entry is a tombstone (unavailable==True), the key is treated as
@@ -66,19 +65,6 @@ class DBDriver(ABC):
     """
 
     now: float = 0.0
-
-    def _split_dbfield(self, dbfield: str) -> tuple[str, str]:
-        """Split dbfield into namespace and field components."""
-        last_colon = dbfield.rfind(":")
-        if last_colon == -1:
-            return "", dbfield
-        return dbfield[:last_colon], dbfield[last_colon + 1 :]
-
-    def _join_dbfield(self, namespace: str, field: str) -> str:
-        """Join namespace and field into dbfield format."""
-        if namespace:
-            return f"{namespace}:{field}"
-        return field
 
     def size(self) -> Optional[int]:
         """Returns approximate database size in octets if possible, else None."""
@@ -104,16 +90,16 @@ class DBDriver(ABC):
         """Verify required tables exist. Raise exception if missing."""
         raise NotImplementedError
 
-    def insert(self, dbfield: str, data: Any, context: str) -> None:
+    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
         """Insert new entry. Data will be encoded automatically."""
         raise NotImplementedError
 
-    def get(self, dbfield: str) -> Any:
+    def get(self, namespace: str, field: str) -> Any:
         """Get current (non-unavailable) value. Raises AttributeError if missing."""
         raise NotImplementedError
 
-    def get_field_all_namespaces(self, field: str) -> dict[str, t.Value]:
-        """Get latest values for a specific field across all namespaces."""
+    def get_field_all_namespaces(self, field: str) -> dict[tuple[str, str], t.Value]:
+        """Get latest values for a specific field across all namespaces. Returns dict with (namespace, field) tuples as keys."""
         raise NotImplementedError
 
     def get_many(
@@ -126,8 +112,10 @@ class DBDriver(ABC):
         """Return complete history for a single field in a namespace. t.Values MUST be ordered by time ASC."""
         raise NotImplementedError
 
-    def get_latest(self, sstr: str, since_epoch: float = 0) -> dict[str, t.Value]:
-        """Get all keys starting with sstr updated after since_epoch."""
+    def get_latest(
+        self, sstr: str, since_epoch: float = 0
+    ) -> dict[tuple[str, str], t.Value]:
+        """Get all keys starting with sstr updated after since_epoch. Returns dict with (namespace, field) tuples as keys."""
         raise NotImplementedError
 
     def get_within_context(
@@ -154,7 +142,7 @@ class DBDriver(ABC):
         """
         raise NotImplementedError
 
-    def delete(self, dbfield: str, context: str) -> None:
+    def delete(self, namespace: str, field: str, context: str) -> None:
         """Mark entry as unavailable (tombstone). Does not physically remove."""
         raise NotImplementedError
 
@@ -222,7 +210,8 @@ class Memory(DBDriver):
                     for v in values:
                         yield msgpack.packb(
                             {
-                                "key": self._join_dbfield(namespace, field),
+                                "namespace": namespace,
+                                "field": field,
                                 "value": encode(v.data),
                                 "created_at": v.time,
                                 "context": v.context,
@@ -238,7 +227,7 @@ class Memory(DBDriver):
         with self._lock:
             unpacker = msgpack.Unpacker(msgpack_stream, raw=False)
             for row_dict in unpacker:
-                namespace, field = self._split_dbfield(row_dict["key"])
+                namespace, field = row_dict["namespace"], row_dict["field"]
                 value = decode(row_dict["value"])
                 time = row_dict["created_at"]
                 context = row_dict["context"]
@@ -256,8 +245,7 @@ class Memory(DBDriver):
                 if field == "players" and namespace.startswith("session/"):
                     self.log[namespace][field] = self.log[namespace][field][-1:]
 
-    def insert(self, dbfield: str, data: Any, context: str) -> None:
-        namespace, field = self._split_dbfield(dbfield)
+    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
         with self._lock:
             if namespace not in self.log:
                 self.log[namespace] = {}
@@ -272,27 +260,25 @@ class Memory(DBDriver):
 
             self._cache_version += 1
 
-    def delete(self, dbfield: str, context: str) -> None:
-        namespace, field = self._split_dbfield(dbfield)
+    def delete(self, namespace: str, field: str, context: str) -> None:
         with self._lock:
             if namespace not in self.log or field not in self.log[namespace]:
-                raise AttributeError(f"Key not found: {dbfield}")
+                raise AttributeError(f"Key not found: {namespace}:{field}")
 
             self.log[namespace][field].append(t.Value(self.now, True, None, context))
 
-    def get(self, dbfield: str) -> Any:
-        namespace, field = self._split_dbfield(dbfield)
+    def get(self, namespace: str, field: str) -> Any:
         with self._lock:
             if namespace not in self.log or field not in self.log[namespace]:
-                raise AttributeError(f"Key not found: {dbfield}")
+                raise AttributeError(f"Key not found: {namespace}:{field}")
 
             latest = self.log[namespace][field][-1]
             if latest.unavailable:
-                raise AttributeError(f"Key not found: {dbfield}")
+                raise AttributeError(f"Key not found: {namespace}:{field}")
 
             return latest.data
 
-    def get_field_all_namespaces(self, field: str) -> dict[str, t.Value]:
+    def get_field_all_namespaces(self, field: str) -> dict[tuple[str, str], t.Value]:
         rval = {}
         with self._lock:
             for namespace, fields in self.log.items():
@@ -301,8 +287,7 @@ class Memory(DBDriver):
                     if values:
                         latest = values[-1]
                         if not latest.unavailable:
-                            dbfield = self._join_dbfield(namespace, field)
-                            rval[dbfield] = latest
+                            rval[(namespace, field)] = latest
         return rval
 
     def get_field_history(self, namespace: str, field: str) -> list[t.Value]:
@@ -311,16 +296,15 @@ class Memory(DBDriver):
                 return []
             return list(self.log[namespace][field])
 
-    def get_latest(self, sstr: str, since_epoch: float = 0) -> dict[str, t.Value]:
-        rval: dict[str, t.Value] = {}
+    def get_latest(
+        self, sstr: str, since_epoch: float = 0
+    ) -> dict[tuple[str, str], t.Value]:
+        rval: dict[tuple[str, str], t.Value] = {}
         with self._lock:
             for namespace, fields in self.log.items():
                 for field, values in fields.items():
-                    # Construct the full dbfield
-                    dbfield = self._join_dbfield(namespace, field)
-
-                    # Check if dbfield starts with sstr
-                    if dbfield.startswith(sstr) and values:
+                    # Check if namespace starts with sstr (no more dbfield strings!)
+                    if namespace.startswith(sstr) and values:
                         # Get the latest value
                         latest = values[-1]
 
@@ -328,7 +312,7 @@ class Memory(DBDriver):
                         if latest.time is not None and latest.time > since_epoch:
                             # Include both available and unavailable (tombstone) entries
                             # This matches the SQL implementations
-                            rval[dbfield] = latest
+                            rval[(namespace, field)] = latest
 
         return rval
 
@@ -454,8 +438,7 @@ class Memory(DBDriver):
             fields_set = set()
             for namespace, fields in self.log.items():
                 for field in fields:
-                    dbfield = self._join_dbfield(namespace, field)
-                    if dbfield.startswith(sstr):
+                    if namespace.startswith(sstr):
                         fields_set.add(field)
 
             return list(fields_set)
@@ -464,32 +447,28 @@ class Memory(DBDriver):
         with self._lock:
             for namespace, fields in self.log.items():
                 for field in fields:
-                    dbfield = self._join_dbfield(namespace, field)
-                    if dbfield.startswith(sstr):
+                    if namespace.startswith(sstr):
                         return True
             return False
 
     def history(self, sstr: str) -> Iterator[tuple[str, t.Value]]:
         for namespace, fields in self.log.items():
             for field, values in fields.items():
-                dbfield = self._join_dbfield(namespace, field)
-                if dbfield.startswith(sstr):
+                if namespace.startswith(sstr):
                     for value in values:
                         yield field, value
 
     def history_all(self, sstr: str) -> Iterator[tuple[str, str, t.Value]]:
         for namespace, fields in self.log.items():
             for field, values in fields.items():
-                dbfield = self._join_dbfield(namespace, field)
-                if dbfield.startswith(sstr):
+                if namespace.startswith(sstr):
                     for value in values:
                         yield namespace, field, value
 
     def history_raw(self, sstr: str) -> Iterator[tuple[str, str, t.RawValue]]:
         for namespace, fields in self.log.items():
             for field, values in fields.items():
-                dbfield = self._join_dbfield(namespace, field)
-                if dbfield.startswith(sstr):
+                if namespace.startswith(sstr):
                     for value in values:
                         yield namespace, field, t.RawValue(
                             time=value.time,
@@ -574,10 +553,10 @@ class PostgreSQL(DBDriver):
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(self._queries["dump"])
                 for namespace, field, value, created_at, context in cur:
-                    dbfield = self._join_dbfield(namespace, field)
                     yield msgpack.packb(
                         {
-                            "key": dbfield,
+                            "namespace": namespace,
+                            "field": field,
                             "value": value,
                             "created_at": created_at,
                             "context": context,
@@ -591,7 +570,7 @@ class PostgreSQL(DBDriver):
 
                 rows = []
                 for row_dict in unpacker:
-                    namespace, field = self._split_dbfield(row_dict["key"])
+                    namespace, field = row_dict["namespace"], row_dict["field"]
                     rows.append(
                         (
                             namespace,
@@ -664,36 +643,7 @@ class PostgreSQL(DBDriver):
                 FOR EACH ROW EXECUTE FUNCTION update_uproot{self.tblextra}_keys();"""
                 )
 
-    def insert(self, dbfield: str, data: Any, context: str) -> None:
-        namespace, field = self._split_dbfield(dbfield)
-        with self.pool.connection() as conn:
-            with conn.transaction(), conn.cursor() as cur:
-                cur.execute(
-                    self._queries["insert"],
-                    (namespace, field, encode(data), self.now, context),
-                )
-
-    def delete(self, dbfield: str, context: str) -> None:
-        namespace, field = self._split_dbfield(dbfield)
-        with self.pool.connection() as conn:
-            with conn.transaction(), conn.cursor() as cur:
-                cur.execute(
-                    self._queries["delete"], (namespace, field, self.now, context)
-                )
-
-    def get(self, dbfield: str) -> Any:
-        namespace, field = self._split_dbfield(dbfield)
-        with self.pool.connection() as conn:
-            with conn.transaction(), conn.cursor() as cur:
-                cur.execute(self._queries["get"], (namespace, field))
-
-                row = cur.fetchone()
-                if row and row[0] is not None:
-                    return decode(row[0])
-
-                raise AttributeError(f"Key not found: {dbfield}")
-
-    def get_field_all_namespaces(self, field: str) -> dict[str, t.Value]:
+    def get_field_all_namespaces(self, field: str) -> dict[tuple[str, str], t.Value]:
         rval = {}
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
@@ -705,8 +655,9 @@ class PostgreSQL(DBDriver):
                 )
 
                 for namespace, field, value, time, context in cur:
-                    dbfield = self._join_dbfield(namespace, field)
-                    rval[dbfield] = t.Value(time, False, decode(value), context)
+                    rval[(namespace, field)] = t.Value(
+                        time, False, decode(value), context
+                    )
 
         return rval
 
@@ -730,18 +681,21 @@ class PostgreSQL(DBDriver):
                     for value, created_at, context in cur
                 ]
 
-    def get_latest(self, sstr: str, since_epoch: float = 0) -> dict[str, t.Value]:
+    def get_latest(
+        self, sstr: str, since_epoch: float = 0
+    ) -> dict[tuple[str, str], t.Value]:
         rval = {}
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(self._queries["get_latest"], (sstr, since_epoch))
 
                 for namespace, field, value, time, context in cur:
-                    dbfield = self._join_dbfield(namespace, field)
                     if value is not None:
-                        rval[dbfield] = t.Value(time, False, decode(value), context)
+                        rval[(namespace, field)] = t.Value(
+                            time, False, decode(value), context
+                        )
                     else:
-                        rval[dbfield] = t.Value(time, True, None, context)
+                        rval[(namespace, field)] = t.Value(time, True, None, context)
 
         return rval
 
@@ -1018,10 +972,10 @@ class Sqlite3(DBDriver):
         )
 
         for namespace, field, value, created_at, context in cursor:
-            dbfield = self._join_dbfield(namespace, field)
             yield msgpack.packb(
                 {
-                    "key": dbfield,
+                    "namespace": namespace,
+                    "field": field,
                     "value": value,
                     "created_at": created_at,
                     "context": context,
@@ -1034,7 +988,7 @@ class Sqlite3(DBDriver):
 
         rows = []
         for row_dict in unpacker:
-            namespace, field = self._split_dbfield(row_dict["key"])
+            namespace, field = row_dict["namespace"], row_dict["field"]
             rows.append(
                 (
                     namespace,
@@ -1126,8 +1080,7 @@ class Sqlite3(DBDriver):
             END;"""
             )
 
-    def insert(self, dbfield: str, data: Any, context: str) -> None:
-        namespace, field = self._split_dbfield(dbfield)
+    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
         conn = self._get_connection()
         conn.execute(
             f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
@@ -1135,8 +1088,7 @@ class Sqlite3(DBDriver):
         )
         conn.commit()
 
-    def delete(self, dbfield: str, context: str) -> None:
-        namespace, field = self._split_dbfield(dbfield)
+    def delete(self, namespace: str, field: str, context: str) -> None:
         conn = self._get_connection()
         conn.execute(
             f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, NULL, ?, ?)",
@@ -1144,8 +1096,7 @@ class Sqlite3(DBDriver):
         )
         conn.commit()
 
-    def get(self, dbfield: str) -> Any:
-        namespace, field = self._split_dbfield(dbfield)
+    def get(self, namespace: str, field: str) -> Any:
         conn = self._get_connection()
         cursor = conn.execute(
             f"SELECT current_value FROM uproot{self.tblextra}_keys WHERE namespace = ? AND field = ?",
@@ -1156,9 +1107,9 @@ class Sqlite3(DBDriver):
         if row and row[0] is not None:
             return decode(row[0])
 
-        raise AttributeError(f"Key not found: {dbfield}")
+        raise AttributeError(f"Key not found: {namespace}:{field}")
 
-    def get_field_all_namespaces(self, field: str) -> dict[str, t.Value]:
+    def get_field_all_namespaces(self, field: str) -> dict[tuple[str, str], t.Value]:
         rval = {}
         conn = self._get_connection()
         cursor = conn.execute(
@@ -1169,8 +1120,7 @@ class Sqlite3(DBDriver):
         )
 
         for namespace, field, value, time, context in cursor:
-            dbfield = self._join_dbfield(namespace, field)
-            rval[dbfield] = t.Value(time, False, decode(value), context)
+            rval[(namespace, field)] = t.Value(time, False, decode(value), context)
 
         return rval
 
@@ -1193,7 +1143,9 @@ class Sqlite3(DBDriver):
             for value, created_at, context in cursor
         ]
 
-    def get_latest(self, sstr: str, since_epoch: float = 0) -> dict[str, t.Value]:
+    def get_latest(
+        self, sstr: str, since_epoch: float = 0
+    ) -> dict[tuple[str, str], t.Value]:
         rval = {}
         conn = self._get_connection()
         cursor = conn.execute(
@@ -1202,11 +1154,10 @@ class Sqlite3(DBDriver):
         )
 
         for namespace, field, value, time, context in cursor:
-            dbfield = self._join_dbfield(namespace, field)
             if value is not None:
-                rval[dbfield] = t.Value(time, False, decode(value), context)
+                rval[(namespace, field)] = t.Value(time, False, decode(value), context)
             else:
-                rval[dbfield] = t.Value(time, True, None, context)
+                rval[(namespace, field)] = t.Value(time, True, None, context)
 
         return rval
 

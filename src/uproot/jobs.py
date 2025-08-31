@@ -96,8 +96,9 @@ def synchronize_rooms(app: FastAPI, admin: s.Storage) -> None:
 
 
 def restore(app: FastAPI, admin: s.Storage) -> None:
-    def is_player(dbfield: str) -> bool:
-        return dbfield.startswith("player/")
+    def is_player(key: tuple[str, str]) -> bool:
+        namespace, field = key
+        return namespace.startswith("player/")
 
     u.KEY = admin._uproot_key
 
@@ -111,30 +112,35 @@ def restore(app: FastAPI, admin: s.Storage) -> None:
         s.field_from_all("_uproot_watch", is_player),
     )
 
-    for dbfield, porder in porders.items():
-        _, sname, uname, _ = s.mktrail(dbfield)
-        pid = PlayerIdentifier(sname, uname)
+    for (namespace, field), porder in porders.items():
+        # Extract sname and uname from namespace path like "player/session_name/user_name"
+        parts = namespace.split("/")
+        if len(parts) >= 3 and parts[0] == "player":
+            sname, uname = parts[1], parts[2]
+            pid = PlayerIdentifier(sname, uname)
 
-        id_ = cast(Optional[int], ids.get(f"player/{sname}/{uname}:id", _none).data)
-        page_order = cast(list[str], porder.data)
-        show_page = cast(
-            int, pshows.get(f"player/{sname}/{uname}:show_page", _minusone).data
-        )
+            # Look up other values using the same namespace and different fields
+            id_ = cast(Optional[int], ids.get((namespace, "id"), _none).data)
+            page_order = cast(list[str], porder.data)
+            show_page = cast(int, pshows.get((namespace, "show_page"), _minusone).data)
 
-        u.set_info(
-            pid,
-            id_,
-            page_order,
-            show_page,
-        )
+            u.set_info(
+                pid,
+                id_,
+                page_order,
+                show_page,
+            )
 
-    for dbfield, watchset in all_watches.items():
-        _, sname, uname, _ = s.mktrail(dbfield)
-        pid = PlayerIdentifier(sname, uname)
+    for (namespace, field), watchset in all_watches.items():
+        # Extract sname and uname from namespace path like "player/session_name/user_name"
+        parts = namespace.split("/")
+        if len(parts) >= 3 and parts[0] == "player":
+            sname, uname = parts[1], parts[2]
+            pid = PlayerIdentifier(sname, uname)
 
-        if not watchset.unavailable:
-            for watch in cast(set[tuple[float, str, str]], watchset.data):
-                u.WATCH.add((pid, *watch))
+            if not watchset.unavailable:
+                for watch in cast(set[tuple[float, str, str]], watchset.data):
+                    u.WATCH.add((pid, *watch))
 
 
 def here(

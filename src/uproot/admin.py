@@ -585,21 +585,24 @@ async def viewdata(
     latest: dict = s.fields_from_session(sname, since_epoch)
     last_update: float = since_epoch
 
-    for path, v in latest.items():
-        _, _, uname, field = s.mktrail(path)
+    for (namespace, field), v in latest.items():
+        # Extract uname from namespace path like "player/session_name/user_name"
+        parts = namespace.split("/")
+        if len(parts) >= 3 and parts[0] == "player":
+            uname = parts[2]
 
-        if uname not in rval:
-            rval[uname] = SortedDict()
+            if uname not in rval:
+                rval[uname] = SortedDict()
 
-        rval[uname][field] = dict(
-            time=v.time,
-            unavailable=v.unavailable,
-            type_representation=str(type(v.data)),
-            value_representation=repr(v.data),
-            context=v.context,
-        )
+            rval[uname][field] = dict(
+                time=v.time,
+                unavailable=v.unavailable,
+                type_representation=str(type(v.data)),
+                value_representation=repr(v.data),
+                context=v.context,
+            )
 
-        if v.time > last_update:
-            last_update = v.time
+            if v.time > last_update:
+                last_update = v.time
 
     return rval, last_update

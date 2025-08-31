@@ -97,29 +97,28 @@ def db_request(
 
     if caller is not None:
         namespace = caller.__path__
-        dbfield = f"{namespace}:{key}"
 
     DATABASE.now = time()
 
     match action, key, value:
         # WRITE-ONLY
         case "insert", _, _ if isinstance(context, str):
-            DATABASE.insert(dbfield, value, context)
+            DATABASE.insert(namespace, key, value, context)
             rval = value
         case "delete", _, None if isinstance(context, str):
-            DATABASE.delete(dbfield, context)
+            DATABASE.delete(namespace, key, context)
 
-        # READ-ONLY - USE DBFIELD
+        # READ-ONLY - USE NAMESPACE AND FIELD
         case "get", _, None:
-            rval = DATABASE.get(dbfield)
+            rval = DATABASE.get(namespace, key)
         case "get_field_history", _, None:
             rval = DATABASE.get_field_history(namespace, key)
         case "fields", "", None:
-            rval = DATABASE.fields(dbfield)
+            rval = DATABASE.fields(namespace)
         case "has_fields", "", None:
-            rval = DATABASE.has_fields(dbfield)
+            rval = DATABASE.has_fields(namespace)
         case "history", "", None:
-            rval = DATABASE.history(dbfield)
+            rval = DATABASE.history(namespace)
 
         # READ-ONLY - SPECIAL
         case "get_field_all_namespaces", "", None if isinstance(extra, str):
@@ -163,15 +162,9 @@ def mkpath(*trail: str) -> str:
     return "/".join(trail)
 
 
-def mktrail(path: str) -> tuple[str, ...]:
-    # TODO: this function is a misnomer
-    main, last = path.split(":")
-    return tuple(main.split("/") + [last])
-
-
 def field_from_paths(paths: list[str], field: str) -> dict[tuple[str, str], Value]:
     return cast(
-        dict[str, Value],
+        dict[tuple[str, str], Value],
         db_request(
             None,
             "get_many",
@@ -180,36 +173,30 @@ def field_from_paths(paths: list[str], field: str) -> dict[tuple[str, str], Valu
     )
 
 
-def all_good(dbfield: str) -> bool:
+def all_good(key: tuple[str, str]) -> bool:
     return True
 
 
 def field_from_all(
-    field: str, predicate: Callable[[str], bool] = all_good
-) -> dict[str, Value]:
-    def predicate_(dbfield: str) -> bool:
-        try:
-            return predicate(dbfield)
-        except Exception:
-            return False
+    field: str, predicate: Callable[[tuple[str, str]], bool] = lambda x: True
+) -> dict[tuple[str, str], Value]:
+    result = cast(
+        dict[tuple[str, str], Value],
+        db_request(
+            None,
+            "get_field_all_namespaces",
+            extra=field,
+        ),
+    )
 
-    return {
-        k: v
-        for k, v in cast(
-            dict[str, Value],
-            db_request(
-                None,
-                "get_field_all_namespaces",
-                extra=field,
-            ),
-        ).items()
-        if predicate_(k)
-    }
+    return {key: v for key, v in result.items() if predicate(key)}
 
 
-def fields_from_session(sname: Sessionname, since_epoch: float = 0) -> dict[str, Value]:
+def fields_from_session(
+    sname: Sessionname, since_epoch: float = 0
+) -> dict[tuple[str, str], Value]:
     return cast(
-        dict[str, Value],
+        dict[tuple[str, str], Value],
         db_request(
             None,
             "get_latest",

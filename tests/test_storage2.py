@@ -230,14 +230,10 @@ def test_flush_method():
         assert player.data["key"] == "modified"
 
 
-def test_mkpath_mktrail():
+def test_mkpath():
     # Test path construction
     path = s.mkpath("player", "session1", "user1")
     assert path == "player/session1/user1"
-
-    # Test trail extraction
-    trail = s.mktrail("player/session1/user1:field")
-    assert trail == ("player", "session1", "user1", "field")
 
 
 def test_field_from_paths():
