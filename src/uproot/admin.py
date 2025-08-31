@@ -60,6 +60,9 @@ def _store_active_tokens(tokens: set[str]) -> None:
     with s.Admin() as admin:
         admin.active_auth_tokens = tokens
 
+    # Clean up expired tokens when storing active ones
+    _cleanup_expired_tokens()
+
 
 def _cleanup_expired_tokens() -> None:
     """Remove expired tokens from storage."""
@@ -157,9 +160,6 @@ def from_cookie(uauth: str) -> dict[str, str]:
     Returns dict with 'user' and 'token' keys, or empty strings if invalid.
     """
     try:
-        # Clean up expired tokens periodically
-        _cleanup_expired_tokens()
-
         serializer = _get_serializer()
         active_tokens = _get_active_tokens()
 
@@ -558,9 +558,6 @@ def verify_auth_token(user: str, token: str) -> Optional[str]:
         Username if token is valid, None otherwise
     """
     try:
-        # Clean up expired tokens periodically
-        _cleanup_expired_tokens()
-
         serializer = _get_serializer()
         active_tokens = _get_active_tokens()
 
