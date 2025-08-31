@@ -650,6 +650,31 @@ class PostgreSQL(DBDriver):
                 FOR EACH ROW EXECUTE FUNCTION update_uproot{self.tblextra}_keys();"""
                 )
 
+    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
+        with self.pool.connection() as conn:
+            with conn.transaction(), conn.cursor() as cur:
+                cur.execute(
+                    self._queries["insert"],
+                    (namespace, field, encode(data), self.now, context),
+                )
+
+    def delete(self, namespace: str, field: str, context: str) -> None:
+        with self.pool.connection() as conn:
+            with conn.transaction(), conn.cursor() as cur:
+                cur.execute(
+                    self._queries["delete"],
+                    (namespace, field, self.now, context),
+                )
+
+    def get(self, namespace: str, field: str) -> Any:
+        with self.pool.connection() as conn:
+            with conn.transaction(), conn.cursor() as cur:
+                cur.execute(self._queries["get"], (namespace, field))
+                row = cur.fetchone()
+                if row and row[0] is not None:
+                    return decode(row[0])
+                raise AttributeError(f"Key not found: ({namespace}, {field})")
+
     def get_field_all_namespaces(self, field: str) -> dict[tuple[str, str], t.Value]:
         rval = {}
         with self.pool.connection() as conn:
