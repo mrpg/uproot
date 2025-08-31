@@ -196,6 +196,7 @@
                             el.children[0].scroll(0, 1e6);
                         });
                 });
+                uproot.chat.ignoreChatted = false;
 
                 {% if player is not none and player._uproot_adminchat is not none %}
                 uproot.chat.create(I("adminmessage-modal-body"), {{ player._uproot_adminchat.mname | tojson }});

@@ -548,6 +548,7 @@ window.uproot = {
 
     chat: {
         messageStore: {},
+        ignoreChatted: true,
 
         create(el, chatId) {
             chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
@@ -703,7 +704,10 @@ uproot.onInternalEvent("Received", (event) => {
 });
 
 uproot.onInternalEvent("Chatted", (event) => {
-    window.uproot.chat.messagesFromServer([event.detail.data]);
+    if (!window.uproot.chat.ignoreChatted) {
+        // This prevents style asyncio.Queue chat messages from being processed
+        window.uproot.chat.messagesFromServer([event.detail.data]);
+    }
 });
 
 uproot.onInternalEvent("AdminMessaged", (event) => {
