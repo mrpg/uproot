@@ -598,7 +598,7 @@ async def login_post(
     return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
 
-@router.post("/logout-all/")
+@router.get("/logout-all/")
 async def logout_all(
     request: Request,
     auth=Depends(auth_required),

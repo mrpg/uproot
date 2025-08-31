@@ -19,13 +19,11 @@ Authentication Status
                     Active Authentication Sessions
                     {% endtranslate %}
                 </h4>
-                <form action="{{ root }}/admin/logout-all/" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{% translate %}Are you sure you want to logout from all sessions?{% endtranslate %}')">
-                        {% translate %}
-                        Logout All Sessions
-                        {% endtranslate %}
-                    </button>
-                </form>
+                <a class="btn btn-danger btn-sm" href="../logout-all/">
+                    {% translate %}
+                    Logout All Sessions
+                    {% endtranslate %}
+                </a>
             </div>
             <div class="card-body">
                 {% if sessions %}
