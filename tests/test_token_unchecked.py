@@ -9,15 +9,15 @@ ALPHANUMERIC = ascii_letters + digits
 
 
 def test_assertion_error_for_zero_length():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         token_unchecked(0)
 
 
 def test_assertion_error_for_negative_length():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         token_unchecked(-1)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         token_unchecked(-10)
 
 
