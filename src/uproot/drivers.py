@@ -35,7 +35,7 @@ class DBDriver(ABC):
        - delete() adds tombstone entries (does not physically delete)
        - History is preserved and ordered by time ASC
        There is one exception: it is ALLOWED to store only the current value of
-       dbfields that begin with "session/" and end with ":players".
+       fields with namespace starting with "session/" and field name "players".
 
     4. VALUE SEMANTICS: Data is returned as Any or a t.Value object containing:
        - time: timestamp (float)
@@ -46,8 +46,6 @@ class DBDriver(ABC):
     5. KEY STRUCTURE: Keys consist of two components:
        - namespace: hierarchical prefix (can contain colons, e.g., "session/123")
        - field: the specific field name (no colons allowed)
-       The old-style "namespace:field" dbfield format is split into separate columns
-       for efficient querying and indexing.
 
     6. CURRENT STATE: get() and get_many() check the most recent entry for each key.
        If the latest entry is a tombstone (unavailable==True), the key is treated as
@@ -264,18 +262,18 @@ class Memory(DBDriver):
     def delete(self, namespace: str, field: str, context: str) -> None:
         with self._lock:
             if namespace not in self.log or field not in self.log[namespace]:
-                raise AttributeError(f"Key not found: {namespace}:{field}")
+                raise AttributeError(f"Key not found: ({namespace}, {field})")
 
             self.log[namespace][field].append(t.Value(self.now, True, None, context))
 
     def get(self, namespace: str, field: str) -> Any:
         with self._lock:
             if namespace not in self.log or field not in self.log[namespace]:
-                raise AttributeError(f"Key not found: {namespace}:{field}")
+                raise AttributeError(f"Key not found: ({namespace}, {field})")
 
             latest = self.log[namespace][field][-1]
             if latest.unavailable:
-                raise AttributeError(f"Key not found: {namespace}:{field}")
+                raise AttributeError(f"Key not found: ({namespace}, {field})")
 
             return latest.data
 
@@ -304,7 +302,7 @@ class Memory(DBDriver):
         with self._lock:
             for namespace, fields in self.log.items():
                 for field, values in fields.items():
-                    # Check if namespace starts with sstr (no more dbfield strings!)
+                    # Check if namespace starts with sstr
                     if namespace.startswith(sstr) and values:
                         # Get the latest value
                         latest = values[-1]
@@ -516,11 +514,11 @@ class PostgreSQL(DBDriver):
             "insert": f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
             "delete": f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, NULL, %s, %s)",
             "get": f"SELECT current_value FROM uproot{self.tblextra}_keys WHERE namespace = %s AND field = %s",
-            "get_latest": f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE %s || '%%' AND last_updated_at > %s",
+            "get_latest": f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace LIKE %s || '%%' AND last_updated_at > %s",
             "get_many": f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace LIKE %s || '%%' AND field = %s",
-            "fields": f"SELECT DISTINCT field FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE %s || '%%'",
-            "has_fields": f"SELECT EXISTS(SELECT 1 FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE %s || '%%')",
-            "history": f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values WHERE namespace || ':' || field LIKE %s || '%%' ORDER BY created_at ASC",
+            "fields": f"SELECT DISTINCT field FROM uproot{self.tblextra}_keys WHERE namespace LIKE %s || '%%'",
+            "has_fields": f"SELECT EXISTS(SELECT 1 FROM uproot{self.tblextra}_keys WHERE namespace LIKE %s || '%%')",
+            "history": f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values WHERE namespace LIKE %s || '%%' ORDER BY created_at ASC",
             "dump": f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values",
         }
 
@@ -627,7 +625,7 @@ class PostgreSQL(DBDriver):
                 CREATE INDEX idx_uproot{self.tblextra}_values_ns_field ON uproot{self.tblextra}_values(namespace, field);
                 CREATE INDEX idx_uproot{self.tblextra}_values_created_at ON uproot{self.tblextra}_values(created_at);
                 CREATE INDEX idx_uproot{self.tblextra}_keys_namespace ON uproot{self.tblextra}_keys(namespace);
-                CREATE INDEX idx_uproot{self.tblextra}_keys_composite ON uproot{self.tblextra}_keys((namespace || ':' || field) text_pattern_ops);
+                CREATE INDEX idx_uproot{self.tblextra}_keys_composite ON uproot{self.tblextra}_keys(namespace text_pattern_ops);
 
                 CREATE OR REPLACE FUNCTION update_uproot{self.tblextra}_keys() RETURNS TRIGGER AS $$
                 BEGIN
@@ -870,7 +868,7 @@ class PostgreSQL(DBDriver):
                 cur.execute(
                     f"SELECT namespace, field, value, created_at, context "
                     f"FROM uproot{self.tblextra}_values "
-                    f"WHERE namespace || ':' || field LIKE %s "
+                    f"WHERE namespace LIKE %s "
                     f"ORDER BY created_at ASC",
                     (sstr + "%",),
                 )
@@ -894,7 +892,7 @@ class PostgreSQL(DBDriver):
                 cur.execute(
                     f"SELECT namespace, field, value, created_at, context "
                     f"FROM uproot{self.tblextra}_values "
-                    f"WHERE namespace || ':' || field LIKE %s "
+                    f"WHERE namespace LIKE %s "
                     f"ORDER BY created_at ASC",
                     (sstr + "%",),
                 )
@@ -1120,7 +1118,7 @@ class Sqlite3(DBDriver):
         if row and row[0] is not None:
             return decode(row[0])
 
-        raise AttributeError(f"Key not found: {namespace}:{field}")
+        raise AttributeError(f"Key not found: ({namespace}, {field})")
 
     def get_field_all_namespaces(self, field: str) -> dict[tuple[str, str], t.Value]:
         rval = {}
@@ -1162,7 +1160,7 @@ class Sqlite3(DBDriver):
         rval = {}
         conn = self._get_connection()
         cursor = conn.execute(
-            f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE ? || '%' AND last_updated_at > ?",
+            f"SELECT namespace, field, current_value, last_updated_at, context FROM uproot{self.tblextra}_keys WHERE namespace LIKE ? || '%' AND last_updated_at > ?",
             (sstr, since_epoch),
         )
 
@@ -1295,7 +1293,7 @@ class Sqlite3(DBDriver):
     def fields(self, sstr: str) -> list[str]:
         conn = self._get_connection()
         cursor = conn.execute(
-            f"SELECT DISTINCT field FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE ? || '%'",
+            f"SELECT DISTINCT field FROM uproot{self.tblextra}_keys WHERE namespace LIKE ? || '%'",
             (sstr,),
         )
         return [field for (field,) in cursor]
@@ -1303,7 +1301,7 @@ class Sqlite3(DBDriver):
     def has_fields(self, sstr: str) -> bool:
         conn = self._get_connection()
         cursor = conn.execute(
-            f"SELECT EXISTS(SELECT 1 FROM uproot{self.tblextra}_keys WHERE namespace || ':' || field LIKE ? || '%')",
+            f"SELECT EXISTS(SELECT 1 FROM uproot{self.tblextra}_keys WHERE namespace LIKE ? || '%')",
             (sstr,),
         )
         return bool(cursor.fetchone()[0])
@@ -1312,7 +1310,7 @@ class Sqlite3(DBDriver):
         conn = self._get_connection()
         cursor = conn.execute(
             f"""SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values
-            WHERE namespace || ':' || field LIKE ? || '%' ORDER BY created_at ASC""",
+            WHERE namespace LIKE ? || '%' ORDER BY created_at ASC""",
             (sstr,),
         )
 
@@ -1332,7 +1330,7 @@ class Sqlite3(DBDriver):
         cursor = conn.execute(
             f"SELECT namespace, field, value, created_at, context "
             f"FROM uproot{self.tblextra}_values "
-            f"WHERE namespace || ':' || field LIKE ? "
+            f"WHERE namespace LIKE ? "
             f"ORDER BY created_at ASC",
             (sstr + "%",),
         )
@@ -1354,7 +1352,7 @@ class Sqlite3(DBDriver):
         cursor = conn.execute(
             f"SELECT namespace, field, value, created_at, context "
             f"FROM uproot{self.tblextra}_values "
-            f"WHERE namespace || ':' || field LIKE ? "
+            f"WHERE namespace LIKE ? "
             f"ORDER BY created_at ASC",
             (sstr + "%",),
         )
