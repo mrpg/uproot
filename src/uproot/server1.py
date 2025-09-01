@@ -480,6 +480,8 @@ async def ws(
                         match result:
                             case {"endpoint": "hello"}:
                                 pass
+                            case {"endpoint": "time"}:
+                                invoke_response = time()
                             case {"endpoint": "jserrors", "payload": msg} if isinstance(
                                 msg, str
                             ):
