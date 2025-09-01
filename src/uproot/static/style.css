@@ -31,6 +31,10 @@
     --bs-uproot-dark-rgb: 85, 0, 145;
 }
 
+.border-opacity-0 {
+    --bs-border-opacity: 0;
+}
+
 .bg-uproot {
     background-color: var(--bs-uproot) !important;
 }
@@ -148,13 +152,14 @@
 /* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
 
 /* In-text hyperlink with gray underline that turns black on hover */
+/* See https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css */
 .link-subtle {
     color: var(--bs-dark) !important;  /* link-dark */
     text-decoration-line: underline;
-    text-underline-offset: .25rem !important;  /* link-offset-2 */
+    text-underline-offset: .25em !important;  /* link-offset-2 */
     --bs-link-underline-opacity: .25;  /* .link-underline-opacity-25 */
     text-decoration-color:
-        rgba(var(--bs-dark-rgb), var(--bs-link-underline-opacity)) !important;
+        rgba(var(--bs-dark-rgb), var(--bs-link-underline-opacity));
         /* .link-underline-dark */
 }
 .link-subtle:hover, .link-subtle:focus {
