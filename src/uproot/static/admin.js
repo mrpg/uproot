@@ -41,7 +41,7 @@ function renderRooms(rooms, containerId) {
         const title = document.createElement("h5");
         title.className = "fw-semibold mb-1 me-3 text-nowrap";
         title.innerHTML =  // SAFE
-            `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="bi bi-house-gear-fill"></i></a>`;
+            `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`;  // bi-house-gear
         headerContent.appendChild(title);
 
         const rightCol = document.createElement("div");
@@ -256,7 +256,7 @@ function renderSessions(sessions, containerId) {
             const title = document.createElement("h5");
             title.className = "d-inline-block fw-semibold mb-1 me-3 text-nowrap";
             title.innerHTML =  // SAFE
-                `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-opacity-0" href="${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> <i class="bi bi-person-fill-gear"></i></a>`
+                `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-opacity-0" href="${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> <i class="font-bi">&#xF8A7;</i></a>`  // bi-person-gear
             headerContent.appendChild(title);
         }
 
@@ -427,9 +427,9 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
 
     const cardBody = document.createElement("div");
     if (groupKey === "configs") {
-        cardBody.className = "bg-light card-body px-3 py-1 rounded";
+        cardBody.className = "bg-light card-body px-3 py-2 rounded";
     } else {
-        cardBody.className = "card-body px-3 py-1";
+        cardBody.className = "card-body px-3 py-2";
     }
 
     const listGroup = document.createElement("div");
@@ -461,8 +461,8 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         const detailsLink = document.createElement("a");
         detailsLink.href = `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(key)}`;
         detailsLink.className = "btn btn-sm btn-outline-uproot btn-launch";
-        detailsLink.innerHTML = "&neArr;";  // SAFE
-        detailsLink.title = _("Start session");
+        detailsLink.innerHTML = `<span class="font-bi">&#xF4FA;</span>`;  // bi-plus-circle  // SAFE
+        detailsLink.title = _("New session");
         item.appendChild(detailsLink);
 
         listGroup.appendChild(item);
