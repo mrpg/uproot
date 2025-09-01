@@ -27,25 +27,26 @@ function renderRooms(rooms, containerId) {
 
     sortedRooms.forEach(room => {
         const col = document.createElement("div");
-        col.className = "col";
+        col.className = "col mb-4";
         const card = document.createElement("div");
-        card.className = "border-uproot-light card col mb-3";
+        card.className = "border-uproot-light card";
 
         // Card header with room name and status
 
         const cardHeader = document.createElement("div");
-        cardHeader.className = "align-items-center bg-uproot-light border-uproot-light card-header d-flex justify-content-between py-2 text-uproot";
+        cardHeader.className = "bg-white border-0 card-header";
 
         const headerContent = document.createElement("div");
+        headerContent.className = "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 pt-1 text-uproot";
         const title = document.createElement("h5");
-        title.className = "fw-semibold font-monospace mb-0 me-3";
+        title.className = "fw-semibold mb-1 me-3 text-nowrap";
         title.innerHTML =  // SAFE
             `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`;  // bi-house-gear
         headerContent.appendChild(title);
 
         const rightCol = document.createElement("div");
         //rightCol.className = "text-end";
-        const statusBadge = document.createElement("span");
+        const statusBadge = document.createElement("div");
         statusBadge.className =
             room.start ? "badge bg-success border border-success my-1" : "badge border border-danger my-1 text-danger";
         statusBadge.textContent = room.start ? _("Started") : _("Inactive");
@@ -58,7 +59,7 @@ function renderRooms(rooms, containerId) {
         // Card body with config, session info, and links
 
         const cardBody = document.createElement("div");
-        cardBody.className = "bg-light card-body d-flex justify-content-between pb-1 pt-3 rounded-bottom";
+        cardBody.className = "bg-white card-body d-flex justify-content-between pb-1 pt-1 rounded-bottom";
 
         // Left column for config and session info
 
@@ -68,15 +69,15 @@ function renderRooms(rooms, containerId) {
         const sessionItem = document.createElement("div");
         sessionItem.className = "d-table-row";
         const sessionLabel = document.createElement("span");
-        sessionLabel.className = "d-table-cell fw-semibold pe-3 text-nowrap";
+        sessionLabel.className = "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase";
         sessionLabel.textContent = `${_("Session")} `;
         const sessionValue = document.createElement("span");
         if (room.sname) {
-            sessionValue.className = "d-table-cell font-monospace";
+            sessionValue.className = "d-table-cell font-monospace w-100";
             sessionValue.innerHTML =  // SAFE
                 `<a class="link-subtle" href="${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}">${encodeURIComponent(room.sname)}</a>`
         } else {
-            sessionValue.className = "d-table-cell text-body-tertiary";
+            sessionValue.className = "d-table-cell text-body-tertiary w-100";
             sessionValue.textContent = _("N/A");
         }
         sessionItem.appendChild(sessionLabel);
@@ -86,7 +87,7 @@ function renderRooms(rooms, containerId) {
         const configItem = document.createElement("div");
         configItem.className = "d-table-row";
         const configLabel = document.createElement("span");
-        configLabel.className = "d-table-cell fw-semibold pe-3 text-nowrap";
+        configLabel.className = "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase";
         configLabel.textContent = `${_("Config")} `;
         const configValue = document.createElement("span");
         if (room.config) {
@@ -94,7 +95,7 @@ function renderRooms(rooms, containerId) {
             configValue.className = "d-table-cell font-monospace w-100";
         } else {
             configValue.textContent = _("N/A");
-            configValue.className = "d-table-cell text-body-tertiary";
+            configValue.className = "d-table-cell text-body-tertiary w-100";
         }
         configItem.appendChild(configLabel);
         configItem.appendChild(configValue);
@@ -104,11 +105,11 @@ function renderRooms(rooms, containerId) {
         labelsItem.className = "d-table-row";
         if (room.labels != null && room.labels.length > 0) {
             labelsItem.innerHTML =  // SAFE
-                `<span class="d-table-cell fw-semibold pe-3 text-nowrap">${_("Labels")}</span> <span class="d-table-cell">${room.labels.length}</span>`;
+                `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Labels")}</span> <span class="d-table-cell w-100">${room.labels.length}</span>`;
             labelsItem.title = room.labels.slice(0, 5).join(", ") + (room.labels.length > 5 ? "..." : "");
         } else{
             labelsItem.innerHTML =  // SAFE
-                `<span class="d-table-cell fw-semibold pe-3 text-nowrap">${_("Labels")}</span> <span class="d-table-cell text-body-tertiary">N/A</span>`;
+                `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Labels")}</span> <span class="d-table-cell text-body-tertiary w-100">N/A</span>`;
         }
         leftCol.appendChild(labelsItem);
 
@@ -117,10 +118,10 @@ function renderRooms(rooms, containerId) {
         freejoinItem.className = "d-table-row";
         if (freejoin) {
             freejoinItem.innerHTML =  // SAFE
-                `<span class="d-table-cell fw-semibold pe-3 text-nowrap">${_("Join mode")}</span> <span class="d-table-cell">${_("free join")}</span>`;
+                `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Join mode")}</span> <span class="d-table-cell w-100">${_("free join")}</span>`;
         } else {
             freejoinItem.innerHTML =  // SAFE
-                `<span class="d-table-cell fw-semibold pe-3 text-nowrap">${_("Join mode")}</span> <span class="d-table-cell">${_("restricted")}</span>`;
+                `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Join mode")}</span> <span class="d-table-cell w-100">${_("restricted")}</span>`;
         }
         leftCol.appendChild(freejoinItem);
 
@@ -172,64 +173,52 @@ function renderRooms(rooms, containerId) {
         // Right column for capacity badges
 
         const badges = document.createElement("div");
-        badges.className = "align-items-end col d-flex flex-column justify-content-center";
-        const badgesRow1 = document.createElement("div");
-        badgesRow1.className = "mb-2";
+        badges.className = "align-items-end d-flex flex-column justify-content-center";
 
         var n_players = 0
         if (room.sname && uproot.vars.sessions[room.sname]) {
             n_players = uproot.vars.sessions[room.sname].n_players;
         }
 
-        const capacityBadge = document.createElement("span");
+        const capacityBadge = document.createElement("div");
         if (room.capacity != null) {
             if (room.start) {
-                // If session is full, show as success, otherwise warning
+                // If full, show as success; if more than 90% full, show as warning; otherwise show as danger
                 capacityBadge.className =
-                    n_players < room.capacity ? "badge bg-warning border border-warning text-dark" : "badge bg-success border border-success";
-                // If session is less than 90% full, show as danger
-                capacityBadge.className =
-                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger" : "badge bg-warning border border-warning";
+                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger mb-2" :
+                        (n_players < room.capacity ? "badge bg-warning border border-warning mb-2 text-dark" : "badge bg-success border border-success mb-2");
             } else {
-                capacityBadge.className = "badge border border-danger ms-2 text-danger"
+                capacityBadge.className = "badge border border-danger mb-2 text-danger"
             }
             capacityBadge.textContent = `${_("Capacity")}: ${room.capacity}`;
         } else {
             if (room.start) {
-                capacityBadge.className = "badge bg-success border border-success";
+                capacityBadge.className = "badge bg-success border border-success mb-2";
                 capacityBadge.textContent = _("Capacity") + ": ∞";
             } else {
-                capacityBadge.className = "badge border border-success text-success";
+                capacityBadge.className = "badge border border-success mb-2 text-success";
                 capacityBadge.textContent = _("Capacity") + ": ∞";
             }
         }
-        badgesRow1.appendChild(capacityBadge);
+        badges.appendChild(capacityBadge);
 
-        const badgesRow2 = document.createElement("div");
-        badgesRow2.className = "mb-2";
-
-        const nPlayersBadge = document.createElement("span");
+        const nPlayersBadge = document.createElement("div");
         if (room.sname && uproot.vars.sessions[room.sname]) {
             if (room.capacity != null) {
-                // If session is full, show as success, otherwise warning
+                // If full, show as success; if more than 90% full, show as warning; otherwise show as danger
                 nPlayersBadge.className =
-                    n_players < room.capacity ? "badge bg-warning border border-warning ms-2 text-dark" : "badge bg-success boder border-success";
-                // If session is less than 90% full, show as danger
-                nPlayersBadge.className =
-                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger ms-2" : "badge bg-warning border border-warning ms-2";
+                    n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger mb-2" :
+                        (n_players < room.capacity ? "badge bg-warning border border-warning mb-2 text-dark" : "badge bg-success boder border-success mb-2");
                 nPlayersBadge.textContent = `${_("Players")}: ${n_players}`;
             } else {
-                nPlayersBadge.className = "badge bg-success border border-success ms-2";
+                nPlayersBadge.className = "badge bg-success border border-success mb-2";
                 nPlayersBadge.textContent = `${_("Players")}: ${n_players}`;
             }
         } else {
-            nPlayersBadge.className = room.start ? "badge bg-danger border border-danger ms-2" : "badge border border-danger ms-2 text-danger";
+            nPlayersBadge.className = room.start ? "badge bg-danger border border-danger mb-2" : "badge border border-danger text-danger mb-2";
             nPlayersBadge.textContent = `${_("Players")}: 0`;
         }
-        badgesRow2.appendChild(nPlayersBadge);
-
-        badges.appendChild(badgesRow1)
-        badges.appendChild(badgesRow2)
+        badges.appendChild(nPlayersBadge);
 
         if (badges.children.length > 0) {
             cardBody.appendChild(badges);
@@ -253,19 +242,19 @@ function renderSessions(sessions, containerId) {
 
     sortedSessions.forEach(session => {
         const col = document.createElement("div");
-        col.className = "col";
+        col.className = "col mb-4";
         const card = document.createElement("div");
-        card.className = "border-uproot-light card mb-3";
+        card.className = "card";
 
         const cardHeader = document.createElement("div");
-        cardHeader.className = "bg-uproot-light border-uproot-light card-header py-1";
+        cardHeader.className = "bg-white border-0 card-header";
 
         const headerContent = document.createElement("div");
-        headerContent.className = "align-items-center d-flex justify-content-between"
+        headerContent.className = "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 pt-1"
 
         if (session.sname) {
             const title = document.createElement("h5");
-            title.className = "d-inline-block fw-semibold font-monospace mb-2 me-5 mt-1";
+            title.className = "d-inline-block fw-semibold mb-1 me-3 text-nowrap";
             title.innerHTML =  // SAFE
                 `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-opacity-0" href="${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> <i class="font-bi">&#xF8A7;</i></a>`  // bi-person-gear
             headerContent.appendChild(title);
@@ -273,7 +262,7 @@ function renderSessions(sessions, containerId) {
 
         if (session.started) {
             const time = document.createElement("small");
-            time.className = "text-body-tertiary";
+            time.className = "badge border border-opacity-0 border-white fw-normal px-0 my-1 text-body-tertiary";
             time.textContent = `${_("Started")}: ` + epochToLocalDateTime(session.started);
             headerContent.appendChild(time);
         }
@@ -292,14 +281,14 @@ function renderSessions(sessions, containerId) {
         */
 
         const cardBody = document.createElement("div");
-        cardBody.className = "bg-light card-body d-flex flex-row justify-content-between pb-2 pt-2 rounded-bottom";
+        cardBody.className = "bg-white card-body d-flex flex-row justify-content-between pb-2 pt-0 rounded-bottom";
 
         const configRoomItem = document.createElement("div");
         configRoomItem.className = "d-table mb-2 mt-1";
         const roomItem = document.createElement("div");
         roomItem.className = "d-table-row";
         const roomLabel = document.createElement("span");
-        roomLabel.className = "d-table-cell fw-semibold pe-3 text-nowrap";
+        roomLabel.className = "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase";
         roomLabel.textContent = `${_("Room")} `;
         const roomValue = document.createElement("span");
         if (session.room) {
@@ -316,7 +305,7 @@ function renderSessions(sessions, containerId) {
         const configItem = document.createElement("div");
         configItem.className = "d-table-row";
         const configLabel = document.createElement("span");
-        configLabel.className = "d-table-cell fw-semibold pe-3 text-nowrap";
+        configLabel.className = "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase";
         configLabel.textContent = `${_("Config")} `;
         const configValue = document.createElement("span");
         if (session.config) {
@@ -333,7 +322,7 @@ function renderSessions(sessions, containerId) {
         const descItem = document.createElement("div");
         descItem.className = "d-table-row";
         const descLabel = document.createElement("span");
-        descLabel.className = "d-table-cell fw-semibold pe-3 text-nowrap";
+        descLabel.className = "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase";
         descLabel.textContent = `${_("Description")} `;
         const descValue = document.createElement("span");
         if (session.description) {
@@ -352,7 +341,7 @@ function renderSessions(sessions, containerId) {
         cardBody.appendChild(configRoomItem);
 
         const badges = document.createElement("div");
-        badges.className = "";
+        badges.className = "align-items-end d-flex flex-column justify-content-center";
 
         /*
         if (session.room) {
@@ -364,16 +353,16 @@ function renderSessions(sessions, containerId) {
         */
 
         if (session.n_players != null) {
-            const badge = document.createElement("span");
-            badge.className = "badge bg-uproot border border-uproot mb-1 me-2 mt-2";
-            badge.textContent = session.n_players + " players";
+            const badge = document.createElement("div");
+            badge.className = "badge bg-uproot border border-uproot mb-2";
+            badge.textContent = session.n_players + ` ${_("players")}`;
             badges.appendChild(badge);
         }
 
         if (session.n_groups != null) {
-            const badge = document.createElement("span");
-            badge.className = "badge bg-white border border-uproot me-0 text-uproot";
-            badge.textContent = session.n_groups + " groups";
+            const badge = document.createElement("div");
+            badge.className = "badge bg-white border border-uproot ms-2 text-uproot";
+            badge.textContent = session.n_groups + ` ${_("groups")}`;
             badges.appendChild(badge);
         }
 
@@ -450,20 +439,28 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         if (key == null) return;
 
         const item = document.createElement("div");
-        item.className = "align-items-center bg-transparent d-flex justify-content-between list-group-item p-0 py-1";
+        item.className = "align-items-center bg-transparent d-flex justify-content-between list-group-item p-0";
 
         const content = document.createElement("div");
         const key_ = key.startsWith("~") ? key.substr(1) : key;
 
         const title = document.createElement("div");
-        title.className = "fw-semibold h5 font-monospace";
+        title.className = "font-monospace fw-semibold h5 my-2";
         title.textContent = key_;
         content.appendChild(title);
 
         if (value != null && value !== "") {
             const desc = document.createElement("div");
-            //desc.className = "text-body-tertiary";
-            desc.textContent = value;
+            desc.className = "d-table mb-2"
+            const descLabel = document.createElement("div");
+            descLabel.className = "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase";
+            descLabel.textContent = key.startsWith("~") ? _("Description") : _("Apps");
+            const descContent = document.createElement("div");
+            descContent.className =
+                key.startsWith("~") ? "d-table-cell w-100" : "d-table-cell font-monospace w-100";
+            descContent.textContent = value;
+            desc.appendChild(descLabel);
+            desc.appendChild(descContent);
             content.appendChild(desc);
         }
 
