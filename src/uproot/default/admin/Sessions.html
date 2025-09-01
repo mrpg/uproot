@@ -4,7 +4,7 @@
 {% block title %}
 
 <div class="d-flex justify-content-between">
-    <span>{% translate %}All sessions{% endtranslate %}</span>
+    <span>{% translate %}Sessions{% endtranslate %}</span>
     <a class="btn btn-uproot" href="new/">{% translate %}New session{% endtranslate %}</a>
 </div>
 
@@ -24,12 +24,12 @@
     </div>
 </div>
 
-<h3 class="mb-3">
+<h3 class="mb-3 text-secondary">
     {% translate %}
     Inactive sessions
     {% endtranslate %}
 </h3>
-<div class="mb-4 row row-cols-1 row-cols-lg-2" id="sessions-inactive-container">
+<div class="mb-4 opacity-50 row row-cols-1 row-cols-lg-2" id="sessions-inactive-container">
     <div class="col">
         {% translate %}None{% endtranslate %}.
     </div>
