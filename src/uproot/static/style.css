@@ -1,5 +1,4 @@
 /* Load fonts */
-@import url("fonts/bootstrap-icons-1.13.1/bootstrap-icons.css");
 @import url("fonts/CascadiaCode-2407.24/CascadiaMono.css");
 @import url("fonts/inter.css");
 
@@ -97,20 +96,6 @@
     --bs-btn-padding-x: .5rem;
     --bs-btn-padding-y: .25rem;
     --bs-btn-border-radius: var(--bs-border-radius-sm);
-}
-
-/* Class Bootstrap Icon font */
-/* Based on bootstrap-icons.css */ 
-.font-bi {
-  font-family: bootstrap-icons !important;
-  font-style: normal;
-  font-weight: normal !important;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  vertical-align: -.125em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Class for text in sans-serif font */
