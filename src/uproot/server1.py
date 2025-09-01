@@ -53,7 +53,7 @@ from uproot.storage import (
     mkpath,
 )
 
-PROCESSED_FUTURES = deque(maxlen=32 * 1024)
+PROCESSED_FUTURES = deque(maxlen=8 * 1024)
 router = APIRouter(prefix=d.ROOT)
 
 
@@ -480,6 +480,8 @@ async def ws(
                         match result:
                             case {"endpoint": "hello"}:
                                 pass
+                            case {"endpoint": "time"}:
+                                invoke_response = time()
                             case {"endpoint": "jserrors", "payload": msg} if isinstance(
                                 msg, str
                             ):
