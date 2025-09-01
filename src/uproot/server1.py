@@ -53,7 +53,7 @@ from uproot.storage import (
     mkpath,
 )
 
-PROCESSED_FUTURES = deque(maxlen=32 * 1024)
+PROCESSED_FUTURES = deque(maxlen=8 * 1024)
 router = APIRouter(prefix=d.ROOT)
 
 
