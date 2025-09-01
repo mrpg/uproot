@@ -36,6 +36,7 @@ function renderRooms(rooms, containerId) {
         const cardHeader = document.createElement("div");
         cardHeader.className = "align-items-center bg-uproot-light border-uproot-light card-header d-flex justify-content-between py-2 text-uproot";
 
+        const headerContent = document.createElement("div");
         const title = document.createElement("h5");
         title.className = "fw-semibold font-monospace mb-0 me-3";
         title.innerHTML =  // SAFE
@@ -50,7 +51,8 @@ function renderRooms(rooms, containerId) {
         statusBadge.textContent = room.start ? _("Started") : _("Inactive");
         rightCol.appendChild(statusBadge);
 
-        cardHeader.appendChild(rightCol);
+        headerContent.appendChild(rightCol);
+        cardHeader.appendChild(headerContent);
         card.appendChild(cardHeader);
 
         // Card body with config, session info, and links
