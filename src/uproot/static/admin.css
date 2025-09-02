@@ -1,4 +1,4 @@
-@import url("fonts/bootstrap-icons-1.x.x/bootstrap-icons.min.css");
+@import url("foreign/bootstrap-icons.min.css");
 
 body {
     min-height: 100vh; flex-direction: column; display: flex; justify-content: flex-start;
@@ -6,20 +6,6 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
-}
-
-/* Class Bootstrap Icon font */
-/* Based on https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css */ 
-.font-bi {
-  font-family: bootstrap-icons !important;
-  font-style: normal;
-  font-weight: normal !important;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  vertical-align: -.125em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .heartbeat {
@@ -173,4 +159,20 @@ footer a {
     width: 100%;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Class Bootstrap Icon font */
+/* Based on https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css 
+ * which is Copyright 2019-2024 The Bootstrap Authors
+ * Licensed under MIT (https://github.com/twbs/icons/blob/main/LICENSE) */
+.font-bi {
+  font-family: bootstrap-icons !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  vertical-align: -.125em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
