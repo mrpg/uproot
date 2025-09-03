@@ -1,4 +1,4 @@
-@import url("foreign/bootstrap-icons.min.css");
+@import url("vendor/bootstrap-icons/bootstrap-icons.min.css");
 
 body {
     min-height: 100vh; flex-direction: column; display: flex; justify-content: flex-start;
