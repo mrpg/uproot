@@ -1,6 +1,6 @@
 /* Load fonts */
-@import url("fonts/CascadiaCode-2407.24/CascadiaMono.css");
-@import url("fonts/inter.css");
+@import url("CascadiaMono-2407.24.css");
+@import url("vendor/Inter-3.19/InterWeb/inter.css");
 
 /* Extending Bootstrap’s default fonts */
 :root {

@@ -14,8 +14,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         {% if nobootstrap is not defined %}
-        <link rel="stylesheet" href="{{ internal_static('foreign/bootstrap.min.css') }}">
-        <script src="{{ internal_static('foreign/bootstrap.bundle.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ internal_static('vendor/bootstrap/bootstrap.min.css') }}">
+        <script src="{{ internal_static('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
         {% endif %}
 
         <link rel="stylesheet" href="{{ internal_static('style.css') }}">
@@ -35,7 +35,7 @@
         </script>
         <script src="{{ internal_static('jserrors.js') }}"></script>
 
-        <script src="{{ internal_static('foreign/alpine.min.js') }}" defer></script>
+        <script src="{{ internal_static('vendor/alpinejs/cdn.min.js') }}" defer></script>
 
         {% block head %}
         {% endblock head %}
