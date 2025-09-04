@@ -211,6 +211,7 @@ Results
 
 def setup_mere_project(path: Path) -> None:
     mainpath = path / "main.py"
+    staticdir = path / "_static"
 
     with open(mainpath, "w", encoding="utf-8") as mf:
         template = (
@@ -225,6 +226,8 @@ def setup_mere_project(path: Path) -> None:
         os.chmod(mainpath, os.stat(mainpath).st_mode | stat.S_IEXEC)
     except Exception:
         pass
+
+    staticdir.mkdir(exist_ok=False)
 
     with open(path / ".gitignore", "w", encoding="utf-8") as rf:
         rf.write(GITIGNORE)

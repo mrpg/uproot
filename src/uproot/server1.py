@@ -623,6 +623,8 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
 
     if realm == "_uproot":
         base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_static")
+    elif realm == "_project":
+        base_path = os.path.join(os.getcwd(), "_static")
     else:
         base_path = os.path.join(os.getcwd(), realm, "_static")
 
