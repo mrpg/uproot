@@ -566,30 +566,36 @@ class GroupCreatingWait(InternalPage):
 
     @internal_live
     async def please_group(page, player: Any, first: bool = False) -> tuple[str, float]:
-        if player._uproot_group is None:
-            from uproot.jobs import here
+        # Check group status after any potential await points
+        if player._uproot_group is not None:
+            return "submit", 1
 
-            if first:
-                from uproot.queues import enqueue
+        from uproot.jobs import here
 
-                await enqueue(
-                    ("admin", "grouping_watcher"),
-                    dict(
-                        sname=player._uproot_session,
-                        show_page=player.show_page,
-                        group_size=page.group_size,
-                    ),
-                )
+        if first:
+            from uproot.queues import enqueue
 
-            ungrouped = [
-                pid
-                for pid in here(player._uproot_session, player.show_page)
-                if pid()._uproot_group is None
-            ]
+            await enqueue(
+                ("admin", "grouping_watcher"),
+                dict(
+                    sname=player._uproot_session,
+                    show_page=player.show_page,
+                    group_size=page.group_size,
+                ),
+            )
 
-            return "wait", len(ungrouped) / page.group_size
+            # Re-check group status after await - might have been grouped during enqueue
+            if player._uproot_group is not None:
+                return "submit", 1
 
-        return "submit", 1
+        # Get fresh count after any awaits
+        ungrouped = [
+            pid
+            for pid in here(player._uproot_session, player.show_page)
+            if pid()._uproot_group is None
+        ]
+
+        return "wait", len(ungrouped) / page.group_size
 
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
@@ -639,6 +645,7 @@ class SynchronizingWait(InternalPage):
         from uproot.jobs import here
 
         wf = page.wait_for(player)
+        # For synchronization, allow players who have advanced past this page (strict=False)
         h = here(player._uproot_session, player.show_page, wf, False)
 
         if len(h) == len(wf):
@@ -648,39 +655,43 @@ class SynchronizingWait(InternalPage):
 
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
-        do_now, _ = await page.wait(player)
+        # Use fresh wait check instead of potentially stale frontend data
+        from uproot.jobs import here
 
-        if do_now == "submit":
-            if page.synchronize == "group":
-                group = player._uproot_group()
+        wf = page.wait_for(player)
+        # For synchronization, allow players who have advanced past this page (strict=False)
+        h = here(player._uproot_session, player.show_page, wf, False)
 
-                with group:
-                    await optional_call_once(
-                        page,
-                        "all_here",
-                        storage=group,
-                        show_page=player.show_page,
-                        group=group,
-                    )
-            elif page.synchronize == "session":
-                session = player.session
-
-                with session:
-                    await optional_call_once(
-                        page,
-                        "all_here",
-                        storage=session,
-                        show_page=player.show_page,
-                        session=session,
-                    )
-            else:
-                raise NotImplementedError
-
-            # This is safe because all_here and after_grouping must not be async
-
-            return True
-        else:
+        # All required players must be here or advanced
+        if len(h) < len(wf):
             return False
+
+        if page.synchronize == "group":
+            group = player._uproot_group()
+
+            with group:
+                await optional_call_once(
+                    page,
+                    "all_here",
+                    storage=group,
+                    show_page=player.show_page,
+                    group=group,
+                )
+        elif page.synchronize == "session":
+            session = player.session
+
+            with session:
+                await optional_call_once(
+                    page,
+                    "all_here",
+                    storage=session,
+                    show_page=player.show_page,
+                    session=session,
+                )
+        else:
+            raise NotImplementedError
+
+        return True
 
 
 class SmoothOperator(ABC):

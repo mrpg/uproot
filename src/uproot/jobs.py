@@ -174,22 +174,41 @@ async def mkgroup(sname: Sessionname, show_page: int, group_size: int) -> None:
         if len(same_page) == 0:
             return
 
-        while len(same_page) >= group_size:
-            group_members = {same_page.pop() for _ in range(group_size)}
+        # Only proceed if we have enough players and verify they're still valid
+        if len(same_page) >= group_size:
+            # Select players deterministically to avoid racing pops
+            selected = same_page[:group_size]
 
-            with s.Session(sname) as session:
-                gid = c.create_group(session, group_members)
+            # Final verification that selected players are still ungrouped and on same page
+            valid_members = set()
+            for pid in selected:
+                try:
+                    player = pid()
+                    if (
+                        player._uproot_group is None
+                        and cast(int, u.get_info(pid)[2]) == show_page
+                    ):
+                        valid_members.add(pid)
+                except Exception:
+                    continue
 
-            for pid in group_members:
-                await q.enqueue(
-                    tuple(pid),
-                    dict(
-                        source="mkgroup",
-                        gname=gid.gname,
-                    ),
-                )
+            if len(valid_members) >= group_size:
+                # Take exactly group_size members
+                group_members = set(list(valid_members)[:group_size])
 
-            return
+                with s.Session(sname) as session:
+                    gid = c.create_group(session, group_members)
+
+                for pid in group_members:
+                    await q.enqueue(
+                        tuple(pid),
+                        dict(
+                            source="mkgroup",
+                            gname=gid.gname,
+                        ),
+                    )
+
+                return
 
         try:
             await asyncio.wait_for(e.ATTENDANCE[sname].wait(), timeout=3.0)
