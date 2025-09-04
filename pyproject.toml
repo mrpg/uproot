@@ -41,7 +41,7 @@ uproot = "uproot.defaultcli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-uproot = ["default/**/*", "static/**/*"]
+uproot = ["default/**/*", "_static/**/*"]
 
 [tool.black]
 target-version = ['py311']
