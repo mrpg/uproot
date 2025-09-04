@@ -9,8 +9,8 @@
         <span class="font-monospace">{{ sname }}</span>
     </span>
     <div>
-        <a class="btn btn-outline-uproot mb-2" href="multiview/" target="_blank">Multiview</a>
-        <div class="btn-group mb-2 ms-3">
+        <a class="btn btn-outline-uproot" href="multiview/" target="_blank">Multiview</a>
+        <div class="btn-group ms-2">
             <a class="btn btn-uproot" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
             <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
             <ul class="dropdown-menu">
@@ -110,21 +110,34 @@
 {% block main %}
 
 <div class="row">
+    <div class="col-12 col-lg-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body pb-2">
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
+                {% if room is none %}
+                <p>{% translate %}This session is not associated with a room{% endtranslate %}.</p>
+                {% else %}
+                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
+                <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ room }}/">{{ room }}</a></p>
+                <p class="mb-2 mt-3">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
     <div class="col-12 col-lg-6 mb-4">
         <div class="card h-100">
-            <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Management{% endtranslate %}</h4>
-            </div>
             <div class="card-body pb-2 row row-cols-1 row-cols-lg-3">
                 <div class="col">
-                    <h5 class="mb-3">{% translate %}Description{% endtranslate %}</h5>
+                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Description{% endtranslate %}</h5>
                     <p>{{ description }}</p>
                     <p>
                         <a class="btn btn-sm btn-uproot" href="#">{% translate %}Change{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
                     </p>
                 </div>
                 <div class="col">
-                    <h5 class="mb-3">{% translate %}Players{% endtranslate %}</h5>
+                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
                     <p class="d-table-row">
                         <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
                         <span class="d-table-cell">{{ len(info) }}</span>
@@ -138,8 +151,8 @@
                     </p>
                 </div>
                 <div class="col">
-                    <h5 class="mb-3">{% translate %}Actions{% endtranslate %}</h5>  {# TODO #}
-                    <p class="mb-2 mt-4">
+                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>  {# TODO #}
+                    <p class="mb-2 mt-3">
                         <button type="button" class="btn btn-danger btn-sm" onclick="flip_active()">
                             {% if active %}
                             {% translate %}Set inactive{% endtranslate %}
@@ -154,28 +167,8 @@
     </div>
     <div class="col-12 col-lg-3 mb-4">
         <div class="card h-100">
-            <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Associated room{% endtranslate %}</h4>
-            </div>
-            <div class="card-body pb-2">
-                {% if room is none %}
-                <p>{% translate %}This session is not associated with a room{% endtranslate %}.</p>
-                {% else %}
-                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
-                <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ room }}/">{{ room }}</a>.</p>
-                <p class="mb-2 mt-4">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
-                </p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-lg-3 mb-4">
-        <div class="card h-100">
-            <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Player URL{% endtranslate %}</h4>
-            </div>
             <div class="card-body">
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Player URL{% endtranslate %}</h5>
                 {% if not secret is none %}
                 <p>{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>

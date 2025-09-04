@@ -184,7 +184,7 @@ Room
 {% else %}
 
 <div class="row">
-    <div class="col-12 col-lg-6 pb-4">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="border-uproot-light card h-100">
             <div class="bg-white border-0 card-header pb-1">
                 <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
@@ -196,7 +196,7 @@ Room
                     {% translate %}This room is associated with a session{% endtranslate %}:
                 </p>
                 <p class="fs-4">
-                    <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>.
+                    <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
                 </p>
                 <p class="mb-1 mt-4">
                     <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
@@ -204,7 +204,7 @@ Room
             </div>
         </div>
     </div>
-    <div class="col-12 col-lg-6 pb-4">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="border-uproot-light card h-100">
             <div class="bg-white border-0 card-header pb-1">
                 <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">{% translate %}Player URL{% endtranslate %}</h4>
