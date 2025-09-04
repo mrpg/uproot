@@ -73,7 +73,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     await asyncio.gather(*tasks)
 
 
-uproot_server = FastAPI(lifespan=lifespan)
+uproot_server = FastAPI(
+    lifespan=lifespan,
+    redirect_slashes=False,
+)
 
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)
