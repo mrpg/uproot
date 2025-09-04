@@ -30,7 +30,7 @@ Multi View
 <script src="{{ internalstatic('multiview.js') }}"></script>
 <script>
 uproot.onStart(() => {
-    const urls = Object.keys(uproot.vars.info).map((uname) => `${uproot.vars.root}/p/${uproot.vars.sname}/${uname}`);
+    const urls = Object.keys(uproot.vars.info).map((uname) => `${uproot.vars.root}/p/${uproot.vars.sname}/${uname}/`);
     createIframes(urls);
 });
 </script>
