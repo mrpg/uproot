@@ -40,7 +40,7 @@
         {% block head %}
         {% endblock head %}
 
-        {% include "ProjectHead.html" ignore missing %}
+        {% include "_static/ProjectHead.html" ignore missing %}
     </head>
     <body>
         <div class="modal fade" id="error-modal" tabindex="-1" aria-labelledby="error-modalLabel" aria-hidden="true">
@@ -205,6 +205,6 @@
             });
         </script>
 
-        {% include "ProjectBody.html" ignore missing %}
+        {% include "_static/ProjectBody.html" ignore missing %}
     </body>
 </html>
