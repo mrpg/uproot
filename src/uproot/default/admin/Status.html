@@ -15,10 +15,10 @@ Server status
 <div class="row">
     <div class="col-12 col-lg-6 pb-4">
         <div class="card h-100 mb-4">
-            <div class="bg-white border-0 card-header pb-0">
+            <div class="bg-white border-0 card-header pb-2">
                 <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Database{% endtranslate %}</h4>
             </div>
-            <div class="card-body pb-1">
+            <div class="card-body pb-0 pt-2">
                 <table class="table table-sm">
                     <tbody>
                         <tr>
@@ -54,55 +54,51 @@ Server status
     </div>
     <div class="col-12 col-lg-6 pb-4">
         <div class="card h-100 mb-4">
-            <div class="card-header bg-white border-0 card-header pb-0">
-                <div class="align-items-center border-bottom d-flex justify-content-between">
-                    <h4 class=" fw-semibold mb-0 mt-2 pb-3">
-                        {% translate %}
-                        Active logins
-                        {% endtranslate %}
-                    </h4>
-                </div>
+            <div class="card-header bg-white border-0 card-header pb-2">
+                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}
+                    Active logins
+                    {% endtranslate %}
+                </h4>
             </div>
-            <div class="card-body">
+            <div class="card-body pb-0 pt-2">
                 {% if sessions %}
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>
-                                    {% translate %}
-                                    User
-                                    {% endtranslate %}
-                                </th>
-                                <th>
-                                    {% translate %}
-                                    Active logins
-                                    {% endtranslate %}
-                                </th>
-                                <th>
-                                    {% translate %}
-                                    Logged in at (UTC)
-                                    {% endtranslate %}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user, info in sessions.items() %}
-                            <tr>
-                                <td><strong>{{ user }}</strong></td>
-                                <td>
-                                    <span class="badge bg-uproot">{{ info.token_count }}</span>
-                                </td>
-                                <td>
-                                    {% for created_at in info.created_at %}
-                                        <small class="text-muted d-block">{{ created_at }}</small>
-                                    {% endfor %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th class="ps-0">
+                                {% translate %}
+                                User
+                                {% endtranslate %}
+                            </th>
+                            <th>
+                                {% translate %}
+                                Active logins
+                                {% endtranslate %}
+                            </th>
+                            <th>
+                                {% translate %}
+                                Logged in at (UTC)
+                                {% endtranslate %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user, info in sessions.items() %}
+                        <tr>
+                            <td class="ps-0"><strong>{{ user }}</strong></td>
+                            <td>
+                                <span class="badge bg-uproot">{{ info.token_count }}</span>
+                            </td>
+                            <td>
+                                {% for created_at in info.created_at %}
+                                    <small class="text-muted d-block">{{ created_at }}</small>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
                 {% else %}
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
@@ -111,8 +107,8 @@ Server status
                     {% endtranslate %}
                 </div>
                 {% endif %}
-                <p class="mt-2">
-                    <a class="btn btn-danger btn-sm mb-2" href="logout-all/">
+                <p class="mb-2 mt-4">
+                    <a class="btn btn-danger btn-sm mb-0" href="logout-all/">
                         {% translate %}
                         Log out all
                         {% endtranslate %}
@@ -124,7 +120,7 @@ Server status
 </div>
 
 <div class="card mb-4">
-    <div class="bg-white border-0 card-header pb-0">
+    <div class="bg-white border-0 card-header pb-1">
         <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Version information{% endtranslate %}</h4>
     </div>
     <div class="card-body pb-1 row">

@@ -469,7 +469,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         const detailsLink = document.createElement("a");
         detailsLink.href = `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(key)}/`;
         detailsLink.className = "btn btn-sm btn-outline-uproot btn-launch";
-        detailsLink.innerHTML = `<span class="font-bi">&#xF4FA;</span>`;  // bi-plus-circle  // SAFE
+        detailsLink.innerHTML = `<span class="font-bi fs-3">&#xF4FA;</span>`;  // bi-plus-circle  // SAFE
         detailsLink.title = _("New session");
         item.appendChild(detailsLink);
 
