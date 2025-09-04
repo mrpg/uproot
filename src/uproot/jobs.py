@@ -199,14 +199,17 @@ async def mkgroup(sname: Sessionname, show_page: int, group_size: int) -> None:
                 with s.Session(sname) as session:
                     gid = c.create_group(session, group_members)
 
-                for pid in group_members:
-                    await q.enqueue(
+                enqueue_tasks = [
+                    q.enqueue(
                         tuple(pid),
                         dict(
                             source="mkgroup",
                             gname=gid.gname,
                         ),
                     )
+                    for pid in group_members
+                ]
+                await asyncio.gather(*enqueue_tasks, return_exceptions=True)
 
                 return
 
