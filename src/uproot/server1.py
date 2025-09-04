@@ -622,9 +622,9 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
         raise HTTPException(status_code=404)
 
     if realm == "_uproot":
-        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_static")
     else:
-        base_path = os.path.join(os.getcwd(), realm, "static")
+        base_path = os.path.join(os.getcwd(), realm, "_static")
 
     base_path = os.path.abspath(base_path)
     target_path = os.path.abspath(os.path.join(base_path, location))

@@ -13,7 +13,7 @@ import uproot as u
 import uproot.types as t
 from uproot.constraints import ensure
 
-LICENSE_PATH = Path(__file__).parent / "static" / "uproot_license.txt"
+LICENSE_PATH = Path(__file__).parent / "_static" / "uproot_license.txt"
 
 GITIGNORE = """
 build/
@@ -244,7 +244,7 @@ def setup_mere_app(path: Path, app: str = "prisoners_dilemma") -> None:
     appdir = path / app
 
     appdir.mkdir(exist_ok=False)
-    (appdir / "static").mkdir(exist_ok=False)
+    (appdir / "_static").mkdir(exist_ok=False)
 
     with open(appdir / "__init__.py", "w", encoding="utf-8") as f1:
         f1.write(APP_TEMPLATE)
