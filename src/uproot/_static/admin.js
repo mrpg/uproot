@@ -41,7 +41,7 @@ function renderRooms(rooms, containerId) {
         const title = document.createElement("h5");
         title.className = "fw-semibold mb-1 me-3 text-nowrap";
         title.innerHTML =  // SAFE
-            `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`;  // bi-house-gear
+            `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}/"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`;  // bi-house-gear
         headerContent.appendChild(title);
 
         const rightCol = document.createElement("div");
@@ -75,7 +75,7 @@ function renderRooms(rooms, containerId) {
         if (room.sname) {
             sessionValue.className = "d-table-cell font-monospace w-100";
             sessionValue.innerHTML =  // SAFE
-                `<a class="link-subtle" href="${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}">${encodeURIComponent(room.sname)}</a>`
+                `<a class="link-subtle" href="${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}/">${encodeURIComponent(room.sname)}</a>`
         } else {
             sessionValue.className = "d-table-cell text-body-tertiary w-100";
             sessionValue.textContent = _("N/A");
@@ -467,9 +467,9 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         item.appendChild(content);
 
         const detailsLink = document.createElement("a");
-        detailsLink.href = `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(key)}`;
+        detailsLink.href = `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(key)}/`;
         detailsLink.className = "btn btn-sm btn-outline-uproot btn-launch";
-        detailsLink.innerHTML = `<span class="font-bi">&#xF4FA;</span>`;  // bi-plus-circle  // SAFE
+        detailsLink.innerHTML = `<span class="font-bi fs-3">&#xF4FA;</span>`;  // bi-plus-circle  // SAFE
         detailsLink.title = _("New session");
         item.appendChild(detailsLink);
 

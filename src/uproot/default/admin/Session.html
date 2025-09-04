@@ -9,10 +9,15 @@
         <span class="font-monospace">{{ sname }}</span>
     </span>
     <div>
-        <a class="btn btn-outline-uproot mb-2" href="multiview/" target="_blank">Multiview</a>
-        <a class="btn btn-uproot mb-2" href="data/">Download data</a>
-        <a class="btn btn-uproot mb-2" href="viewdata/">View data</a>
-        <a class="btn btn-uproot mb-2" href="monitor/">Monitor</a>
+        <a class="btn btn-outline-uproot" href="multiview/" target="_blank">Multiview</a>
+        <div class="btn-group ms-2">
+            <a class="btn btn-uproot" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
+            <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="data/">{% translate %}Download data{% endtranslate %}</a></li>
+            </ul>
+        </div>
+        {#<a class="btn btn-uproot mb-2" href="monitor/">Monitor</a>#}
     </div>
 </div>
 
@@ -23,8 +28,79 @@
 
 <style>
     /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
+    .btn-group-sm {
+        padding-bottom: 0pt !important;
+        padding-top: 0pt !important;
+        height: 31px;
+    }
+    .card-resizable {
+        height: 90vh;
+        left: 50%;
+        max-width: 100vw;
+        overflow: hidden;
+        resize: both !important;
+        transform: translate(-50%, 0%);
+    }
+    .card-resizable .card-body {
+        height: 80%;
+    }
+    .player-name .link-subtle:visited {
+        color: var(--bs-uproot) !important;
+    }
     .player-url:visited {
         color: var(--bs-uproot) !important;
+    }
+    .table-sticky-inner {
+        resize: none !important;
+    }
+    .table-sticky-outer {
+        height: 100% !important;
+        overflow: auto !important;
+    }
+    /* Color of `id` column */
+    #players.table-sticky tr > td:nth-of-type(2),
+    #players.table-sticky tr > th:nth-of-type(2) {
+        color: var(--bs-uproot);
+    }
+    /* Sticky `player` column */
+    #players.table-sticky tr > th:nth-of-type(4) {
+        position: sticky;
+        z-index: 99;
+    }
+    #players.table-sticky tr > td:nth-of-type(4) {
+        font-weight: bolder;
+        position: sticky;
+        z-index: 97;
+    }
+    /* Position to stick at for columns 2, 3, 4 */
+    #players.table-sticky tr > td:nth-of-type(2),  /* `id` */
+    #players.table-sticky tr > th:nth-of-type(2) {
+        font-family: var(--bs-font-monospace);
+        left: 1.5em;
+    }
+    #players.table-sticky tr > td:nth-of-type(3),  /* `label` */
+    #players.table-sticky tr > th:nth-of-type(3) {
+        font-family: var(--bs-font-monospace);
+        left: 4.5em;
+    }
+    #players.table-sticky tr > td:nth-of-type(4),  /* `player` */
+    #players.table-sticky tr > th:nth-of-type(4) {
+        font-family: var(--bs-font-monospace);
+        left: 7.5em;
+    }
+    #players.table-sticky tr > td:nth-of-type(5),  /* `page` */
+    #players.table-sticky tr > th:nth-of-type(5) {
+        font-family: var(--bs-font-monospace);
+    }
+    .not-yet-implemented {
+        color: red;
+        font-weight: bold;  
+    }
+    a .not-yet-implemented {
+        display: none;
+    }
+    a:hover .not-yet-implemented {
+        display: block;
     }
 </style>
 
@@ -33,66 +109,66 @@
 
 {% block main %}
 
-{# TODO #}
-
 <div class="row">
-    <div class="col-12 col-lg-7">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="fw-semibold mt-2">{% translate %}Room{% endtranslate %}</h4>
-            </div>
-            <div class="card-body">
+    <div class="col-12 col-lg-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body pb-2">
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
                 {% if room is none %}
-                <p>{% translate %}This session is not associated with a room.{% endtranslate %}</p>
+                <p>{% translate %}This session is not associated with a room{% endtranslate %}.</p>
                 {% else %}
-                <p>{% translate %}This session is associated with room{% endtranslate %} <a class="font-monospace link-subtle" href="../../room/{{ room }}/">{{ room }}</a>.</p>
-                <button type="button" class="btn btn-danger mb-4" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
+                <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ room }}/">{{ room }}</a></p>
+                <p class="mb-2 mt-3">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                </p>
                 {% endif %}
             </div>
         </div>
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="fw-semibold mt-2">{% translate %}Management{% endtranslate %}</h4>
-            </div>
-            <div class="card-body pb-1 row row-cols-1 row-cols-lg-3">
+    </div>
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body pb-2 row row-cols-1 row-cols-lg-3">
                 <div class="col">
-                    <h5 class="mb-3">{% translate %}Description{% endtranslate %}</h5>
+                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Description{% endtranslate %}</h5>
                     <p>{{ description }}</p>
-                    <p><a class="btn btn-uproot disabled" href="....../">{% translate %}Change{% endtranslate %}</a> <span
-                            class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+                    <p>
+                        <a class="btn btn-sm btn-uproot" href="#">{% translate %}Change{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
+                    </p>
                 </div>
                 <div class="col">
-                    <h5 class="mb-3">{% translate %}Players{% endtranslate %}</h5>
-                    <p>Total: {{ len(info) }}</p>
-                    <p>Started: <span class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
-                    <p><a class="btn btn-uproot disabled" href="....../">Add players</a> <span
-                            class="text-danger fw-bold">Not yet implemented</span></p> {# TODO #}
+                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
+                    <p class="d-table-row">
+                        <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
+                        <span class="d-table-cell">{{ len(info) }}</span>
+                    </p>
+                    <p class="d-table-row">
+                        <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
+                        <span class="d-table-cell not-yet-implemented">TBA</span>  {# TODO #}
+                    </p>
+                    <p class="mt-3">
+                        <a class="btn btn-sm btn-uproot" href="#">{% translate %}Add players{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
+                    </p>
                 </div>
                 <div class="col">
-                    <h5 class="mb-3">{% translate %}Actions{% endtranslate %}</h5> {# TODO #}
-                    {#
-                    <p class="mb-2"><a class="btn btn-uproot" href="viewdata/">View data</a></p>
-                    <p class="mb-2"><a class="btn btn-uproot" href="monitor/">Monitor</a></p>
-                    <p class="mb-2"><a class="btn btn-uproot" href="multiview/" target="_blank">Multiview</a></p>
-                    <p class="mb-3"><a class="btn btn-uproot" href="data/">Download data</a></p>
-                    #}
-                    <button type="button" class="btn btn-danger" onclick="flip_active()">
-                        {% if active %}
-                        {% translate %}Set inactive{% endtranslate %}
-                        {% else %}
-                        {% translate %}Set active{% endtranslate %}
-                        {% endif %}
-                    </button>
+                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>  {# TODO #}
+                    <p class="mb-2 mt-3">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="flip_active()">
+                            {% if active %}
+                            {% translate %}Set inactive{% endtranslate %}
+                            {% else %}
+                            {% translate %}Set active{% endtranslate %}
+                            {% endif %}
+                        </button>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="fw-semibold mt-2">{% translate %}Player URLs{% endtranslate %}</h4>
-            </div>
+    <div class="col-12 col-lg-3 mb-4">
+        <div class="card h-100">
             <div class="card-body">
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Player URL{% endtranslate %}</h5>
                 {% if not secret is none %}
                 <p>{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>
@@ -104,16 +180,252 @@
                     </li>
                 </ul>
                 {% endif %}
-                {% if len(info) > 0 %}
-                <p>{% translate %}The individual player URLs for accessing this session are{% endtranslate %}</p>
-                <ol class="mb-3">
-                    {% for key in info %}
-                    <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
-                            href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a>
-                    </li>
-                    {% endfor %}
-                </ol>
-                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{#
+<!-- Player URLs -->
+<div class="card">
+    <div class="card-header">
+        <h4 class="fw-semibold mt-2">{% translate %}Player URLs{% endtranslate %}</h4>
+    </div>
+    <div class="card-body">
+        {% if len(info) > 0 %}
+        <p>{% translate %}The individual player URLs for accessing this session are{% endtranslate %}</p>
+        <ol class="mb-3">
+            {% for key in info %}
+            <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+                    href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a>
+            </li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+    </div>
+</div>
+#}
+
+<!-- Player monitor -->
+
+<div class="card card-resizable">
+    <div class="bg-white border-0 card-header pb-1">
+        <div class="align-items-center border-bottom d-flex justify-content-between mb-0 pb-2">
+            <h4 class="fw-semibold mt-2">{% translate %}Player monitor{% endtranslate %}</h4>
+            <div class="btn-group btn-group-sm ms-3">
+                <button type="button" class="btn btn-outline-uproot" onclick="mmodal('manage')">
+                    {% translate %}Manage players{% endtranslate %}
+                </button>
+                <button type="button" class="btn btn-outline-uproot" onclick="mmodal('insert')">
+                    {% translate %}Insert fields{% endtranslate %}
+                </button>
+                <button type="button" class="btn btn-outline-uproot" onclick="mmodal('adminmessage_send')">
+                    {% translate %}Send message{% endtranslate %}
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body mt-1">
+        <div class="table-sticky-outer">
+            <div class="border-top border-uproot-subtle">
+                <table class="align-middle mt-0 table table-hover table-responsive table-sticky text-nowrap" id="players">
+                    <thead class="border-bottom border-uproot-subtle"></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+
+<div class="modal fade" id="manage-modal" tabindex="-1" aria-labelledby="manage-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manage-modalLabel">
+                    {% translate %}
+                    Manage subjects
+                    {% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {% translate %}
+                    You have selected <b><span class="pcount"></span> subject(s)</b>.
+                    {% endtranslate %}
+                </p>
+                <div class="mb-1">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
+                        <label class="form-check-label" for="advance_by_one">
+                            {% translate %}
+                            Advance by one page
+                            {% endtranslate %}
+                        </label><br>
+                        <span class="form-text text-muted">
+                            {% translate %}
+                            If the next page is not shown, it will be skipped.
+                            {% endtranslate %}
+                        </span>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
+                        <label class="form-check-label" for="reload">
+                            {% translate %}
+                            Reload players’ pages
+                            {% endtranslate %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="manage" id="revert_by_one" value="revert_by_one">
+                        <label class="form-check-label" for="revert_by_one">
+                            {% translate %}
+                            Revert by one page
+                            {% endtranslate %}
+                        </label><br>
+                        <span class="form-text text-muted">
+                            {% translate %}
+                            If the previous page was not shown, this will return to the current page.
+                            {% endtranslate %}
+                        </span>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="manage" id="put_to_end" value="put_to_end">
+                        <label class="form-check-label" for="put_to_end">
+                            {% translate %}
+                            Put to end
+                            {% endtranslate %}
+                        </label><br>
+                        <span class="form-text text-muted">
+                            {% translate %}
+                            This terminates the study for the selected subject(s).
+                            {% endtranslate %}
+                        </span>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="manage" id="mark_dropout" value="mark_dropout">
+                        <label class="form-check-label" for="mark_dropout">
+                            {% translate %}
+                            Mark as dropout
+                            {% endtranslate %}
+                        </label><br>
+                        <span class="form-text text-muted">
+                            {% translate %}
+                            Within few seconds, this will run all dropout handlers registered with <code>watch_for_dropout()</code>.
+                            {% endtranslate %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+                <button type="button" class="btn btn-danger" onclick="actually_manage()">
+                    {% translate %}
+                    Save changes
+                    {% endtranslate %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="insert-modal" tabindex="-1" aria-labelledby="insert-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="insert-modalLabel">
+                    {% translate %}
+                    Insert fields
+                    {% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {% translate %}
+                    You have selected <b><span class="pcount"></span> subject(s)</b>.
+                    {% endtranslate %}
+                </p>
+
+                <div class="mb-3">
+                    <textarea class="form-control font-monospace" id="json-input" rows="3">{}</textarea>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="manage" id="reload2" value="reload">
+                    <label class="form-check-label" for="reload2">
+                        {% translate %}
+                        Reload players’ pages
+                        {% endtranslate %}
+                    </label>
+                </div>
+
+                <p>
+                    {% translate %}
+                    Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):
+                    {% endtranslate %}<br>
+                    <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
+                </p>
+
+                <p class="text-muted">
+                    {% translate %}
+                    Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.
+                    {% endtranslate %}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+                <button type="button" class="btn btn-danger" onclick="actually_insert()">
+                    {% translate %}
+                    Insert fields
+                    {% endtranslate %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="adminmessage_send-modal" tabindex="-1" aria-labelledby="adminmessage_send-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adminmessage_send-modalLabel">
+                    {% translate %}
+                    Send message
+                    {% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {% translate %}
+                    You have selected <b><span class="pcount"></span> subject(s)</b>.
+                    {% endtranslate %}
+                </p>
+
+                <div class="mb-3">
+                    <textarea class="form-control" id="adminmsg" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+                <button type="button" class="btn btn-danger" onclick="actually_adminmessage_send()">
+                    {% translate %}
+                    Send message
+                    {% endtranslate %}
+                </button>
             </div>
         </div>
     </div>
@@ -128,10 +440,11 @@
     function disassociate() {
         uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(uproot.reload);
     }
-
     function flip_active() {
         uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
     }
 </script>
+<script src="{{ internalstatic('tables.js') }}"></script>
+<script src="{{ internalstatic('monitor.js') }}"></script>
 
 {% endblock late %}
