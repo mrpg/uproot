@@ -27,7 +27,7 @@ Multi View
 
 {% block late %}
 
-<script src="{{ internal_static('multiview.js') }}"></script>
+<script src="{{ internalstatic('multiview.js') }}"></script>
 <script>
 uproot.onStart(() => {
     const urls = Object.keys(uproot.vars.info).map((uname) => `${uproot.vars.root}/p/${uproot.vars.sname}/${uname}`);

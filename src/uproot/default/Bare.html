@@ -14,13 +14,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         {% if nobootstrap is not defined %}
-        <link rel="stylesheet" href="{{ internal_static('vendor/bootstrap/bootstrap.min.css') }}">
-        <script src="{{ internal_static('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ internalstatic('vendor/bootstrap/bootstrap.min.css') }}">
+        <script src="{{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
         {% endif %}
 
-        <link rel="stylesheet" href="{{ internal_static('style.css') }}">
+        <link rel="stylesheet" href="{{ internalstatic('style.css') }}">
 
-        <script src="{{ internal_static('uproot.js') }}"></script>
+        <script src="{{ internalstatic('uproot.js') }}"></script>
         <script>
             uproot.vars = {{ _uproot_js | tojson }};
             {% if noterms is not defined %}
@@ -33,9 +33,9 @@
             });
             {% endif %}
         </script>
-        <script src="{{ internal_static('jserrors.js') }}"></script>
+        <script src="{{ internalstatic('jserrors.js') }}"></script>
 
-        <script src="{{ internal_static('vendor/alpinejs/cdn.min.js') }}" defer></script>
+        <script src="{{ internalstatic('vendor/alpinejs/cdn.min.js') }}" defer></script>
 
         {% block head %}
         {% endblock head %}
@@ -111,7 +111,7 @@
         </div>
 
         <div id="uproot-buddy">
-            <img src="{{ internal_static('buddy.svg') }}" width="142" height="142" onclick="uproot.adminMessage()" alt="Smiley face" title="Show message">
+            <img src="{{ internalstatic('buddy.svg') }}" width="142" height="142" onclick="uproot.adminMessage()" alt="Smiley face" title="Show message">
         </div>
 
         <div id="uproot-main-container" class="container">

@@ -115,7 +115,7 @@ async def render(
         context
         | BUILTINS
         | dict(
-            internal_static=static_factory(),
+            internalstatic=static_factory(),
             _uproot_js=context,
             _uproot_internal=context,
             _uproot_errors=None,

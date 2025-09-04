@@ -19,13 +19,13 @@
         <meta name="generator" content="uproot">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="{{ internal_static('vendor/bootstrap/bootstrap.min.css') }}">
-        <link rel="stylesheet" href="{{ internal_static('vendor/tabulator-tables/tabulator_bootstrap5.min.css') }}">
-        <link rel="stylesheet" href="{{ internal_static('style.css') }}">
-        <link rel="stylesheet" href="{{ internal_static('admin.css') }}">
+        <link rel="stylesheet" href="{{ internalstatic('vendor/bootstrap/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ internalstatic('vendor/tabulator-tables/tabulator_bootstrap5.min.css') }}">
+        <link rel="stylesheet" href="{{ internalstatic('style.css') }}">
+        <link rel="stylesheet" href="{{ internalstatic('admin.css') }}">
 
         {% block _uproot_scripts %}
-        <script src="{{ internal_static('uproot.js') }}"></script>
+        <script src="{{ internalstatic('uproot.js') }}"></script>
         <script>
             uproot.vars = {{ _uproot_js | tojson }};
             uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}
@@ -41,12 +41,12 @@
                 uproot.wsstart();
             });
         </script>
-        <script src="{{ internal_static('admin.js') }}"></script>
+        <script src="{{ internalstatic('admin.js') }}"></script>
         {% endblock _uproot_scripts %}
 
-        <script src="{{ internal_static('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
-        <script src="{{ internal_static('vendor/tabulator-tables/tabulator.min.js') }}"></script>
-        <script src="{{ internal_static('vendor/alpinejs/cdn.min.js') }}" defer></script>
+        <script src="{{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ internalstatic('vendor/tabulator-tables/tabulator.min.js') }}"></script>
+        <script src="{{ internalstatic('vendor/alpinejs/cdn.min.js') }}" defer></script>
 
         {% block head %}
         {% endblock head %}

@@ -65,14 +65,14 @@ def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
 def function_context(page: Optional[type[t.Page]]) -> dict[str, Any]:
     if page is not None:
         return dict(
-            internal_static=static_factory(),
+            internalstatic=static_factory(),
             projectstatic=static_factory("_project"),
             static=static_factory(page.__module__),
             app=page.__module__,
         )
     else:
         return dict(
-            internal_static=static_factory(),
+            internalstatic=static_factory(),
         )
 
 
