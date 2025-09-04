@@ -187,11 +187,20 @@ Room
     <div class="col-12 col-lg-6 pb-4">
         <div class="border-uproot-light card h-100">
             <div class="bg-white border-0 card-header">
-                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">{% translate %}Existing session{% endtranslate %}</h4>
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Existing session{% endtranslate %}
+                </h4>
             </div>
             <div class="card-body">
-                <p>{% translate %}This room is associated with session{% endtranslate %} <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>.</p>
-                <p><button type="button" class="btn btn-danger" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button></p>
+                <p class="mb-2">
+                    {% translate %}This room is associated with a session{% endtranslate %}:
+                </p>
+                <p class="fs-4">
+                    <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>.
+                </p>
+                <p class="mt-4">
+                    <button type="button" class="btn btn-danger" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+                </p>
             </div>
         </div>
     </div>
