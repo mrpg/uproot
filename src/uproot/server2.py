@@ -53,7 +53,6 @@ from uproot.constraints import ensure
 from uproot.pages import static_factory, to_filter
 from uproot.storage import Admin, Session
 
-
 # General settings
 
 
@@ -86,6 +85,7 @@ ENV = Environment(
     enable_async=True,
 )
 ENV.filters["to"] = to_filter
+
 
 async def render(
     ppath: str,
@@ -283,6 +283,7 @@ async def login_get(
 
     return response
 
+
 @router.post("/login/")
 async def login_post(
     request: Request,
@@ -335,6 +336,7 @@ def logout(
 
     return response
 
+
 @validate_call(config=dict(arbitrary_types_allowed=True))
 def set_auth_cookie(
     response: Response,
@@ -377,6 +379,7 @@ async def dashboard(
 
 # Overview of all rooms
 
+
 @router.get("/rooms/")
 async def rooms(
     request: Request,
@@ -392,7 +395,9 @@ async def rooms(
         )
     )
 
+
 # New room
+
 
 @router.get("/rooms/new/")
 async def new_room(
@@ -410,6 +415,7 @@ async def new_room(
                 ),
             )
         )
+
 
 @router.post("/rooms/new/")
 async def new_room(
@@ -452,7 +458,9 @@ async def new_room(
 
     return RedirectResponse(f"{d.ROOT}/admin/room/{name}/", status_code=303)
 
+
 # Particular room
+
 
 @router.get("/room/{roomname}/")
 async def roommain(
@@ -474,6 +482,7 @@ async def roommain(
                 | a.info_online(f"^{roomname}"),
             )
         )
+
 
 @router.post("/room/{roomname}/")
 async def new_session_in_room(
@@ -552,6 +561,7 @@ async def new_session_in_room(
 
 # Overview of all sessions
 
+
 @router.get("/sessions/")
 async def sessions(
     request: Request,
@@ -566,7 +576,9 @@ async def sessions(
         )
     )
 
+
 # New session
+
 
 @router.get("/sessions/new/")
 async def new_session(
@@ -574,6 +586,7 @@ async def new_session(
     auth=Depends(auth_required),
 ) -> Response:
     return HTMLResponse(await render("SessionsNew.html", dict(configs=a.configs())))
+
 
 @router.post("/sessions/new/")
 async def new_session(
@@ -604,7 +617,9 @@ async def new_session(
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 
+
 # Particular session
+
 
 @router.get("/session/{sname}/")
 async def sessionmain(
@@ -631,6 +646,7 @@ async def sessionmain(
             )
         )
 
+
 # Particular session: monitor
 @router.get("/session/{sname}/monitor/")
 async def session_monitor(
@@ -644,6 +660,7 @@ async def session_monitor(
         await render("SessionMonitor.html", dict(sname=sname) | a.info_online(sname))
     )
 
+
 # Particular session: data
 @router.get("/session/{sname}/data/")
 async def session_data(
@@ -653,6 +670,7 @@ async def session_data(
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(await render("SessionData.html", dict(sname=sname)))
+
 
 # Particular session: get data
 @router.get("/session/{sname}/data/get/")
@@ -688,6 +706,7 @@ async def session_data(
     else:
         raise NotImplementedError
 
+
 # Particular session: view data
 @router.get("/session/{sname}/viewdata/")
 async def session_viewdata(
@@ -697,6 +716,7 @@ async def session_viewdata(
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(await render("SessionViewdata.html", dict(sname=sname)))
+
 
 # Particular session: view multiple players’ screens
 @router.get("/session/{sname}/multiview/")
@@ -756,6 +776,7 @@ async def status(
             ),
         )
     )
+
 
 @router.get("/status/logout-all/")
 async def logout_all(
