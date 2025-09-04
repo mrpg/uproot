@@ -102,12 +102,16 @@ def load_config(
     u.CONFIGS_EXTRA[config] = extra
 
     for appname in apps:
+        first_add = False
+
         if appname not in u.APPS:
             app = u.APPS.import_module(appname)
         else:
             app = u.APPS[appname]
 
         if f"~{appname}" not in u.CONFIGS:
+            first_add = True
+
             u.CONFIGS[f"~{appname}"] = [appname]
             u.CONFIGS_PPATHS[f"~{appname}"] = list()
             u.CONFIGS_EXTRA[f"~{appname}"] = extra
@@ -117,7 +121,9 @@ def load_config(
         for page in c.expand(app.page_order):
             path = page2path(page)
             u.CONFIGS_PPATHS[config].append(path)
-            u.CONFIGS_PPATHS[f"~{appname}"].append(path)
+
+            if first_add:
+                u.CONFIGS_PPATHS[f"~{appname}"].append(path)
 
             if path not in u.PAGES:
                 if not hasattr(app, page.__name__):
