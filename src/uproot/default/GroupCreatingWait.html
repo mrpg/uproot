@@ -47,7 +47,11 @@ Please wait
         }, 2000);
     });
 
-    window.setInterval(uproot.reload, 30000);
+    window.setInterval(() => {
+        uproot.hello();
+    }, 5000);
+
+    window.setInterval(uproot.reload, 60000);
 </script>
 
 {% endblock main %}
