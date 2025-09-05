@@ -27,7 +27,6 @@
 {% block head %}
 
 <style>
-    /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
     .btn-group-sm {
         padding-bottom: 0pt !important;
         padding-top: 0pt !important;
@@ -44,11 +43,12 @@
     .card-resizable .card-body {
         height: 80%;
     }
-    .player-name .link-subtle:visited {
+    /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
+    .player-url:visited, .player-name .link-subtle:visited {
         color: var(--bs-uproot) !important;
     }
-    .player-url:visited {
-        color: var(--bs-uproot) !important;
+    .player-url:visited:hover, .player-name .link-subtle:visited:hover {
+        color: var(--bs-uproot-dark) !important;
     }
     .table-sticky-inner {
         resize: none !important;
@@ -168,42 +168,29 @@
     <div class="col-12 col-lg-3 mb-4">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Player URL{% endtranslate %}</h5>
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Player URLs{% endtranslate %}</h5>
                 {% if not secret is none %}
-                <p>{% translate %}The sessionwide URL is{% endtranslate %}:</p>
+                <p class="mb-2">{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>
                     <li>
-                        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+                        <a class="link-subtle player-url"
                             href="../../../s/{{ sname }}/{{ secret }}/" target="_blank">
                             {{ root }}/s/{{ sname }}/{{ secret}}/
                         </a>
                     </li>
                 </ul>
                 {% endif %}
+                {% if len(info) > 0 %}
+                <p class="mb-1">
+                    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#urlModal" data-bs-toggle="modal" type="button">
+                        {% translate %}Show individual URLs{% endtranslate %}
+                    </button>
+                </p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
-{#
-<!-- Player URLs -->
-<div class="card">
-    <div class="card-header">
-        <h4 class="fw-semibold mt-2">{% translate %}Player URLs{% endtranslate %}</h4>
-    </div>
-    <div class="card-body">
-        {% if len(info) > 0 %}
-        <p>{% translate %}The individual player URLs for accessing this session are{% endtranslate %}</p>
-        <ol class="mb-3">
-            {% for key in info %}
-            <li><a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
-                    href="../../../p/{{ sname }}/{{ key }}/" target="_blank">{{ root }}/p/{{ sname }}/{{ key }}/</a>
-            </li>
-            {% endfor %}
-        </ol>
-        {% endif %}
-    </div>
-</div>
-#}
 
 <!-- Player monitor -->
 
@@ -236,24 +223,24 @@
     </div>
 </div>
 
-<!-- Modals -->
+<!-- Modal to manage players -->
 
 <div class="modal fade" id="manage-modal" tabindex="-1" aria-labelledby="manage-modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="manage-modalLabel">
                     {% translate %}
-                    Manage subjects
+                    Manage players
                     {% endtranslate %}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>
-                    {% translate %}
-                    You have selected <b><span class="pcount"></span> subject(s)</b>.
-                    {% endtranslate %}
+                    {% translate %}You have selected{% endtranslate %}
+                    <b><span class="pcount"></span>
+                    {% translate %}player(s){% endtranslate %}</b>.
                 </p>
                 <div class="mb-1">
                     <div class="form-check mb-3">
@@ -312,8 +299,9 @@
                         </label><br>
                         <span class="form-text text-muted">
                             {% translate %}
-                            Within few seconds, this will run all dropout handlers registered with <code>watch_for_dropout()</code>.
+                            Within few seconds, this will run all dropout handlers registered with
                             {% endtranslate %}
+                            <code>watch_for_dropout()</code>.
                         </span>
                     </div>
                 </div>
@@ -334,8 +322,10 @@
     </div>
 </div>
 
+<!-- Modal for inserting fields -->
+
 <div class="modal fade" id="insert-modal" tabindex="-1" aria-labelledby="insert-modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="insert-modalLabel">
@@ -393,8 +383,10 @@
     </div>
 </div>
 
+<!-- Modal for admin to send message to players -->
+
 <div class="modal fade" id="adminmessage_send-modal" tabindex="-1" aria-labelledby="adminmessage_send-modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="adminmessage_send-modalLabel">
@@ -431,6 +423,47 @@
     </div>
 </div>
 
+<!-- Modal for player URLs -->
+
+<div class="modal fade" id="urlModal" tabindex="-1" aria-labelledby="urlModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="border-uproot-light modal-content">
+        <div class="border-uproot-light modal-header">
+            <h5 class="modal-title" id="urlModalLabel">
+                {% translate %}Individual player URLs{% endtranslate %}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            {% if len(info) > 0 %}
+            <table class="table table-sm table-hover">
+                <thead>
+                    <th class="fw-semibold ps-0">Player ID</th>
+                    <th class="fw-semibold">Player URL</th>
+                </thead>
+                <tbody>
+                    {% for key in info %}
+                    <tr>
+                        <td class="ps-0">{{ loop.index0 }}</td>
+                        <td>
+                            <a class="link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span class="site-origin">{{ root }}</span>/p/{{ sname }}/{{ key }}/</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <ol class="mb-3">
+            </ol>
+            {% endif %}
+        </div>
+        <div class="border-uproot-light modal-footer justify-content-between">
+            <button class="btn btn-outline-uproot btn-sm" onclick="copyURLsToClipboard()" type="button">Copy URLs as plain text</button>
+            <span class="fw-light d-none me-3 text-uproot" id="urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
+        </div>
+        </div>
+    </div>
+</div>
+
 {% endblock main %}
 
 
@@ -444,7 +477,31 @@
         uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
     }
 </script>
+
 <script src="{{ internalstatic('tables.js') }}"></script>
+
 <script src="{{ internalstatic('monitor.js') }}"></script>
+
+<script>
+    uproot.onStart(() => {
+        const siteOrigin = document.querySelectorAll(".site-origin");
+        for (const n of siteOrigin) {
+            n.replaceWith(window.location.origin);
+        }
+    });
+    function copyURLsToClipboard() {
+        const keys = Object.keys(uproot.vars.info)
+        var text = ""
+        for (const k of keys) {
+            text += window.location.origin + "/p/" + "{{ sname }}" + "/" + k + "/\n";
+        };
+        // Copy the text inside the text field
+        navigator.clipboard.writeText(text);
+        I("urls-copied").classList.remove("d-none");
+        setTimeout(function() {
+            I("urls-copied").classList.add("d-none");
+        }, 3000);
+    };
+</script>
 
 {% endblock late %}
