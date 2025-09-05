@@ -438,8 +438,10 @@
             {% if len(info) > 0 %}
             <table class="table table-sm table-hover">
                 <thead>
-                    <th class="fw-semibold ps-0">Player ID</th>
-                    <th class="fw-semibold">Player URL</th>
+                    <tr>
+                        <th class="fw-semibold ps-0">Player ID</th>
+                        <th class="fw-semibold">Player URL</th>
+                    </tr>
                 </thead>
                 <tbody x-data="{}">
                     {% for key in info %}
