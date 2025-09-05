@@ -441,12 +441,12 @@
                     <th class="fw-semibold ps-0">Player ID</th>
                     <th class="fw-semibold">Player URL</th>
                 </thead>
-                <tbody>
+                <tbody x-data="{}">
                     {% for key in info %}
                     <tr>
                         <td class="ps-0">{{ loop.index0 }}</td>
                         <td>
-                            <a class="link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span class="site-origin">{{ root }}</span>/p/{{ sname }}/{{ key }}/</a>
+                            <a class="link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span class="site-origin" x-text="window.location.origin"></span>{{ root }}/p/{{ sname }}/{{ key }}/</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -483,17 +483,11 @@
 <script src="{{ internalstatic('monitor.js') }}"></script>
 
 <script>
-    uproot.onStart(() => {
-        const siteOrigin = document.querySelectorAll(".site-origin");
-        for (const n of siteOrigin) {
-            n.replaceWith(window.location.origin);
-        }
-    });
     function copyURLsToClipboard() {
         const keys = Object.keys(uproot.vars.info)
         var text = ""
         for (const k of keys) {
-            text += window.location.origin + "/p/" + "{{ sname }}" + "/" + k + "/\n";
+            text += `${window.location.origin}${uproot.vars.root}/p/${uproot.vars.sname}/${k}/\n`;
         };
         // Copy the text inside the text field
         navigator.clipboard.writeText(text);
