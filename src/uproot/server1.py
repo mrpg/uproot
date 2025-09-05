@@ -431,16 +431,6 @@ async def ws(
                     u_, entry = result
 
                     match entry:
-                        case {"source": "mkgroup", "gname": gname}:
-                            await websocket.send_json(
-                                dict(
-                                    kind="event",
-                                    payload=dict(
-                                        event="Grouped",
-                                        detail=gname,
-                                    ),
-                                )
-                            )
                         case {
                             "source": "admin",
                             "kind": kind_,

@@ -14,8 +14,6 @@ import uproot.queues as q
 import uproot.storage as s
 from uproot.types import PlayerIdentifier, Sessionname, Username, Value, optional_call
 
-BACKGROUND_TASKS: dict[Any, asyncio.Task] = dict()
-
 
 async def from_queue(pid: PlayerIdentifier) -> tuple[str, q.EntryType]:
     return await q.read(tuple(pid))  # convention: queue path = (sname, uname)
@@ -165,94 +163,57 @@ def here(
         }
 
 
-async def mkgroup(sname: Sessionname, show_page: int, group_size: int) -> None:
-    while True:
-        same_page = [
-            pid for pid in here(sname, show_page) if pid()._uproot_group is None
-        ]
+def try_group(sname: Sessionname, show_page: int, group_size: int) -> Optional[str]:
+    """
+    Try to create exactly one group from available players.
 
-        if len(same_page) == 0:
-            return
+    Args:
+        sname: Session name
+        show_page: Page number where grouping should occur
+        group_size: Required number of players per group
 
-        # Only proceed if we have enough players and verify they're still valid
-        if len(same_page) >= group_size:
-            # Select players deterministically to avoid racing pops
-            selected = same_page[:group_size]
+    Returns:
+        Group name if a group was created, None otherwise
+    """
+    # Get all players on the same page (not checking group status yet)
+    same_page = list(here(sname, show_page))
 
-            # Final verification that selected players are still ungrouped and on same page
-            valid_members = set()
-            for pid in selected:
-                try:
-                    player = pid()
-                    if (
-                        player._uproot_group is None
-                        and cast(int, u.get_info(pid)[2]) == show_page
-                    ):
-                        valid_members.add(pid)
-                except Exception:
-                    continue
+    # Not enough players available
+    if len(same_page) < group_size:
+        return None
 
-            if len(valid_members) >= group_size:
-                # Take exactly group_size members
-                group_members = set(list(valid_members)[:group_size])
+    # Select first group_size players deterministically
+    selected = same_page[:group_size]
 
-                with s.Session(sname) as session:
-                    gid = c.create_group(session, group_members)
-
-                enqueue_tasks = [
-                    q.enqueue(
-                        tuple(pid),
-                        dict(
-                            source="mkgroup",
-                            gname=gid.gname,
-                        ),
-                    )
-                    for pid in group_members
-                ]
-                await asyncio.gather(*enqueue_tasks, return_exceptions=True)
-
-                return
-
+    # Final verification that selected players are still valid and ungrouped
+    valid_members = set()
+    for pid in selected:
         try:
-            await asyncio.wait_for(e.ATTENDANCE[sname].wait(), timeout=3.0)
-        except asyncio.TimeoutError:
-            pass
+            player = pid()
+            if (
+                player._uproot_group is None
+                and cast(int, u.get_info(pid)[2]) == show_page
+            ):
+                valid_members.add(pid)
+        except Exception:
+            continue
 
+    # Still have enough valid players
+    if len(valid_members) >= group_size:
+        # Take exactly group_size members
+        group_members = set(list(valid_members)[:group_size])
 
-async def grouping_watcher(app: "FastAPI") -> None:
-    def handle_task_done(task: asyncio.Task, key: Any) -> None:
-        BACKGROUND_TASKS.pop(key, None)
-        try:
-            task.result()
-        except asyncio.CancelledError:
-            pass
-        except Exception as e:
-            d.LOGGER.error(f"Background task {key} failed: {e}", exc_info=True)
+        # Create the group
+        with s.Session(sname) as session:
+            gid = c.create_group(session, group_members)
 
-    while True:
-        _, msg = await q.read(("admin", "grouping_watcher"))
+        return gid.gname
 
-        match msg:
-            case {
-                "sname": Sessionname(sname),
-                "show_page": int(show_page),
-                "group_size": int(group_size),
-            }:
-                tpl = sname, show_page, group_size
-
-                if tpl not in BACKGROUND_TASKS:
-                    task = asyncio.create_task(mkgroup(*tpl))
-                    BACKGROUND_TASKS[tpl] = task
-                    task.add_done_callback(
-                        lambda t, key=tpl: handle_task_done(t, key),  # type: ignore[misc]
-                    )
-            case _:
-                d.LOGGER.warning(f"Invalid grouping_watcher message: {msg}")
+    return None
 
 
 GLOBAL_JOBS = [
     dropout_watcher,
-    grouping_watcher,
 ]
 
 

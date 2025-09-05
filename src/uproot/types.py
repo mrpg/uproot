@@ -562,7 +562,23 @@ class GroupCreatingWait(InternalPage):
 
     @classmethod
     async def show(page, player: "Storage") -> bool:
-        return player._uproot_group is None
+        # Already in a group - don't show page
+        if player._uproot_group is not None:
+            return False
+
+        # Try to create a group immediately
+        from uproot.jobs import try_group
+
+        group_name = try_group(
+            player._uproot_session, player.show_page, page.group_size
+        )
+
+        # If grouping succeeded, player now has a group - don't show page
+        if player._uproot_group is not None:
+            return False
+
+        # Need to wait for more players
+        return True
 
     @internal_live
     async def please_group(page, player: Any, first: bool = False) -> tuple[str, float]:
@@ -570,32 +586,26 @@ class GroupCreatingWait(InternalPage):
         if player._uproot_group is not None:
             return "submit", 1
 
-        from uproot.jobs import here
+        from uproot.jobs import here, try_group
 
-        if first:
-            from uproot.queues import enqueue
+        # Always try to create a group (not just on first call)
+        try_group(player._uproot_session, player.show_page, page.group_size)
 
-            await enqueue(
-                ("admin", "grouping_watcher"),
-                dict(
-                    sname=player._uproot_session,
-                    show_page=player.show_page,
-                    group_size=page.group_size,
-                ),
-            )
+        # Re-check group status after grouping attempt
+        if player._uproot_group is not None:
+            return "submit", 1
 
-            # Re-check group status after await - might have been grouped during enqueue
-            if player._uproot_group is not None:
-                return "submit", 1
+        # Get fresh count for progress display
+        all_here = here(player._uproot_session, player.show_page)
+        ungrouped_count = 0
+        for pid in all_here:
+            try:
+                if pid()._uproot_group is None:
+                    ungrouped_count += 1
+            except Exception:
+                continue
 
-        # Get fresh count after any awaits
-        ungrouped = [
-            pid
-            for pid in here(player._uproot_session, player.show_page)
-            if pid()._uproot_group is None
-        ]
-
-        return "wait", len(ungrouped) / page.group_size
+        return "wait", ungrouped_count / page.group_size
 
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
