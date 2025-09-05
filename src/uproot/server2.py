@@ -647,20 +647,6 @@ async def sessionmain(
         )
 
 
-# Particular session: monitor
-@router.get("/session/{sname}/monitor/")
-async def session_monitor(
-    request: Request,
-    sname: t.Sessionname,
-    auth=Depends(auth_required),
-) -> Response:
-    a.session_exists(sname)
-
-    return HTMLResponse(
-        await render("SessionMonitor.html", dict(sname=sname) | a.info_online(sname))
-    )
-
-
 # Particular session: data
 @router.get("/session/{sname}/data/")
 async def session_data(
