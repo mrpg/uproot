@@ -27,7 +27,19 @@ Room
 
 {% if room.sname is none %}
 
-<h3 class="mb-3">{% translate %}New session{% endtranslate %}</h3>
+
+<h3 class="mb-3">{% translate %}Player URL{% endtranslate %}</h3>
+
+<p>{% translate %}The player URL for entering this room is{% endtranslate %}</p>
+<ul>
+    <li>
+        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+    </li>
+</ul>
+
+
+<h3 class="mb-3 mt-4">{% translate %}New session{% endtranslate %}</h3>
 
 <script>
     const defaultConfig = uproot.vars.room.config || "";
@@ -210,7 +222,7 @@ Room
                 <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">{% translate %}Player URL{% endtranslate %}</h4>
             </div>
             <div class="card-body">
-                <p>The player URL for entering this room is</p>
+                <p>{% translate %}The player URL for entering this room is{% endtranslate %}</p>
                 <ul>
                     <li>
                         <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
