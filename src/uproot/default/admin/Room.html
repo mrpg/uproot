@@ -27,7 +27,19 @@ Room
 
 {% if room.sname is none %}
 
-<h3>{% translate %}New session{% endtranslate %}</h3>
+
+<h3 class="mb-3">{% translate %}Player URL{% endtranslate %}</h3>
+
+<p>{% translate %}The player URL for entering this room is{% endtranslate %}</p>
+<ul>
+    <li>
+        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+    </li>
+</ul>
+
+
+<h3 class="mb-3 mt-4">{% translate %}New session{% endtranslate %}</h3>
 
 <script>
     const defaultConfig = uproot.vars.room.config || "";
@@ -45,7 +57,6 @@ Room
             {% translate %}
             If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.
             {% endtranslate %}
-
             {% if room.capacity is none %}
             {% translate %}
             This room’s capacity is infinite.
@@ -61,20 +72,20 @@ Room
 
 <button type="button" class="btn btn-uproot mt-4" onclick="createSession()">Create session</button>
 
-<h3 class="mt-4">{% translate %}Traces{% endtranslate %}</h3>
+<h3 class="mb-3 mt-4">{% translate %}Traces{% endtranslate %}</h3>
 
-<h4>{% translate %}Recently seen{% endtranslate %}</h4>
+<h4 class="mb-3">{% translate %}Recently seen{% endtranslate %}</h4>
 
-<p class="mb-0"><i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></p>
+<p><i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></p>
 
 <div id="recently-seen"></div>
 
-<h4>{% translate %}Not recently seen{% endtranslate %}</h4>
-<div id="not-recently-seen"></div>
+<h4 class="mb-3">{% translate %}Not recently seen{% endtranslate %}</h4>
+<div id="not-recently-seen"></div>  {# TODO #}
 
 <script>
     const expectedLabels = uproot.vars.room.labels || [];
-    const recent = 30; // TODO: Holger, take the wheel!
+    const recent = 30;  // TODO: Holger, take the wheel!
 
     let seen = uproot.vars.online;
     let currentRecentLabels = [];
@@ -184,19 +195,44 @@ Room
 
 {% else %}
 
-<h3>{% translate %}Existing session{% endtranslate %}</h3>
-
-<p>{% translate %}This room is associated with session{% endtranslate %} <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>.</p>
-
-<p><button type="button" class="btn btn-danger" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button></p>
-
-<p>The player URL for entering this room is </p>
-<ul>
-    <li>
-        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
-            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
-    </li>
-</ul>
+<div class="row">
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Existing session{% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    {% translate %}This room is associated with a session{% endtranslate %}:
+                </p>
+                <p class="fs-4">
+                    <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
+                </p>
+                <p class="mb-1 mt-4">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">{% translate %}Player URL{% endtranslate %}</h4>
+            </div>
+            <div class="card-body">
+                <p>{% translate %}The player URL for entering this room is{% endtranslate %}</p>
+                <ul>
+                    <li>
+                        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
+                            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
                 
 <script>
     function disassociate() {

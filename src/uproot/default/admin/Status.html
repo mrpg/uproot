@@ -13,12 +13,12 @@ Server status
 {% block main %}
 
 <div class="row">
-    <div class="col">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="fw-semibold mt-2">{% translate %}Database{% endtranslate %}</h4>
+    <div class="col-12 col-lg-6 pb-4">
+        <div class="card h-100 mb-4">
+            <div class="bg-white border-0 card-header pb-2">
+                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Database{% endtranslate %}</h4>
             </div>
-            <div class="card-body pb-1">
+            <div class="card-body pb-0 pt-2">
                 <table class="table table-sm">
                     <tbody>
                         <tr>
@@ -33,86 +33,72 @@ Server status
                         {% endif %}
                     </tbody>
                 </table>
-                <div class="mt-4 row">
-                    <div class="col pe-4">
-                        <h5 class="mb-3">{% translate %}Download database dump{% endtranslate %}</h5>
-                        <p class="mb-1 text-muted">
-                            {% translate %}
-                            This creates a complete machine-readable record of all data.
-                            {% endtranslate %}
-                        </p>
-                        <p class="text-muted">
-                            {% translate %}
-                            It may be re-imported using <code>python main.py restore</code>.
-                            {% endtranslate %}
-                        </p>
-                    </div>
-                    <div class="col-4 ps-0">
-                        <a class="btn btn-uproot" href="../dump/">
-                            {% translate %}
-                            Download
-                            {% endtranslate %}
-                        </a>
-                    </div>
-                </div>
+                <h5 class="mb-3 mt-4">{% translate %}Download database dump{% endtranslate %}</h5>
+                <p class="text-muted">
+                    {% translate %}
+                    This creates a complete machine-readable record of all data.
+                    {% endtranslate %}
+                    {% translate %}
+                    It may be re-imported using <code>python main.py restore</code>.
+                    {% endtranslate %}
+                </p>
+                <p class="mb-0">
+                    <a class="btn btn-sm btn-uproot" href="../dump/">
+                        {% translate %}
+                        Download
+                        {% endtranslate %}
+                    </a>
+                </p>
             </div>
         </div>
     </div>
-
-    <div class="col-12">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
+    <div class="col-12 col-lg-6 pb-4">
+        <div class="card h-100 mb-4">
+            <div class="card-header bg-white border-0 card-header pb-2">
+                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">
                     {% translate %}
                     Active logins
                     {% endtranslate %}
                 </h4>
-                <a class="btn btn-danger btn-sm" href="logout-all/">
-                    {% translate %}
-                    Logout all
-                    {% endtranslate %}
-                </a>
             </div>
-            <div class="card-body">
+            <div class="card-body pb-0 pt-2">
                 {% if sessions %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>
-                                    {% translate %}
-                                    User
-                                    {% endtranslate %}
-                                </th>
-                                <th>
-                                    {% translate %}
-                                    Active logins
-                                    {% endtranslate %}
-                                </th>
-                                <th>
-                                    {% translate %}
-                                    Logged in at (UTC)
-                                    {% endtranslate %}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user, info in sessions.items() %}
-                            <tr>
-                                <td><strong>{{ user }}</strong></td>
-                                <td>
-                                    <span class="badge bg-primary">{{ info.token_count }}</span>
-                                </td>
-                                <td>
-                                    {% for created_at in info.created_at %}
-                                        <small class="text-muted d-block">{{ created_at }}</small>
-                                    {% endfor %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th class="ps-0">
+                                {% translate %}
+                                User
+                                {% endtranslate %}
+                            </th>
+                            <th>
+                                {% translate %}
+                                Active logins
+                                {% endtranslate %}
+                            </th>
+                            <th>
+                                {% translate %}
+                                Logged in at (UTC)
+                                {% endtranslate %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user, info in sessions.items() %}
+                        <tr>
+                            <td class="ps-0"><strong>{{ user }}</strong></td>
+                            <td>
+                                <span class="badge bg-uproot">{{ info.token_count }}</span>
+                            </td>
+                            <td>
+                                {% for created_at in info.created_at %}
+                                    <small class="text-muted d-block">{{ created_at }}</small>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
                 {% else %}
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
@@ -121,78 +107,83 @@ Server status
                     {% endtranslate %}
                 </div>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="fw-semibold mt-2">{% translate %}Version information{% endtranslate %}</h4>
-            </div>
-            <div class="card-body pb-1">
-                <div class="mt-1 row">
-                    <div class="col pe-4">
-                        <h5 class="mb-3">{% translate %}uproot version{% endtranslate %}</h5>
-                        <p>
-                            {% translate %}
-                            You are currently running uproot {{ versions.uproot }}.
-                            {% endtranslate %}
-                        </p>
-                    </div>
-                    <div class="col-4 ps-0">
-                        <button type="button" class="btn btn-outline-danger" onclick="announcements()">
-                            {% translate %}
-                            Check for important annoucements
-                            {% endtranslate %}
-                        </button>
-                    </div>
-                </div>
-                <h5 class="mb-3 mt-2">{% translate %}Python version{% endtranslate %}</h5>
-                <p class="font-monospace">{{ versions.python }}</p>
-                <h5 class="mb-3 mt-4">{% translate %}Installed packages{% endtranslate %}</h5>
-                <p class="text-muted">
-                    {% translate %}
-                    For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.
-                    {% endtranslate %}
+                <p class="mb-2 mt-4">
+                    <a class="btn btn-danger btn-sm mb-0" href="logout-all/">
+                        {% translate %}
+                        Log out all
+                        {% endtranslate %}
+                    </a>
                 </p>
-                <table class="table table-hover table-sm">
-                    <thead>
-                        <tr>
-                            <th class="fw-semibold ps-0" scope="col">{% translate %}Package{% endtranslate %}</th>
-                            <th class="col-4 fw-semibold" scope="col">{% translate %}Version{% endtranslate %}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="font-monospace">
-                        {% for pkg, version in packages %}
-                        <tr>
-                            <td class="ps-0 {% if pkg=='uproot-science' %} fw-bold text-uproot {% endif %}">{{ pkg }}</td>
-                            <td {% if pkg=="uproot-science" %} class="fw-bold text-uproot" {% endif %}>{{ version }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
 </div>
 
-<div x-data="{ show: false }" class="mt-5">
-    <button class="btn btn-outline-secondary" type="button" @click="show = !show">
+<div class="card mb-4">
+    <div class="bg-white border-0 card-header pb-1">
+        <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Version information{% endtranslate %}</h4>
+    </div>
+    <div class="card-body pb-1 row">
+        <div class="col-12 col-lg-6">
+            <h5 class="mb-3">uproot {% translate %}version{% endtranslate %}</h5>
+            <p>
+                {% translate %}You are currently running{% endtranslate %}
+                uproot {{ versions.uproot }}.
+            </p>
+            <p>
+                <button type="button" class="btn btn-outline-uproot btn-sm fw-semibold" onclick="announcements()">
+                    {% translate %}
+                    Check for important annoucements
+                    {% endtranslate %}
+                </button>
+            </p>
+            <h5 class="mb-3 mt-4">{% translate %}Python version{% endtranslate %}</h5>
+            <p class="font-monospace">{{ versions.python }}</p>
+        </div>
+        <div class="col-12 col-lg-6">
+            <h5 class="mb-3">{% translate %}Installed packages{% endtranslate %}</h5>
+            <p class="text-muted">
+                {% translate %}
+                For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.
+                {% endtranslate %}
+            </p>
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th class="fw-semibold ps-0" scope="col">{% translate %}Package{% endtranslate %}</th>
+                        <th class="col-4 fw-semibold" scope="col">{% translate %}Version{% endtranslate %}</th>
+                    </tr>
+                </thead>
+                <tbody class="font-monospace">
+                    {% for pkg, version in packages %}
+                    <tr>
+                        <td class="ps-0 {% if pkg=='uproot-science' %} fw-bold text-uproot {% endif %}">{{ pkg }}</td>
+                        <td {% if pkg=="uproot-science" %} class="fw-bold text-uproot" {% endif %}>{{ version }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div x-data="{ show: false }" class="mb-3 mt-4">
+    <button class="btn btn-outline-uproot" type="button" @click="show = !show">
         <span x-show="!show">
-        {% translate %}Show information for <i>uproot</i> developers{% endtranslate %}
+        {% translate %}Show information for uproot developers{% endtranslate %}
         </span>
         <span x-show="show">
-        {% translate %}Hide information for <i>uproot</i> developers{% endtranslate %}
+        {% translate %}Hide information for uproot developers{% endtranslate %}
         </span>
     </button>
-
     {# No i18n needed here #}
-
-    <div x-show="show" class="mt-3">
-        <h3>Missing terms</h3>
-
-        <textarea class="form-control" rows="10" readonly>{{ missing | tojson }}</textarea>
+    <div x-show="show" class="card border-uproot-light mt-3">
+        <div class="bg-white border-0 card-header">
+            <h4 class="fw-semibold mb-0 mt-2 pb-0">Missing terms</h4>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control" rows="10" readonly>{{ missing | tojson }}</textarea>
+        </div>
     </div>
 </div>
 

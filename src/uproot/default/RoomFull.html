@@ -1,17 +1,22 @@
 {% extends "Base.html" %}
+
+
 {% set buttons = False %}
 {% set noautostart = True %}
 
+
 {% block title %}
+
 {% translate %}
-Error
+No more spots available
 {% endtranslate %}
+
 {% endblock title %}
 
 
 {% block main %}
 
-<div class="alert alert-danger" role="alert">
+<div class="alert alert-warning" role="alert">
     {% translate %}
     Regrettably, this study has reached capacity.
     {% endtranslate %}
@@ -19,6 +24,5 @@ Error
     You may now close this page.
     {% endtranslate %}
 </div>
-
 
 {% endblock main %}
