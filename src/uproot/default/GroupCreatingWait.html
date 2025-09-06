@@ -40,7 +40,7 @@ Please wait
     });
 
     uproot.onReady(() => {
-        uproot.invoke("please_group", true).then(update);
+        uproot.invoke("please_group").then(update);
 
         grouploop = window.setInterval(() => {
             uproot.invoke("please_group").then(update);

@@ -581,14 +581,14 @@ class GroupCreatingWait(InternalPage):
         return True
 
     @internal_live
-    async def please_group(page, player: Any, first: bool = False) -> tuple[str, float]:
+    async def please_group(page, player: Any) -> tuple[str, float]:
         # Check group status after any potential await points
         if player._uproot_group is not None:
             return "submit", 1
 
         from uproot.jobs import here, try_group
 
-        # Always try to create a group (not just on first call)
+        # Always try to create a group
         try_group(player._uproot_session, player.show_page, page.group_size)
 
         # Re-check group status after grouping attempt
