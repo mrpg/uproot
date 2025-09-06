@@ -45,6 +45,7 @@ def do_reset(ctx: click.Context, yes: bool) -> None:
             time.sleep(1)
 
     d.DATABASE.reset()
+    d.DATABASE.close()
 
     if not yes:
         click.echo("Database was reset.")

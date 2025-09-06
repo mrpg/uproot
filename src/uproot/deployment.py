@@ -66,4 +66,4 @@ async def lifespan_start(*args, **kwargs) -> None:
 
 
 async def lifespan_stop(*args, **kwargs) -> None:
-    pass
+    DATABASE.close()

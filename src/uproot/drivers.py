@@ -58,6 +58,10 @@ class DBDriver(ABC):
         """
         raise NotImplementedError
 
+    def close(self) -> None:
+        """Close database connections and clean up resources. Default implementation does nothing."""
+        pass
+
     def ensure(self) -> bool:
         try:
             self.test_connection()
@@ -188,6 +192,11 @@ class PostgreSQL(DBDriver):
             **kwargs,
         )
         self.tblextra = tblextra
+
+    def close(self) -> None:
+        """Close the connection pool and wait for all worker threads to stop."""
+        if hasattr(self, "pool") and self.pool:
+            self.pool.close(timeout=5.0)
 
     def test_connection(self) -> None:
         with self.pool.connection() as conn:
