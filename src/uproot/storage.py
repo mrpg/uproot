@@ -466,6 +466,7 @@ class Storage:
         "__accessed_fields__",
         "__allow_mutable__",
         "__field_cache__",
+        "__explicitly_set__",
         "name",
         "__path__",
         "__trail__",
@@ -491,6 +492,7 @@ class Storage:
         object.__setattr__(self, "__allow_mutable__", False)
         object.__setattr__(self, "__accessed_fields__", dict())
         object.__setattr__(self, "__field_cache__", dict())
+        object.__setattr__(self, "__explicitly_set__", set())
         object.__setattr__(self, "__virtual__", virtual or DEFAULT_VIRTUAL)
 
     def __invert__(self) -> Identifier:
@@ -535,9 +537,13 @@ class Storage:
             context=context(currentframe()),
         )
 
-        # Update caches
+        # Update caches and track explicit assignment
         self.__field_cache__[name] = newval
-        self.__accessed_fields__[name] = _safe_deepcopy(newval)
+        # Don't set baseline in __accessed_fields__ if we're in a context manager
+        # The baseline will be set at context exit to capture any in-place changes
+        if not self.__allow_mutable__:
+            self.__accessed_fields__[name] = _safe_deepcopy(newval)
+        self.__explicitly_set__.add(name)
 
     def __guarded_return__(self, value: Any) -> Any:
         if isinstance(value, IMMUTABLE_TYPES) or self.__allow_mutable__:
@@ -579,12 +585,14 @@ class Storage:
         db_request(self, "delete", name, None, context=context(currentframe()))
         self.__field_cache__.pop(name, None)
         self.__accessed_fields__.pop(name, None)
+        self.__explicitly_set__.discard(name)
 
     def __enter__(self) -> "Storage":
         self.__allow_mutable__ = True
         # Clear caches to ensure fresh values and baselines for this context
         self.__field_cache__.clear()
         self.__accessed_fields__.clear()
+        self.__explicitly_set__.clear()
 
         return self
 
@@ -601,6 +609,7 @@ class Storage:
         try:
             accessed_fields = object.__getattribute__(self, "__accessed_fields__")
             field_cache = object.__getattribute__(self, "__field_cache__")
+            explicitly_set = object.__getattribute__(self, "__explicitly_set__")
         except AttributeError:
             return  # Object wasn't fully initialized
 
@@ -609,7 +618,13 @@ class Storage:
                 current_value = field_cache[field]
                 # Check if the object was modified in-place
                 if current_value != original_value:
-                    # Save the modified value
+                    # Skip fields that were explicitly set via __setattr__ to prevent double assignment
+                    if field in explicitly_set:
+                        # Update baseline for explicitly set field but don't save again
+                        accessed_fields[field] = _safe_deepcopy(current_value)
+                        continue
+
+                    # Save the modified value for fields that were only accessed, not explicitly set
                     db_request(
                         self,
                         "insert",
