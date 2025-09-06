@@ -86,7 +86,7 @@ class Memory(DBDriver):
         pass
 
     def test_tables(self) -> None:
-        pass
+        raise Exception  # To trigger ensure() -> False
 
     def size(self) -> Optional[int]:
         return None
