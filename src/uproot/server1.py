@@ -97,6 +97,7 @@ async def show_page(
     ppath = show2path(player.page_order, player.show_page)
     page = path2page(ppath)
     proceed = False
+    direction = 1  # 1 for forward, -1 for backward
     form = None
     formdata = None
     custom_errors: list[str] = []
@@ -148,9 +149,9 @@ async def show_page(
                     and page.allow_back
                     and player.show_page > 0
                 ):
-                    # Go back to previous page
-                    player.show_page = player.show_page - 1
-                    # Don't set proceed = True, we want to show the previous page
+                    # Set direction to backward and proceed
+                    direction = -1
+                    proceed = True
                 else:
                     # Back navigation not allowed
                     if not hasattr(page, "allow_back") or not page.allow_back:
@@ -227,40 +228,82 @@ async def show_page(
             player=player,
         )
 
-        candidate = player.show_page + 1
+        if direction == 1:
+            # Forward navigation
+            candidate = player.show_page + 1
 
-        while candidate <= len(player.page_order):
-            page = path2page(show2path(player.page_order, candidate))
+            while candidate <= len(player.page_order):
+                page = path2page(show2path(player.page_order, candidate))
 
-            await t.optional_call(
-                page,
-                "early",
-                player=player,
-                request=request,
-            )
+                await t.optional_call(
+                    page,
+                    "early",
+                    player=player,
+                    request=request,
+                )
 
-            await t.optional_call_once(
-                page,
-                "before_always_once",
-                storage=player,
-                show_page=candidate,
-                player=player,
-            )
-
-            if await t.optional_call(page, "show", default_return=True, player=player):
-                # Ladies and gentlemen, we got him!
-                player.show_page = candidate
-                break
-            else:
                 await t.optional_call_once(
                     page,
-                    "after_always_once",
+                    "before_always_once",
                     storage=player,
                     show_page=candidate,
                     player=player,
                 )
 
-            candidate += 1
+                if await t.optional_call(
+                    page, "show", default_return=True, player=player
+                ):
+                    # Ladies and gentlemen, we got him!
+                    player.show_page = candidate
+                    break
+                else:
+                    await t.optional_call_once(
+                        page,
+                        "after_always_once",
+                        storage=player,
+                        show_page=candidate,
+                        player=player,
+                    )
+
+                candidate += 1
+        else:
+            # Backward navigation
+            candidate = player.show_page - 1
+
+            while candidate >= 0:
+                page = path2page(show2path(player.page_order, candidate))
+
+                await t.optional_call(
+                    page,
+                    "early",
+                    player=player,
+                    request=request,
+                )
+
+                await t.optional_call_once(
+                    page,
+                    "before_always_once",
+                    storage=player,
+                    show_page=candidate,
+                    player=player,
+                )
+
+                if await t.optional_call(
+                    page, "show", default_return=True, player=player
+                ):
+                    # Ladies and gentlemen, we got him!
+                    player.show_page = candidate
+                    break
+                else:
+                    await t.optional_call_once(
+                        page,
+                        "after_always_once",
+                        storage=player,
+                        show_page=candidate,
+                        player=player,
+                    )
+
+                candidate -= 1
 
     if (to := await t.optional_call(page, "set_timeout", player=player)) is not None:
         metadata["remaining_seconds"] = to
