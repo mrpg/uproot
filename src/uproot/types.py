@@ -598,12 +598,18 @@ class GroupCreatingWait(InternalPage):
         # Get fresh count for progress display
         all_here = here(player._uproot_session, player.show_page)
         ungrouped_count = 0
+
         for pid in all_here:
-            try:
-                if pid()._uproot_group is None:
-                    ungrouped_count += 1
-            except Exception:
-                continue
+            cgroup = None
+
+            if pid == ~player:
+                cgroup = player._uproot_group
+            else:
+                with pid() as player_:
+                    cgroup = player_._uproot_group
+
+            if cgroup is None:
+                ungrouped_count += 1
 
         return "wait", ungrouped_count / page.group_size
 
