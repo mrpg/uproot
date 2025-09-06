@@ -4,11 +4,8 @@ import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
 
-# s.CACHE_ENABLED = False
-
 
 def setup():
-    s.CACHE_ENABLED = True
     d.DATABASE.reset()
     u.CONFIGS["test"] = []
     u.CONFIGS_PPATHS["test"] = []
@@ -50,27 +47,46 @@ def test_field_access():
 
     # Set and get field
     pid().x = 42
-    assert pid().x == 42
+
+    with pid() as player:
+        assert player.x == 42
 
     # Field doesn't exist
     try:
-        _ = pid().nonexistent
+        with pid() as player:
+            _ = player.nonexistent
+
         assert False, "Should raise AttributeError"
     except AttributeError:
         pass
+
+
+def test_field_update_context():
+    sid, pid = setup()
+
+    with pid() as player:
+        player.y = -42
+        assert player.y == -42
+
+        player.y = 17
+        assert player.y == 17
 
 
 def test_field_deletion():
     sid, pid = setup()
 
     pid().to_delete = "value"
-    assert pid().to_delete == "value"
+
+    with pid() as player:
+        assert player.to_delete == "value"
 
     del pid().to_delete
 
     try:
-        _ = pid().to_delete
-        assert False, "Should raise AttributeError after deletion"
+        with pid() as player:
+            value = player.to_delete
+
+        assert False, f"Should raise AttributeError after deletion, but got: {value}"
     except AttributeError:
         pass
 
@@ -99,29 +115,6 @@ def test_bool_method():
     # Storage with fields should be truthy
     pid().some_field = "value"
     assert pid()
-
-
-def test_context_manager():
-    sid, pid = setup()
-
-    # Immutable access without context manager
-    pid().immutable = 42
-    assert pid().immutable == 42
-
-    # Mutable access requires context manager
-    pid().mutable_list = [1, 2, 3]
-
-    try:
-        _ = pid().mutable_list
-        assert False, "Should raise ValueError without context manager"
-    except ValueError as e:
-        assert "context manager" in str(e)
-
-    # Access with context manager
-    with pid() as player:
-        assert player.mutable_list == [1, 2, 3]
-        player.mutable_list.append(4)
-        assert player.mutable_list == [1, 2, 3, 4]
 
 
 def test_storage_equality():
@@ -214,20 +207,6 @@ def test_along_iteration():
         assert "running" in states
         assert "complete" in states
         assert len(contexts) == len(states)
-
-
-def test_flush_method():
-    sid, pid = setup()
-
-    with pid() as player:
-        player.data = {"key": "value"}
-        player.data["key"] = "modified"
-        # Flush should persist changes
-        player.flush()
-
-    # Verify change persisted
-    with pid() as player:
-        assert player.data["key"] == "modified"
 
 
 def test_mkpath():

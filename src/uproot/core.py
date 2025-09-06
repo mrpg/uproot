@@ -19,8 +19,6 @@ if TYPE_CHECKING:
 
 
 def create_admin(admin: s.Storage) -> None:
-    d.DATABASE.ensure()  # this is the first time the DB is used when running a project
-
     if not hasattr(admin, "_uproot_key"):
         admin._uproot_key = t.uuid()
 

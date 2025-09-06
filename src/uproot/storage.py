@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import copy
-import heapq
 import threading
 from inspect import currentframe
 from time import time
@@ -33,48 +32,72 @@ DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
     along=lambda p: (lambda field: within.along(p, field)),
     within=lambda p: (lambda **context: within(p, **context)),
 )
-CACHE_ENABLED: bool = True
-PATH_CACHE: dict[str, Any] = dict()
-MAX_CACHE_SIZE = 4096
-_cache_access_counter = 0
-_cache_heap: list[tuple[int, str]] = []
-_cache_latest_access: dict[str, int] = {}
-_heap_cleanup_threshold = MAX_CACHE_SIZE * 3
-_cache_lock = threading.RLock()
+# Simplified in-memory storage - store entire database history in memory
+# Structure: namespace -> field -> list of t.Value objects (complete history)
+# Current values are derived from the last non-tombstone entry in history
+MEMORY_HISTORY: dict[str, dict[str, list[Value]]] = {}
+_memory_lock = threading.RLock()
 
 
-def _cleanup_heap() -> None:
-    global _cache_heap, _cache_latest_access
+def _safe_deepcopy(value: Any) -> Any:
+    if isinstance(value, IMMUTABLE_TYPES):
+        return value
 
-    valid_entries = [
-        (access_time, path)
-        for access_time, path in _cache_heap
-        if path in PATH_CACHE and _cache_latest_access.get(path, 0) == access_time
-    ]
-
-    _cache_heap = valid_entries
-    heapq.heapify(_cache_heap)
+    return copy.deepcopy(value)
 
 
-def _evict_lru() -> None:
-    global _cache_access_counter, _cache_heap, _cache_latest_access
+def _get_current_value(namespace: str, field: str) -> Any:
+    """Get current value from last history entry.
+    NOTE: Assumes caller holds _memory_lock.
+    """
+    if (
+        namespace in MEMORY_HISTORY
+        and field in MEMORY_HISTORY[namespace]
+        and MEMORY_HISTORY[namespace][field]
+    ):
+        # Check if latest entry is available (not a tombstone)
+        latest = MEMORY_HISTORY[namespace][field][-1]
+        if not latest.unavailable:
+            return latest.data
 
-    if len(_cache_heap) > _heap_cleanup_threshold:
-        _cleanup_heap()
-
-    while len(PATH_CACHE) >= MAX_CACHE_SIZE and _cache_heap:
-        access_time, path = heapq.heappop(_cache_heap)
-        if path in PATH_CACHE and _cache_latest_access.get(path, 0) == access_time:
-            PATH_CACHE.pop(path, None)
-            _cache_latest_access.pop(path, None)
+    raise AttributeError(f"Key not found: ({namespace}, {field})")
 
 
-def _touch_cache(path: str) -> None:
-    global _cache_access_counter, _cache_heap, _cache_latest_access
+def _has_current_value(namespace: str, field: str) -> bool:
+    """Check if there's a current (non-tombstone) value.
+    NOTE: Assumes caller holds _memory_lock.
+    """
+    if (
+        namespace in MEMORY_HISTORY
+        and field in MEMORY_HISTORY[namespace]
+        and MEMORY_HISTORY[namespace][field]
+    ):
+        # Check if latest entry is available (not a tombstone)
+        latest = MEMORY_HISTORY[namespace][field][-1]
+        return not latest.unavailable
 
-    _cache_access_counter += 1
-    _cache_latest_access[path] = _cache_access_counter
-    heapq.heappush(_cache_heap, (_cache_access_counter, path))
+    return False
+
+
+def load_database_into_memory() -> None:
+    """Load the entire database history into memory at startup for faster access."""
+    global MEMORY_HISTORY
+
+    with _memory_lock:
+        MEMORY_HISTORY.clear()
+
+        from uproot.deployment import DATABASE
+
+        # Load complete history using history_all with empty prefix to get everything
+        for namespace, field, value in DATABASE.history_all(""):
+            if namespace not in MEMORY_HISTORY:
+                MEMORY_HISTORY[namespace] = {}
+
+            if field not in MEMORY_HISTORY[namespace]:
+                MEMORY_HISTORY[namespace][field] = []
+
+            # Add to history
+            MEMORY_HISTORY[namespace][field].append(value)
 
 
 def db_request(
@@ -93,6 +116,8 @@ def db_request(
         ]
     ] = None,
 ) -> Any:
+    # print(f"!!! db_request({caller}, {repr(action)}, {repr(key)}, ...)")
+
     ensure(
         key == "" or key.isidentifier(),
         ValueError,
@@ -105,56 +130,247 @@ def db_request(
 
     DATABASE.now = time()
 
+    # For writes, use write-through to database
     match action, key, value:
-        # WRITE-ONLY
+        # WRITE-ONLY - Always write to database immediately
         case "insert", _, _ if isinstance(context, str):
             DATABASE.insert(namespace, key, value, context)
+            # Update in-memory data
+            with _memory_lock:
+                if namespace not in MEMORY_HISTORY:
+                    MEMORY_HISTORY[namespace] = {}
+
+                if key not in MEMORY_HISTORY[namespace]:
+                    MEMORY_HISTORY[namespace][key] = []
+
+                # Add to history with current timestamp
+                new_value = Value(DATABASE.now, False, value, context)
+
+                # Special handling for player lists - replace entire history like database does
+                if key == "players" and namespace.startswith("session/"):
+                    MEMORY_HISTORY[namespace][key] = [new_value]
+                else:
+                    MEMORY_HISTORY[namespace][key].append(new_value)
             rval = value
+
         case "delete", _, None if isinstance(context, str):
             DATABASE.delete(namespace, key, context)
+            # Update in-memory data
+            with _memory_lock:
+                # Add tombstone to history
+                if namespace not in MEMORY_HISTORY:
+                    MEMORY_HISTORY[namespace] = {}
+                if key not in MEMORY_HISTORY[namespace]:
+                    MEMORY_HISTORY[namespace][key] = []
 
-        # READ-ONLY - USE NAMESPACE AND FIELD
+                tombstone = Value(DATABASE.now, True, None, context)
+                MEMORY_HISTORY[namespace][key].append(tombstone)
+
+        # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:
-            rval = DATABASE.get(namespace, key)
+            with _memory_lock:
+                rval = _get_current_value(namespace, key)
+
         case "get_field_history", _, None:
-            rval = DATABASE.get_field_history(namespace, key)
+            with _memory_lock:
+                if namespace in MEMORY_HISTORY and key in MEMORY_HISTORY[namespace]:
+                    rval = MEMORY_HISTORY[namespace][key]
+                else:
+                    rval = []
+
         case "fields", "", None:
-            rval = DATABASE.fields(namespace)
+            with _memory_lock:
+                if namespace in MEMORY_HISTORY:
+                    # Return only fields that have current (non-tombstone) values
+                    rval = [
+                        field
+                        for field in MEMORY_HISTORY[namespace].keys()
+                        if _has_current_value(namespace, field)
+                    ]
+                else:
+                    rval = []
+
         case "has_fields", "", None:
-            rval = DATABASE.has_fields(namespace)
+            with _memory_lock:
+                if namespace in MEMORY_HISTORY:
+                    rval = any(
+                        _has_current_value(namespace, field)
+                        for field in MEMORY_HISTORY[namespace].keys()
+                    )
+                else:
+                    rval = False
+
         case "history", "", None:
-            rval = DATABASE.history(namespace)
+            with _memory_lock:
+                result = []
+                if namespace in MEMORY_HISTORY:
+                    for field, values in MEMORY_HISTORY[namespace].items():
+                        for value in values:
+                            result.append((field, value))
+                rval = iter(result)
 
-        # READ-ONLY - SPECIAL
-        case "get_field_all_namespaces", "", None if isinstance(extra, str):
-            mkey: str
-
-            mkey = extra
-            rval = DATABASE.get_field_all_namespaces(mkey)
         case "get_many", "", None if isinstance(extra, tuple):
             mpaths: list[str]
-
             mpaths, mkey = cast(tuple[list[str], str], extra)
-            rval = DATABASE.get_many(mpaths, mkey)
+            with _memory_lock:
+                result = {}
+                for namespace in mpaths:
+                    if _has_current_value(namespace, mkey):
+                        # Get the latest non-tombstone value
+                        if (
+                            namespace in MEMORY_HISTORY
+                            and mkey in MEMORY_HISTORY[namespace]
+                            and MEMORY_HISTORY[namespace][mkey]
+                        ):
+                            latest = MEMORY_HISTORY[namespace][mkey][-1]
+                            if not latest.unavailable:
+                                result[(namespace, mkey)] = latest
+                rval = result
+
         case "get_latest", "", None if isinstance(extra, tuple):
             mpath: str
             since: float
-
             mpath, since = cast(tuple[str, float], extra)
-            rval = DATABASE.get_latest(mpath, since)
+            with _memory_lock:
+                result = {}
+                for ns, fields in MEMORY_HISTORY.items():
+                    if ns.startswith(mpath):
+                        for field, values in fields.items():
+                            if values and values[-1].time > since:
+                                result[(ns, field)] = values[-1]
+                rval = result
+
         case "history_all", "", None if isinstance(extra, str):
             mpathstart: str
-
             mpathstart = extra
-            rval = DATABASE.history_all(mpathstart)
+            with _memory_lock:
+                result = []
+                for ns, fields in MEMORY_HISTORY.items():
+                    if ns.startswith(mpathstart):
+                        for field, values in fields.items():
+                            for value in values:
+                                result.append((ns, field, value))
+                rval = iter(result)
+
         case "history_raw", "", None if isinstance(extra, str):
             mpathstart = extra
-            rval = DATABASE.history_raw(mpathstart)
+            with _memory_lock:
+                result = []
+                for ns, fields in MEMORY_HISTORY.items():
+                    if ns.startswith(mpathstart):
+                        for field, values in fields.items():
+                            for value in values:
+                                # Convert to RawValue
+                                from uproot.stable import encode
+
+                                raw_data = (
+                                    encode(value.data)
+                                    if not value.unavailable
+                                    else None
+                                )
+                                raw_value = RawValue(
+                                    value.time,
+                                    value.unavailable,
+                                    raw_data,
+                                    value.context,
+                                )
+                                result.append((ns, field, raw_value))
+                rval = iter(result)
+
         case "get_within_context", _, None if isinstance(extra, dict):
             context_fields: dict[str, Any]
-
             context_fields = extra
-            rval = DATABASE.get_within_context(namespace, context_fields, key)
+            with _memory_lock:
+                # This is complex - need to implement the context window logic using in-memory data
+                if (
+                    namespace not in MEMORY_HISTORY
+                    or key not in MEMORY_HISTORY[namespace]
+                ):
+                    raise AttributeError(
+                        f"No value found for {key} within the specified context in namespace {namespace}"
+                    )
+
+                target_values = MEMORY_HISTORY[namespace][key]
+
+                # Iterate from newest to oldest
+                for i in range(len(target_values) - 1, -1, -1):
+                    target_value = target_values[i]
+
+                    if target_value.unavailable:
+                        continue
+
+                    target_time = cast(float, target_value.time)
+                    all_contexts_match = True
+
+                    # Check each required context field at target_time
+                    for context_field, required_value in context_fields.items():
+                        if (
+                            namespace not in MEMORY_HISTORY
+                            or context_field not in MEMORY_HISTORY[namespace]
+                        ):
+                            all_contexts_match = False
+                            break
+
+                        context_values = MEMORY_HISTORY[namespace][context_field]
+
+                        # Find the latest context value at or before target_time
+                        context_state = None
+                        for cv in reversed(context_values):
+                            if cast(float, cv.time) <= target_time:
+                                context_state = cv
+                                break
+
+                        if (
+                            context_state is None
+                            or context_state.unavailable
+                            or context_state.data != required_value
+                        ):
+                            all_contexts_match = False
+                            break
+
+                    if all_contexts_match:
+                        # Verify this is still the latest within the context window
+                        still_valid = True
+                        earliest_context_change = None
+
+                        # Find when any context field changed after target_time
+                        for context_field, required_value in context_fields.items():
+                            if (
+                                namespace in MEMORY_HISTORY
+                                and context_field in MEMORY_HISTORY[namespace]
+                            ):
+                                context_values = MEMORY_HISTORY[namespace][
+                                    context_field
+                                ]
+
+                                for cv in context_values:
+                                    if cast(float, cv.time) > target_time:
+                                        if cv.unavailable or cv.data != required_value:
+                                            if (
+                                                earliest_context_change is None
+                                                or cv.time < earliest_context_change
+                                            ):
+                                                earliest_context_change = cv.time
+                                            break
+
+                        # Check if there's a later target value before context change
+                        if earliest_context_change is not None:
+                            for tv in target_values:
+                                if (
+                                    target_time
+                                    < cast(float, tv.time)
+                                    < earliest_context_change
+                                ):
+                                    still_valid = False
+                                    break
+
+                        if still_valid:
+                            rval = target_value.data
+                            break
+                else:
+                    raise AttributeError(
+                        f"No value found for {key} within the specified context in namespace {namespace}"
+                    )
 
         # ERROR
         case _, _, _:
@@ -180,21 +396,6 @@ def field_from_paths(paths: list[str], field: str) -> dict[tuple[str, str], Valu
 
 def all_good(key: tuple[str, str]) -> bool:
     return True
-
-
-def field_from_all(
-    field: str, predicate: Callable[[tuple[str, str]], bool] = lambda x: True
-) -> dict[tuple[str, str], Value]:
-    result = cast(
-        dict[tuple[str, str], Value],
-        db_request(
-            None,
-            "get_field_all_namespaces",
-            extra=field,
-        ),
-    )
-
-    return {key: v for key, v in result.items() if predicate(key)}
 
 
 def fields_from_session(
@@ -232,13 +433,6 @@ def history_raw(mpathstart: str) -> Iterator[tuple[str, str, RawValue]]:
     )
 
 
-def _safe_deepcopy(value: Any) -> Any:
-    if isinstance(value, IMMUTABLE_TYPES):
-        return value
-
-    return copy.deepcopy(value)
-
-
 class within:
     __slots__ = (
         "__storage__",
@@ -271,7 +465,7 @@ class Storage:
     __slots__ = (
         "__accessed_fields__",
         "__allow_mutable__",
-        "_cache_ref",
+        "__field_cache__",
         "name",
         "__path__",
         "__trail__",
@@ -296,18 +490,8 @@ class Storage:
         object.__setattr__(self, "__trail__", trail)
         object.__setattr__(self, "__allow_mutable__", False)
         object.__setattr__(self, "__accessed_fields__", dict())
+        object.__setattr__(self, "__field_cache__", dict())
         object.__setattr__(self, "__virtual__", virtual or DEFAULT_VIRTUAL)
-
-        path = self.__path__
-        with _cache_lock:
-            if path not in PATH_CACHE:
-                _evict_lru()
-                PATH_CACHE[path] = dict()
-                _touch_cache(path)
-
-            cache_ref = PATH_CACHE[path]
-
-        object.__setattr__(self, "_cache_ref", cache_ref)
 
     def __invert__(self) -> Identifier:
         match self.__trail__[0]:
@@ -351,7 +535,8 @@ class Storage:
             context=context(currentframe()),
         )
 
-        self._cache_ref[name] = newval
+        # Update caches
+        self.__field_cache__[name] = newval
         self.__accessed_fields__[name] = _safe_deepcopy(newval)
 
     def __guarded_return__(self, value: Any) -> Any:
@@ -363,40 +548,43 @@ class Storage:
             )
 
     def __getattribute__(self, name: str) -> Any:
-        if name in ("name", "_cache_ref", "flush", "get") or (
+        if name in ("name", "flush", "get") or (
             name.startswith("__") and name.endswith("__")
         ):
             return object.__getattribute__(self, name)
 
-        cache_ref = object.__getattribute__(self, "_cache_ref")
         accessed_fields = object.__getattribute__(self, "__accessed_fields__")
+        field_cache = object.__getattribute__(self, "__field_cache__")
         virtual = object.__getattribute__(self, "__virtual__")
 
         if name in virtual:
             return virtual[name](self)
 
-        if name in cache_ref and CACHE_ENABLED:
-            if name not in accessed_fields:
-                accessed_fields[name] = _safe_deepcopy(cache_ref[name])
-
-            return self.__guarded_return__(cache_ref[name])
+        # Check if we have a cached copy of this field
+        if name in field_cache:
+            return self.__guarded_return__(field_cache[name])
 
         try:
             value = db_request(self, "get", name)
-            cache_ref[name] = value
-            accessed_fields[name] = _safe_deepcopy(value)
-
+            # Cache the value for consistent object identity
+            field_cache[name] = value
+            # For deep modification detection, store a copy of the original only on first access
+            if name not in accessed_fields:
+                accessed_fields[name] = _safe_deepcopy(value)
             return self.__guarded_return__(value)
         except NameError as e:
             raise AttributeError(f"{self} has no .{name}") from e
 
     def __delattr__(self, name: str) -> None:
         db_request(self, "delete", name, None, context=context(currentframe()))
-        self._cache_ref.pop(name, None)
+        self.__field_cache__.pop(name, None)
         self.__accessed_fields__.pop(name, None)
 
     def __enter__(self) -> "Storage":
         self.__allow_mutable__ = True
+        # Clear caches to ensure fresh values and baselines for this context
+        self.__field_cache__.clear()
+        self.__accessed_fields__.clear()
 
         return self
 
@@ -404,25 +592,33 @@ class Storage:
         if exc_type is None:
             self.flush()
             self.__allow_mutable__ = False
+        # Clear field cache when exiting context to ensure fresh values next time
+        self.__field_cache__.clear()
 
         return False
 
     def flush(self) -> None:
         try:
-            cache_ref = object.__getattribute__(self, "_cache_ref")
             accessed_fields = object.__getattribute__(self, "__accessed_fields__")
+            field_cache = object.__getattribute__(self, "__field_cache__")
         except AttributeError:
             return  # Object wasn't fully initialized
 
-        for field, original_value in accessed_fields.items():
-            if field in cache_ref and cache_ref[field] != original_value:
-                db_request(
-                    self,
-                    "insert",
-                    field,
-                    cache_ref[field],
-                    context=context(currentframe()),
-                )
+        for field, original_value in list(accessed_fields.items()):
+            if field in field_cache:
+                current_value = field_cache[field]
+                # Check if the object was modified in-place
+                if current_value != original_value:
+                    # Save the modified value
+                    db_request(
+                        self,
+                        "insert",
+                        field,
+                        current_value,
+                        context=context(currentframe()),
+                    )
+                    # Update our accessed_fields to the new baseline
+                    accessed_fields[field] = _safe_deepcopy(current_value)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Storage):
@@ -434,15 +630,6 @@ class Storage:
         return cast(list[str], db_request(self, "fields"))
 
     def __bool__(self) -> bool:
-        if CACHE_ENABLED:
-            cache_ref = self._cache_ref
-
-            if cache_ref:
-                for value in cache_ref.values():
-                    if value is not None:
-                        return True
-                return False
-
         return cast(bool, db_request(self, "has_fields"))
 
     def __history__(self) -> Iterator[tuple[str, Value]]:

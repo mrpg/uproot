@@ -6,6 +6,7 @@ import os
 import time
 import traceback
 import urllib.parse
+from contextlib import nullcontext
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Callable, ItemsView, Iterable, Optional, cast
 
@@ -107,17 +108,22 @@ async def render(
     uauth: Optional[str] = None,
 ) -> str:
     ppath = truepath(page)
+    group = nullcontext()
 
     if player is None:
-        sname, uname, thisis, key, session = [None] * 5
+        sname, uname, thisis, key = [None] * 4
+        session = nullcontext()
     else:
-        sname, uname, thisis, key, session = (
+        sname, uname, thisis, key = (
             player._uproot_session,
             player.name,
             player.show_page,
             player.key,
-            player._uproot_session(),
         )
+        session = player.session
+
+        if player._uproot_group is not None:
+            group = player.group
 
     data = a.from_cookie(uauth) if uauth else {"user": "", "token": ""}
     is_admin = (
@@ -166,31 +172,32 @@ async def render(
         | internal
     )
 
-    context = (
-        cast(
-            dict[str, Any],
-            await t.optional_call(
-                page, "context", default_return=dict(), player=player
-            ),
+    with session, group:
+        context = (
+            cast(
+                dict[str, Any],
+                await t.optional_call(
+                    page, "context", default_return=dict(), player=player
+                ),
+            )
+            | BUILTINS
+            | dict(
+                session=session,
+                player=player,
+                page=page,
+                app=app,
+                form=form,
+                JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
+                show2path=show2path,
+                _uproot_errors=custom_errors,
+                _uproot_js=jsvars,
+                _uproot_testing=(is_admin or (sname is not None and session.testing)),
+            )
+            | function_context(page)
+            | internal
         )
-        | BUILTINS
-        | dict(
-            session=session,
-            player=player,
-            page=page,
-            app=app,
-            form=form,
-            JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
-            show2path=show2path,
-            _uproot_errors=custom_errors,
-            _uproot_js=jsvars,
-            _uproot_testing=(is_admin or (session is not None and session.testing)),
-        )
-        | function_context(page)
-        | internal
-    )
 
-    return await ENV.get_template(ppath).render_async(**context)
+        return await ENV.get_template(ppath).render_async(**context)
 
 
 async def render_error(

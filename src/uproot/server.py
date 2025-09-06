@@ -27,11 +27,14 @@ from uproot.pages import page2path
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
-from uproot.storage import Admin
+from uproot.storage import Admin, load_database_into_memory
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
+    d.DATABASE.ensure()  # This is the first time the DB is used when running a project
+    load_database_into_memory()
+
     with Admin() as admin:
         c.create_admin(admin)
         j.synchronize_rooms(app, admin)

@@ -6,7 +6,6 @@ import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
 
-s.CACHE_ENABLED = False
 d.DATABASE.reset()
 u.CONFIGS["test"] = []
 u.CONFIGS_PPATHS["test"] = []
@@ -21,25 +20,34 @@ with sid() as session:
 
 def test_int():
     pid().x = -42
-    assert pid().x == -42
-    assert type(pid().x) is int
+
+    with pid() as player:
+        assert player.x == -42
+        assert type(player.x) is int
 
 
 def test_float():
     pid().f = 3.14159
-    assert pid().f == 3.14159
-    assert type(pid().f) is float
+
+    with pid() as player:
+        assert player.f == 3.14159
+        assert type(player.f) is float
 
 
 def test_str():
     pid().s = "hello world"
-    assert pid().s == "hello world"
-    assert type(pid().s) is str
+
+    with pid() as player:
+        assert player.s == "hello world"
+        assert type(player.s) is str
 
 
 def test_tuple():
     pid().t = (1, 2, "three", 4.0)
-    result = pid().t
+
+    with pid() as player:
+        result = player.t
+
     assert result == (1, 2, "three", 4.0)
     assert type(result) is tuple
     assert type(result[0]) is int
@@ -50,41 +58,55 @@ def test_tuple():
 
 def test_bytes():
     pid().b = b"binary data"
-    assert pid().b == b"binary data"
-    assert type(pid().b) is bytes
+
+    with pid() as player:
+        assert player.b == b"binary data"
+        assert type(player.b) is bytes
 
 
 def test_bool():
     pid().bool_true = True
     pid().bool_false = False
-    assert pid().bool_true is True
-    assert pid().bool_false is False
-    assert type(pid().bool_true) is bool
-    assert type(pid().bool_false) is bool
+
+    with pid() as player:
+        assert player.bool_true is True
+        assert player.bool_false is False
+        assert type(player.bool_true) is bool
+        assert type(player.bool_false) is bool
 
 
 def test_complex():
     pid().c = 3 + 4j
-    assert pid().c == 3 + 4j
-    assert type(pid().c) is complex
+
+    with pid() as player:
+        assert player.c == 3 + 4j
+        assert type(player.c) is complex
 
 
 def test_none():
     pid().n = None
-    assert pid().n is None
-    assert type(pid().n) is type(None)
+
+    with pid() as player:
+        assert player.n is None
+        assert type(player.n) is type(None)
 
 
 def test_decimal():
     pid().d = Decimal("123.456789")
-    result = pid().d
+
+    with pid() as player:
+        result = player.d
+
     assert result == Decimal("123.456789")
     assert type(result) is Decimal
 
 
 def test_frozenset():
     pid().fs = frozenset([1, 2, 3, "a", "b"])
-    result = pid().fs
+
+    with pid() as player:
+        result = player.fs
+
     assert result == frozenset([1, 2, 3, "a", "b"])
     assert type(result) is frozenset
     # Check element types
@@ -94,7 +116,10 @@ def test_frozenset():
 
 def test_player_identifier():
     pid().pi = t.PlayerIdentifier("session1", "user1")
-    result = pid().pi
+
+    with pid() as player:
+        result = player.pi
+
     assert result == t.PlayerIdentifier("session1", "user1")
     assert type(result) is t.PlayerIdentifier
     assert result.sname == "session1"
@@ -103,7 +128,10 @@ def test_player_identifier():
 
 def test_session_identifier():
     pid().si = t.SessionIdentifier("session1")
-    result = pid().si
+
+    with pid() as player:
+        result = player.si
+
     assert result == t.SessionIdentifier("session1")
     assert type(result) is t.SessionIdentifier
     assert result.sname == "session1"
@@ -111,7 +139,10 @@ def test_session_identifier():
 
 def test_group_identifier():
     pid().gi = t.GroupIdentifier("session1", "group1")
-    result = pid().gi
+
+    with pid() as player:
+        result = player.gi
+
     assert result == t.GroupIdentifier("session1", "group1")
     assert type(result) is t.GroupIdentifier
     assert result.sname == "session1"
@@ -120,7 +151,10 @@ def test_group_identifier():
 
 def test_model_identifier():
     pid().mi = t.ModelIdentifier("session1", "model1")
-    result = pid().mi
+
+    with pid() as player:
+        result = player.mi
+
     assert result == t.ModelIdentifier("session1", "model1")
     assert type(result) is t.ModelIdentifier
     assert result.sname == "session1"
@@ -192,7 +226,3 @@ def test_bunch():
         # Check all elements are PlayerIdentifiers
         for elem in result:
             assert type(elem) is t.PlayerIdentifier
-
-
-def test_ensure_nocache():
-    assert not s.CACHE_ENABLED

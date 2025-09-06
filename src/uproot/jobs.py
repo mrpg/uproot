@@ -12,7 +12,7 @@ import uproot.deployment as d
 import uproot.events as e
 import uproot.queues as q
 import uproot.storage as s
-from uproot.types import PlayerIdentifier, Sessionname, Username, Value, optional_call
+from uproot.types import PlayerIdentifier, Sessionname, Username, optional_call
 
 
 async def from_queue(pid: PlayerIdentifier) -> tuple[str, q.EntryType]:
@@ -94,51 +94,26 @@ def synchronize_rooms(app: FastAPI, admin: s.Storage) -> None:
 
 
 def restore(app: FastAPI, admin: s.Storage) -> None:
-    def is_player(key: tuple[str, str]) -> bool:
-        namespace, field = key
-        return namespace.startswith("player/")
-
     u.KEY = admin._uproot_key
 
-    _minusone = Value(0.0, False, -1)
-    _none = Value(0.0, False, None)
+    # Iterate through all sessions and players using official storage methods
+    for sname in admin.sessions:
+        with s.Session(sname) as session:
+            for pid in session.players:
+                with s.Player(pid.sname, pid.uname) as player:
+                    # Get the player's info if available
+                    id_ = getattr(player, "id", None)
+                    page_order = getattr(player, "page_order", None)
+                    show_page = getattr(player, "show_page", -1)
 
-    ids, porders, pshows, all_watches = (
-        s.field_from_all("id", is_player),
-        s.field_from_all("page_order", is_player),
-        s.field_from_all("show_page", is_player),
-        s.field_from_all("_uproot_watch", is_player),
-    )
+                    if page_order is not None:
+                        u.set_info(pid, id_, page_order, show_page)
 
-    for (namespace, field), porder in porders.items():
-        # Extract sname and uname from namespace path like "player/session_name/user_name"
-        parts = namespace.split("/")
-        if len(parts) >= 3 and parts[0] == "player":
-            sname, uname = parts[1], parts[2]
-            pid = PlayerIdentifier(sname, uname)
-
-            # Look up other values using the same namespace and different fields
-            id_ = cast(Optional[int], ids.get((namespace, "id"), _none).data)
-            page_order = cast(list[str], porder.data)
-            show_page = cast(int, pshows.get((namespace, "show_page"), _minusone).data)
-
-            u.set_info(
-                pid,
-                id_,
-                page_order,
-                show_page,
-            )
-
-    for (namespace, field), watchset in all_watches.items():
-        # Extract sname and uname from namespace path like "player/session_name/user_name"
-        parts = namespace.split("/")
-        if len(parts) >= 3 and parts[0] == "player":
-            sname, uname = parts[1], parts[2]
-            pid = PlayerIdentifier(sname, uname)
-
-            if not watchset.unavailable:
-                for watch in cast(set[tuple[float, str, str]], watchset.data):
-                    u.WATCH.add((pid, *watch))
+                    # Handle watches
+                    watches = getattr(player, "_uproot_watch", None)
+                    if watches is not None:
+                        for watch in cast(set[tuple[float, str, str]], watches):
+                            u.WATCH.add((pid, *watch))
 
 
 def here(
@@ -191,8 +166,7 @@ def try_group(player: s.Storage, show_page: int, group_size: int) -> Optional[st
         if pid == ~player:
             add_to_valid = player._uproot_group is None
         else:
-            with pid() as player_:
-                add_to_valid = player_._uproot_group is None
+            add_to_valid = pid()._uproot_group is None
 
         if add_to_valid:
             valid_members.append(pid)

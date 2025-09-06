@@ -19,7 +19,7 @@ import uproot.rooms as ur
 import uproot.types as t
 from uproot.constraints import ensure
 from uproot.pages import path2page, render
-from uproot.storage import Admin, Session, field_from_all
+from uproot.storage import Admin, Player, Session
 
 router = APIRouter(prefix=d.ROOT)
 
@@ -101,27 +101,15 @@ async def roommain(
 
     session = Session(room["sname"])
 
-    # Check for existing player with same label
-
-    def heresession(key: tuple[str, str]) -> bool:
-        namespace, field = key
-        parts = namespace.split("/")
-
-        return len(parts) >= 2 and parts[0] == "player" and parts[1] == room["sname"]
-
     if label != "":
-        for (namespace, field), labelvalue in field_from_all(
-            "label", heresession
-        ).items():
-            # Extract sname and uname from namespace path like "player/session_name/user_name"
-            parts = namespace.split("/")
-            if len(parts) >= 3 and parts[0] == "player":
-                sname, uname = parts[1], parts[2]
-
-                if labelvalue.data == label:
-                    return RedirectResponse(
-                        f"{d.ROOT}/p/{sname}/{uname}/", status_code=303
-                    )
+        # Check existing players in this session for the same label
+        with Session(room["sname"]) as session:
+            for pid in session.players:
+                with Player(pid.sname, pid.uname) as player:
+                    if hasattr(player, "label") and player.label == label:
+                        return RedirectResponse(
+                            f"{d.ROOT}/p/{pid.sname}/{pid.uname}/", status_code=303
+                        )
 
     # Try to add new player
     # TODO: Or use free slot!
@@ -131,8 +119,7 @@ async def roommain(
             session.room = roomname
 
         if ur.freejoin(room) or len(session.players) < capacity:
-            with session:
-                pid = c.create_player(session)
+            pid = c.create_player(session)
 
             player = pid()
             player.label = label

@@ -88,9 +88,11 @@ def autoadd(
             if expected_type == PlayerIdentifier:
                 fill[field] = pid
             elif expected_type == SessionIdentifier:
-                fill[field] = pid().session
+                with pid() as player:
+                    fill[field] = player.session
             elif expected_type == GroupIdentifier:
-                fill[field] = pid().group
+                with pid() as player:
+                    fill[field] = player.group
             elif expected_type == ModelIdentifier:
                 fill[field] = mid
             else:

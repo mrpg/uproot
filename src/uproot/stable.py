@@ -34,7 +34,6 @@ TYPES: dict[type, int] = {
 
 
 IMMUTABLE_TYPES: tuple[type, ...] = tuple(k for k, v in TYPES.items() if v < 128)
-
 MUTABLE_TYPES: tuple[type, ...] = tuple(k for k, v in TYPES.items() if v >= 128)
 
 
