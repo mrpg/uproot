@@ -163,12 +163,12 @@ def here(
         }
 
 
-def try_group(sname: Sessionname, show_page: int, group_size: int) -> Optional[str]:
+def try_group(player: s.Storage, show_page: int, group_size: int) -> Optional[str]:
     """
     Try to create exactly one group from available players.
 
     Args:
-        sname: Session name
+        player: Caller
         show_page: Page number where grouping should occur
         group_size: Required number of players per group
 
@@ -176,32 +176,31 @@ def try_group(sname: Sessionname, show_page: int, group_size: int) -> Optional[s
         Group name if a group was created, None otherwise
     """
     # Get all players on the same page (not checking group status yet)
-    same_page = list(here(sname, show_page))
+    sname = player._uproot_session
+    same_page = here(sname, show_page)
 
     # Not enough players available
     if len(same_page) < group_size:
         return None
 
-    # Select first group_size players deterministically
-    selected = same_page[:group_size]
+    # Verification that players are still valid and ungrouped
+    valid_members = list()
+    for pid in same_page:
+        add_to_valid = False
 
-    # Final verification that selected players are still valid and ungrouped
-    valid_members = set()
-    for pid in selected:
-        try:
-            player = pid()
-            if (
-                player._uproot_group is None
-                and cast(int, u.get_info(pid)[2]) == show_page
-            ):
-                valid_members.add(pid)
-        except Exception:
-            continue
+        if pid == ~player:
+            add_to_valid = player._uproot_group is None
+        else:
+            with pid() as player_:
+                add_to_valid = player_._uproot_group is None
+
+        if add_to_valid:
+            valid_members.append(pid)
 
     # Still have enough valid players
     if len(valid_members) >= group_size:
         # Take exactly group_size members
-        group_members = set(list(valid_members)[:group_size])
+        group_members = valid_members[:group_size]
 
         # Create the group
         with s.Session(sname) as session:

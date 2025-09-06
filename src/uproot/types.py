@@ -569,9 +569,7 @@ class GroupCreatingWait(InternalPage):
         # Try to create a group immediately
         from uproot.jobs import try_group
 
-        group_name = try_group(
-            player._uproot_session, player.show_page, page.group_size
-        )
+        group_name = try_group(player, player.show_page, page.group_size)
 
         # If grouping succeeded, player now has a group - don't show page
         if player._uproot_group is not None:
@@ -589,7 +587,7 @@ class GroupCreatingWait(InternalPage):
         from uproot.jobs import here, try_group
 
         # Always try to create a group
-        try_group(player._uproot_session, player.show_page, page.group_size)
+        try_group(player, player.show_page, page.group_size)
 
         # Re-check group status after grouping attempt
         if player._uproot_group is not None:
