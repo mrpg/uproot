@@ -70,7 +70,7 @@ def others_in_session(player: Storage) -> t.StorageBunch:
 def others_in_group(player: Storage) -> t.StorageBunch:
     pid = ~player
 
-    with player._uproot_group() as g:
+    with player.group as g:
         bunch = g.players
 
     return t.StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
