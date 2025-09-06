@@ -237,6 +237,10 @@ class PostgreSQL(DBDriver):
                     )
                     """
                 )
+                # Create unique index for efficient upserts on players field
+                cur.execute(
+                    f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players'"
+                )
 
     def dump(self) -> Iterator[bytes]:
         with self.pool.connection() as conn:
@@ -266,39 +270,61 @@ class PostgreSQL(DBDriver):
 
                     # Special handling for player lists - replace existing value, don't create history
                     if field == "players" and namespace.startswith("session/"):
-                        # Delete existing entries for this namespace/field first
+                        # Use UPDATE to replace existing entry
                         cur.execute(
-                            f"DELETE FROM uproot{self.tblextra}_values WHERE namespace = %s AND field = %s",
-                            (namespace, field),
+                            f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",
+                            (
+                                row_dict["value"],
+                                row_dict["created_at"],
+                                row_dict["context"],
+                                namespace,
+                                field,
+                            ),
                         )
-
-                    cur.execute(
-                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
-                        (
-                            namespace,
-                            field,
-                            row_dict["value"],
-                            row_dict["created_at"],
-                            row_dict["context"],
-                        ),
-                    )
+                        if cur.rowcount == 0:
+                            cur.execute(
+                                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                                (
+                                    namespace,
+                                    field,
+                                    row_dict["value"],
+                                    row_dict["created_at"],
+                                    row_dict["context"],
+                                ),
+                            )
+                    else:
+                        cur.execute(
+                            f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                            (
+                                namespace,
+                                field,
+                                row_dict["value"],
+                                row_dict["created_at"],
+                                row_dict["context"],
+                            ),
+                        )
 
     def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
                 # Special handling for player lists - replace existing value, don't create history
                 if field == "players" and namespace.startswith("session/"):
-                    # Delete existing entries for this namespace/field first
+                    # Use UPDATE to replace existing entry
                     cur.execute(
-                        f"DELETE FROM uproot{self.tblextra}_values WHERE namespace = %s AND field = %s",
-                        (namespace, field),
+                        f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",
+                        (encode(data), self.now, context, namespace, field),
                     )
-
-                # Insert the new value (normal append-only for most fields, replacement for players)
-                cur.execute(
-                    f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
-                    (namespace, field, encode(data), self.now, context),
-                )
+                    if cur.rowcount == 0:
+                        cur.execute(
+                            f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                            (namespace, field, encode(data), self.now, context),
+                        )
+                else:
+                    # Normal append-only for other fields
+                    cur.execute(
+                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                        (namespace, field, encode(data), self.now, context),
+                    )
 
     def delete(self, namespace: str, field: str, context: str) -> None:
         with self.pool.connection() as conn:
@@ -380,6 +406,10 @@ class Sqlite3(DBDriver):
             )
             """
         )
+        # Create unique index for efficient upserts on players field
+        conn.execute(
+            f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players'"
+        )
         conn.commit()
         conn.close()
 
@@ -410,22 +440,39 @@ class Sqlite3(DBDriver):
 
             # Special handling for player lists - replace existing value, don't create history
             if field == "players" and namespace.startswith("session/"):
-                # Delete existing entries for this namespace/field first
-                conn.execute(
-                    f"DELETE FROM uproot{self.tblextra}_values WHERE namespace = ? AND field = ?",
-                    (namespace, field),
+                # Use UPDATE to replace existing entry
+                cursor = conn.execute(
+                    f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",
+                    (
+                        row_dict["value"],
+                        row_dict["created_at"],
+                        row_dict["context"],
+                        namespace,
+                        field,
+                    ),
                 )
-
-            conn.execute(
-                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
-                (
-                    namespace,
-                    field,
-                    row_dict["value"],
-                    row_dict["created_at"],
-                    row_dict["context"],
-                ),
-            )
+                if cursor.rowcount == 0:
+                    conn.execute(
+                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                        (
+                            namespace,
+                            field,
+                            row_dict["value"],
+                            row_dict["created_at"],
+                            row_dict["context"],
+                        ),
+                    )
+            else:
+                conn.execute(
+                    f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                    (
+                        namespace,
+                        field,
+                        row_dict["value"],
+                        row_dict["created_at"],
+                        row_dict["context"],
+                    ),
+                )
 
         conn.commit()
         conn.close()
@@ -434,19 +481,24 @@ class Sqlite3(DBDriver):
         with self._lock:
             conn = self._get_connection()
 
-            # Special handling for player lists - replace existing value, don't create history
+            # Special handling for player lists - replace existing entry
             if field == "players" and namespace.startswith("session/"):
-                # Delete existing entries for this namespace/field first
-                conn.execute(
-                    f"DELETE FROM uproot{self.tblextra}_values WHERE namespace = ? AND field = ?",
-                    (namespace, field),
+                # Use UPDATE to replace existing entry
+                cursor = conn.execute(
+                    f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",
+                    (encode(data), self.now, context, namespace, field),
                 )
-
-            # Insert the new value (normal append-only for most fields, replacement for players)
-            conn.execute(
-                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
-                (namespace, field, encode(data), self.now, context),
-            )
+                if cursor.rowcount == 0:
+                    conn.execute(
+                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                        (namespace, field, encode(data), self.now, context),
+                    )
+            else:
+                # Normal append-only for other fields
+                conn.execute(
+                    f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                    (namespace, field, encode(data), self.now, context),
+                )
 
             conn.commit()
             conn.close()
