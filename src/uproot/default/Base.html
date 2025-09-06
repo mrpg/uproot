@@ -17,7 +17,7 @@
 {% if buttons %}
 <div class="d-flex justify-content-between my-3">
     {% if page.allow_back %}
-    <button type="button" id="uproot-button-back" class="btn btn-outline-secondary">
+    <button type="button" id="uproot-button-back" class="btn btn-outline-secondary" onclick="uproot.goBack()">
         {% translate %}
         Back
         {% endtranslate %}

@@ -364,6 +364,11 @@ window.uproot = {
         return I("uproot-form").submit();
     },
 
+    goBack() {
+        this.I("_uproot_from").value = "back-" + uproot.vars._uproot_internal.thisis;
+        return I("uproot-form").submit();
+    },
+
     onStart(fun) {
         window.addEventListener("DOMContentLoaded", fun);
     },

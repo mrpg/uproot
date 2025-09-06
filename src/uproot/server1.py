@@ -92,15 +92,7 @@ async def show_page(
     player: Storage,
     uauth: Optional[str] = None,
 ) -> str:
-    # this function is written in a very verbose style to reveal logic issues early
-
-    # case 1: GET, player.show_page == -1 => player just started, has to be init'ed
-    # case 2: GET, player.started is True, player.show_page > -1 AND < len(player.page_order) => just show page
-    # case 3: POST, player.show_page == formdata._uproot_from => validate and maybe proceed
-    # case 4: GET, player is at the end
-    # convention: when proceeding, show_page is never set to unshown pages - if that happens
-    # nonetheless, we have another case:
-    # case 5: GET, like case 2 but player was manually advanced to unshown page
+    # This function is written in a very verbose style to reveal logic issues early
 
     ppath = show2path(player.page_order, player.show_page)
     page = path2page(ppath)
@@ -118,17 +110,13 @@ async def show_page(
 
     if request.method == "GET":
         if player.show_page == -1:
-            # case 1
             pass
         elif player.started and len(player.page_order) > player.show_page > -1:
             if await t.optional_call(page, "show", default_return=True, player=player):
-                # case 2
                 pass
             else:
-                # case 5
                 proceed = True
         elif player.started and len(player.page_order) == player.show_page:
-            # case 4
             pass
         else:
             raise HTTPException(status_code=501)
@@ -137,13 +125,43 @@ async def show_page(
 
         try:
             ensure(isinstance(formdata["_uproot_from"], str), ValueError)
-            send_from = int(formdata["_uproot_from"])
+            uproot_from_str = formdata["_uproot_from"]
+
+            # Check for back navigation
+            if uproot_from_str.startswith("back-"):
+                send_from = int(
+                    uproot_from_str[5:]
+                )  # Extract page number after "back-"
+                is_back_navigation = True
+            else:
+                send_from = int(uproot_from_str)
+                is_back_navigation = False
         except ValueError:
             send_from = -1000
+            is_back_navigation = False
 
         if player.show_page == send_from and verify_csrf(page, player, formdata):
-            # case 3
-            if player.show_page == -1:  # Initialize.html
+            if is_back_navigation:
+                # Handle back navigation
+                if (
+                    hasattr(page, "allow_back")
+                    and page.allow_back
+                    and player.show_page > 0
+                ):
+                    # Go back to previous page
+                    player.show_page = player.show_page - 1
+                    # Don't set proceed = True, we want to show the previous page
+                else:
+                    # Back navigation not allowed
+                    if not hasattr(page, "allow_back") or not page.allow_back:
+                        raise RuntimeError(
+                            f"Back navigation attempted but not allowed on page {page.__class__.__name__}"
+                        )
+                    else:
+                        raise RuntimeError(
+                            f"Back navigation attempted but player is at first page (show_page={player.show_page})"
+                        )
+            elif player.show_page == -1:  # Initialize.html
                 if not player.started:
                     player.started = True
 
@@ -181,7 +199,6 @@ async def show_page(
 
                     proceed = True
         else:
-            # case 2, e.g., when skipping
             pass
     else:
         raise HTTPException(status_code=400)
