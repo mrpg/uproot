@@ -101,10 +101,7 @@ def set_info(
 
 
 def get_info(pid: PlayerIdentifier) -> tuple[Optional[int], list[str], int]:
-    try:
-        return INFO[pid.sname][pid.uname]
-    except KeyError:
-        return None, None
+    return INFO[pid.sname][pid.uname]
 
 
 def set_offline(pid: PlayerIdentifier) -> None:
