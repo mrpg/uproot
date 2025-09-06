@@ -15,6 +15,7 @@ HOST: str
 PORT: int
 ADMINS: dict[str, str] = dict()
 DEFAULT_ROOMS: list["RoomType"] = list()
+FIRST_RUN: bool = False
 PATH: str = os.getcwd()
 TIMEOUT_TOLERANCE: float = 1.0
 LANGUAGE: ISO639 = "en"

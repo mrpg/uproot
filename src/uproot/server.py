@@ -3,6 +3,7 @@
 
 import asyncio
 from contextlib import asynccontextmanager
+from sys import stderr
 from typing import (
     Any,
     AsyncIterator,
@@ -32,7 +33,10 @@ from uproot.storage import Admin, load_database_into_memory
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
-    d.DATABASE.ensure()  # This is the first time the DB is used when running a project
+    if not d.DATABASE.ensure():
+        # This is the first time the DB is used when running a project
+        d.FIRST_RUN = True
+
     load_database_into_memory()
 
     with Admin() as admin:
@@ -42,12 +46,31 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     d.LOGGER.info(f"This is uproot {u.__version__} (https://uproot.science/)")
     d.LOGGER.info(f"Server is running at http://{d.HOST}:{d.PORT}{d.ROOT}/")
-    d.LOGGER.info(f"Admin panel is at http://{d.HOST}:{d.PORT}{d.ROOT}/admin/")
 
     if (la := len(d.ADMINS)) == 1:
         d.LOGGER.info("There is 1 admin")
     else:
         d.LOGGER.info(f"There are {la} admins")
+
+    if d.FIRST_RUN:
+        print(file=stderr)
+        print(
+            "Since this is the first run, here are the admins' credentials.",
+            file=stderr,
+        )
+        print("You can view and change them in 'main.py'.", file=stderr)
+        print(file=stderr)
+
+        for i, (user, pw) in enumerate(d.ADMINS.items(), 1):
+            if not isinstance(pw, str):
+                # This is for future enhancements of admin authentication
+                pw = "???"
+
+            print(f"ADMIN {i}:")
+            print(f"  Username: {user}", file=stderr)
+            print(f"  Password: {pw}", file=stderr)
+
+        print(file=stderr)
 
     tasks = []
 

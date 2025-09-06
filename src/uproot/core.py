@@ -9,7 +9,6 @@ import importlib.metadata
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence
 
 import uproot as u
-import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
 from uproot.constraints import ensure
