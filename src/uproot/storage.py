@@ -467,6 +467,7 @@ class Storage:
         "__allow_mutable__",
         "__field_cache__",
         "__explicitly_set__",
+        "__assigned_values__",
         "name",
         "__path__",
         "__trail__",
@@ -493,6 +494,7 @@ class Storage:
         object.__setattr__(self, "__accessed_fields__", dict())
         object.__setattr__(self, "__field_cache__", dict())
         object.__setattr__(self, "__explicitly_set__", set())
+        object.__setattr__(self, "__assigned_values__", dict())
         object.__setattr__(self, "__virtual__", virtual or DEFAULT_VIRTUAL)
 
     def __invert__(self) -> Identifier:
@@ -544,6 +546,8 @@ class Storage:
         if not self.__allow_mutable__:
             self.__accessed_fields__[name] = _safe_deepcopy(newval)
         self.__explicitly_set__.add(name)
+        # Track the originally assigned value to detect post-assignment modifications
+        self.__assigned_values__[name] = _safe_deepcopy(newval)
 
     def __guarded_return__(self, value: Any) -> Any:
         if isinstance(value, IMMUTABLE_TYPES) or self.__allow_mutable__:
@@ -586,6 +590,7 @@ class Storage:
         self.__field_cache__.pop(name, None)
         self.__accessed_fields__.pop(name, None)
         self.__explicitly_set__.discard(name)
+        self.__assigned_values__.pop(name, None)
 
     def __enter__(self) -> "Storage":
         self.__allow_mutable__ = True
@@ -593,6 +598,7 @@ class Storage:
         self.__field_cache__.clear()
         self.__accessed_fields__.clear()
         self.__explicitly_set__.clear()
+        self.__assigned_values__.clear()
 
         return self
 
@@ -610,20 +616,37 @@ class Storage:
             accessed_fields = object.__getattribute__(self, "__accessed_fields__")
             field_cache = object.__getattribute__(self, "__field_cache__")
             explicitly_set = object.__getattribute__(self, "__explicitly_set__")
+            assigned_values = object.__getattribute__(self, "__assigned_values__")
         except AttributeError:
             return  # Object wasn't fully initialized
 
-        for field, original_value in list(accessed_fields.items()):
+        # Check all fields in the cache (includes both accessed and explicitly set fields)
+        all_fields = set(accessed_fields.keys()) | set(field_cache.keys())
+
+        for field in all_fields:
             if field in field_cache:
                 current_value = field_cache[field]
-                # Check if the object was modified in-place
-                if current_value != original_value:
-                    # Skip fields that were explicitly set via __setattr__ to prevent double assignment
-                    if field in explicitly_set:
-                        # Update baseline for explicitly set field but don't save again
-                        accessed_fields[field] = _safe_deepcopy(current_value)
-                        continue
+                original_value = accessed_fields.get(field)
 
+                # For explicitly set fields, we need special handling
+                if field in explicitly_set:
+                    assigned_value = assigned_values.get(field)
+                    # Only save if current value differs from the originally assigned value
+                    if current_value != assigned_value:
+                        # Save the modified value (post-assignment modification detected)
+                        db_request(
+                            self,
+                            "insert",
+                            field,
+                            current_value,
+                            context=context(currentframe()),
+                        )
+                    # Update baseline for explicitly set field
+                    accessed_fields[field] = _safe_deepcopy(current_value)
+                    continue
+
+                # For accessed-only fields, compare against original baseline
+                if original_value is not None and current_value != original_value:
                     # Save the modified value for fields that were only accessed, not explicitly set
                     db_request(
                         self,

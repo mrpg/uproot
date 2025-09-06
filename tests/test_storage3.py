@@ -366,9 +366,13 @@ class TestContextManagerSemantics:
         except ValueError:
             pass
 
-        # Data should be saved since assignment happens before exception
+        # Assignment should be saved, but in-place modification should not (no flush on exception)
         with pid() as player:
-            assert player.exception_test == [1, 2, 3, 4]  # Modifications saved
+            assert player.exception_test == [
+                1,
+                2,
+                3,
+            ]  # Only assignment saved, append lost
 
     def test_cache_isolation_between_contexts(self):
         """Test that field caches are properly isolated between contexts."""

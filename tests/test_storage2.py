@@ -234,6 +234,50 @@ def test_field_from_paths():
     assert 200 in [v.data for v in scores.values()]
 
 
+def test_list_assignment_then_append():
+    """Test that assignment followed by in-place append is properly detected."""
+    sid, pid = setup()
+
+    # Assign a list and then append to it within the same context
+    with pid() as player:
+        player.my_list = [1, 2, 3]
+        player.my_list.append(4)
+        # At this point, player.my_list should be [1, 2, 3, 4]
+        assert player.my_list == [1, 2, 3, 4]
+
+    # Verify that the appended value was actually persisted
+    with pid() as player:
+        assert player.my_list == [
+            1,
+            2,
+            3,
+            4,
+        ], f"Expected [1, 2, 3, 4], got {player.my_list}"
+
+
+def test_no_double_flush_for_assigned_unchanged_values():
+    """Test that flush doesn't create duplicate entries for assigned but unchanged values."""
+    sid, pid = setup()
+
+    # Track history count before
+    initial_history = list(pid().__history__())
+    initial_count = len([h for h in initial_history if h[0] == "unchanged_value"])
+
+    with pid() as player:
+        # Assign a value but don't modify it further
+        player.unchanged_value = "test"
+        # Don't modify player.unchanged_value - flush should not create additional entry
+
+    # Check that only the assignment created a history entry, not the flush
+    final_history = list(pid().__history__())
+    final_count = len([h for h in final_history if h[0] == "unchanged_value"])
+
+    # Should have exactly one new entry from the assignment
+    assert (
+        final_count == initial_count + 1
+    ), f"Expected {initial_count + 1} entries, got {final_count}"
+
+
 def test_storage_repr():
     admin = s.Admin()
     assert repr(admin) == "Admin()"
