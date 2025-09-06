@@ -11,38 +11,36 @@ from uproot.i18n import ISO639
 if TYPE_CHECKING:
     from uproot.rooms import RoomType
 
-HOST: str
-PORT: int
+logging.basicConfig(level=logging.INFO)
+
 ADMINS: dict[str, str] = dict()
+DATABASE: uproot.drivers.DBDriver = uproot.drivers.Memory()
+DBENV: str = os.getenv("UPROOT_DATABASE", "sqlite3")
 DEFAULT_ROOMS: list["RoomType"] = list()
 FIRST_RUN: bool = False
 HIDE_MISSING_I18N: bool = True
-PATH: str = os.getcwd()
-TIMEOUT_TOLERANCE: float = 1.0
+HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
+LOGGER: Any = logging.getLogger("uproot")
+PATH: str = os.getcwd()
+PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = dict()
 SKIP_INTERNAL: bool = True
+TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
+TIMEOUT_TOLERANCE: float = 1.0
+UNAVAILABLE_EQUIVALENT: str = "null"
 UVICORN_KWARGS: dict[str, Any] = dict(
-    reload=False,  # auto-reloading is handled by uproot itself
-    # ~ log_level="critical",
+    reload=False,
     log_level="info",
 )
-
-logging.basicConfig(level=logging.INFO)
-LOGGER = logging.getLogger("uproot")
-
-TBLEXTRA = os.getenv("UPROOT_TBLEXTRA", "")
-DBENV = os.getenv("UPROOT_DATABASE", "sqlite3")
-UNAVAILABLE_EQUIVALENT: str = "null"
-DATABASE: uproot.drivers.DBDriver
 
 if DBENV == "sqlite3":
     DATABASE = uproot.drivers.Sqlite3(
         os.getenv("UPROOT_SQLITE3", "uproot.sqlite3"), TBLEXTRA
     )
 elif DBENV == "memory":
-    DATABASE = uproot.drivers.Memory()
-    # LOGGER.warning("Using Memory() database driver. Data will not persist.")
+    pass
+    LOGGER.warning("Using 'memory' database driver. Data will not persist.")
 elif DBENV == "postgresql":
     DATABASE = uproot.drivers.PostgreSQL(os.getenv("UPROOT_POSTGRESQL", ""), TBLEXTRA)
 else:
