@@ -44,9 +44,11 @@ class TranslateLoader(BaseLoader):
 
 
 def missing(s: str, target: ISO639) -> str:
-    from uproot.deployment import LOGGER
+    from uproot.deployment import HIDE_MISSING_I18N, LOGGER
 
-    LOGGER.warning(f"Missing translation into {target} of: '{s}'")
+    if not HIDE_MISSING_I18N:
+        LOGGER.warning(f"Missing translation into {target} of: '{s}'")
+
     MISSING.add((s, target))
 
     return s
