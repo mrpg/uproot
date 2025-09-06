@@ -144,7 +144,7 @@ def db_request(
                     MEMORY_HISTORY[namespace][key] = []
 
                 # Add to history with current timestamp
-                new_value = Value(DATABASE.now, False, value, context)
+                new_value = Value(DATABASE.now, False, _safe_deepcopy(value), context)
 
                 # Special handling for player lists - replace entire history like database does
                 if key == "players" and namespace.startswith("session/"):
