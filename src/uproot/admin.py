@@ -44,8 +44,8 @@ def admins() -> str:
 
 def _get_serializer() -> URLSafeTimedSerializer:
     """Get configured token serializer."""
-    # Use deployment salt + key + admins hash as secret key for maximum security
-    secret_key = t.sha256(f"{d.SALT}:{u.KEY}:{admins()}")
+    # Use key + admins hash as secret key for maximum security
+    secret_key = t.sha256(f"{u.KEY}:{admins()}")
     return URLSafeTimedSerializer(secret_key)
 
 

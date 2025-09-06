@@ -91,7 +91,6 @@ upd.LANGUAGE = "en"  # Available languages: "de", "en", "es"
 # Run uproot (leave this as-is)
 
 if __name__ == "__main__":
-    upd.SALT = "#SALT#"
     cli()
 """.lstrip()
 
@@ -216,7 +215,6 @@ def setup_mere_project(path: Path) -> None:
     with open(mainpath, "w", encoding="utf-8") as mf:
         template = (
             PROJECT_TEMPLATE.replace("#PASSWORD#", t.token_unchecked(18))
-            .replace("#SALT#", t.token_unchecked(18))
             .replace("#VERSION#", u.__version__)
             .replace("#TODAY#", date.today().strftime("%Y-%m-%d"))
         )

@@ -32,7 +32,6 @@ LOGGER = logging.getLogger("uproot")
 TBLEXTRA = os.getenv("UPROOT_TBLEXTRA", "")
 DBENV = os.getenv("UPROOT_DATABASE", "sqlite3")
 UNAVAILABLE_EQUIVALENT: str = "null"
-SALT = "+f2AvJ-ey9y32AjO"
 DATABASE: uproot.drivers.DBDriver
 
 if DBENV == "sqlite3":

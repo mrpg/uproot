@@ -170,7 +170,7 @@ class DBDriver(ABC):
         """
         raise NotImplementedError
 
-    def ensure(self) -> None:
+    def ensure(self) -> bool:
         try:
             self.test_connection()
         except Exception as exc:
@@ -180,8 +180,10 @@ class DBDriver(ABC):
 
         try:
             self.test_tables()
+            return True
         except Exception:
             self.reset()
+            return False
 
 
 class Memory(DBDriver):
