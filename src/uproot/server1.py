@@ -150,6 +150,8 @@ async def show_page(
                 ):
                     # Go back to previous page
                     player.show_page = player.show_page - 1
+                    # Update page reference to the previous page
+                    page = path2page(show2path(player.page_order, player.show_page))
                     # Don't set proceed = True, we want to show the previous page
                 else:
                     # Back navigation not allowed
