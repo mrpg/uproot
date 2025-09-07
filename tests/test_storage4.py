@@ -1,4 +1,5 @@
-from uproot.storage import Storage, load_database_into_memory
+from uproot.cache import load_database_into_memory
+from uproot.storage import Storage
 from uproot.types import Value
 
 

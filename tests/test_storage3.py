@@ -17,6 +17,7 @@ from decimal import Decimal
 import pytest
 
 import uproot as u
+import uproot.cache as cache
 import uproot.core as c
 import uproot.deployment as d
 import uproot.storage as s
@@ -44,7 +45,7 @@ def setup_fresh_database():
     u.CONFIGS_PPATHS["test"] = []
 
     # Force reload of in-memory database
-    s.load_database_into_memory()
+    cache.load_database_into_memory()
 
     with s.Admin() as admin:
         c.create_admin(admin)

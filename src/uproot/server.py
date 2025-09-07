@@ -22,13 +22,14 @@ import uproot as u
 import uproot.core as c
 import uproot.deployment as d
 import uproot.jobs as j
+from uproot.cache import load_database_into_memory
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
 from uproot.pages import page2path
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
-from uproot.storage import Admin, load_database_into_memory
+from uproot.storage import Admin
 
 
 @asynccontextmanager
