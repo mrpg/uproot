@@ -448,7 +448,7 @@
                     <tr>
                         <td class="ps-0">{{ loop.index0 }}</td>
                         <td>
-                            <a class="link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span class="site-origin" x-text="window.location.origin"></span>{{ root }}/p/{{ sname }}/{{ key }}/</a>
+                            <a class="link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/p/{{ sname }}/{{ key }}/</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -460,7 +460,7 @@
         </div>
         <div class="border-uproot-light modal-footer justify-content-between">
             <button class="btn btn-outline-uproot btn-sm" onclick="copyURLsToClipboard()" type="button">Copy URLs as plain text</button>
-            <span class="fw-light d-none me-3 text-uproot" id="urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
+            <span class="fw-300 invisible me-3 text-uproot" id="urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
         </div>
         </div>
     </div>
@@ -493,9 +493,9 @@
         };
         // Copy the text inside the text field
         navigator.clipboard.writeText(text);
-        I("urls-copied").classList.remove("d-none");
+        I("urls-copied").classList.remove("invisible");
         setTimeout(function() {
-            I("urls-copied").classList.add("d-none");
+            I("urls-copied").classList.add("invisible");
         }, 3000);
     };
 </script>
