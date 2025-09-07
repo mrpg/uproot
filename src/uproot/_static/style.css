@@ -20,16 +20,17 @@
 
 /* uproot color scheme */
 :root{
-    --bs-uproot: #7700cc;
-    --bs-uproot-rgb: 119, 0, 204;
-    --bs-uproot-bg-light: #f1e5f9;
-    --bs-uproot-bg-subtle: #fbf6ff;
-    --bs-uproot-border-light: #bb7fe5;
-    --bs-uproot-border-light-rgb: 187, 127, 229;
-    --bs-uproot-border-subtle: #d6b2ef;
-    --bs-uproot-border-subtle-rgb: 214, 178, 239;
-    --bs-uproot-dark: #550091;
-    --bs-uproot-dark-rgb: 85, 0, 145;
+    --bs-uproot: #4e1388;
+    --bs-uproot-rgb: 68, 17, 119;
+    --bs-uproot-rgb: 78, 19, 136;
+    --bs-uproot-bg-light: #f0e5fb;  /* rgb(240, 229, 251) */
+    --bs-uproot-bg-subtle: #faf6fe;  /* rgb(250, 246, 254) */
+    --bs-uproot-border-light: #9241e4;
+    --bs-uproot-border-light-rgb: 146, 65, 228;
+    --bs-uproot-border-subtle: #ba86ee;
+    --bs-uproot-border-subtle-rgb: 186, 134, 238;
+    --bs-uproot-dark: #300c55;
+    --bs-uproot-dark-rgb: 48, 12, 85;
 }
 
 .bg-uproot {
