@@ -8,7 +8,7 @@ import traceback
 import urllib.parse
 from contextlib import nullcontext
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Callable, ItemsView, Iterable, Optional, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 from pydantic import validate_call
@@ -379,20 +379,7 @@ def type_filter(x: Any) -> str:
     return str(type(x))
 
 
-def history2items(it: Iterable[tuple[str, t.Value]]) -> ItemsView[str, list[t.Value]]:
-    rval: dict[str, list[t.Value]] = dict()
-
-    for field, value in it:
-        if field not in rval:
-            rval[field] = list()
-
-        rval[field].append(value)
-
-    return rval.items()
-
-
 ENV.filters["to"] = to_filter
 ENV.filters["unixtime2datetime"] = unixtime2datetime_filter
-ENV.filters["history2items"] = history2items
 ENV.filters["repr"] = repr
 ENV.filters["type"] = type_filter

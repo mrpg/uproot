@@ -13,7 +13,7 @@
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                {% for field, values in (player.__history__() | history2items) %}
+                {% for field, values in player.__history__().items() %}
                 <tr>
                     <th rowspan="{{ values | length }}" scope="row" class="col-2 ps-0">
                         <span class="font-monospace">

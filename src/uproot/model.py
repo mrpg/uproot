@@ -163,8 +163,8 @@ def all(
         as_type = FrozenDottedDict
 
     with model(mid) as model_:
-        for field, value in model_.__history__():
-            if field == "entry" and not value.unavailable:
+        for value in model_.__history__().get("entry", []):
+            if not value.unavailable:
                 d = cast(dict[str, Any], value.data)
 
                 yield _with_time(d, value.time, as_type)
@@ -196,8 +196,8 @@ def filter(
         as_type = FrozenDottedDict
 
     with model(mid) as model_:
-        for field, value in model_.__history__():
-            if field == "entry" and not value.unavailable:
+        for value in model_.__history__().get("entry", []):
+            if not value.unavailable:
                 d = cast(dict[str, Any], value.data)
 
                 if _fits(

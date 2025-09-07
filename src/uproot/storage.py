@@ -202,12 +202,9 @@ def db_request(
 
         case "history", "", None:
             with _memory_lock:
-                result = []
-                if namespace in MEMORY_HISTORY:
-                    for field, values in MEMORY_HISTORY[namespace].items():
-                        for value in values:
-                            result.append((field, value))
-                rval = iter(result)
+                rval = (
+                    MEMORY_HISTORY[namespace] if namespace in MEMORY_HISTORY else dict()
+                )
 
         case "get_many", "", None if isinstance(extra, tuple):
             mpaths: list[str]
@@ -670,8 +667,8 @@ class Storage:
     def __bool__(self) -> bool:
         return cast(bool, db_request(self, "has_fields"))
 
-    def __history__(self) -> Iterator[tuple[str, Value]]:
-        return cast(Iterator[tuple[str, Value]], db_request(self, "history"))
+    def __history__(self) -> dict[str, list[Value]]:
+        return cast(list[tuple[str, Value]], db_request(self, "history"))
 
     def __repr__(self) -> str:
         if len(self.__trail__) == 1:
