@@ -672,29 +672,23 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     current_path = Path(base_path)
 
     for part in path_parts:
-        try:
-            actual_names = os.listdir(current_path)
-            if part not in actual_names:
-                matches = [n for n in actual_names if n.lower() == part.lower()]
-                if matches:
-                    d.LOGGER.error(
-                        f"Case mismatch in {{%% static %%}}: '{part}' should be '{matches[0]}'"
-                    )
-                    raise HTTPException(status_code=500)
-                else:
-                    raise HTTPException(status_code=404)
+        actual_names = os.listdir(current_path)
+        if part not in actual_names:
+            matches = [n for n in actual_names if n.lower() == part.lower()]
+            if matches:
+                d.LOGGER.error(
+                    f"Case mismatch in {{%% static %%}}: '{part}' should be '{matches[0]}'"
+                )
+                raise HTTPException(status_code=500)
+            else:
+                raise HTTPException(status_code=404)
 
-            current_path = current_path / part
-        except (OSError, PermissionError):
-            raise HTTPException(status_code=404)
+        current_path = current_path / part
 
     if os.path.isdir(target_path):
         raise HTTPException(status_code=404)
 
-    try:
-        stat = os.stat(target_path)
-    except (OSError, PermissionError):
-        raise HTTPException(status_code=404)
+    stat = os.stat(target_path)
 
     etag_base = f"{stat.st_mtime}-{stat.st_size}-{stat.st_ino}"
     etag = f'"{hashlib.md5(etag_base.encode()).hexdigest()}"'
