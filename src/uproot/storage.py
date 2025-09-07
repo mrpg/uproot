@@ -58,7 +58,7 @@ def _get_current_value(namespace: str, field: str) -> Any:
         # Check if latest entry is available (not a tombstone)
         latest = MEMORY_HISTORY[namespace][field][-1]
         if not latest.unavailable:
-            return latest.data
+            return _safe_deepcopy(latest.data)
 
     raise AttributeError(f"Key not found: ({namespace}, {field})")
 
