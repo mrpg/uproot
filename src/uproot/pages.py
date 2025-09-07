@@ -197,6 +197,9 @@ async def render(
             | internal
         )
 
+        if player is not None:
+            player.flush()
+
         return await ENV.get_template(ppath).render_async(**context)
 
 
