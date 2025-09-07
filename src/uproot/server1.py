@@ -69,7 +69,7 @@ async def enqueue(request: q.EntryRequest, queue: str) -> dict[str, Any]:
     if not q.is_authorized(path, request.credential):
         raise HTTPException(status_code=403, detail="Bad credential")
 
-    path, u = await q.enqueue(path, request.entry)
+    path, u = q.enqueue(path, request.entry)
 
     return {
         "status": "enqueued",
@@ -578,7 +578,7 @@ async def ws(
                                     _, now = chat.add(mid, msg), time()
 
                                     for p in pp:
-                                        await q.enqueue(
+                                        q.enqueue(
                                             tuple(p),
                                             dict(
                                                 source="chat",

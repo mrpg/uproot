@@ -28,7 +28,7 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
     for uname in unames:
         ptuple = sname, uname
 
-        await q.enqueue(
+        q.enqueue(
             ptuple,
             dict(
                 source="adminmessage",
@@ -91,7 +91,7 @@ async def advance_by_one(
             if -1 < player.show_page < len(player.page_order):
                 player.show_page += 1
 
-                await q.enqueue(
+                q.enqueue(
                     tuple(pid),
                     dict(
                         source="admin",
@@ -361,7 +361,7 @@ async def insert_fields(
                 setattr(player, k, v)
 
             if reload:
-                await q.enqueue(
+                q.enqueue(
                     tuple(pid),
                     dict(
                         source="admin",
@@ -392,7 +392,7 @@ async def put_to_end(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]
             if player.show_page < len(player.page_order):
                 player.show_page = len(player.page_order)
 
-                await q.enqueue(
+                q.enqueue(
                     tuple(pid),
                     dict(
                         source="admin",
@@ -419,7 +419,7 @@ async def reload(sname: t.Sessionname, unames: list[str]) -> None:
     for uname in unames:
         ptuple = sname, uname
 
-        await q.enqueue(
+        q.enqueue(
             ptuple,
             dict(
                 source="admin",
@@ -441,7 +441,7 @@ async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, di
             if -1 < player.show_page <= len(player.page_order):
                 player.show_page -= 1
 
-                await q.enqueue(
+                q.enqueue(
                     tuple(pid),
                     dict(
                         source="admin",

@@ -46,7 +46,7 @@ def is_authorized(path: PathType, cred: CredentialType) -> bool:
 
 
 @validate_call
-async def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, str]:
+def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, str]:
     """
     Enqueue an entry into the queue specified by path.
 
@@ -59,7 +59,7 @@ async def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, str]:
     """
     u = uuid()
 
-    await Q[path].put((u, entry))
+    Q[path].put_nowait((u, entry))
 
     return path, u
 

@@ -25,12 +25,12 @@ def live(method: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @flexible
-async def send_to_one(
+def send_to_one(
     recipient: t.PlayerIdentifier,
     data: Any,
     event: str = "_uproot_Received",
 ) -> None:
-    await enqueue(
+    enqueue(
         tuple(recipient),
         dict(
             source="send_to",
@@ -40,16 +40,16 @@ async def send_to_one(
     )
 
 
-async def send_to(
+def send_to(
     recipient: PlayerLike | Iterable[PlayerLike],
     data: Any,
     event: str = "_uproot_Received",
 ) -> None:
     if is_player_like(recipient):
-        await send_to_one(recipient, data, event)
+        send_to_one(recipient, data, event)
     elif isinstance(recipient, Iterable):
         for one_recipient in recipient:  # type: ignore [union-attr]
-            await send_to_one(one_recipient, data, event)
+            send_to_one(one_recipient, data, event)
     else:
         raise TypeError(
             "send_to must be called with a PlayerLike or Iterable[PlayerLike]."
@@ -109,8 +109,8 @@ def players(
 
 
 @flexible
-async def reload(player: Storage) -> None:
-    await enqueue(
+def reload(player: Storage) -> None:
+    enqueue(
         (player._uproot_session, player.name),
         dict(
             source="admin",
@@ -123,26 +123,24 @@ async def reload(player: Storage) -> None:
 
 
 @flexible
-async def move_to_page(
-    player: Storage, target: type[t.Page], reload_: bool = True
-) -> None:
+def move_to_page(player: Storage, target: type[t.Page], reload_: bool = True) -> None:
     target_path = page2path(target)
     player.show_page = player.page_order.index(target_path, player.show_page)
 
     if reload_:
-        await reload(player)
+        reload(player)
 
 
 @flexible
-async def move_to_end(player: Storage, reload_: bool = True) -> None:
+def move_to_end(player: Storage, reload_: bool = True) -> None:
     player.show_page = len(player.page_order)
 
     if reload_:
-        await reload(player)
+        reload(player)
 
 
 @flexible
-async def mark_dropout(player: Storage) -> None:
+def mark_dropout(player: Storage) -> None:
     pid = cast(t.PlayerIdentifier, ~player)
 
     u.MANUAL_DROPOUTS.add(pid)
