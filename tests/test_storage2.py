@@ -154,11 +154,11 @@ def test_history():
     pid().counter = 2
     pid().counter = 3
 
-    history = list(pid().__history__())
-    assert len(history) >= 3
+    history = pid().__history__()
+    assert "counter" in history
 
-    # History should contain field names and values
-    counter_history = [h for h in history if h[0] == "counter"]
+    # History should contain values for counter field
+    counter_history = history["counter"]
     assert len(counter_history) >= 3
 
 
@@ -260,8 +260,8 @@ def test_no_double_flush_for_assigned_unchanged_values():
     sid, pid = setup()
 
     # Track history count before
-    initial_history = list(pid().__history__())
-    initial_count = len([h for h in initial_history if h[0] == "unchanged_value"])
+    initial_history = pid().__history__()
+    initial_count = len(initial_history.get("unchanged_value", []))
 
     with pid() as player:
         # Assign a value but don't modify it further
@@ -269,8 +269,8 @@ def test_no_double_flush_for_assigned_unchanged_values():
         # Don't modify player.unchanged_value - flush should not create additional entry
 
     # Check that only the assignment created a history entry, not the flush
-    final_history = list(pid().__history__())
-    final_count = len([h for h in final_history if h[0] == "unchanged_value"])
+    final_history = pid().__history__()
+    final_count = len(final_history.get("unchanged_value", []))
 
     # Should have exactly one new entry from the assignment
     assert (

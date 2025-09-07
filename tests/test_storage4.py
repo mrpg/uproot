@@ -14,30 +14,32 @@ class TestHistoryCoherence:
             storage.test_str = "hello"
             storage.test_float = 3.14
 
-        history = list(storage.__history__())
+        history = storage.__history__()
 
-        int_found = False
-        str_found = False
-        float_found = False
+        assert "test_int" in history
+        assert "test_str" in history
+        assert "test_float" in history
 
-        for field_name, value in history:
+        for value in history["test_int"]:
             assert isinstance(value, Value)
             assert not value.unavailable
-            assert value.data is not None
+            assert value.data == 42
             assert value.time is not None
             assert isinstance(value.context, str)
 
-            if field_name == "test_int":
-                assert value.data == 42
-                int_found = True
-            elif field_name == "test_str":
-                assert value.data == "hello"
-                str_found = True
-            elif field_name == "test_float":
-                assert value.data == 3.14
-                float_found = True
+        for value in history["test_str"]:
+            assert isinstance(value, Value)
+            assert not value.unavailable
+            assert value.data == "hello"
+            assert value.time is not None
+            assert isinstance(value.context, str)
 
-        assert int_found and str_found and float_found
+        for value in history["test_float"]:
+            assert isinstance(value, Value)
+            assert not value.unavailable
+            assert value.data == 3.14
+            assert value.time is not None
+            assert isinstance(value.context, str)
 
     def test_mutable_types_history_coherence(self):
         storage = Storage("model", "testsession2", "testmodel2")
@@ -47,30 +49,32 @@ class TestHistoryCoherence:
             storage.test_dict = {"key": "value"}
             storage.test_set = {1, 2, 3}
 
-        history = list(storage.__history__())
+        history = storage.__history__()
 
-        list_found = False
-        dict_found = False
-        set_found = False
+        assert "test_list" in history
+        assert "test_dict" in history
+        assert "test_set" in history
 
-        for field_name, value in history:
+        for value in history["test_list"]:
             assert isinstance(value, Value)
             assert not value.unavailable
-            assert value.data is not None
+            assert value.data == [1, 2, 3]
             assert value.time is not None
             assert isinstance(value.context, str)
 
-            if field_name == "test_list":
-                assert value.data == [1, 2, 3]
-                list_found = True
-            elif field_name == "test_dict":
-                assert value.data == {"key": "value"}
-                dict_found = True
-            elif field_name == "test_set":
-                assert value.data == {1, 2, 3}
-                set_found = True
+        for value in history["test_dict"]:
+            assert isinstance(value, Value)
+            assert not value.unavailable
+            assert value.data == {"key": "value"}
+            assert value.time is not None
+            assert isinstance(value.context, str)
 
-        assert list_found and dict_found and set_found
+        for value in history["test_set"]:
+            assert isinstance(value, Value)
+            assert not value.unavailable
+            assert value.data == {1, 2, 3}
+            assert value.time is not None
+            assert isinstance(value.context, str)
 
     def test_history_ordering_coherence(self):
         storage = Storage("model", "testsession3", "testmodel3")
@@ -81,18 +85,13 @@ class TestHistoryCoherence:
         with storage:
             storage.second = 2
 
-        history = list(storage.__history__())
+        history = storage.__history__()
 
-        assert len(history) == 2
+        assert "first" in history
+        assert "second" in history
 
-        first_time = None
-        second_time = None
-
-        for field_name, value in history:
-            if field_name == "first":
-                first_time = value.time
-            elif field_name == "second":
-                second_time = value.time
+        first_time = history["first"][-1].time
+        second_time = history["second"][-1].time
 
         assert first_time is not None and second_time is not None
         assert first_time <= second_time
@@ -104,9 +103,10 @@ class TestHistoryCoherence:
             storage.mutable_list = [1, 2, 3]
             storage.mutable_list.append(4)
 
-        history = list(storage.__history__())
+        history = storage.__history__()
 
-        value_entries = [value for field, value in history if field == "mutable_list"]
+        assert "mutable_list" in history
+        value_entries = history["mutable_list"]
 
         assert len(value_entries) >= 1
 
@@ -123,11 +123,12 @@ class TestHistoryCoherence:
 
         del storage.temp_field
 
-        history = list(storage.__history__())
+        history = storage.__history__()
 
+        assert "temp_field" in history
         tombstone_found = False
-        for field_name, value in history:
-            if field_name == "temp_field" and value.unavailable:
+        for value in history["temp_field"]:
+            if value.unavailable:
                 assert value.data is None
                 tombstone_found = True
                 break
