@@ -32,6 +32,7 @@ DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
 
 
 def mkpath(*trail: str) -> str:
+    # TODO: Remove everywhere
     return "/".join(trail)
 
 

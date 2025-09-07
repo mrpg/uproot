@@ -209,12 +209,6 @@ def test_along_iteration():
         assert len(contexts) == len(states)
 
 
-def test_mkpath():
-    # Test path construction
-    path = s.mkpath("player", "session1", "user1")
-    assert path == "player/session1/user1"
-
-
 def test_field_from_paths():
     sid, pid = setup()
 
