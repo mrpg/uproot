@@ -9,7 +9,7 @@ from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import RawValue, Value
 
 MEMORY_HISTORY: dict[str, dict[str, list[Value]]] = {}
-_memory_lock = threading.RLock()
+LOCK = threading.RLock()
 
 
 def safe_deepcopy(value: Any) -> Any:
@@ -23,7 +23,7 @@ def load_database_into_memory() -> None:
     """Load the entire database history into memory at startup for faster access."""
     global MEMORY_HISTORY
 
-    with _memory_lock:
+    with LOCK:
         MEMORY_HISTORY.clear()
 
         # Load complete history using history_all with empty prefix to get everything
@@ -38,9 +38,9 @@ def load_database_into_memory() -> None:
             MEMORY_HISTORY[namespace][field].append(value)
 
 
-def _get_current_value(namespace: str, field: str) -> Any:
+def get_current_value(namespace: str, field: str) -> Any:
     """Get current value from last history entry.
-    NOTE: Assumes caller holds _memory_lock.
+    NOTE: Assumes caller holds LOCK.
     """
     if (
         namespace in MEMORY_HISTORY
@@ -55,9 +55,9 @@ def _get_current_value(namespace: str, field: str) -> Any:
     raise AttributeError(f"Key not found: ({namespace}, {field})")
 
 
-def _has_current_value(namespace: str, field: str) -> bool:
+def has_current_value(namespace: str, field: str) -> bool:
     """Check if there's a current (non-tombstone) value.
-    NOTE: Assumes caller holds _memory_lock.
+    NOTE: Assumes caller holds LOCK.
     """
     if (
         namespace in MEMORY_HISTORY
@@ -107,7 +107,7 @@ def db_request(
         case "insert", _, _ if isinstance(context, str):
             DATABASE.insert(namespace, key, value, context)
             # Update in-memory data
-            with _memory_lock:
+            with LOCK:
                 if namespace not in MEMORY_HISTORY:
                     MEMORY_HISTORY[namespace] = {}
 
@@ -127,7 +127,7 @@ def db_request(
         case "delete", _, None if isinstance(context, str):
             DATABASE.delete(namespace, key, context)
             # Update in-memory data
-            with _memory_lock:
+            with LOCK:
                 # Add tombstone to history
                 if namespace not in MEMORY_HISTORY:
                     MEMORY_HISTORY[namespace] = {}
@@ -139,40 +139,40 @@ def db_request(
 
         # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:
-            with _memory_lock:
-                rval = _get_current_value(namespace, key)
+            with LOCK:
+                rval = get_current_value(namespace, key)
 
         case "get_field_history", _, None:
-            with _memory_lock:
+            with LOCK:
                 if namespace in MEMORY_HISTORY and key in MEMORY_HISTORY[namespace]:
                     rval = MEMORY_HISTORY[namespace][key]
                 else:
                     rval = []
 
         case "fields", "", None:
-            with _memory_lock:
+            with LOCK:
                 if namespace in MEMORY_HISTORY:
                     # Return only fields that have current (non-tombstone) values
                     rval = [
                         field
                         for field in MEMORY_HISTORY[namespace].keys()
-                        if _has_current_value(namespace, field)
+                        if has_current_value(namespace, field)
                     ]
                 else:
                     rval = []
 
         case "has_fields", "", None:
-            with _memory_lock:
+            with LOCK:
                 if namespace in MEMORY_HISTORY:
                     rval = any(
-                        _has_current_value(namespace, field)
+                        has_current_value(namespace, field)
                         for field in MEMORY_HISTORY[namespace].keys()
                     )
                 else:
                     rval = False
 
         case "history", "", None:
-            with _memory_lock:
+            with LOCK:
                 rval = (
                     MEMORY_HISTORY[namespace] if namespace in MEMORY_HISTORY else dict()
                 )
@@ -180,10 +180,10 @@ def db_request(
         case "get_many", "", None if isinstance(extra, tuple):
             mpaths: list[str]
             mpaths, mkey = cast(tuple[list[str], str], extra)
-            with _memory_lock:
+            with LOCK:
                 result = {}
                 for namespace in mpaths:
-                    if _has_current_value(namespace, mkey):
+                    if has_current_value(namespace, mkey):
                         # Get the latest non-tombstone value
                         if (
                             namespace in MEMORY_HISTORY
@@ -199,7 +199,7 @@ def db_request(
             mpath: str
             since: float
             mpath, since = cast(tuple[str, float], extra)
-            with _memory_lock:
+            with LOCK:
                 result = {}
                 for ns, fields in MEMORY_HISTORY.items():
                     if ns.startswith(mpath):
@@ -211,7 +211,7 @@ def db_request(
         case "history_all", "", None if isinstance(extra, str):
             mpathstart: str
             mpathstart = extra
-            with _memory_lock:
+            with LOCK:
                 result = []
                 for ns, fields in MEMORY_HISTORY.items():
                     if ns.startswith(mpathstart):
@@ -222,7 +222,7 @@ def db_request(
 
         case "history_raw", "", None if isinstance(extra, str):
             mpathstart = extra
-            with _memory_lock:
+            with LOCK:
                 result = []
                 for ns, fields in MEMORY_HISTORY.items():
                     if ns.startswith(mpathstart):
@@ -248,7 +248,7 @@ def db_request(
         case "get_within_context", _, None if isinstance(extra, dict):
             context_fields: dict[str, Any]
             context_fields = extra
-            with _memory_lock:
+            with LOCK:
                 # This is complex - need to implement the context window logic using in-memory data
                 if (
                     namespace not in MEMORY_HISTORY
