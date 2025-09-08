@@ -130,7 +130,7 @@ class Storage:
         virtual: Optional[dict[str, Callable[["Storage"], Any]]] = None,
     ):
         ensure(
-            all(t.isidentifier() for t in namespace),
+            all(type(t) is str and t.isidentifier() for t in namespace),
             ValueError,
             f"{repr(namespace)} has invalid identifiers",
         )
@@ -338,16 +338,16 @@ def Admin() -> Storage:
 
 
 def Session(sname: Sessionname) -> Storage:
-    return Storage("session", sname)
+    return Storage("session", str(sname))
 
 
 def Group(sname: Sessionname, gname: str) -> Storage:
-    return Storage("group", sname, gname)
+    return Storage("group", str(sname), gname)
 
 
 def Player(sname: Sessionname, uname: Username) -> Storage:
-    return Storage("player", sname, uname)
+    return Storage("player", str(sname), str(uname))
 
 
 def Model(sname: Sessionname, mname: str) -> Storage:
-    return Storage("model", sname, mname)
+    return Storage("model", str(sname), mname)
