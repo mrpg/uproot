@@ -255,38 +255,39 @@ class Repeat(t.SmoothOperator):
             player.round += 1
 
 
-INTERNAL_PAGES = dict(
-    RandomStart=type(
+INTERNAL_PAGES = {
+    "RandomStart": type(
         "RandomStart",
         (t.InternalPage,),
         dict(after_always_once=Random.__dict__["start"]),
     ),
-    RandomEnd=type(
+    "RandomEnd": type(
         "RandomEnd",
         (t.InternalPage,),
         dict(),
     ),
-    RoundStart=type(
+    "RoundStart": type(
         "RoundStart",
         (t.InternalPage,),
         dict(before_always_once=Rounds.__dict__["next"]),
     ),
-    RoundEnd=type(
+    "RoundEnd": type(
         "RoundEnd",
         (t.InternalPage,),
         dict(),
     ),
-    RepeatStart=type(
+    "RepeatStart": type(
         "RepeatStart",
         (t.InternalPage,),
         dict(before_always_once=Repeat.__dict__["next"]),
     ),
-    RepeatEnd=type(
+    "RepeatEnd": type(
         "RepeatEnd",
         (t.InternalPage,),
         dict(before_always_once=Repeat.__dict__["continue_maybe"]),
     ),
-)
+}
+
 
 chat = uproot.chat
 GroupCreatingWait = t.GroupCreatingWait
