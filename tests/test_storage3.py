@@ -410,9 +410,9 @@ class TestConcurrencyAndAsyncSafety:
         player1 = pid()
 
         # Extract actual player info from the first instance
-        trail = player1.__trail__
-        player2 = s.Player(trail[1], trail[2])
-        player3 = s.Player(trail[1], trail[2])
+        namespace = player1.__namespace__
+        player2 = s.Player(namespace[1], namespace[2])
+        player3 = s.Player(namespace[1], namespace[2])
 
         # All should be equal but not identical
         assert player1 == player2 == player3

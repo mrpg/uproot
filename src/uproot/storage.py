@@ -117,25 +117,25 @@ class Storage:
         "__explicitly_set__",
         "__assigned_values__",
         "name",
-        "__trail__",
+        "__namespace__",
         "__virtual__",
         "__weakref__",
     )
 
     def __init__(
         self,
-        *trail: str,
+        *namespace: str,
         virtual: Optional[dict[str, Callable[["Storage"], Any]]] = None,
     ):
         ensure(
-            all(t.isidentifier() for t in trail),
+            all(t.isidentifier() for t in namespace),
             ValueError,
-            f"{repr(trail)} has invalid identifiers",
+            f"{repr(namespace)} has invalid identifiers",
         )
-        ensure(trail[0] in VALID_TRAIL0, ValueError, "Invalid trail start")
+        ensure(namespace[0] in VALID_TRAIL0, ValueError, "Invalid namespace start")
 
-        object.__setattr__(self, "name", trail[-1])
-        object.__setattr__(self, "__trail__", trail)
+        object.__setattr__(self, "name", namespace[-1])
+        object.__setattr__(self, "__namespace__", namespace)
         object.__setattr__(self, "__allow_mutable__", False)
         object.__setattr__(self, "__accessed_fields__", dict())
         object.__setattr__(self, "__field_cache__", dict())
@@ -144,20 +144,20 @@ class Storage:
         object.__setattr__(self, "__virtual__", virtual or DEFAULT_VIRTUAL)
 
     def __invert__(self) -> Identifier:
-        match self.__trail__[0]:
+        match self.__namespace__[0]:
             case "session":
-                return SessionIdentifier(*self.__trail__[1:])
+                return SessionIdentifier(*self.__namespace__[1:])
             case "player":
-                return PlayerIdentifier(*self.__trail__[1:])
+                return PlayerIdentifier(*self.__namespace__[1:])
             case "group":
-                return GroupIdentifier(*self.__trail__[1:])
+                return GroupIdentifier(*self.__namespace__[1:])
             case "model":
-                return ModelIdentifier(*self.__trail__[1:])
+                return ModelIdentifier(*self.__namespace__[1:])
             case _:
                 raise NotImplementedError
 
     def __hash__(self) -> int:
-        return hash(self.__trail__)
+        return hash(self.__namespace__)
 
     def __setattr__(self, name: str, value: Any) -> None:
         ensure(
@@ -308,7 +308,7 @@ class Storage:
         if not isinstance(other, Storage):
             return False
 
-        return cast(bool, self.__trail__ == other.__trail__)
+        return cast(bool, self.__namespace__ == other.__namespace__)
 
     def __fields__(self) -> list[str]:
         return cast(list[str], db_request(self, "fields"))
@@ -320,9 +320,9 @@ class Storage:
         return cast(list[tuple[str, Value]], db_request(self, "history"))
 
     def __repr__(self) -> str:
-        if len(self.__trail__) == 1:
-            return f"{self.__trail__[0].capitalize()}()"
-        return f"{self.__trail__[0].capitalize()}(*{repr(self.__trail__[1:])})"
+        if len(self.__namespace__) == 1:
+            return f"{self.__namespace__[0].capitalize()}()"
+        return f"{self.__namespace__[0].capitalize()}(*{repr(self.__namespace__[1:])})"
 
     def get(self, name: str, default: Any = None) -> Any:
         try:

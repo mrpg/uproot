@@ -107,7 +107,7 @@ def db_request(
     rval = None
 
     if caller is not None:
-        namespace = caller.__trail__
+        namespace = caller.__namespace__
 
     DATABASE.now = time()
 

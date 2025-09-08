@@ -230,9 +230,9 @@ async def optional_call_once(
 class StorageBunch:
     def __init__(self, iterable: Iterable["Storage"] = ()) -> None:
         ensure(
-            all(hasattr(item, "__trail__") for item in iterable),
+            all(hasattr(item, "__namespace__") for item in iterable),
             TypeError,
-            "All items must have __trail__ attribute",
+            "All items must have __namespace__ attribute",
         )
 
         self.l = tuple(iterable)

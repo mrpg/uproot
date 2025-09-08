@@ -140,11 +140,11 @@ def flexible(func: Callable[P1, T]) -> Callable[P2, T]:
 
 def is_player_like(obj: Any) -> bool:
     return isinstance(obj, PlayerIdentifier) or (
-        isinstance(obj, Storage) and obj.__trail__[0] == "player"
+        isinstance(obj, Storage) and obj.__namespace__[0] == "player"
     )
 
 
 def is_session_like(obj: Any) -> bool:
     return isinstance(obj, SessionIdentifier) or (
-        isinstance(obj, Storage) and obj.__trail__[0] == "session"
+        isinstance(obj, Storage) and obj.__namespace__[0] == "session"
     )
