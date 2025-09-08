@@ -74,7 +74,7 @@ docs = [
     "mkdocs-material==9.6.19"
 ]
 iban = [
-    "schwifty==2025.1.0"
+    "schwifty==2025.7.0"
 ]
 
 [tool.mypy]
