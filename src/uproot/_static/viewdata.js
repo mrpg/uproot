@@ -41,7 +41,7 @@ function formatCellValue(value, metadata) {
 
     const str = String(value);
     const displayValue = str.length > 30 ? str.substr(0, 27) + "..." : str;
-        // 27, since "...".length = 3
+    // 27, since "...".length = 3
 
     // Add tooltip and click styling if metadata exists
     if (metadata && metadata.time) {
@@ -62,7 +62,7 @@ function showCellDetails(field, metadata) {
         <h4>${field}</h4>
         <p><strong>${typeLabel}:</strong> ${metadata.type || 'Unknown'}</p>
         <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${metadata.context}</p>
-        <textarea class="form-control" rows="8" disabled>${metadata.rawValue || ''}</textarea>
+        <textarea class="form-control" rows="8" disabled>${metadata.trueValue || ''}</textarea>
     `;
 
     uproot.alert(details);
@@ -173,7 +173,7 @@ function transformDataForTabulator(rawData) {
                         time: payload.time,
                         context: payload.context,
                         type: payload.type_representation,
-                        rawValue: value,
+                        trueValue: value,
                         no_details: originalField === "_uproot_group" // Set no_details for group fields
                     };
                 }

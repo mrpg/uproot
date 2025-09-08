@@ -104,14 +104,6 @@ class Value:
     context: str = ""
 
 
-@validated_dataclass(frozen=True)
-class RawValue:
-    time: Optional[float] = None
-    unavailable: bool = True
-    data: Optional[bytes] = None
-    context: str = ""
-
-
 class Identifier(ABC):
     @abstractmethod
     def __iter__(self) -> Iterator[str]:

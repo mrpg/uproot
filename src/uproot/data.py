@@ -9,7 +9,6 @@ import orjson as json
 
 import uproot.deployment as d
 from uproot.constraints import ensure
-from uproot.types import RawValue
 
 
 def raw2json(b: Optional[bytes]) -> str:
@@ -41,7 +40,7 @@ def json2csv(js: str) -> str:
 
 
 def partial_matrix(
-    history_raw: Iterator[tuple[str, str, RawValue]],
+    history_raw: Iterator[tuple[str, str, "RawValue"]],  # This is wrong now (TODO)
 ) -> Iterator[dict[str, Any]]:
     previous_field: Optional[str]
     previous_time: float

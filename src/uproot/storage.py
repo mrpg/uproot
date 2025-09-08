@@ -14,7 +14,6 @@ from uproot.types import (
     Identifier,
     ModelIdentifier,
     PlayerIdentifier,
-    RawValue,
     SessionIdentifier,
     Sessionname,
     Username,
@@ -55,30 +54,8 @@ def fields_from_session(
         dict[tuple[str, str], Value],
         db_request(
             None,
-            "get_latest",
-            extra=(f"player/{sname}/", since_epoch),
-        ),
-    )
-
-
-def history_all(mnamespacestart: str) -> Iterator[tuple[str, str, Value]]:
-    return cast(
-        Iterator[tuple[str, str, Value]],
-        db_request(
-            None,
-            "history_all",
-            extra=mnamespacestart,
-        ),
-    )
-
-
-def history_raw(mnamespacestart: str) -> Iterator[tuple[str, str, RawValue]]:
-    return cast(
-        Iterator[tuple[str, str, RawValue]],
-        db_request(
-            None,
-            "history_raw",
-            extra=mnamespacestart,
+            "fields_from_session",
+            extra=(sname, since_epoch),
         ),
     )
 

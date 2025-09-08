@@ -6,7 +6,7 @@ from typing import Any, Optional, Union, cast
 from uproot.constraints import ensure
 from uproot.deployment import DATABASE
 from uproot.stable import IMMUTABLE_TYPES
-from uproot.types import RawValue, Value
+from uproot.types import Value
 
 MEMORY_HISTORY: dict[tuple[str, ...], dict[str, list[Value]]] = {}
 LOCK = threading.RLock()
@@ -27,6 +27,10 @@ def dbns2tuple(dbns: str) -> tuple[str]:
     return tuple(dbns.split("/"))
 
 
+def nsstartswith(ns: tuple[str, ...], prefix: tuple[str, ...]) -> bool:
+    return ns[: len(prefix)] == prefix
+
+
 def load_database_into_memory() -> None:
     """Load the entire database history into memory at startup for faster access."""
     global MEMORY_HISTORY
@@ -35,7 +39,7 @@ def load_database_into_memory() -> None:
         MEMORY_HISTORY.clear()
 
         # Load complete history using history_all with empty prefix to get everything
-        for dbns, field, value in DATABASE.history_all(""):
+        for dbns, field, value in DATABASE.history_all():
             namespace = dbns2tuple(dbns)
 
             if namespace not in MEMORY_HISTORY:
@@ -205,58 +209,18 @@ def db_request(
                                 result[(namespace, mkey)] = latest
                 rval = result
 
-        case "get_latest", "", None if isinstance(extra, tuple):
-            mnamespace: str
+        case "fields_from_session", "", None if isinstance(extra, tuple):
+            sname: str
             since: float
-            mnamespace, since = cast(tuple[str, float], extra)
+            sname, since = cast(tuple[str, float], extra)
             with LOCK:
                 result = {}
                 for ns, fields in MEMORY_HISTORY.items():
-                    dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
-                    if dbns.startswith(mnamespace):
+                    if nsstartswith(ns, ("player", sname)):
                         for field, values in fields.items():
                             if values and values[-1].time > since:
                                 result[(ns, field)] = values[-1]
                 rval = result
-
-        case "history_all", "", None if isinstance(extra, str):
-            mnamespacestart: str
-            mnamespacestart = extra
-            with LOCK:
-                result = []
-                for ns, fields in MEMORY_HISTORY.items():
-                    dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
-                    if dbns.startswith(mnamespacestart):
-                        for field, values in fields.items():
-                            for value in values:
-                                result.append((ns, field, value))
-                rval = iter(result)
-
-        case "history_raw", "", None if isinstance(extra, str):
-            mnamespacestart = extra
-            with LOCK:
-                result = []
-                for ns, fields in MEMORY_HISTORY.items():
-                    dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
-                    if dbns.startswith(mnamespacestart):
-                        for field, values in fields.items():
-                            for value in values:
-                                # Convert to RawValue
-                                from uproot.stable import encode
-
-                                raw_data = (
-                                    encode(value.data)
-                                    if not value.unavailable
-                                    else None
-                                )
-                                raw_value = RawValue(
-                                    value.time,
-                                    value.unavailable,
-                                    raw_data,
-                                    value.context,
-                                )
-                                result.append((ns, field, raw_value))
-                rval = iter(result)
 
         case "get_within_context", _, None if isinstance(extra, dict):
             context_fields: dict[str, Any]

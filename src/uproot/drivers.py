@@ -52,8 +52,8 @@ class DBDriver(ABC):
         """Mark entry as unavailable (tombstone). Does not physically remove."""
         raise NotImplementedError
 
-    def history_all(self, sstr: str) -> Iterator[tuple[str, str, t.Value]]:
-        """Return complete history for all fields in all namespaces starting with sstr.
+    def history_all(self) -> Iterator[tuple[str, str, t.Value]]:
+        """Return complete history for all fields in all namespaces.
         Used for loading data into memory at startup.
         """
         raise NotImplementedError
@@ -156,13 +156,12 @@ class Memory(DBDriver):
 
             self.log[namespace][field].append(t.Value(self.now, True, None, context))
 
-    def history_all(self, sstr: str) -> Iterator[tuple[str, str, t.Value]]:
+    def history_all(self) -> Iterator[tuple[str, str, t.Value]]:
         with self._lock:
             for namespace, fields in self.log.items():
                 for field, values in fields.items():
-                    if namespace.startswith(sstr):
-                        for value in values:
-                            yield namespace, field, value
+                    for value in values:
+                        yield namespace, field, value
 
 
 class PostgreSQL(DBDriver):
@@ -334,12 +333,11 @@ class PostgreSQL(DBDriver):
                     (namespace, field, None, self.now, context),
                 )
 
-    def history_all(self, sstr: str) -> Iterator[tuple[str, str, t.Value]]:
+    def history_all(self) -> Iterator[tuple[str, str, t.Value]]:
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(
-                    f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values WHERE namespace LIKE %s ORDER BY created_at ASC",
-                    (sstr + "%",),
+                    f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",
                 )
                 for namespace, field, value, created_at, context in cur:
                     yield namespace, field, t.Value(
@@ -513,11 +511,10 @@ class Sqlite3(DBDriver):
             conn.commit()
             conn.close()
 
-    def history_all(self, sstr: str) -> Iterator[tuple[str, str, t.Value]]:
+    def history_all(self) -> Iterator[tuple[str, str, t.Value]]:
         conn = self._get_connection()
         cursor = conn.execute(
-            f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values WHERE namespace LIKE ? ORDER BY created_at ASC",
-            (sstr + "%",),
+            f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",
         )
 
         for namespace, field, value, created_at, context in cursor:

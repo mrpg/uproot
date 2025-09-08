@@ -13,6 +13,7 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sortedcontainers import SortedDict
 
 import uproot as u
+import uproot.cache as cache
 import uproot.data as data
 import uproot.deployment as d
 import uproot.queues as q
@@ -199,9 +200,11 @@ def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
         case _:
             raise NotImplementedError
 
-    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)
+    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)  # TODO: broken
     alldata = data.partial_matrix(
-        chain.from_iterable(s.history_raw(ns) for ns in namespaces)
+        chain.from_iterable(
+            cache.MEMORY_HISTORY[ns] for ns in namespaces if ns in cache.MEMORY_HISTORY
+        )
     )
 
     return data.csv_out(
@@ -227,9 +230,11 @@ async def generate_json(
         case _:
             raise NotImplementedError
 
-    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)
+    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)  # TODO: broken
     alldata = data.partial_matrix(
-        chain.from_iterable(s.history_raw(ns) for ns in namespaces)
+        chain.from_iterable(
+            cache.MEMORY_HISTORY[ns] for ns in namespaces if ns in cache.MEMORY_HISTORY
+        )
     )
 
     async for chunk in data.json_out(transformer(alldata, **transkwargs)):
