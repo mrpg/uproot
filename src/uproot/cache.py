@@ -24,7 +24,7 @@ def tuple2dbns(ns: tuple[str, ...]) -> str:
 
 
 def dbns2tuple(dbns: str) -> tuple[str]:
-    return tuple(str.split("/"))
+    return tuple(dbns.split("/"))
 
 
 def load_database_into_memory() -> None:
