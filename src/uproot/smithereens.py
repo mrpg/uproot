@@ -255,6 +255,18 @@ class Repeat(t.SmoothOperator):
             player.round += 1
 
 
+class Bracket(t.SmoothOperator):
+    def __init__(self, *pages: t.PageLike) -> None:
+        self.pages = [
+            INTERNAL_PAGES["{"],
+            *pages,
+            INTERNAL_PAGES["}"],
+        ]
+
+    def expand(self) -> list[t.PageLike]:
+        return self.pages
+
+
 INTERNAL_PAGES = {
     "RandomStart": type(
         "RandomStart",
@@ -285,6 +297,16 @@ INTERNAL_PAGES = {
         "RepeatEnd",
         (t.InternalPage,),
         dict(before_always_once=Repeat.__dict__["continue_maybe"]),
+    ),
+    "{": type(
+        "{",
+        (t.InternalPage,),
+        dict(),
+    ),
+    "}": type(
+        "}",
+        (t.InternalPage,),
+        dict(),
     ),
 }
 
