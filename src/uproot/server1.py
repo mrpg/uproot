@@ -49,7 +49,7 @@ from uproot.storage import (
     Player,
     Session,
     Storage,
-    field_from_paths,
+    field_from_namespaces,
 )
 
 PROCESSED_FUTURES = deque(maxlen=8 * 1024)
@@ -360,15 +360,15 @@ async def sessionwide(
 
         pids = session.players
 
-    paths = [
+    namespaces = [
         ("player", sname, uname) for sname, uname in pids
     ]  # This has players in order
-    all_started = field_from_paths(paths, "started")
+    all_started = field_from_namespaces(namespaces, "started")
 
     free_uname = None
 
-    for path in paths:
-        key = path, "started"
+    for namespace in namespaces:
+        key = namespace, "started"
 
         if key not in all_started or all_started[key].unavailable:
             # Should not be possible, but skip if it happens
@@ -377,7 +377,7 @@ async def sessionwide(
             # This player has started, so also skip
             pass
         else:
-            _, _, free_uname = path.split("/")
+            free_uname = namespace[2]
             break
 
     # Redirect to player

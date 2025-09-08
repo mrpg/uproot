@@ -31,13 +31,15 @@ DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
 )
 
 
-def field_from_paths(paths: list[str], field: str) -> dict[tuple[str, str], Value]:
+def field_from_namespaces(
+    namespaces: list[str], field: str
+) -> dict[tuple[str, str], Value]:
     return cast(
         dict[tuple[str, str], Value],
         db_request(
             None,
             "get_many",
-            extra=(paths, field),
+            extra=(namespaces, field),
         ),
     )
 
@@ -59,24 +61,24 @@ def fields_from_session(
     )
 
 
-def history_all(mpathstart: str) -> Iterator[tuple[str, str, Value]]:
+def history_all(mnamespacestart: str) -> Iterator[tuple[str, str, Value]]:
     return cast(
         Iterator[tuple[str, str, Value]],
         db_request(
             None,
             "history_all",
-            extra=mpathstart,
+            extra=mnamespacestart,
         ),
     )
 
 
-def history_raw(mpathstart: str) -> Iterator[tuple[str, str, RawValue]]:
+def history_raw(mnamespacestart: str) -> Iterator[tuple[str, str, RawValue]]:
     return cast(
         Iterator[tuple[str, str, RawValue]],
         db_request(
             None,
             "history_raw",
-            extra=mpathstart,
+            extra=mnamespacestart,
         ),
     )
 

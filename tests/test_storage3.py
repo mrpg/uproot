@@ -402,8 +402,8 @@ class TestContextManagerSemantics:
 class TestConcurrencyAndAsyncSafety:
     """Test behavior under concurrent access patterns."""
 
-    def test_multiple_storage_instances_same_path(self):
-        """Test multiple Storage instances for same path work correctly."""
+    def test_multiple_storage_instances_same_namespace(self):
+        """Test multiple Storage instances for same namespace work correctly."""
         sid, pid = setup_fresh_database()
 
         # Create multiple instances pointing to same player

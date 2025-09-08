@@ -188,11 +188,11 @@ def db_request(
                 )
 
         case "get_many", "", None if isinstance(extra, tuple):
-            mpaths: list[str]
-            mpaths, mkey = cast(tuple[list[str], str], extra)
+            mnamespaces: list[str]
+            mnamespaces, mkey = cast(tuple[list[str], str], extra)
             with LOCK:
                 result = {}
-                for namespace in mpaths:
+                for namespace in mnamespaces:
                     if has_current_value(namespace, mkey):
                         # Get the latest non-tombstone value
                         if (
@@ -206,39 +206,39 @@ def db_request(
                 rval = result
 
         case "get_latest", "", None if isinstance(extra, tuple):
-            mpath: str
+            mnamespace: str
             since: float
-            mpath, since = cast(tuple[str, float], extra)
+            mnamespace, since = cast(tuple[str, float], extra)
             with LOCK:
                 result = {}
                 for ns, fields in MEMORY_HISTORY.items():
                     dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
-                    if dbns.startswith(mpath):
+                    if dbns.startswith(mnamespace):
                         for field, values in fields.items():
                             if values and values[-1].time > since:
                                 result[(ns, field)] = values[-1]
                 rval = result
 
         case "history_all", "", None if isinstance(extra, str):
-            mpathstart: str
-            mpathstart = extra
+            mnamespacestart: str
+            mnamespacestart = extra
             with LOCK:
                 result = []
                 for ns, fields in MEMORY_HISTORY.items():
                     dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
-                    if dbns.startswith(mpathstart):
+                    if dbns.startswith(mnamespacestart):
                         for field, values in fields.items():
                             for value in values:
                                 result.append((ns, field, value))
                 rval = iter(result)
 
         case "history_raw", "", None if isinstance(extra, str):
-            mpathstart = extra
+            mnamespacestart = extra
             with LOCK:
                 result = []
                 for ns, fields in MEMORY_HISTORY.items():
                     dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
-                    if dbns.startswith(mpathstart):
+                    if dbns.startswith(mnamespacestart):
                         for field, values in fields.items():
                             for value in values:
                                 # Convert to RawValue

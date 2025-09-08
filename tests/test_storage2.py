@@ -115,12 +115,12 @@ def test_bool_method():
 def test_storage_equality():
     sid, pid = setup()
 
-    # Same path should be equal
+    # Same namespace should be equal
     player1 = s.Player("test", "user1")
     player2 = s.Player("test", "user1")
     assert player1 == player2
 
-    # Different paths should not be equal
+    # Different namespaces should not be equal
     player3 = s.Player("test", "user2")
     assert player1 != player3
 
@@ -204,7 +204,7 @@ def test_along_iteration():
         assert len(contexts) == len(states)
 
 
-def test_field_from_paths():
+def test_field_from_namespaces():
     sid, pid = setup()
 
     # Create multiple players with same field
@@ -214,8 +214,8 @@ def test_field_from_paths():
         pid2 = c.create_player(session)
         pid2().score = 200
 
-    paths = [pid().__namespace__, pid2().__namespace__]
-    scores = s.field_from_paths(paths, "score")
+    namespaces = [pid().__namespace__, pid2().__namespace__]
+    scores = s.field_from_namespaces(namespaces, "score")
 
     assert type(scores) is dict
     assert len(scores) == 2

@@ -499,11 +499,13 @@ def rooms() -> SortedDict[str, dict]:
 def sessions() -> dict[str, dict[str, Any]]:
     with s.Admin() as admin:
         snames = admin.sessions
-        session_paths = [("session", sname) for sname in snames]
+        session_namespaces = [("session", sname) for sname in snames]
 
     fields = ["config", "description", "room", "players", "groups", "active"]
 
-    data = {field: s.field_from_paths(session_paths, field) for field in fields}
+    data = {
+        field: s.field_from_namespaces(session_namespaces, field) for field in fields
+    }
 
     return {
         sname: {
@@ -585,9 +587,7 @@ async def viewdata(
     latest: dict = s.fields_from_session(sname, since_epoch)
     last_update: float = since_epoch
 
-    for (namespace, field), v in latest.items():
-        # Extract uname from namespace path like "player/session_name/user_name"
-        parts = namespace.split("/")
+    for (parts, field), v in latest.items():
         if len(parts) >= 3 and parts[0] == "player":
             uname = parts[2]
 
