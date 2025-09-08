@@ -296,7 +296,11 @@ def truepath(page: type[t.Page]) -> str:
 
 def page2path(page: type[t.Page]) -> str:
     if t.InternalPage in page.__mro__:
-        return f"#{page.__name__}"
+        if page.__module__ == "uproot.types":
+            # This is a true uproot-core-defined InternalPage
+            return f"#{page.__name__}"
+        else:
+            return f"{page.__module__}/#{page.__name__}"
     else:
         return f"{page.__module__}/{page.__name__}.html"
 
