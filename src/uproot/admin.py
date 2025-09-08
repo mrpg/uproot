@@ -499,7 +499,7 @@ def rooms() -> SortedDict[str, dict]:
 def sessions() -> dict[str, dict[str, Any]]:
     with s.Admin() as admin:
         snames = admin.sessions
-        session_paths = [s.mkpath("session", sname) for sname in snames]
+        session_paths = [("session", sname) for sname in snames]
 
     fields = ["config", "description", "room", "players", "groups", "active"]
 

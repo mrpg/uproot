@@ -50,7 +50,6 @@ from uproot.storage import (
     Session,
     Storage,
     field_from_paths,
-    mkpath,
 )
 
 PROCESSED_FUTURES = deque(maxlen=8 * 1024)
@@ -362,7 +361,7 @@ async def sessionwide(
         pids = session.players
 
     paths = [
-        mkpath("player", sname, uname) for sname, uname in pids
+        ("player", sname, uname) for sname, uname in pids
     ]  # This has players in order
     all_started = field_from_paths(paths, "started")
 

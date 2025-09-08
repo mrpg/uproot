@@ -31,11 +31,6 @@ DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
 )
 
 
-def mkpath(*trail: str) -> str:
-    # TODO: Remove everywhere
-    return "/".join(trail)
-
-
 def field_from_paths(paths: list[str], field: str) -> dict[tuple[str, str], Value]:
     return cast(
         dict[tuple[str, str], Value],
@@ -122,7 +117,6 @@ class Storage:
         "__explicitly_set__",
         "__assigned_values__",
         "name",
-        "__path__",
         "__trail__",
         "__virtual__",
         "__weakref__",
@@ -141,7 +135,6 @@ class Storage:
         ensure(trail[0] in VALID_TRAIL0, ValueError, "Invalid trail start")
 
         object.__setattr__(self, "name", trail[-1])
-        object.__setattr__(self, "__path__", mkpath(*trail))
         object.__setattr__(self, "__trail__", trail)
         object.__setattr__(self, "__allow_mutable__", False)
         object.__setattr__(self, "__accessed_fields__", dict())
@@ -315,7 +308,7 @@ class Storage:
         if not isinstance(other, Storage):
             return False
 
-        return cast(bool, self.__path__ == other.__path__)
+        return cast(bool, self.__trail__ == other.__trail__)
 
     def __fields__(self) -> list[str]:
         return cast(list[str], db_request(self, "fields"))

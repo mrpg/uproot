@@ -22,23 +22,18 @@ def setup():
 
 def test_storage_constructors():
     admin = s.Admin()
-    assert admin.__path__ == "admin"
     assert admin.__trail__ == ("admin",)
 
     session = s.Session("test_session")
-    assert session.__path__ == "session/test_session"
     assert session.__trail__ == ("session", "test_session")
 
     player = s.Player("test_session", "test_user")
-    assert player.__path__ == "player/test_session/test_user"
     assert player.__trail__ == ("player", "test_session", "test_user")
 
     group = s.Group("test_session", "test_group")
-    assert group.__path__ == "group/test_session/test_group"
     assert group.__trail__ == ("group", "test_session", "test_group")
 
     model = s.Model("test_session", "test_model")
-    assert model.__path__ == "model/test_session/test_model"
     assert model.__trail__ == ("model", "test_session", "test_model")
 
 
@@ -219,7 +214,7 @@ def test_field_from_paths():
         pid2 = c.create_player(session)
         pid2().score = 200
 
-    paths = [pid().__path__, pid2().__path__]
+    paths = [pid().__trail__, pid2().__trail__]
     scores = s.field_from_paths(paths, "score")
 
     assert type(scores) is dict

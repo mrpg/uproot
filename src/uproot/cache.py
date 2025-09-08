@@ -8,7 +8,7 @@ from uproot.deployment import DATABASE
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import RawValue, Value
 
-MEMORY_HISTORY: dict[str, dict[str, list[Value]]] = {}
+MEMORY_HISTORY: dict[tuple[str, ...], dict[str, list[Value]]] = {}
 LOCK = threading.RLock()
 
 
@@ -19,6 +19,14 @@ def safe_deepcopy(value: Any) -> Any:
     return copy.deepcopy(value)
 
 
+def tuple2dbns(ns: tuple[str, ...]) -> str:
+    return "/".join(ns)
+
+
+def dbns2tuple(dbns: str) -> tuple[str]:
+    return tuple(str.split("/"))
+
+
 def load_database_into_memory() -> None:
     """Load the entire database history into memory at startup for faster access."""
     global MEMORY_HISTORY
@@ -27,7 +35,9 @@ def load_database_into_memory() -> None:
         MEMORY_HISTORY.clear()
 
         # Load complete history using history_all with empty prefix to get everything
-        for namespace, field, value in DATABASE.history_all(""):
+        for dbns, field, value in DATABASE.history_all(""):
+            namespace = dbns2tuple(dbns)
+
             if namespace not in MEMORY_HISTORY:
                 MEMORY_HISTORY[namespace] = {}
 
@@ -97,7 +107,7 @@ def db_request(
     rval = None
 
     if caller is not None:
-        namespace = caller.__path__
+        namespace = caller.__trail__
 
     DATABASE.now = time()
 
@@ -105,7 +115,7 @@ def db_request(
     match action, key, value:
         # WRITE-ONLY - Always write to database immediately
         case "insert", _, _ if isinstance(context, str):
-            DATABASE.insert(namespace, key, value, context)
+            DATABASE.insert(tuple2dbns(namespace), key, value, context)
             # Update in-memory data
             with LOCK:
                 if namespace not in MEMORY_HISTORY:
@@ -118,14 +128,14 @@ def db_request(
                 new_value = Value(DATABASE.now, False, safe_deepcopy(value), context)
 
                 # Special handling for player lists - replace entire history like database does
-                if key == "players" and namespace.startswith("session/"):
+                if key == "players" and namespace[0] == "session":
                     MEMORY_HISTORY[namespace][key] = [new_value]
                 else:
                     MEMORY_HISTORY[namespace][key].append(new_value)
             rval = value
 
         case "delete", _, None if isinstance(context, str):
-            DATABASE.delete(namespace, key, context)
+            DATABASE.delete(tuple2dbns(namespace), key, context)
             # Update in-memory data
             with LOCK:
                 # Add tombstone to history
@@ -202,7 +212,8 @@ def db_request(
             with LOCK:
                 result = {}
                 for ns, fields in MEMORY_HISTORY.items():
-                    if ns.startswith(mpath):
+                    dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
+                    if dbns.startswith(mpath):
                         for field, values in fields.items():
                             if values and values[-1].time > since:
                                 result[(ns, field)] = values[-1]
@@ -214,7 +225,8 @@ def db_request(
             with LOCK:
                 result = []
                 for ns, fields in MEMORY_HISTORY.items():
-                    if ns.startswith(mpathstart):
+                    dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
+                    if dbns.startswith(mpathstart):
                         for field, values in fields.items():
                             for value in values:
                                 result.append((ns, field, value))
@@ -225,7 +237,8 @@ def db_request(
             with LOCK:
                 result = []
                 for ns, fields in MEMORY_HISTORY.items():
-                    if ns.startswith(mpathstart):
+                    dbns = tuple2dbns(ns)  # TODO: This is a monkeypatch => remove
+                    if dbns.startswith(mpathstart):
                         for field, values in fields.items():
                             for value in values:
                                 # Convert to RawValue
