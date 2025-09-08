@@ -55,17 +55,17 @@ function formatCellValue(value, metadata) {
 function showCellDetails(field, metadata) {
     if (!metadata || metadata.no_details) return;
 
-    const typeLabel = typeof _ === 'function' ? _("Type") : "Type";
-    const lastChangedLabel = typeof _ === 'function' ? _("Last changed") : "Last changed";
+    const typeLabel = _("Type");
+    const lastChangedLabel = _("Last changed");
 
     const details = `
-        <h4>${field}</h4>
-        <p><strong>${typeLabel}:</strong> ${metadata.type || 'Unknown'}</p>
-        <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${metadata.context}</p>
-        <textarea class="form-control" rows="8" disabled>${metadata.trueValue || ''}</textarea>
+        <h4>${uproot.escape(field)}</h4>
+        <p><strong>${typeLabel}:</strong> ${uproot.escape(metadata.type) || `<i>${_("Unknown")}</i>`}</p>
+        <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}</p>
+        <textarea class="form-control" rows="8" disabled>${uproot.escape(metadata.trueValue) || ''}</textarea>
     `;
 
-    uproot.alert(details);
+    uproot.alert(details); // SAFE
 }
 
 function detectColumnType(field, data) {
