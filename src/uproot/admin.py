@@ -20,8 +20,6 @@ import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 
-EXPORT_NAMESPACES = ("player/*/", "group/*/", "model/*/", "session/*")
-
 
 async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> None:
     session_exists(sname, False)
@@ -200,12 +198,42 @@ def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
         case _:
             raise NotImplementedError
 
-    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)  # TODO: broken
-    alldata = data.partial_matrix(
-        chain.from_iterable(
-            cache.MEMORY_HISTORY[ns] for ns in namespaces if ns in cache.MEMORY_HISTORY
+    # Direct hierarchical access for export namespaces
+    alldata_generators = []
+
+    # Get session data: session/sname
+    session_data = cache.navigate_to_namespace(("session", sname))
+    if session_data and isinstance(session_data, dict):
+        alldata_generators.append(session_data.values())
+
+    # Get player data: player/sname/* (all players in session)
+    players_data = cache.navigate_to_namespace(("player", sname))
+    if players_data and isinstance(players_data, dict):
+        alldata_generators.extend(
+            player_fields.values()
+            for player_fields in players_data.values()
+            if isinstance(player_fields, dict)
         )
-    )
+
+    # Get group data: group/sname/* (all groups in session)
+    groups_data = cache.navigate_to_namespace(("group", sname))
+    if groups_data and isinstance(groups_data, dict):
+        alldata_generators.extend(
+            group_fields.values()
+            for group_fields in groups_data.values()
+            if isinstance(group_fields, dict)
+        )
+
+    # Get model data: model/sname/* (all models in session)
+    models_data = cache.navigate_to_namespace(("model", sname))
+    if models_data and isinstance(models_data, dict):
+        alldata_generators.extend(
+            model_fields.values()
+            for model_fields in models_data.values()
+            if isinstance(model_fields, dict)
+        )
+
+    alldata = data.partial_matrix(chain.from_iterable(alldata_generators))
 
     return data.csv_out(
         transformer(alldata, **transkwargs), priority_fields=priority_fields
@@ -230,12 +258,42 @@ async def generate_json(
         case _:
             raise NotImplementedError
 
-    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)  # TODO: broken
-    alldata = data.partial_matrix(
-        chain.from_iterable(
-            cache.MEMORY_HISTORY[ns] for ns in namespaces if ns in cache.MEMORY_HISTORY
+    # Direct hierarchical access for export namespaces
+    alldata_generators = []
+
+    # Get session data: session/sname
+    session_data = cache.navigate_to_namespace(("session", sname))
+    if session_data and isinstance(session_data, dict):
+        alldata_generators.append(session_data.values())
+
+    # Get player data: player/sname/* (all players in session)
+    players_data = cache.navigate_to_namespace(("player", sname))
+    if players_data and isinstance(players_data, dict):
+        alldata_generators.extend(
+            player_fields.values()
+            for player_fields in players_data.values()
+            if isinstance(player_fields, dict)
         )
-    )
+
+    # Get group data: group/sname/* (all groups in session)
+    groups_data = cache.navigate_to_namespace(("group", sname))
+    if groups_data and isinstance(groups_data, dict):
+        alldata_generators.extend(
+            group_fields.values()
+            for group_fields in groups_data.values()
+            if isinstance(group_fields, dict)
+        )
+
+    # Get model data: model/sname/* (all models in session)
+    models_data = cache.navigate_to_namespace(("model", sname))
+    if models_data and isinstance(models_data, dict):
+        alldata_generators.extend(
+            model_fields.values()
+            for model_fields in models_data.values()
+            if isinstance(model_fields, dict)
+        )
+
+    alldata = data.partial_matrix(chain.from_iterable(alldata_generators))
 
     async for chunk in data.json_out(transformer(alldata, **transkwargs)):
         yield chunk
@@ -504,44 +562,31 @@ def rooms() -> SortedDict[str, dict]:
 def sessions() -> dict[str, dict[str, Any]]:
     with s.Admin() as admin:
         snames = admin.sessions
-        session_namespaces = [("session", sname) for sname in snames]
 
-    fields = ["config", "description", "room", "players", "groups", "active"]
-
-    data = {
-        field: s.field_from_namespaces(session_namespaces, field) for field in fields
-    }
+    def get_session_field_value(sname: str, field: str, default_data=None):
+        """Get current value of a field for a session, or return default."""
+        session_data = cache.navigate_to_namespace(("session", sname))
+        if (
+            session_data
+            and isinstance(session_data, dict)
+            and field in session_data
+            and isinstance(session_data[field], list)
+            and session_data[field]
+            and not session_data[field][-1].unavailable
+        ):
+            return session_data[field][-1]
+        return t.Value(0.0, False, default_data)
 
     return {
         sname: {
             "sname": sname,
-            "active": data["active"]
-            .get((f"session/{sname}", "active"), t.Value(0.0, False, False))
-            .data,
-            "config": data["config"]
-            .get((f"session/{sname}", "config"), t.Value(0.0, False, None))
-            .data,
-            "room": data["room"]
-            .get((f"session/{sname}", "room"), t.Value(0.0, False, None))
-            .data,
-            "description": data["description"]
-            .get((f"session/{sname}", "description"), t.Value(0.0, False, None))
-            .data,
-            "n_players": len(
-                data["players"]
-                .get((f"session/{sname}", "players"), t.Value(0.0, False, []))
-                .data
-                or []
-            ),
-            "n_groups": len(
-                data["groups"]
-                .get((f"session/{sname}", "groups"), t.Value(0.0, False, []))
-                .data
-                or []
-            ),
-            "started": data["config"]
-            .get((f"session/{sname}", "config"), t.Value(0.0, False, None))
-            .time,
+            "active": get_session_field_value(sname, "active", False).data,
+            "config": get_session_field_value(sname, "config", None).data,
+            "room": get_session_field_value(sname, "room", None).data,
+            "description": get_session_field_value(sname, "description", None).data,
+            "n_players": len(get_session_field_value(sname, "players", []).data or []),
+            "n_groups": len(get_session_field_value(sname, "groups", []).data or []),
+            "started": get_session_field_value(sname, "config", None).time,
         }
         for sname in snames
     }

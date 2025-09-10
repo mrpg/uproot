@@ -15,7 +15,7 @@ from uproot.deployment import DATABASE
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import Value
 
-MEMORY_HISTORY: dict[tuple[str, ...], dict[str, list[Value]]] = {}
+MEMORY_HISTORY: dict[str, Any] = {}
 LOCK = threading.RLock()
 
 
@@ -34,8 +34,24 @@ def dbns2tuple(dbns: str) -> tuple[str]:
     return tuple(dbns.split("/"))
 
 
-def nsstartswith(ns: tuple[str, ...], prefix: tuple[str, ...]) -> bool:
-    return ns[: len(prefix)] == prefix
+def navigate_to_namespace(
+    namespace: tuple[str, ...], create: bool = False
+) -> Optional[dict]:
+    """Navigate to namespace location. If create=True, creates missing levels."""
+    current = MEMORY_HISTORY
+
+    for part in namespace:
+        if not isinstance(current, dict):
+            return None
+
+        if create and part not in current:
+            current[part] = {}
+        elif part not in current:
+            return None
+
+        current = current[part]
+
+    return current
 
 
 def load_database_into_memory() -> None:
@@ -49,47 +65,34 @@ def load_database_into_memory() -> None:
         for dbns, field, value in DATABASE.history_all():
             namespace = dbns2tuple(dbns)
 
-            if namespace not in MEMORY_HISTORY:
-                MEMORY_HISTORY[namespace] = {}
+            # Get or create the nested dictionary for this namespace
+            nested_dict = navigate_to_namespace(namespace, create=True)
 
-            if field not in MEMORY_HISTORY[namespace]:
-                MEMORY_HISTORY[namespace][field] = []
+            if field not in nested_dict:
+                nested_dict[field] = []
 
             # Add to history
-            MEMORY_HISTORY[namespace][field].append(value)
+            nested_dict[field].append(value)
 
 
-def get_current_value(namespace: str, field: str) -> Any:
+def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
     """Get current value from last history entry.
     NOTE: Assumes caller holds LOCK.
     """
+    current = navigate_to_namespace(namespace)
     if (
-        namespace in MEMORY_HISTORY
-        and field in MEMORY_HISTORY[namespace]
-        and MEMORY_HISTORY[namespace][field]
+        current
+        and isinstance(current, dict)
+        and field in current
+        and isinstance(current[field], list)
+        and current[field]
     ):
         # Check if latest entry is available (not a tombstone)
-        latest = MEMORY_HISTORY[namespace][field][-1]
+        latest = current[field][-1]
         if not latest.unavailable:
             return safe_deepcopy(latest.data)
 
     raise AttributeError(f"Key not found: ({namespace}, {field})")
-
-
-def has_current_value(namespace: str, field: str) -> bool:
-    """Check if there's a current (non-tombstone) value.
-    NOTE: Assumes caller holds LOCK.
-    """
-    if (
-        namespace in MEMORY_HISTORY
-        and field in MEMORY_HISTORY[namespace]
-        and MEMORY_HISTORY[namespace][field]
-    ):
-        # Check if latest entry is available (not a tombstone)
-        latest = MEMORY_HISTORY[namespace][field][-1]
-        return not latest.unavailable
-
-    return False
 
 
 def db_request(
@@ -129,20 +132,20 @@ def db_request(
             DATABASE.insert(tuple2dbns(namespace), key, value, context)
             # Update in-memory data
             with LOCK:
-                if namespace not in MEMORY_HISTORY:
-                    MEMORY_HISTORY[namespace] = {}
+                # Get or create the nested dictionary for this namespace
+                nested_dict = navigate_to_namespace(namespace, create=True)
 
-                if key not in MEMORY_HISTORY[namespace]:
-                    MEMORY_HISTORY[namespace][key] = []
+                if key not in nested_dict:
+                    nested_dict[key] = []
 
                 # Add to history with current timestamp
                 new_value = Value(DATABASE.now, False, safe_deepcopy(value), context)
 
                 # Special handling for player lists - replace entire history like database does
                 if key == "players" and namespace[0] == "session":
-                    MEMORY_HISTORY[namespace][key] = [new_value]
+                    nested_dict[key] = [new_value]
                 else:
-                    MEMORY_HISTORY[namespace][key].append(new_value)
+                    nested_dict[key].append(new_value)
             rval = value
 
         case "delete", _, None if isinstance(context, str):
@@ -150,13 +153,12 @@ def db_request(
             # Update in-memory data
             with LOCK:
                 # Add tombstone to history
-                if namespace not in MEMORY_HISTORY:
-                    MEMORY_HISTORY[namespace] = {}
-                if key not in MEMORY_HISTORY[namespace]:
-                    MEMORY_HISTORY[namespace][key] = []
+                nested_dict = navigate_to_namespace(namespace, create=True)
+                if key not in nested_dict:
+                    nested_dict[key] = []
 
                 tombstone = Value(DATABASE.now, True, None, context)
-                MEMORY_HISTORY[namespace][key].append(tombstone)
+                nested_dict[key].append(tombstone)
 
         # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:
@@ -165,55 +167,65 @@ def db_request(
 
         case "get_field_history", _, None:
             with LOCK:
-                if namespace in MEMORY_HISTORY and key in MEMORY_HISTORY[namespace]:
-                    rval = MEMORY_HISTORY[namespace][key]
+                current = navigate_to_namespace(namespace)
+                if current and isinstance(current, dict) and key in current:
+                    rval = current[key]
                 else:
                     rval = []
 
         case "fields", "", None:
             with LOCK:
-                if namespace in MEMORY_HISTORY:
+                current = navigate_to_namespace(namespace)
+                if current and isinstance(current, dict):
                     # Return only fields that have current (non-tombstone) values
-                    rval = [
-                        field
-                        for field in MEMORY_HISTORY[namespace].keys()
-                        if has_current_value(namespace, field)
-                    ]
+                    rval = []
+                    for field in current.keys():
+                        if (
+                            isinstance(current[field], list)
+                            and current[field]
+                            and not current[field][-1].unavailable
+                        ):
+                            rval.append(field)
                 else:
                     rval = []
 
         case "has_fields", "", None:
             with LOCK:
-                if namespace in MEMORY_HISTORY:
+                current = navigate_to_namespace(namespace)
+                if current and isinstance(current, dict):
+                    # Check if any field has current (non-tombstone) values
                     rval = any(
-                        has_current_value(namespace, field)
-                        for field in MEMORY_HISTORY[namespace].keys()
+                        isinstance(values, list)
+                        and values
+                        and not values[-1].unavailable
+                        for values in current.values()
                     )
                 else:
                     rval = False
 
         case "history", "", None:
             with LOCK:
-                rval = (
-                    MEMORY_HISTORY[namespace] if namespace in MEMORY_HISTORY else dict()
-                )
+                current = navigate_to_namespace(namespace)
+                rval = current if current and isinstance(current, dict) else {}
 
         case "get_many", "", None if isinstance(extra, tuple):
             mnamespaces: list[str]
             mnamespaces, mkey = cast(tuple[list[str], str], extra)
             with LOCK:
                 result = {}
-                for namespace in mnamespaces:
-                    if has_current_value(namespace, mkey):
-                        # Get the latest non-tombstone value
-                        if (
-                            namespace in MEMORY_HISTORY
-                            and mkey in MEMORY_HISTORY[namespace]
-                            and MEMORY_HISTORY[namespace][mkey]
-                        ):
-                            latest = MEMORY_HISTORY[namespace][mkey][-1]
-                            if not latest.unavailable:
-                                result[(namespace, mkey)] = latest
+                for namespace_str in mnamespaces:
+                    namespace = dbns2tuple(namespace_str)
+                    current = navigate_to_namespace(namespace)
+                    if (
+                        current
+                        and isinstance(current, dict)
+                        and mkey in current
+                        and isinstance(current[mkey], list)
+                        and current[mkey]
+                    ):
+                        latest = current[mkey][-1]
+                        if not latest.unavailable:
+                            result[(namespace_str, mkey)] = latest
                 rval = result
 
         case "fields_from_session", "", None if isinstance(extra, tuple):
@@ -222,11 +234,19 @@ def db_request(
             sname, since = cast(tuple[str, float], extra)
             with LOCK:
                 result = {}
-                for ns, fields in MEMORY_HISTORY.items():
-                    if nsstartswith(ns, ("player", sname)):
-                        for field, values in fields.items():
-                            if values and values[-1].time > since:
-                                result[(ns, field)] = values[-1]
+                # Direct access to player data for this session
+                session_players = navigate_to_namespace(("player", sname))
+                if session_players and isinstance(session_players, dict):
+                    for player_name, player_fields in session_players.items():
+                        if isinstance(player_fields, dict):
+                            ns = ("player", sname, player_name)
+                            for field, values in player_fields.items():
+                                if (
+                                    values
+                                    and isinstance(values, list)
+                                    and values[-1].time > since
+                                ):
+                                    result[(ns, field)] = values[-1]
                 rval = result
 
         case "get_within_context", _, None if isinstance(extra, dict):
@@ -234,15 +254,13 @@ def db_request(
             context_fields = extra
             with LOCK:
                 # This is complex - need to implement the context window logic using in-memory data
-                if (
-                    namespace not in MEMORY_HISTORY
-                    or key not in MEMORY_HISTORY[namespace]
-                ):
+                current = navigate_to_namespace(namespace)
+                if not current or not isinstance(current, dict) or key not in current:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
                     )
 
-                target_values = MEMORY_HISTORY[namespace][key]
+                target_values = current[key]
 
                 # Iterate from newest to oldest
                 for i in range(len(target_values) - 1, -1, -1):
@@ -256,14 +274,11 @@ def db_request(
 
                     # Check each required context field at target_time
                     for context_field, required_value in context_fields.items():
-                        if (
-                            namespace not in MEMORY_HISTORY
-                            or context_field not in MEMORY_HISTORY[namespace]
-                        ):
+                        if context_field not in current:
                             all_contexts_match = False
                             break
 
-                        context_values = MEMORY_HISTORY[namespace][context_field]
+                        context_values = current[context_field]
 
                         # Find the latest context value at or before target_time
                         context_state = None
@@ -287,13 +302,8 @@ def db_request(
 
                         # Find when any context field changed after target_time
                         for context_field, required_value in context_fields.items():
-                            if (
-                                namespace in MEMORY_HISTORY
-                                and context_field in MEMORY_HISTORY[namespace]
-                            ):
-                                context_values = MEMORY_HISTORY[namespace][
-                                    context_field
-                                ]
+                            if context_field in current:
+                                context_values = current[context_field]
 
                                 for cv in context_values:
                                     if cast(float, cv.time) > target_time:
