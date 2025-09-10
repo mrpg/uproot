@@ -243,6 +243,7 @@ async def show_page(
 
             while candidate <= len(player.page_order):
                 page = path2page(show2path(player.page_order, candidate))
+                player.show_page = candidate
 
                 await maybe_await(
                     optional_call,
@@ -265,7 +266,6 @@ async def show_page(
                     optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
-                    player.show_page = candidate
                     break
                 else:
                     await maybe_await(
@@ -284,6 +284,7 @@ async def show_page(
 
             while candidate >= 0:
                 page = path2page(show2path(player.page_order, candidate))
+                player.show_page = candidate
 
                 await maybe_await(
                     optional_call,
@@ -293,12 +294,29 @@ async def show_page(
                     request=request,
                 )
 
+                await maybe_await(
+                    optional_call_once,
+                    page,
+                    "before_always_once",
+                    storage=player,
+                    show_page=candidate,
+                    player=player,
+                )
+
                 if await maybe_await(
                     optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
-                    player.show_page = candidate
                     break
+                else:
+                    await maybe_await(
+                        optional_call_once,
+                        page,
+                        "after_always_once",
+                        storage=player,
+                        show_page=candidate,
+                        player=player,
+                    )
 
                 candidate -= 1
 
