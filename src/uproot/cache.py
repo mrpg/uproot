@@ -1,3 +1,10 @@
+# Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
+"""
+This file exposes an internal API that end users MUST NOT rely upon. Rely upon storage.py instead.
+"""
+
 import copy
 import threading
 from time import time
