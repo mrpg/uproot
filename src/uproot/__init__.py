@@ -21,14 +21,14 @@ __email__ = "info@uproot.science"
 
 
 KEY: str = ""
-INFO: defaultdict[
+INFO: defaultdict[  # TODO: Deprecated, delete
     Sessionname,
     dict[
         Username,
         tuple[
-            Optional[int],
-            list[str],
-            int,
+            Optional[int],  # player.id
+            list[str],  # player.page_order
+            int,  # player.show_page
         ],
     ],
 ] = defaultdict(dict)
