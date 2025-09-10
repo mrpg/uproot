@@ -168,7 +168,16 @@ class ModelIdentifier(Identifier):
         return Model(self.sname, self.mname, **kwargs)
 
 
-async def optional_call(
+async def maybe_await(func, *args, **kwargs):
+    result = func(*args, **kwargs)
+
+    if inspect.iscoroutine(result):
+        return await result
+
+    return result
+
+
+def optional_call(
     obj: Any,
     attr: str,
     *,
@@ -181,15 +190,12 @@ async def optional_call(
         return default_return
 
     if callable(attr_):
-        if inspect.iscoroutinefunction(attr_):
-            return await attr_(**kwargs)
-        else:
-            return attr_(**kwargs)
+        return attr_(**kwargs)
     else:
         return attr_
 
 
-async def optional_call_once(
+def optional_call_once(
     obj: Any,
     attr: str,
     default_return: Optional[Any] = None,
@@ -212,7 +218,7 @@ async def optional_call_once(
     storage._uproot_what_ran.append(rantpl)
 
     try:
-        return await optional_call(obj, attr, default_return=default_return, **kwargs)
+        return optional_call(obj, attr, default_return=default_return, **kwargs)
     except Exception as e:
         storage._uproot_what_ran.remove(rantpl)
 
@@ -470,7 +476,9 @@ class Page(metaclass=FrozenPage):
     async def set_timeout(page: type["Page"], player: "Storage") -> Optional[float]:
         to_sec = cast(
             Optional[float],
-            await optional_call(page, "timeout", default_return=None, player=player),
+            await maybe_await(
+                optional_call, page, "timeout", default_return=None, player=player
+            ),
         )
 
         if to_sec is None:
@@ -555,7 +563,7 @@ class GroupCreatingWait(InternalPage):
     @classmethod
     async def show(page, player: "Storage") -> bool:
         # Already in a group - don't show page
-        if player._uproot_group is not None:
+        if page.call_after(player):
             return False
 
         # Try to create a group immediately
@@ -564,7 +572,7 @@ class GroupCreatingWait(InternalPage):
         group_name = try_group(player, player.show_page, page.group_size)
 
         # If grouping succeeded, player now has a group - don't show page
-        if player._uproot_group is not None:
+        if page.call_after(player):
             return False
 
         # Need to wait for more players
@@ -582,7 +590,7 @@ class GroupCreatingWait(InternalPage):
         try_group(player, player.show_page, page.group_size)
 
         # Re-check group status after grouping attempt
-        if player._uproot_group is not None:
+        if page.call_after(player):
             return "submit", 1
 
         # Get fresh count for progress display
@@ -605,11 +613,15 @@ class GroupCreatingWait(InternalPage):
 
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
+        return page.call_after(player)
+
+    @classmethod
+    def call_after(page, player: "Storage") -> bool:
         if player._uproot_group is not None:
-            group = player._uproot_group()
+            group = player.group
 
             with group:
-                await optional_call_once(
+                optional_call_once(
                     page,
                     "after_grouping",
                     storage=group,
@@ -617,7 +629,7 @@ class GroupCreatingWait(InternalPage):
                     group=group,
                 )
 
-            # This is safe because all_here and after_grouping must not be async
+            # This works because all_here and after_grouping must not be async
 
             return True
         else:
@@ -676,7 +688,8 @@ class SynchronizingWait(InternalPage):
             group = player._uproot_group()
 
             with group:
-                await optional_call_once(
+                await maybe_await(
+                    optional_call_once,
                     page,
                     "all_here",
                     storage=group,
@@ -687,7 +700,8 @@ class SynchronizingWait(InternalPage):
             session = player.session
 
             with session:
-                await optional_call_once(
+                await maybe_await(
+                    optional_call_once,
                     page,
                     "all_here",
                     storage=session,

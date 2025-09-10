@@ -51,6 +51,7 @@ from uproot.storage import (
     Storage,
     field_from_namespaces,
 )
+from uproot.types import maybe_await, optional_call, optional_call_once
 
 PROCESSED_FUTURES = deque(maxlen=8 * 1024)
 router = APIRouter(prefix=d.ROOT)
@@ -103,8 +104,8 @@ async def show_page(
     metadata = dict()
 
     if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
-        await t.optional_call(
-            page, "timeout_reached", default_return=True, player=player
+        await maybe_await(
+            optional_call, page, "timeout_reached", default_return=True, player=player
         )
         proceed = True
 
@@ -112,7 +113,9 @@ async def show_page(
         if player.show_page == -1:
             pass
         elif player.started and len(player.page_order) > player.show_page > -1:
-            if await t.optional_call(page, "show", default_return=True, player=player):
+            if await maybe_await(
+                optional_call, page, "show", default_return=True, player=player
+            ):
                 pass
             else:
                 proceed = True
@@ -172,8 +175,12 @@ async def show_page(
 
                 for stealth in cast(
                     Iterable[str],
-                    await t.optional_call(
-                        page, "stealth_fields", default_return=(), player=player
+                    await maybe_await(
+                        optional_call,
+                        page,
+                        "stealth_fields",
+                        default_return=(),
+                        player=player,
                     ),
                 ):
                     stealth_fields[stealth] = None
@@ -190,7 +197,8 @@ async def show_page(
                                 setattr(player, fname, field.data)
 
                         if stealth_fields:
-                            await t.optional_call(
+                            await maybe_await(
+                                optional_call,
                                 page,
                                 "handle_stealth_fields",
                                 player=player,
@@ -206,20 +214,22 @@ async def show_page(
     if proceed:
         proceed = cast(
             bool,
-            await t.optional_call(
-                page, "may_proceed", default_return=True, player=player
+            await maybe_await(
+                optional_call, page, "may_proceed", default_return=True, player=player
             ),
         )
 
     if proceed and player.show_page < len(player.page_order):
-        await t.optional_call_once(
+        await maybe_await(
+            optional_call_once,
             page,
             "after_once",
             storage=player,
             show_page=player.show_page,
             player=player,
         )
-        await t.optional_call_once(
+        await maybe_await(
+            optional_call_once,
             page,
             "after_always_once",
             storage=player,
@@ -234,14 +244,16 @@ async def show_page(
             while candidate <= len(player.page_order):
                 page = path2page(show2path(player.page_order, candidate))
 
-                await t.optional_call(
+                await maybe_await(
+                    optional_call,
                     page,
                     "early",
                     player=player,
                     request=request,
                 )
 
-                await t.optional_call_once(
+                await maybe_await(
+                    optional_call_once,
                     page,
                     "before_always_once",
                     storage=player,
@@ -249,14 +261,15 @@ async def show_page(
                     player=player,
                 )
 
-                if await t.optional_call(
-                    page, "show", default_return=True, player=player
+                if await maybe_await(
+                    optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
                     player.show_page = candidate
                     break
                 else:
-                    await t.optional_call_once(
+                    await maybe_await(
+                        optional_call_once,
                         page,
                         "after_always_once",
                         storage=player,
@@ -272,15 +285,16 @@ async def show_page(
             while candidate >= 0:
                 page = path2page(show2path(player.page_order, candidate))
 
-                await t.optional_call(
+                await maybe_await(
+                    optional_call,
                     page,
                     "early",
                     player=player,
                     request=request,
                 )
 
-                if await t.optional_call(
-                    page, "show", default_return=True, player=player
+                if await maybe_await(
+                    optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
                     player.show_page = candidate
@@ -288,7 +302,9 @@ async def show_page(
 
                 candidate -= 1
 
-    if (to := await t.optional_call(page, "set_timeout", player=player)) is not None:
+    if (
+        to := await maybe_await(optional_call, page, "set_timeout", player=player)
+    ) is not None:
         metadata["remaining_seconds"] = to
 
     pid = cast(t.PlayerIdentifier, ~player)
@@ -296,7 +312,8 @@ async def show_page(
     u.set_info(pid, None, player.page_order, player.show_page)
     u.set_online(pid)
 
-    await t.optional_call_once(
+    await maybe_await(
+        optional_call_once,
         page,
         "before_once",
         storage=player,

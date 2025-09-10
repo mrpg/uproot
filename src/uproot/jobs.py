@@ -12,7 +12,13 @@ import uproot.deployment as d
 import uproot.events as e
 import uproot.queues as q
 import uproot.storage as s
-from uproot.types import PlayerIdentifier, Sessionname, Username, optional_call
+from uproot.types import (
+    PlayerIdentifier,
+    Sessionname,
+    Username,
+    maybe_await,
+    optional_call,
+)
 
 
 async def from_queue(pid: PlayerIdentifier) -> tuple[str, q.EntryType]:
@@ -64,7 +70,9 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
 
                     if player.show_page != len(player.page_order):
                         try:
-                            await optional_call(u.APPS[fmodule], fname, player=player)
+                            await maybe_await(
+                                optional_call, u.APPS[fmodule], fname, player=player
+                            )
                         except Exception as e:
                             d.LOGGER.error(
                                 f"Exception in dropout handler {fmodule}.{fname}: {e}"

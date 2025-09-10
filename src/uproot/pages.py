@@ -18,10 +18,16 @@ import uproot as u
 import uproot.admin as a
 import uproot.deployment as d
 import uproot.i18n as i18n
-import uproot.types as t
 from uproot.constraints import ensure
 from uproot.storage import Storage
 from uproot.storage import within as s_within
+from uproot.types import (
+    InternalPage,
+    Page,
+    maybe_await,
+    optional_call,
+    sha256,
+)
 
 if TYPE_CHECKING:
     from fastapi import FastAPI, Request
@@ -63,7 +69,7 @@ def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     return localstatic
 
 
-def function_context(page: Optional[type[t.Page]]) -> dict[str, Any]:
+def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
     if page is not None:
         return dict(
             internalstatic=static_factory(),
@@ -77,8 +83,10 @@ def function_context(page: Optional[type[t.Page]]) -> dict[str, Any]:
         )
 
 
-async def form_factory(page: type[t.Page], player: object) -> type[BaseForm]:
-    fields = await t.optional_call(page, "fields", default_return=None, player=player)
+async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
+    fields = await maybe_await(
+        optional_call, page, "fields", default_return=None, player=player
+    )
 
     if fields is not None:
         return type("FormOnPage", (BaseForm,), fields)
@@ -86,7 +94,7 @@ async def form_factory(page: type[t.Page], player: object) -> type[BaseForm]:
         raise ValueError
 
 
-def timeout_reached(page: type[t.Page], player: Storage, tol: float) -> bool:
+def timeout_reached(page: type[Page], player: Storage, tol: float) -> bool:
     try:
         return cast(
             bool, time.time() + tol >= player._uproot_timeouts_until[player.show_page]
@@ -101,7 +109,7 @@ async def render(
     server: "FastAPI",
     request: "Request",
     player: Optional[Storage],
-    page: type[t.Page],
+    page: type[Page],
     formdata: Optional[Any] = None,
     custom_errors: Optional[list[str]] = None,
     metadata: Optional[dict[str, Any]] = None,
@@ -145,7 +153,8 @@ async def render(
         form = None
 
     app = u.APPS[page.__module__] if page.__module__ in u.APPS else None
-    language = await t.optional_call(
+    language = await maybe_await(
+        optional_call,
         app,  # TODO: or previous app
         "language",
         default_return=d.LANGUAGE,
@@ -167,7 +176,9 @@ async def render(
     jsvars = (
         cast(
             dict[str, Any],
-            await t.optional_call(page, "jsvars", default_return=dict(), player=player),
+            await maybe_await(
+                optional_call, page, "jsvars", default_return=dict(), player=player
+            ),
         )
         | internal
     )
@@ -176,8 +187,8 @@ async def render(
         context = (
             cast(
                 dict[str, Any],
-                await t.optional_call(
-                    page, "context", default_return=dict(), player=player
+                await maybe_await(
+                    optional_call, page, "context", default_return=dict(), player=player
                 ),
             )
             | BUILTINS
@@ -284,8 +295,8 @@ async def render_error(
     return await ENV.get_template("InternalError.html").render_async(**context)
 
 
-def truepath(page: type[t.Page]) -> str:
-    if t.InternalPage in page.__mro__ and hasattr(page, "show") and not page.show:
+def truepath(page: type[Page]) -> str:
+    if InternalPage in page.__mro__ and hasattr(page, "show") and not page.show:
         return f"#{page.__name__}"
     else:
         if not hasattr(page, "template"):
@@ -294,8 +305,8 @@ def truepath(page: type[t.Page]) -> str:
             return page.template
 
 
-def page2path(page: type[t.Page]) -> str:
-    if t.InternalPage in page.__mro__:
+def page2path(page: type[Page]) -> str:
+    if InternalPage in page.__mro__:
         if page.__module__ == "uproot.types":
             # This is a true uproot-core-defined InternalPage
             return f"#{page.__name__}"
@@ -305,11 +316,11 @@ def page2path(page: type[t.Page]) -> str:
         return f"{page.__module__}/{page.__name__}.html"
 
 
-def path2page(path: str) -> type[t.Page]:
+def path2page(path: str) -> type[Page]:
     target_page = u.PAGES[path]
 
     if isinstance(target_page, tuple):
-        return cast(type[t.Page], getattr(u.APPS[target_page[0]], target_page[1]))
+        return cast(type[Page], getattr(u.APPS[target_page[0]], target_page[1]))
     else:
         return target_page
 
@@ -327,7 +338,7 @@ def show2path(page_order: list[str], show_page: int) -> str:
 
 
 async def validate(
-    page: type[t.Page], player: Storage, formdata: "FormData"
+    page: type[Page], player: Storage, formdata: "FormData"
 ) -> tuple[Any, bool, list[str]]:
     form = None
     errors = []
@@ -340,7 +351,8 @@ async def validate(
 
         errors_from_page = cast(
             str | list[str],
-            await t.optional_call(
+            await maybe_await(
+                optional_call,
                 page,
                 "validate",
                 default_return=[],
@@ -358,10 +370,10 @@ async def validate(
     return form, not errors, errors
 
 
-def verify_csrf(page: type[t.Page], player: Storage, formdata: "FormData") -> bool:
+def verify_csrf(page: type[Page], player: Storage, formdata: "FormData") -> bool:
     base = f"{player._uproot_session}+{player.name}+{player.key}"
 
-    return "_uproot_csrf" in formdata and formdata["_uproot_csrf"] == t.sha256(
+    return "_uproot_csrf" in formdata and formdata["_uproot_csrf"] == sha256(
         base.encode("utf-8")
     )
 
