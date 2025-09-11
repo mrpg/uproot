@@ -1,0 +1,98 @@
+? 'The Use of Knowledge in Society'
+: 'The Use of Knowledge in Society'
+
+? 'Welcome'
+: 'Welcome'
+
+? 'Please wait'
+: 'Please wait'
+
+? 'Next'
+: 'Next'
+
+? 'Back'
+: 'Back'
+
+? 'End'
+: 'End'
+
+? 'You have reached the end of this study.'
+: 'You have reached the end of this study.'
+
+? 'You may now close this page.'
+: 'You may now close this page.'
+
+? 'Close'
+: 'Close'
+
+? 'Remaining time on this page:'
+: 'Remaining time on this page:'
+
+? 'Error'
+: 'Error'
+
+? 'Login'
+: 'Login'
+
+? 'Username'
+: 'Username'
+
+? 'Password'
+: 'Password'
+
+? 'Submit'
+: 'Submit'
+
+? 'You provided invalid credentials.'
+: 'You provided invalid credentials.'
+
+? '(Or you were too fast.)'
+: '(Or you were too fast.)'
+
+? 'Dashboard'
+: 'Dashboard'
+
+? 'Send message'
+: 'Send message'
+
+? 'Insert fields'
+: 'Insert fields'
+
+? 'Reload page'
+: 'Reload page'
+
+? 'You have selected <b><span class="pcount"></span> subject(s)</b>.'
+: 'You have selected <b><span class="pcount"></span> subject(s)</b>.'
+
+? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
+: 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
+
+? 'Mark as dropout'
+: 'Mark as dropout'
+
+? 'Put to end'
+: 'Put to end'
+
+? 'Advance by one page'
+: 'Advance by one page'
+
+? 'Revert by one page'
+: 'Revert by one page'
+
+? 'Manage subjects'
+: 'Manage subjects'
+
+? 'Select subjects'
+: 'Select subjects'
+
+? 'Select all'
+: 'Select all'
+
+? 'Deselect all'
+: 'Deselect all'
+
+? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
+: 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
+
+? 'View session details'
+: 'View session details'

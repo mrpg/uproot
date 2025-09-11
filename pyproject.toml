@@ -22,6 +22,7 @@ dependencies = [
     "msgpack==1.1.1",
     "orjson==3.11.3",
     "pydantic==2.11.7",
+    "strictyaml==1.7.3",
     "python-multipart==0.0.20",
     "sortedcontainers==2.4.0",
     "uvicorn==0.35.0",
