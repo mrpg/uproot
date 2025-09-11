@@ -664,15 +664,16 @@ async def session_data(
     request: Request,
     sname: t.Sessionname,
     format: str,
+    filetype: str,
     gvar: list[str] = Query(default=[]),
-    filetype: str = "csv",
+    filters: bool = Query(default=False),
     auth=Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
 
     if filetype == "csv":
         t0 = now()
-        csv = a.generate_csv(sname, format, gvar)
+        csv = a.generate_csv(sname, format, gvar, filters)
         t1 = now()
 
         if t1 - t0 > 0.1:
@@ -685,7 +686,7 @@ async def session_data(
         )
     elif filetype == "json":
         return StreamingResponse(
-            a.generate_json(sname, format, gvar),
+            a.generate_json(sname, format, gvar, filters),
             media_type="text/json",
             headers={"Content-Disposition": f"attachment; filename={sname}.json"},
         )

@@ -3,31 +3,27 @@
 
 import csv as pycsv
 from io import StringIO
-from typing import Any, AsyncGenerator, Callable, Iterable, Iterator, Optional, cast
+from typing import Any, AsyncGenerator, Iterable, Iterator, Optional, cast
 
 import orjson as json
 
 import uproot.cache as cache
 import uproot.deployment as d
 from uproot.constraints import ensure
+from uproot.stable import _encode
 from uproot.types import Value
 
 
-def raw2json(b: Optional[bytes]) -> str:
-    """
-    This function unpacks the raw data received from the database. Since the database
-    just stores binary JSON with a one-byte type prefix, we can just strip the former
-    and allow the user of this function to use the resulting str as true JSON.
-    """
-    if b is not None:
-        return b[1:].decode("utf-8")
-    else:
+def value2json(data: Any, unavailable: bool = False) -> str:
+    if unavailable:
         return d.UNAVAILABLE_EQUIVALENT
+    else:
+        return _encode(data)[1].decode("utf-8")  # This is guaranteed to work
 
 
 def json2csv(js: str) -> str:
     """
-    This function gets the output of raw2json(). This is then normalized.
+    This function gets the output of value2json(). This is then normalized.
     The user of this function will use the return value as some input to a function
     that properly escapes and outputs each cell. This function targets R's CSV dialect.
     """
@@ -65,6 +61,7 @@ def partial_matrix(
                 "!field": field,
                 "!time": v.time,
                 "!context": v.context,
+                "!unavailable": v.unavailable,
                 "!data": v.data,
             }
 
@@ -80,12 +77,42 @@ def long_to_wide(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
             "!field": row["!field"],
             "!time": row["!time"],
             "!context": row["!context"],
+            "!unavailable": row["!unavailable"],
             row["!field"].strip('"'): row["!data"],  # ha!
         }
 
 
 def noop(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
     yield from pm
+
+
+def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
+    for row in pm:
+        storage = row["!storage"]
+        field = row["!field"]
+        data = row["!data"]
+
+        if field.startswith("_uproot_"):
+            if field == "_uproot_group" and data is not None:
+                row["!field"] = "group"
+                row["!data"] = f"group/{data.sname}/{data.gname}"
+            elif field == "_uproot_session":
+                row["!field"] = "session"
+                row["!data"] = f"session/{data}"
+            elif field == "_uproot_dropout":
+                pass
+            else:
+                continue
+
+        if storage.startswith("session/"):
+            _, sname = cache.dbns2tuple(storage)
+
+            if field == "groups":
+                row["!data"] = [f"group/{sname}/{gname}" for gname in data]
+            elif field == "players":
+                row["!data"] = [f"player/{sname}/{uname}" for _, uname in data]
+
+        yield row
 
 
 def latest(
@@ -117,6 +144,7 @@ def latest(
         for change in changes:
             current_state[change["!field"]] = change["!data"]
             current_state["!time"] = change["!time"]
+            current_state["!unavailable"] = change["!unavailable"]
             # Save snapshot after each change
             all_snapshots.append(current_state.copy())
 
@@ -134,36 +162,7 @@ def latest(
     yield from groups.values()
 
 
-def rowsort_key(
-    priority_fields: Optional[list[str]] = None,
-) -> tuple[Callable[[str], tuple[int, str]], Callable[[dict[str, Any]], list[Any]]]:
-    if priority_fields is None:
-        priority_fields = []
-
-    sortkeys = ["!storage", "!time"] + priority_fields
-
-    def keykey(key: str) -> tuple[int, str]:
-        prio = 0
-
-        if key in sortkeys:
-            prio = -1
-        elif key in ("session", "key", "page_order") or key.startswith("_uproot_"):
-            prio = 1
-
-        return (
-            prio,
-            key,
-        )
-
-    def rowkey(row: dict[str, Any]) -> list[Any]:
-        return [row.get(c, None) for c in sortkeys]
-
-    return keykey, rowkey
-
-
-def csv_out(
-    rows: Iterable[dict[str, Any]], priority_fields: Optional[list[str]] = None
-) -> str:
+def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     rows = list(rows)
 
     buffer = StringIO()
@@ -172,21 +171,12 @@ def csv_out(
     for row in rows:
         csvfields.update(row.keys())
 
-    keys = rowsort_key(priority_fields)
-
-    dw = pycsv.DictWriter(buffer, fieldnames=sorted(csvfields, key=keys[0]))
+    dw = pycsv.DictWriter(buffer, fieldnames=csvfields)
     dw.writeheader()
 
-    for row in sorted(rows, key=keys[1]):
+    for row in rows:
         dw.writerow(
-            {
-                k: json2csv(
-                    raw2json(v)
-                    if v is None or isinstance(v, bytes)
-                    else json.dumps(v).decode("utf-8")
-                )
-                for k, v in row.items()
-            }
+            {k: json2csv(value2json(v, row["!unavailable"])) for k, v in row.items()}
         )
 
     return buffer.getvalue()
@@ -204,12 +194,7 @@ async def json_out(rows: Iterable[dict[str, Any]]) -> AsyncGenerator[str, None]:
 
         yield "{"
         yield ",".join(
-            (
-                f'"{k}":{raw2json(v)}'
-                if v is None or isinstance(v, bytes)
-                else f'"{k}":{json.dumps(v).decode("utf-8")}'
-            )
-            for k, v in row.items()
+            (f'"{k}":{value2json(v, row["!unavailable"])}') for k, v in row.items()
         )
         yield "}"
 

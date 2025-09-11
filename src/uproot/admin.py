@@ -195,41 +195,17 @@ def everything_from_session(
     return matches
 
 
-def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
+def generate_data(
+    sname: t.Sessionname,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+) -> tuple[
+    Iterator[dict[str, Any]],
+    Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]],
+    dict[str, list[str]],
+]:
     gvar = [gv for gv in gvar if gv]
-
-    transformer: Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]]
-    transkwargs: dict[str, list[str]]
-    priority_fields: list[str]
-
-    match format:
-        case "ultralong":
-            transformer, transkwargs, priority_fields = data.noop, {}, []
-        case "sparse":
-            transformer, transkwargs, priority_fields = data.long_to_wide, {}, []
-        case "latest":
-            transformer, transkwargs, priority_fields = (
-                data.latest,
-                {"group_by_fields": gvar},
-                gvar,
-            )
-        case _:
-            raise NotImplementedError
-
-    alldata = data.partial_matrix(everything_from_session(sname))
-
-    return data.csv_out(
-        transformer(alldata, **transkwargs), priority_fields=priority_fields
-    )
-
-
-async def generate_json(
-    sname: t.Sessionname, format: str, gvar: list[str]
-) -> AsyncGenerator:
-    gvar = [gv for gv in gvar if gv]
-
-    transformer: Callable[[Iterator[dict]], Iterator[dict]]
-    transkwargs: dict[str, list[str]]
 
     match format:
         case "ultralong":
@@ -242,6 +218,31 @@ async def generate_json(
             raise NotImplementedError
 
     alldata = data.partial_matrix(everything_from_session(sname))
+
+    if filters:
+        alldata = data.reasonable_filters(alldata)
+
+    return alldata, transformer, transkwargs
+
+
+def generate_csv(
+    sname: t.Sessionname,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+) -> str:
+    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
+
+    return data.csv_out(transformer(alldata, **transkwargs))
+
+
+async def generate_json(
+    sname: t.Sessionname,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+) -> AsyncGenerator:
+    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
 
     async for chunk in data.json_out(transformer(alldata, **transkwargs)):
         yield chunk

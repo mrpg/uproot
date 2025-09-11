@@ -52,6 +52,8 @@ def _encode(data: Any) -> tuple[int, bytes]:
         case tuple():
             return 3, jd(data)
         case bytes():
+            # While very robust and fast, this is wasteful and naïve
+            # Should perhaps be changed (with full backwards compat)
             return 4, jd(base64.b64encode(data).decode("ascii"))
         case complex():
             return 6, jd([data.real, data.imag])
@@ -76,6 +78,7 @@ def _encode(data: Any) -> tuple[int, bytes]:
         case dict():
             return 129, jd(data)
         case bytearray():
+            # See comment about bytes
             return 130, jd(base64.b64encode(data).decode("ascii"))
         case set():
             return 131, jd(list(data))
