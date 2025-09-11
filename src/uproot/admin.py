@@ -202,12 +202,12 @@ def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
     alldata_generators = []
 
     # Get session data: session/sname
-    session_data = cache.navigate_to_namespace(("session", sname))
+    session_data = cache.get_namespace(("session", sname))
     if session_data and isinstance(session_data, dict):
         alldata_generators.append(session_data.values())
 
     # Get player data: player/sname/* (all players in session)
-    players_data = cache.navigate_to_namespace(("player", sname))
+    players_data = cache.get_namespace(("player", sname))
     if players_data and isinstance(players_data, dict):
         alldata_generators.extend(
             player_fields.values()
@@ -216,7 +216,7 @@ def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
         )
 
     # Get group data: group/sname/* (all groups in session)
-    groups_data = cache.navigate_to_namespace(("group", sname))
+    groups_data = cache.get_namespace(("group", sname))
     if groups_data and isinstance(groups_data, dict):
         alldata_generators.extend(
             group_fields.values()
@@ -225,7 +225,7 @@ def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
         )
 
     # Get model data: model/sname/* (all models in session)
-    models_data = cache.navigate_to_namespace(("model", sname))
+    models_data = cache.get_namespace(("model", sname))
     if models_data and isinstance(models_data, dict):
         alldata_generators.extend(
             model_fields.values()
@@ -262,12 +262,12 @@ async def generate_json(
     alldata_generators = []
 
     # Get session data: session/sname
-    session_data = cache.navigate_to_namespace(("session", sname))
+    session_data = cache.get_namespace(("session", sname))
     if session_data and isinstance(session_data, dict):
         alldata_generators.append(session_data.values())
 
     # Get player data: player/sname/* (all players in session)
-    players_data = cache.navigate_to_namespace(("player", sname))
+    players_data = cache.get_namespace(("player", sname))
     if players_data and isinstance(players_data, dict):
         alldata_generators.extend(
             player_fields.values()
@@ -276,7 +276,7 @@ async def generate_json(
         )
 
     # Get group data: group/sname/* (all groups in session)
-    groups_data = cache.navigate_to_namespace(("group", sname))
+    groups_data = cache.get_namespace(("group", sname))
     if groups_data and isinstance(groups_data, dict):
         alldata_generators.extend(
             group_fields.values()
@@ -285,7 +285,7 @@ async def generate_json(
         )
 
     # Get model data: model/sname/* (all models in session)
-    models_data = cache.navigate_to_namespace(("model", sname))
+    models_data = cache.get_namespace(("model", sname))
     if models_data and isinstance(models_data, dict):
         alldata_generators.extend(
             model_fields.values()
@@ -565,7 +565,7 @@ def sessions() -> dict[str, dict[str, Any]]:
 
     def get_session_field_value(sname: str, field: str, default_data=None):
         """Get current value of a field for a session, or return default."""
-        session_data = cache.navigate_to_namespace(("session", sname))
+        session_data = cache.get_namespace(("session", sname))
         if (
             session_data
             and isinstance(session_data, dict)

@@ -34,9 +34,7 @@ def dbns2tuple(dbns: str) -> tuple[str]:
     return tuple(dbns.split("/"))
 
 
-def navigate_to_namespace(
-    namespace: tuple[str, ...], create: bool = False
-) -> Optional[dict]:
+def get_namespace(namespace: tuple[str, ...], create: bool = False) -> Optional[dict]:
     """Navigate to namespace location. If create=True, creates missing levels."""
     current = MEMORY_HISTORY
 
@@ -66,7 +64,7 @@ def load_database_into_memory() -> None:
             namespace = dbns2tuple(dbns)
 
             # Get or create the nested dictionary for this namespace
-            nested_dict = navigate_to_namespace(namespace, create=True)
+            nested_dict = get_namespace(namespace, create=True)
 
             if field not in nested_dict:
                 nested_dict[field] = []
@@ -79,7 +77,7 @@ def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
     """Get current value from last history entry.
     NOTE: Assumes caller holds LOCK.
     """
-    current = navigate_to_namespace(namespace)
+    current = get_namespace(namespace)
     if (
         current
         and isinstance(current, dict)
@@ -133,7 +131,7 @@ def db_request(
             # Update in-memory data
             with LOCK:
                 # Get or create the nested dictionary for this namespace
-                nested_dict = navigate_to_namespace(namespace, create=True)
+                nested_dict = get_namespace(namespace, create=True)
 
                 if key not in nested_dict:
                     nested_dict[key] = []
@@ -153,7 +151,7 @@ def db_request(
             # Update in-memory data
             with LOCK:
                 # Add tombstone to history
-                nested_dict = navigate_to_namespace(namespace, create=True)
+                nested_dict = get_namespace(namespace, create=True)
                 if key not in nested_dict:
                     nested_dict[key] = []
 
@@ -167,7 +165,7 @@ def db_request(
 
         case "get_field_history", _, None:
             with LOCK:
-                current = navigate_to_namespace(namespace)
+                current = get_namespace(namespace)
                 if current and isinstance(current, dict) and key in current:
                     rval = current[key]
                 else:
@@ -175,7 +173,7 @@ def db_request(
 
         case "fields", "", None:
             with LOCK:
-                current = navigate_to_namespace(namespace)
+                current = get_namespace(namespace)
                 if current and isinstance(current, dict):
                     # Return only fields that have current (non-tombstone) values
                     rval = []
@@ -191,7 +189,7 @@ def db_request(
 
         case "has_fields", "", None:
             with LOCK:
-                current = navigate_to_namespace(namespace)
+                current = get_namespace(namespace)
                 if current and isinstance(current, dict):
                     # Check if any field has current (non-tombstone) values
                     rval = any(
@@ -205,7 +203,7 @@ def db_request(
 
         case "history", "", None:
             with LOCK:
-                current = navigate_to_namespace(namespace)
+                current = get_namespace(namespace)
                 rval = current if current and isinstance(current, dict) else {}
 
         case "get_many", "", None if isinstance(extra, tuple):
@@ -215,7 +213,7 @@ def db_request(
                 result = {}
                 for namespace_str in mnamespaces:
                     namespace = dbns2tuple(namespace_str)
-                    current = navigate_to_namespace(namespace)
+                    current = get_namespace(namespace)
                     if (
                         current
                         and isinstance(current, dict)
@@ -235,7 +233,7 @@ def db_request(
             with LOCK:
                 result = {}
                 # Direct access to player data for this session
-                session_players = navigate_to_namespace(("player", sname))
+                session_players = get_namespace(("player", sname))
                 if session_players and isinstance(session_players, dict):
                     for player_name, player_fields in session_players.items():
                         if isinstance(player_fields, dict):
@@ -254,7 +252,7 @@ def db_request(
             context_fields = extra
             with LOCK:
                 # This is complex - need to implement the context window logic using in-memory data
-                current = navigate_to_namespace(namespace)
+                current = get_namespace(namespace)
                 if not current or not isinstance(current, dict) or key not in current:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
