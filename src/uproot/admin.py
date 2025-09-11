@@ -4,7 +4,6 @@
 import asyncio
 import secrets
 from datetime import datetime
-from itertools import chain
 from typing import Any, AsyncGenerator, Callable, Iterator, Optional
 
 import aiohttp
@@ -177,6 +176,25 @@ def from_cookie(uauth: str) -> dict[str, str]:
         return dict(user="", token="")
 
 
+def everything_from_session(
+    sname: t.Sessionname,
+) -> dict[tuple[str, ...], list[t.Value]]:
+    # Go ahead… https://www.youtube.com/watch?v=2WhHW8zD620
+
+    matches = dict()
+    sname = str(sname)
+
+    for lvl1_k, lvl1_v in cache.MEMORY_HISTORY.items():
+        if isinstance(lvl1_v, dict) and sname in lvl1_v:
+            k = (
+                lvl1_k,
+                sname,
+            )
+            matches |= cache.flatten(cache.get_namespace(k), k)
+
+    return matches
+
+
 def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
     gvar = [gv for gv in gvar if gv]
 
@@ -198,42 +216,7 @@ def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
         case _:
             raise NotImplementedError
 
-    # Direct hierarchical access for export namespaces
-    alldata_generators = []
-
-    # Get session data: session/sname
-    session_data = cache.get_namespace(("session", sname))
-    if session_data and isinstance(session_data, dict):
-        alldata_generators.append(session_data.values())
-
-    # Get player data: player/sname/* (all players in session)
-    players_data = cache.get_namespace(("player", sname))
-    if players_data and isinstance(players_data, dict):
-        alldata_generators.extend(
-            player_fields.values()
-            for player_fields in players_data.values()
-            if isinstance(player_fields, dict)
-        )
-
-    # Get group data: group/sname/* (all groups in session)
-    groups_data = cache.get_namespace(("group", sname))
-    if groups_data and isinstance(groups_data, dict):
-        alldata_generators.extend(
-            group_fields.values()
-            for group_fields in groups_data.values()
-            if isinstance(group_fields, dict)
-        )
-
-    # Get model data: model/sname/* (all models in session)
-    models_data = cache.get_namespace(("model", sname))
-    if models_data and isinstance(models_data, dict):
-        alldata_generators.extend(
-            model_fields.values()
-            for model_fields in models_data.values()
-            if isinstance(model_fields, dict)
-        )
-
-    alldata = data.partial_matrix(chain.from_iterable(alldata_generators))
+    alldata = data.partial_matrix(everything_from_session(sname))
 
     return data.csv_out(
         transformer(alldata, **transkwargs), priority_fields=priority_fields
@@ -258,42 +241,7 @@ async def generate_json(
         case _:
             raise NotImplementedError
 
-    # Direct hierarchical access for export namespaces
-    alldata_generators = []
-
-    # Get session data: session/sname
-    session_data = cache.get_namespace(("session", sname))
-    if session_data and isinstance(session_data, dict):
-        alldata_generators.append(session_data.values())
-
-    # Get player data: player/sname/* (all players in session)
-    players_data = cache.get_namespace(("player", sname))
-    if players_data and isinstance(players_data, dict):
-        alldata_generators.extend(
-            player_fields.values()
-            for player_fields in players_data.values()
-            if isinstance(player_fields, dict)
-        )
-
-    # Get group data: group/sname/* (all groups in session)
-    groups_data = cache.get_namespace(("group", sname))
-    if groups_data and isinstance(groups_data, dict):
-        alldata_generators.extend(
-            group_fields.values()
-            for group_fields in groups_data.values()
-            if isinstance(group_fields, dict)
-        )
-
-    # Get model data: model/sname/* (all models in session)
-    models_data = cache.get_namespace(("model", sname))
-    if models_data and isinstance(models_data, dict):
-        alldata_generators.extend(
-            model_fields.values()
-            for model_fields in models_data.values()
-            if isinstance(model_fields, dict)
-        )
-
-    alldata = data.partial_matrix(chain.from_iterable(alldata_generators))
+    alldata = data.partial_matrix(everything_from_session(sname))
 
     async for chunk in data.json_out(transformer(alldata, **transkwargs)):
         yield chunk

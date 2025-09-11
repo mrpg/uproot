@@ -7,8 +7,10 @@ from typing import Any, AsyncGenerator, Callable, Iterable, Iterator, Optional, 
 
 import orjson as json
 
+import uproot.cache as cache
 import uproot.deployment as d
 from uproot.constraints import ensure
+from uproot.types import Value
 
 
 def raw2json(b: Optional[bytes]) -> str:
@@ -40,38 +42,35 @@ def json2csv(js: str) -> str:
 
 
 def partial_matrix(
-    history_raw: Iterator[tuple[str, str, "RawValue"]],  # This is wrong now (TODO)
+    everything: dict[tuple[str, ...], list[Value]],
 ) -> Iterator[dict[str, Any]]:
     previous_field: Optional[str]
     previous_time: float
 
     previous_field, previous_time = None, 0.0
 
-    for namespace, field, v in history_raw:
-        if d.SKIP_INTERNAL and (
-            field.startswith("_uproot_")
-            or (namespace in ("group", "session", "model") and field == "players")
-            or (namespace in "session" and field in ("models", "groups"))
-        ):
-            continue
+    for k, values in everything.items():
+        namespace = k[:-1]
+        field = k[-1]
 
-        ensure(
-            previous_field != field or cast(float, v.time) >= previous_time,
-            RuntimeError,
-            "Time ordering violation in data stream",
-        )  # guaranteed by contract
+        for v in values:
+            ensure(
+                previous_field != field or cast(float, v.time) >= previous_time,
+                RuntimeError,
+                "Time ordering violation in data stream",
+            )  # guaranteed by contract
 
-        yield {
-            "!storage": namespace,
-            "!field": field,
-            "!time": v.time,
-            "!context": v.context,
-            "!data": v.data,
-        }
+            yield {
+                "!storage": cache.tuple2dbns(namespace),
+                "!field": field,
+                "!time": v.time,
+                "!context": v.context,
+                "!data": v.data,
+            }
 
-        previous_field, previous_time = field, cast(
-            float, v.time
-        )  # v.time is a float here because it's straight outta the DB
+            previous_field, previous_time = field, cast(
+                float, v.time
+            )  # v.time is a float here because it's straight outta the DB
 
 
 def long_to_wide(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:

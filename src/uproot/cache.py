@@ -34,6 +34,22 @@ def dbns2tuple(dbns: str) -> tuple[str]:
     return tuple(dbns.split("/"))
 
 
+def flatten(d, trail=()):
+    result = {}
+
+    for k, v in d.items():
+        new_trail = trail + (k,)
+
+        if isinstance(v, list):
+            result[new_trail] = v
+        elif isinstance(v, dict):
+            result.update(flatten(v, new_trail))
+        else:
+            result[new_trail] = v
+
+    return result
+
+
 def get_namespace(namespace: tuple[str, ...], create: bool = False) -> Optional[dict]:
     """Navigate to namespace location. If create=True, creates missing levels."""
     current = MEMORY_HISTORY

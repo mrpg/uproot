@@ -25,7 +25,6 @@ LOGGER: Any = logging.getLogger("uproot")
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = dict()
-SKIP_INTERNAL: bool = True
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
