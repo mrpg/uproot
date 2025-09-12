@@ -58,20 +58,17 @@ Session
             One row per player per specified grouping (like per round): shows what each participant's state was at the end of each round, condition, or other grouping you specify.
             {% endtranslate %}
         </div>
-    </div>
 
-    <div id="customInputs" class="mb-4" style="display: none;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0">{% translate %}Grouping variables{% endtranslate %}</h6>
-            <button type="button" class="btn btn-outline-primary btn-sm" id="addInput">
+        <div id="customInputs" class="my-4" style="display: none;">
+            <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput">
                 <i class="bi bi-plus"></i> {% translate %}Add grouping variable{% endtranslate %}
             </button>
-        </div>
 
-        <div id="inputContainer">
-            <div class="input-group mb-2">
-                <input type="text" class="form-control" name="gvar" placeholder="{% translate %}e.g., round{% endtranslate %}">
-                <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
+            <div id="inputContainer">
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" name="gvar" placeholder="{% translate %}e.g., round{% endtranslate %}">
+                    <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
+                </div>
             </div>
         </div>
     </div>
@@ -80,10 +77,10 @@ Session
         <h3 class="mb-3">{% translate %}File type{% endtranslate %}</h3>
         <div class="btn-group" role="group" aria-label="{% translate %}File type selection{% endtranslate %}">
             <input type="radio" class="btn-check" name="filetype" id="filetype-json" value="json" checked autocomplete="off">
-            <label class="btn btn-outline-primary btn-lg" for="filetype-json">JSON</label>
+            <label class="btn btn-outline-uproot btn-lg" for="filetype-json">JSON</label>
 
             <input type="radio" class="btn-check" name="filetype" id="filetype-csv" value="csv" autocomplete="off">
-            <label class="btn btn-outline-primary btn-lg" for="filetype-csv">CSV</label>
+            <label class="btn btn-outline-uproot btn-lg" for="filetype-csv">CSV</label>
         </div>
         <div class="form-text">
             {% translate %}
