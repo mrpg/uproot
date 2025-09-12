@@ -192,9 +192,40 @@ class Random(t.SmoothOperator):
             raise RuntimeError("Could not find #RandomStart")
 
         pages = player.page_order[start_ix + 1 : end_ix]
-        shuffle(pages)
 
-        player.page_order[start_ix + 1 : end_ix] = pages
+        # Group pages by brackets (single level only)
+        grouped_pages = []
+        i = 0
+        while i < len(pages):
+            if pages[i] == "#{":
+                # Find the matching closing bracket
+                bracket_group = []
+                i += 1  # Skip the opening bracket
+
+                while i < len(pages) and pages[i] != "#}":
+                    bracket_group.append(pages[i])
+                    i += 1
+
+                if i < len(pages):  # Found closing bracket
+                    i += 1  # Skip the closing bracket
+                    grouped_pages.append(bracket_group)
+                else:
+                    raise RuntimeError("Unmatched opening bracket")
+            elif pages[i] == "#}":
+                raise RuntimeError("Unmatched closing bracket")
+            else:
+                grouped_pages.append([pages[i]])
+                i += 1
+
+        # Shuffle the groups
+        shuffle(grouped_pages)
+
+        # Flatten back to page list
+        shuffled_pages = []
+        for group in grouped_pages:
+            shuffled_pages.extend(group)
+
+        player.page_order[start_ix + 1 : end_ix] = shuffled_pages
 
 
 class Rounds(t.SmoothOperator):

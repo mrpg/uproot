@@ -510,3 +510,69 @@ def test_expand_handles_operator_returning_operators():
     pages = [Hello, meta]
     result = expand(pages)
     assert result == [Hello, A, B, C, End]
+
+
+def test_bracket_grouping_in_random():
+    """Test that Bracket groups pages together in Random shuffling"""
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Random as SmithereensRandom
+
+    # Mock a player with page_order
+    mock_player = Mock()
+    mock_player.page_order = [
+        "#RandomStart",
+        "Hello",
+        "#{",  # Bracket start
+        "A",
+        "B",
+        "C",
+        "#}",  # Bracket end
+        "X",
+        "Y",
+        "#RandomEnd",
+    ]
+    mock_player.show_page = 0
+
+    # Run the start method multiple times to test grouping
+    original_order = mock_player.page_order.copy()
+
+    # Test that A, B, C stay together as a group
+    for _ in range(10):  # Multiple runs to test randomization
+        mock_player.page_order = original_order.copy()
+
+        # Call the start method
+        import asyncio
+
+        asyncio.run(SmithereensRandom.start(mock_player))
+
+        # Find the positions of A, B, C
+        a_pos = mock_player.page_order.index("A")
+        b_pos = mock_player.page_order.index("B")
+        c_pos = mock_player.page_order.index("C")
+
+        # A, B, C should be consecutive
+        positions = sorted([a_pos, b_pos, c_pos])
+        assert (
+            positions[1] == positions[0] + 1
+        ), f"A, B, C not consecutive: {mock_player.page_order}"
+        assert (
+            positions[2] == positions[1] + 1
+        ), f"A, B, C not consecutive: {mock_player.page_order}"
+
+        # X and Y should still be individual elements
+        x_pos = mock_player.page_order.index("X")
+        y_pos = mock_player.page_order.index("Y")
+
+        # The randomized section should contain all elements between RandomStart and RandomEnd
+        start_pos = mock_player.page_order.index("#RandomStart")
+        end_pos = mock_player.page_order.index("#RandomEnd")
+        randomized_section = mock_player.page_order[start_pos + 1 : end_pos]
+
+        # Should contain Hello, A, B, C (as group), X, Y
+        assert "Hello" in randomized_section
+        assert "A" in randomized_section
+        assert "B" in randomized_section
+        assert "C" in randomized_section
+        assert "X" in randomized_section
+        assert "Y" in randomized_section
