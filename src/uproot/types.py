@@ -18,6 +18,7 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    Collection,
     Iterable,
     Iterator,
     Literal,
@@ -344,11 +345,18 @@ def token_unchecked(outlen: int) -> str:
     )
 
 
-@validate_call
-def token(not_in: list[str] | Bunch, postprocess: Callable[str, str] = noop) -> str:
-    if not_in and isinstance(not_in[0], PlayerIdentifier):
+def token(
+    not_in: Collection[str] | Bunch, postprocess: Callable[str, str] = noop
+) -> str:
+    if not_in and isinstance(not_in, list) and isinstance(not_in[0], PlayerIdentifier):
         not_in = cast(Bunch, not_in)
         not_in = [el.uname for el in not_in]
+
+    ensure(
+        not not_in or not isinstance(not_in, list) or type(not_in[0]) is str,
+        TypeError,
+        "Argument has invalid type",
+    )
 
     length = 5
     acc = int((len(ascii_lowercase) * len(ALPHANUMERIC) ** length) / TOKEN_SPARSITY)
