@@ -327,7 +327,6 @@ async def show_page(
 
     pid = cast(t.PlayerIdentifier, ~player)
 
-    u.set_info(pid, None, player.page_order, player.show_page)
     u.set_online(pid)
 
     await maybe_await(

@@ -21,17 +21,6 @@ __email__ = "info@uproot.science"
 
 
 KEY: str = ""
-INFO: defaultdict[  # TODO: Deprecated, delete
-    Sessionname,
-    dict[
-        Username,
-        tuple[
-            Optional[int],  # player.id
-            list[str],  # player.page_order
-            int,  # player.show_page
-        ],
-    ],
-] = defaultdict(dict)
 ONLINE: defaultdict[
     Sessionname,
     dict[Username, float],
@@ -86,22 +75,6 @@ PAGES: dict[str, Union[tuple[str, str], type[Page]]] = {
         ),
     ),
 }
-
-
-def set_info(
-    pid: PlayerIdentifier,
-    id_: Optional[int],
-    page_order: list[str],
-    show_page: int,
-) -> None:
-    if id_ is None and pid.uname in INFO[pid.sname]:
-        id_ = INFO[pid.sname][pid.uname][0]
-
-    INFO[pid.sname][pid.uname] = id_, page_order, show_page
-
-
-def get_info(pid: PlayerIdentifier) -> tuple[Optional[int], list[str], int]:
-    return INFO[pid.sname][pid.uname]
 
 
 def set_offline(pid: PlayerIdentifier) -> None:

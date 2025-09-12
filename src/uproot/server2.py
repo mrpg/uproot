@@ -236,7 +236,13 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             # ~ raise NotImplementedError(result)
                 elif fname == "subscribe_to_attendance":
                     pid = t.PlayerIdentifier(args[fname]["sname"], result)
-                    info = u.get_info(pid)
+
+                    with pid() as p:
+                        info = (
+                            p.id,
+                            p.page_order,
+                            p.show_page,
+                        )  # TODO: Remove monkeypatch
 
                     await websocket.send_json(
                         dict(

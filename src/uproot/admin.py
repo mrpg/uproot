@@ -100,13 +100,6 @@ async def advance_by_one(
                     ),
                 )
 
-                u.set_info(
-                    pid,
-                    None,
-                    player.page_order,
-                    player.show_page,
-                )
-
     return info_online(sname)
 
 
@@ -356,7 +349,16 @@ def get_active_sessions() -> dict[str, dict[str, Any]]:
 def info_online(
     sname: t.Sessionname,
 ) -> dict[str, Any]:
-    info = u.INFO[sname]
+    info = dict()
+
+    for uname, fields in cache.get_namespace(("player", sname)).items():
+        # TODO: Improve this object structure in JavaScript
+        info[uname] = (
+            fields["id"][-1].data,
+            fields["page_order"][-1].data,
+            fields["show_page"][-1].data,
+        )  # These fields are never unavailable
+
     online = u.ONLINE[sname]
 
     return dict(info=info, online=online)
@@ -415,13 +417,6 @@ async def put_to_end(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]
                     ),
                 )
 
-                u.set_info(
-                    pid,
-                    None,
-                    player.page_order,
-                    player.show_page,
-                )
-
     return info_online(sname)
 
 
@@ -462,13 +457,6 @@ async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, di
                             action="reload",
                         ),
                     ),
-                )
-
-                u.set_info(
-                    pid,
-                    None,
-                    player.page_order,
-                    player.show_page,
                 )
 
     return info_online(sname)

@@ -104,19 +104,10 @@ def synchronize_rooms(app: FastAPI, admin: s.Storage) -> None:
 def restore(app: FastAPI, admin: s.Storage) -> None:
     u.KEY = admin._uproot_key
 
-    # Iterate through all sessions and players using official storage methods
     for sname in admin.sessions:
         with s.Session(sname) as session:
             for pid in session.players:
                 with s.Player(pid.sname, pid.uname) as player:
-                    # Get the player's info if available
-                    id_ = getattr(player, "id", None)
-                    page_order = getattr(player, "page_order", None)
-                    show_page = getattr(player, "show_page", -1)
-
-                    if page_order is not None:
-                        u.set_info(pid, id_, page_order, show_page)
-
                     # Handle watches
                     watches = getattr(player, "_uproot_watch", None)
                     if watches is not None:
@@ -134,15 +125,13 @@ def here(
         return {
             pid
             for pid in u.who_online(3.0, sname)
-            if (among is None or pid in among)
-            and cast(int, u.get_info(pid)[2]) == show_page
+            if (among is None or pid in among) and pid().show_page == show_page
         }
     else:
         return {
             pid
             for pid in u.who_online(3.0, sname)
-            if (among is None or pid in among)
-            and cast(int, u.get_info(pid)[2]) >= show_page
+            if (among is None or pid in among) and pid().show_page >= show_page
         }
 
 

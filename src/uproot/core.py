@@ -172,13 +172,6 @@ def initialize_player(
             if hasattr(app, "new_player"):
                 app.new_player(player=player)
 
-        u.set_info(
-            pid,
-            has_id,
-            u.CONFIGS_PPATHS[config],
-            -1,
-        )
-
 
 def create_player(
     session: s.Storage,
