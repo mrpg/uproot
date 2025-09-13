@@ -6,6 +6,7 @@
 # created, initialized, and so on.
 
 import importlib.metadata
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence
 
 import uproot as u
@@ -153,6 +154,7 @@ def initialize_player(
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
         player.key = t.uuid()
+        player.payoff = Decimal("0")
         player.started = False
         player.show_page = -1
         player.page_order = u.CONFIGS_PPATHS[config]
