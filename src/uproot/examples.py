@@ -110,6 +110,7 @@ from uproot.smithereens import *
 
 
 DESCRIPTION = "Prisoner’s dilemma"
+LANDING_PAGE = True
 
 
 class Constants:

@@ -8,6 +8,7 @@ import traceback
 import urllib.parse
 from contextlib import nullcontext
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
@@ -61,6 +62,16 @@ ENV = Environment(
 )
 
 
+def app_or_default(app: Any, filename: str) -> str:
+    in_app = Path(app.__name__) / filename
+
+    if in_app.exists():
+        return str(in_app)
+    else:
+        # uproot default or project default
+        return filename
+
+
 def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     def localstatic(fname: str) -> str:
         last_mile = "/".join(urllib.parse.quote_plus(part) for part in fname.split("/"))
@@ -75,7 +86,6 @@ def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
             internalstatic=static_factory(),
             projectstatic=static_factory("_project"),
             appstatic=static_factory(page.__module__),
-            app=page.__module__,
         )
     else:
         return dict(
@@ -120,6 +130,7 @@ async def render(
 
     if player is None:
         sname, uname, thisis, key = [None] * 4
+        part = 0
         session = nullcontext()
     else:
         sname, uname, thisis, key = (
@@ -128,6 +139,7 @@ async def render(
             player.show_page,
             player.key,
         )
+        part = player._uproot_part
         session = player.session
 
         if player._uproot_group is not None:
@@ -196,10 +208,12 @@ async def render(
                 session=session,
                 player=player,
                 page=page,
+                part=part,
                 app=app,
                 form=form,
                 JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
                 show2path=show2path,
+                app_or_default=app_or_default,
                 _uproot_errors=custom_errors,
                 _uproot_js=jsvars,
                 _uproot_testing=is_admin,

@@ -1,0 +1,20 @@
+{% extends "Base.html" %}
+
+{% block title %}
+{% translate %}
+Beginning of Part {{ part }}
+{% endtranslate %}
+{% endblock title %}
+
+
+{% block main %}
+
+{% include app_or_default(app, "LandingPageInfo.html") ignore missing %}
+
+<p>
+{% translate %}
+Click “Next” to proceed to Part {{ part }}.
+{% endtranslate %}
+</p>
+
+{% endblock main %}

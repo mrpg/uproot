@@ -161,6 +161,7 @@ def initialize_player(
         player._uproot_adminchat = None
         player._uproot_dropout = False
         player._uproot_group = None
+        player._uproot_part = 0
         player._uproot_session = t.SessionIdentifier(pid.sname)
         player._uproot_timeouts_until = dict()
 

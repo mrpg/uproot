@@ -25,11 +25,12 @@ import uproot.jobs as j
 from uproot.cache import load_database_into_memory
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
-from uproot.pages import page2path
+from uproot.pages import app_or_default, page2path
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
-from uproot.storage import Admin
+from uproot.storage import Admin, Storage
+from uproot.types import Page
 
 
 @asynccontextmanager
@@ -111,6 +112,20 @@ async def favicon(request: Request) -> RedirectResponse:
     return RedirectResponse(f"{d.ROOT}/static/uproot/favicon.ico", status_code=301)
 
 
+def post_app_import(app: Any) -> Any:
+    if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
+
+        class LandingPage(Page):
+            __module__ = app.__name__
+            template = app_or_default(app, "LandingPage.html")
+
+            @classmethod
+            async def before_always_once(page, player: Storage) -> None:
+                player._uproot_part += 1
+
+        app.page_order.insert(0, LandingPage)
+
+
 @validate_call(config=dict(arbitrary_types_allowed=True))
 def load_config(
     server: FastAPI, config: str, apps: list[str], extra: Optional[Any] = None
@@ -118,7 +133,7 @@ def load_config(
     ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
 
     if not hasattr(u, "APPS"):
-        u.APPS = ModuleManager()
+        u.APPS = ModuleManager(post_app_import)
 
     u.CONFIGS[config] = list()
     u.CONFIGS_PPATHS[config] = list()

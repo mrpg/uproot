@@ -272,7 +272,7 @@ class TestOptionalCallOnce:
         obj = Mock()
         obj.test_method = Mock(return_value="executed")
         storage = Mock()
-        storage._uproot_what_ran = {"1:test_method")}
+        storage._uproot_what_ran = {"1:test_method"}
 
         result = optional_call_once(
             obj, "test_method", "default", storage=storage, show_page=1
