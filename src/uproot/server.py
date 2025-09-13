@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         print(file=stderr)
 
         for i, (user, pw) in enumerate(d.ADMINS.items(), 1):
-            if not isinstance(pw, str):
+            if not isinstance(pw, str):  # type: ignore[unreachable]
                 # This is for future enhancements of admin authentication
                 pw = "???"
 

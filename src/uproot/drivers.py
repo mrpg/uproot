@@ -8,7 +8,7 @@ This file exposes an internal API that end users MUST NOT rely upon. Rely upon s
 import sqlite3
 import threading
 from abc import ABC
-from typing import Any, Iterator, Optional
+from typing import Any, Iterator, Optional, cast
 
 import msgpack
 
@@ -216,7 +216,8 @@ class PostgreSQL(DBDriver):
                 cur.execute(
                     f"SELECT COALESCE(pg_total_relation_size('uproot{self.tblextra}_values'::regclass), 0)"
                 )
-                return cur.fetchone()[0]
+                result = cur.fetchone()
+                return cast(int, result[0]) if result else None
 
     def reset(self) -> None:
         with self.pool.connection() as conn:
@@ -385,7 +386,8 @@ class Sqlite3(DBDriver):
         cursor = conn.execute(
             "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size()"
         )
-        result = cursor.fetchone()[0]
+        row = cursor.fetchone()
+        result = cast(int, row[0]) if row else None
         conn.close()
         return result
 

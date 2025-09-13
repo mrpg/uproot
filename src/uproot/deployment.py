@@ -60,9 +60,9 @@ def project_metadata(uproot: str, *args: Any, **kwargs: Any) -> None:
     PROJECT_METADATA |= kwargs
 
 
-async def lifespan_start(*args, **kwargs) -> None:
+async def lifespan_start(*args: Any, **kwargs: Any) -> None:
     pass
 
 
-async def lifespan_stop(*args, **kwargs) -> None:
+async def lifespan_stop(*args: Any, **kwargs: Any) -> None:
     DATABASE.close()

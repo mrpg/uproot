@@ -158,7 +158,7 @@ def load(yaml_path: str, default_language: ISO639 = "en") -> None:
 
     # Add translations to TERMS cache
     if all_translations:
-        all_keys = set()
+        all_keys: set[str] = set()
 
         for lang_data in all_translations.values():
             if isinstance(lang_data, dict):

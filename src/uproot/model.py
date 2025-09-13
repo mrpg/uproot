@@ -80,7 +80,7 @@ def autoadd(
     pid: PlayerIdentifier,
     entry_type: Entry,
     **other_fields: Any,
-) -> None:
+) -> Any:  # Actually, type(Entry)
     fill: dict[str, Any] = dict()
 
     for field, expected_type in entry_type.__annotations__.items():
@@ -140,8 +140,6 @@ def add(
             "entry",
             new_entry,
         )
-
-    return new_entry
 
 
 def _with_time(

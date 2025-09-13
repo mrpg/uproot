@@ -105,7 +105,11 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
                 continue
 
         if storage.startswith("session/"):
-            _, sname = cache.dbns2tuple(storage)
+            namespace_tuple = cache.dbns2tuple(storage)
+            if len(namespace_tuple) >= 2:
+                _, sname = namespace_tuple[0], namespace_tuple[1]
+            else:
+                continue
 
             if field == "groups":
                 row["!data"] = [f"group/{sname}/{gname}" for gname in data]

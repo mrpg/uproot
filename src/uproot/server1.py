@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from email.utils import formatdate, parsedate_to_datetime
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Iterable, Optional, cast
+from typing import Any, Iterable, Optional, cast
 
 from fastapi import (
     APIRouter,
@@ -53,7 +53,7 @@ from uproot.storage import (
 )
 from uproot.types import maybe_await, optional_call, optional_call_once
 
-PROCESSED_FUTURES = deque(maxlen=8 * 1024)
+PROCESSED_FUTURES: deque[str] = deque(maxlen=8 * 1024)
 router = APIRouter(prefix=d.ROOT)
 
 
@@ -127,8 +127,9 @@ async def show_page(
         formdata = await request.form()
 
         try:
-            ensure(isinstance(formdata["_uproot_from"], str), ValueError)
-            uproot_from_str = formdata["_uproot_from"]
+            uproot_from_value = formdata["_uproot_from"]
+            ensure(isinstance(uproot_from_value, str), ValueError)
+            uproot_from_str = uproot_from_value
 
             # Check for back navigation
             if uproot_from_str.startswith("back-"):
@@ -384,7 +385,7 @@ async def sessionwide(
     request: Request,
     sname: t.Sessionname,
     secret: str,
-) -> RedirectResponse:
+) -> Response:
     # Verify sname and secret
     a.session_exists(sname)
 
@@ -394,15 +395,16 @@ async def sessionwide(
 
         pids = session.players
 
-    namespaces = [
+    namespace_tuples = [
         ("player", sname, uname) for sname, uname in pids
     ]  # This has players in order
-    all_started = field_from_namespaces(namespaces, "started")
+    namespace_strings = ["/".join(ns) for ns in namespace_tuples]
+    all_started = field_from_namespaces(namespace_strings, "started")
 
     free_uname = None
 
-    for namespace in namespaces:
-        key = namespace, "started"
+    for namespace_tuple, namespace_str in zip(namespace_tuples, namespace_strings):
+        key = (namespace_str, "started")
 
         if key not in all_started or all_started[key].unavailable:
             # Should not be possible, but skip if it happens
@@ -411,7 +413,7 @@ async def sessionwide(
             # This player has started, so also skip
             pass
         else:
-            free_uname = namespace[2]
+            free_uname = namespace_tuple[2]
             break
 
     # Redirect to player
@@ -489,7 +491,7 @@ async def ws(
     )
 
     for jj in j.PLAYER_JOBS:
-        tasks[asyncio.create_task(cast(Callable, jj)(**args[jj.__name__]))] = (
+        tasks[asyncio.create_task(cast(Any, jj)(**args[jj.__name__]))] = (
             jj.__name__,
             jj,
         )
@@ -539,9 +541,8 @@ async def ws(
                         PROCESSED_FUTURES.append(result["future"])
 
                     invoke_respond = True
-                    invoke_response = None
+                    invoke_response: Any = None
                     invoke_exception = False
-                    session = Session(sname)
 
                     with player:
                         match result:
@@ -679,7 +680,7 @@ async def ws(
                 raise exc
 
             # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Callable, factory)(**args[fname]))
+            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
             tasks[new_task] = (fname, factory)
 
 

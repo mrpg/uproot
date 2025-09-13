@@ -67,7 +67,10 @@ class ModuleManager:
             f"Could not create spec for module {module_name}",
         )
 
-        module = importlib.util.module_from_spec(spec)
+        if spec is not None:
+            module = importlib.util.module_from_spec(spec)
+        else:
+            raise ImportError(f"Spec is None for module {module_name}")
         spec.loader.exec_module(module)  # type: ignore[union-attr]
 
         sys.modules[module_name] = module

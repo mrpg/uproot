@@ -49,9 +49,9 @@ def all_good(key: tuple[str, str]) -> bool:
 
 def fields_from_session(
     sname: Sessionname, since_epoch: float = 0
-) -> dict[tuple[str, str], Value]:
+) -> dict[tuple[tuple[str, str, str], str], Value]:
     return cast(
-        dict[tuple[str, str], Value],
+        dict[tuple[tuple[str, str, str], str], Value],
         db_request(
             None,
             "fields_from_session",
@@ -296,7 +296,7 @@ class Storage:
         return cast(bool, db_request(self, "has_fields"))
 
     def __history__(self) -> dict[str, list[Value]]:
-        return cast(list[tuple[str, Value]], db_request(self, "history"))
+        return cast(dict[str, list[Value]], db_request(self, "history"))
 
     def __repr__(self) -> str:
         if len(self.__namespace__) == 1:

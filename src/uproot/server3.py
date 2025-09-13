@@ -6,7 +6,7 @@ This file implements room routes.
 """
 
 import asyncio
-from typing import Any, Callable, Optional, cast
+from typing import Any, Optional, cast
 
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -182,7 +182,7 @@ async def ws(
     )
 
     for jj in j.ROOM_JOBS:
-        tasks[asyncio.create_task(cast(Callable, jj)(**args[jj.__name__]))] = (
+        tasks[asyncio.create_task(cast(Any, jj)(**args[jj.__name__]))] = (
             jj.__name__,
             jj,
         )
@@ -231,5 +231,5 @@ async def ws(
                 raise exc
 
             # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Callable, factory)(**args[fname]))
+            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
             tasks[new_task] = (fname, factory)

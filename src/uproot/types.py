@@ -169,7 +169,7 @@ class ModelIdentifier(Identifier):
         return Model(self.sname, self.mname, **kwargs)
 
 
-async def maybe_await(func, *args, **kwargs):
+async def maybe_await(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     result = func(*args, **kwargs)
 
     if inspect.iscoroutine(result):
@@ -346,7 +346,7 @@ def token_unchecked(outlen: int) -> str:
 
 
 def token(
-    not_in: Collection[str] | Bunch, postprocess: Callable[str, str] = noop
+    not_in: Collection[str] | Bunch, postprocess: Callable[[str], str] = noop
 ) -> str:
     if not_in and isinstance(not_in, list) and isinstance(not_in[0], PlayerIdentifier):
         not_in = cast(Bunch, not_in)
@@ -385,10 +385,10 @@ def tokens(not_in: list[str] | Bunch, n: int) -> list[str]:
     for _ in range(n):
         t = None
 
-        while t is None or t in rval:  # type: ignore[unreachable]
+        while t is None or t in rval:
             t = token(not_in)
 
-        rval.append(t)  # type: ignore[unreachable]
+        rval.append(t)
 
     return rval
 
@@ -404,7 +404,7 @@ def uuid() -> str:
     return str(uuid4())
 
 
-def longest_common_prefix(strings: list[str]):
+def longest_common_prefix(strings: list[str]) -> str:
     if not strings:
         return ""
 
@@ -531,15 +531,12 @@ def internal_live(method: Callable[..., Any]) -> Callable[..., Any]:
 
 def context(frame: FrameType | None) -> str:
     try:
-        ensure(
-            frame is not None, RuntimeError, "Frame cannot be None"
-        )  # for type checker
+        if frame is None:
+            return "<unknown>"
 
         caller_frame = frame.f_back
-
-        ensure(
-            caller_frame is not None, RuntimeError, "Caller frame cannot be None"
-        )  # for type checker
+        if caller_frame is None:
+            return "<unknown>"
 
         caller_function = caller_frame.f_code.co_name
         caller_lineno = caller_frame.f_lineno
@@ -577,7 +574,7 @@ class GroupCreatingWait(InternalPage):
         # Try to create a group immediately
         from uproot.jobs import try_group
 
-        group_name = try_group(player, player.show_page, page.group_size)
+        try_group(player, player.show_page, page.group_size)
 
         # If grouping succeeded, player now has a group - don't show page
         if page.call_after(player):

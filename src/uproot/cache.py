@@ -8,12 +8,15 @@ This file exposes an internal API that end users MUST NOT rely upon. Rely upon s
 import copy
 import threading
 from time import time
-from typing import Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from uproot.constraints import ensure
 from uproot.deployment import DATABASE
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import Value
+
+if TYPE_CHECKING:
+    from uproot.storage import Storage
 
 MEMORY_HISTORY: dict[str, Any] = {}
 LOCK = threading.RLock()
@@ -30,11 +33,13 @@ def tuple2dbns(ns: tuple[str, ...]) -> str:
     return "/".join(ns)
 
 
-def dbns2tuple(dbns: str) -> tuple[str]:
+def dbns2tuple(dbns: str) -> tuple[str, ...]:
     return tuple(dbns.split("/"))
 
 
-def flatten(d, trail=()):
+def flatten(
+    d: dict[str, Any], trail: tuple[str, ...] = ()
+) -> dict[tuple[str, ...], Any]:
     result = {}
 
     for k, v in d.items():
@@ -50,7 +55,9 @@ def flatten(d, trail=()):
     return result
 
 
-def get_namespace(namespace: tuple[str, ...], create: bool = False) -> Optional[dict]:
+def get_namespace(
+    namespace: tuple[str, ...], create: bool = False
+) -> Optional[dict[str, Any]]:
     """Navigate to namespace location. If create=True, creates missing levels."""
     current = MEMORY_HISTORY
 
@@ -65,7 +72,7 @@ def get_namespace(namespace: tuple[str, ...], create: bool = False) -> Optional[
 
         current = current[part]
 
-    return current
+    return cast(Optional[dict[str, Any]], current)
 
 
 def load_database_into_memory() -> None:
@@ -82,11 +89,12 @@ def load_database_into_memory() -> None:
             # Get or create the nested dictionary for this namespace
             nested_dict = get_namespace(namespace, create=True)
 
-            if field not in nested_dict:
+            if nested_dict is not None and field not in nested_dict:
                 nested_dict[field] = []
 
             # Add to history
-            nested_dict[field].append(value)
+            if nested_dict is not None:
+                nested_dict[field].append(value)
 
 
 def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
@@ -149,17 +157,18 @@ def db_request(
                 # Get or create the nested dictionary for this namespace
                 nested_dict = get_namespace(namespace, create=True)
 
-                if key not in nested_dict:
+                if nested_dict is not None and key not in nested_dict:
                     nested_dict[key] = []
 
                 # Add to history with current timestamp
                 new_value = Value(DATABASE.now, False, safe_deepcopy(value), context)
 
                 # Special handling for player lists - replace entire history like database does
-                if key == "players" and namespace[0] == "session":
-                    nested_dict[key] = [new_value]
-                else:
-                    nested_dict[key].append(new_value)
+                if nested_dict is not None:
+                    if key == "players" and namespace[0] == "session":
+                        nested_dict[key] = [new_value]
+                    else:
+                        nested_dict[key].append(new_value)
             rval = value
 
         case "delete", _, None if isinstance(context, str):
@@ -168,11 +177,12 @@ def db_request(
             with LOCK:
                 # Add tombstone to history
                 nested_dict = get_namespace(namespace, create=True)
-                if key not in nested_dict:
+                if nested_dict is not None and key not in nested_dict:
                     nested_dict[key] = []
 
                 tombstone = Value(DATABASE.now, True, None, context)
-                nested_dict[key].append(tombstone)
+                if nested_dict is not None:
+                    nested_dict[key].append(tombstone)
 
         # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:
@@ -247,21 +257,22 @@ def db_request(
             since: float
             sname, since = cast(tuple[str, float], extra)
             with LOCK:
-                result = {}
+                session_result: dict[tuple[tuple[str, str, str], str], Any] = {}
                 # Direct access to player data for this session
                 session_players = get_namespace(("player", sname))
                 if session_players and isinstance(session_players, dict):
                     for player_name, player_fields in session_players.items():
                         if isinstance(player_fields, dict):
                             ns = ("player", sname, player_name)
-                            for field, values in player_fields.items():
+                            for field_name, values in player_fields.items():
+                                field = cast(str, field_name)
                                 if (
                                     values
                                     and isinstance(values, list)
                                     and values[-1].time > since
                                 ):
-                                    result[(ns, field)] = values[-1]
-                rval = result
+                                    session_result[(ns, field)] = values[-1]
+                rval = session_result
 
         case "get_within_context", _, None if isinstance(extra, dict):
             context_fields: dict[str, Any]

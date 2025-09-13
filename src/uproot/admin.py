@@ -4,7 +4,7 @@
 import asyncio
 import secrets
 from datetime import datetime
-from typing import Any, AsyncGenerator, Callable, Iterator, Optional
+from typing import Any, AsyncGenerator, Callable, Iterator, Optional, cast
 
 import aiohttp
 from fastapi import HTTPException
@@ -108,7 +108,7 @@ async def announcements() -> dict[str, Any]:
 
     async with aiohttp.ClientSession() as session:
         async with session.get(ANNOUNCEMENTS_URL) as response:
-            return await response.json(content_type="text/plain")
+            return cast(dict[str, Any], await response.json(content_type="text/plain"))
 
 
 def config_summary(cname: str) -> str:
@@ -174,7 +174,7 @@ def everything_from_session(
 ) -> dict[tuple[str, ...], list[t.Value]]:
     # Go ahead… https://www.youtube.com/watch?v=2WhHW8zD620
 
-    matches = dict()
+    matches: dict[tuple[str, ...], Any] = dict()
     sname = str(sname)
 
     for lvl1_k, lvl1_v in cache.MEMORY_HISTORY.items():
@@ -183,7 +183,9 @@ def everything_from_session(
                 lvl1_k,
                 sname,
             )
-            matches |= cache.flatten(cache.get_namespace(k), k)
+            namespace = cache.get_namespace(k)
+            if namespace is not None:
+                matches |= cache.flatten(namespace, k)
 
     return matches
 
@@ -202,9 +204,11 @@ def generate_data(
 
     match format:
         case "ultralong":
-            transformer, transkwargs = data.noop, {}
+            transkwargs_ul: dict[str, Any] = {}
+            transformer, transkwargs = data.noop, transkwargs_ul
         case "sparse":
-            transformer, transkwargs = data.long_to_wide, {}
+            transkwargs_sp: dict[str, Any] = {}
+            transformer, transkwargs = data.long_to_wide, transkwargs_sp
         case "latest":
             transformer, transkwargs = data.latest, {"group_by_fields": gvar}
         case _:
@@ -234,7 +238,7 @@ async def generate_json(
     format: str,
     gvar: list[str],
     filters: bool,
-) -> AsyncGenerator:
+) -> AsyncGenerator[str, None]:
     alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
 
     async for chunk in data.json_out(transformer(alldata, **transkwargs)):
@@ -351,7 +355,12 @@ def info_online(
 ) -> dict[str, Any]:
     info = dict()
 
-    for uname, fields in cache.get_namespace(("player", sname)).items():
+    namespace = cache.get_namespace(("player", sname))
+
+    if namespace is None:
+        return info
+
+    for uname, fields in namespace.items():
         # TODO: Improve this object structure in JavaScript
         info[uname] = (
             fields["id"][-1].data,
@@ -365,7 +374,10 @@ def info_online(
 
 
 async def insert_fields(
-    sname: t.Sessionname, unames: list[str], fields: dict, reload: bool = False
+    sname: t.Sessionname,
+    unames: list[str],
+    fields: dict[str, Any],
+    reload: bool = False,
 ) -> None:
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
@@ -396,7 +408,9 @@ async def mark_dropout(sname: t.Sessionname, unames: list[str]) -> None:
         u.MANUAL_DROPOUTS.add(pid)
 
 
-async def put_to_end(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]:
+async def put_to_end(
+    sname: t.Sessionname, unames: list[str]
+) -> dict[str, dict[str, Any]]:
     session_exists(sname, False)
 
     for uname in unames:
@@ -438,7 +452,9 @@ async def reload(sname: t.Sessionname, unames: list[str]) -> None:
         )
 
 
-async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]:
+async def revert_by_one(
+    sname: t.Sessionname, unames: list[str]
+) -> dict[str, dict[str, Any]]:
     session_exists(sname, False)
 
     for uname in unames:
@@ -571,7 +587,7 @@ async def viewdata(
     session_exists(sname, False)
 
     rval: SortedDict = SortedDict()
-    latest: dict = s.fields_from_session(sname, since_epoch)
+    latest: dict[Any, Any] = s.fields_from_session(sname, since_epoch)
     last_update: float = since_epoch
 
     for (parts, field), v in latest.items():
