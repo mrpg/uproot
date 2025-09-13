@@ -246,7 +246,7 @@ class TestOptionalCallOnce:
         """Test optional_call_once with missing attribute."""
         obj = Mock(spec=[])  # Empty spec means no attributes
         storage = Mock()
-        storage._uproot_what_ran = []
+        storage._uproot_what_ran = set()
 
         result = optional_call_once(
             obj, "missing", "default", storage=storage, show_page=1
@@ -258,21 +258,21 @@ class TestOptionalCallOnce:
         obj = Mock()
         obj.test_method = Mock(return_value="executed")
         storage = Mock()
-        storage._uproot_what_ran = []
+        storage._uproot_what_ran = set()
 
         result = optional_call_once(
             obj, "test_method", "default", storage=storage, show_page=1, param="value"
         )
         assert result == "executed"
         obj.test_method.assert_called_once_with(param="value")
-        assert (1, "test_method") in storage._uproot_what_ran
+        assert "1:test_method" in storage._uproot_what_ran
 
     def test_second_call_returns_default(self):
         """Test that second call returns default."""
         obj = Mock()
         obj.test_method = Mock(return_value="executed")
         storage = Mock()
-        storage._uproot_what_ran = [(1, "test_method")]
+        storage._uproot_what_ran = {"1:test_method")}
 
         result = optional_call_once(
             obj, "test_method", "default", storage=storage, show_page=1
@@ -291,14 +291,14 @@ class TestOptionalCallOnce:
         )
         assert result == "executed"
         assert hasattr(storage, "_uproot_what_ran")
-        assert (1, "test_method") in storage._uproot_what_ran
+        assert "1:test_method" in storage._uproot_what_ran
 
     def test_exception_removes_from_ran_list(self):
         """Test that exception removes item from ran list."""
         obj = Mock()
         obj.test_method = Mock(side_effect=ValueError("test error"))
         storage = Mock()
-        storage._uproot_what_ran = []
+        storage._uproot_what_ran = set()
 
         with pytest.raises(ValueError, match="test error"):
             optional_call_once(
@@ -306,7 +306,7 @@ class TestOptionalCallOnce:
             )
 
         # Should not be in the ran list after exception
-        assert (1, "test_method") not in storage._uproot_what_ran
+        assert "1:test_method" not in storage._uproot_what_ran
 
 
 class TestStorageBunch:

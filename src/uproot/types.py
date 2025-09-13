@@ -208,20 +208,20 @@ def optional_call_once(
     if not hasattr(obj, attr):
         return default_return  # short circuit
 
-    rantpl = (show_page, attr)
+    hereruns = f"{show_page}:{attr}"
 
     if not hasattr(storage, "_uproot_what_ran"):
-        storage._uproot_what_ran = list()
+        storage._uproot_what_ran = set()
 
-    if rantpl in storage._uproot_what_ran:
+    if hereruns in storage._uproot_what_ran:
         return default_return
 
-    storage._uproot_what_ran.append(rantpl)
+    storage._uproot_what_ran.add(hereruns)
 
     try:
         return optional_call(obj, attr, default_return=default_return, **kwargs)
     except Exception as e:
-        storage._uproot_what_ran.remove(rantpl)
+        storage._uproot_what_ran.remove(hereruns)
 
         raise e
 
