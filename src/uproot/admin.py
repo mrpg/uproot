@@ -19,6 +19,10 @@ import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 
+ADMINS: dict[str, str] = dict()
+ADMINS_HASH: Optional[str] = None
+ADMINS_SECRET_KEY: Optional[str] = None
+
 
 async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> None:
     session_exists(sname, False)
@@ -36,15 +40,25 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
         )
 
 
-def admins() -> str:
-    return t.sha256("\n".join(f"{user}\t{pw}" for user, pw in d.ADMINS.items()))
+def _get_secret_key() -> str:
+    global ADMINS, ADMINS_HASH, ADMINS_SECRET_KEY
+
+    if ADMINS_HASH is None:
+        ADMINS_HASH = t.sha256(
+            "\n".join(f"{user}\t{pw}" for user, pw in d.ADMINS.items())
+        )
+        ADMINS_SECRET_KEY = t.sha256(f"{u.KEY}:{ADMINS_HASH}")
+
+        # Prevent direct modification of d.ADMINS
+        ADMINS = d.ADMINS
+        del d.ADMINS
+
+    return cast(str, ADMINS_SECRET_KEY)
 
 
 def _get_serializer() -> URLSafeTimedSerializer:
     """Get configured token serializer."""
-    # Use key + admins hash as secret key for maximum security
-    secret_key = t.sha256(f"{u.KEY}:{admins()}")
-    return URLSafeTimedSerializer(secret_key)
+    return URLSafeTimedSerializer(_get_secret_key())
 
 
 def _get_active_tokens() -> set[str]:
@@ -257,7 +271,7 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
         Signed token string if credentials are valid, None otherwise
     """
     # Verify credentials first
-    if user not in d.ADMINS or d.ADMINS[user] != pw:
+    if user not in ADMINS or ADMINS[user] != pw:
         return None
 
     # Create token data
@@ -568,6 +582,9 @@ def verify_auth_token(user: str, token: str) -> Optional[str]:
     Returns:
         Username if token is valid, None otherwise
     """
+    if not user or not token:
+        return None
+
     try:
         serializer = _get_serializer()
         active_tokens = _get_active_tokens()
