@@ -17,11 +17,11 @@ We are working on producing the first alpha version (0.0.1), and invite you to j
 
 1. Run this from within a Python venv:
     ```console
-    pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
+    pip install -U 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main'
     ```
     If this does not work, try
     ```console
-    pip install -U 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main'
+    pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
     ```
     or
     ```console
@@ -34,6 +34,8 @@ We are working on producing the first alpha version (0.0.1), and invite you to j
     ```
 
 3. The resulting output shows you how to proceed. Have fun!
+
+After running `uproot run`, we recommend you visit [the admin area](http://127.0.0.1:8000/admin/) with the provided credential.
 
 ### Example apps
 
