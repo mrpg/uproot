@@ -310,10 +310,8 @@ class StorageBunch:
                 )
                 rkeys.append(k.path[-1])
 
-        dtuple = namedtuple("data", rkeys)  # type: ignore[misc]
-        rval: list[NamedTuple] = [
-            dtuple(**{k: getattr(p, k) for k in rkeys}) for p in self.l
-        ]
+        dtuple = cast(type[NamedTuple], namedtuple("data", rkeys))
+        rval = [dtuple(**{k: getattr(p, k) for k in rkeys}) for p in self.l]  # type: ignore[call-overload]
 
         if len(rkeys) == 1 and simplify:
             return [v for (v,) in rval]
@@ -522,11 +520,12 @@ def timed(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
 
 
 def internal_live(method: Callable[..., Any]) -> Callable[..., Any]:
-    wrapped = timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore [call-overload]
+    wrapped = timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore[call-overload]
     newmethod = classmethod(wrapped)
-    newmethod.__func__.__live__ = True  # type: ignore [attr-defined]
 
-    return newmethod  # type: ignore [return-value]
+    newmethod.__func__.__live__ = True  # type: ignore[attr-defined]
+
+    return newmethod  # type: ignore[return-value]
 
 
 def context(frame: FrameType | None) -> str:

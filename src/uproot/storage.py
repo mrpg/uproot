@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from inspect import currentframe
+from types import TracebackType
 from typing import Any, Callable, Iterator, Optional, cast
 
 from typing_extensions import Literal
@@ -227,7 +228,12 @@ class Storage:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> Literal[False]:  # type: ignore[no-untyped-def]
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> Literal[False]:
         if exc_type is None:
             self.flush()
             self.__allow_mutable__ = False

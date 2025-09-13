@@ -78,10 +78,10 @@ class FieldReferent:
     def __le__(self, rhs: Any) -> Comparison:
         return Comparison("<=", self, rhs)
 
-    def __eq__(self, rhs: object) -> Comparison:  # type: ignore
+    def __eq__(self, rhs: object) -> Comparison:  # type: ignore[override]
         return Comparison("==", self, rhs)
 
-    def __ne__(self, rhs: object) -> Comparison:  # type: ignore
+    def __ne__(self, rhs: object) -> Comparison:  # type: ignore[override]
         return Comparison("!=", self, rhs)
 
     def __bool__(self) -> bool:

@@ -19,7 +19,8 @@ from uproot.storage import Player, Storage
 def live(method: Callable[..., Any]) -> Callable[..., Any]:
     wrapped = t.timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore[call-overload]
     newmethod = classmethod(wrapped)
-    newmethod.__func__.__live__ = True  # type: ignore [attr-defined]
+
+    newmethod.__func__.__live__ = True  # type: ignore[attr-defined]
 
     return newmethod  # type: ignore[return-value]
 
@@ -48,7 +49,7 @@ def send_to(
     if is_player_like(recipient):
         send_to_one(recipient, data, event)
     elif isinstance(recipient, Iterable):
-        for one_recipient in recipient:  # type: ignore [union-attr]
+        for one_recipient in recipient:  # type: ignore[union-attr]
             send_to_one(one_recipient, data, event)
     else:
         raise TypeError(
