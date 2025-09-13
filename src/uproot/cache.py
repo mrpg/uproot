@@ -59,7 +59,7 @@ def get_namespace(
     namespace: tuple[str, ...], create: bool = False
 ) -> Optional[dict[str, Any]]:
     """Navigate to namespace location. If create=True, creates missing levels."""
-    current = MEMORY_HISTORY
+    current: Any = MEMORY_HISTORY
 
     for part in namespace:
         if not isinstance(current, dict):

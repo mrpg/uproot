@@ -424,7 +424,7 @@ async def new_room(
 
 
 @router.post("/rooms/new/")
-async def new_room2(  # type: ignore[no-redef]
+async def new_room2(
     request: Request,
     name: str = Form(),
     use_config: Optional[bool] = Form(False),
@@ -450,12 +450,12 @@ async def new_room2(  # type: ignore[no-redef]
             config=(config if use_config else None),
             labels=(
                 [a.strip() for a in labels.split("\n") if a.strip()]
-                if use_labels
-                else None
+                if labels
+                else [] if use_labels else None
             ),
             capacity=(capacity if use_capacity else None),
             start=bool(start),
-            sname=(sname if use_session and sname.strip() else None),
+            sname=(sname if use_session and sname and sname.strip() else None),
         )
 
     if sname:
@@ -597,7 +597,7 @@ async def new_session(
 
 
 @router.post("/sessions/new/")
-async def new_session2(  # type: ignore[no-redef]
+async def new_session2(
     request: Request,
     config: str = Form(),
     nplayers: int = Form(),
@@ -670,7 +670,7 @@ async def session_data(
 
 # Particular session: get data
 @router.get("/session/{sname}/data/get/")
-async def session_data_download(  # type: ignore[no-redef]
+async def session_data_download(
     request: Request,
     sname: t.Sessionname,
     format: str,
@@ -737,11 +737,12 @@ async def status(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    dbsize = d.DATABASE.size()
+    dbsize_bytes = d.DATABASE.size()
     missing: dict[str, Any] = dict()
 
-    if dbsize is not None:
-        dbsize = dbsize / (1024**2)
+    dbsize = None
+    if dbsize_bytes is not None:
+        dbsize = float(dbsize_bytes) / (1024**2)
 
     for term, lang in sorted(i18n.MISSING):
         if term not in missing:

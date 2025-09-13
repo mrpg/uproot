@@ -341,9 +341,13 @@ def get_active_sessions() -> dict[str, dict[str, Any]]:
                 user = data["user"]
                 if user not in sessions:
                     sessions[user] = {"token_count": 0, "created_at": []}
-                sessions[user]["token_count"] += 1
+                token_count = sessions[user]["token_count"]
+                if isinstance(token_count, int):
+                    sessions[user]["token_count"] = token_count + 1
                 if "created_at" in data:
-                    sessions[user]["created_at"].append(data["created_at"])
+                    created_at_list = sessions[user]["created_at"]
+                    if isinstance(created_at_list, list):
+                        created_at_list.append(data["created_at"])
         except (BadSignature, SignatureExpired):
             continue
 
@@ -353,7 +357,7 @@ def get_active_sessions() -> dict[str, dict[str, Any]]:
 def info_online(
     sname: t.Sessionname,
 ) -> dict[str, Any]:
-    info = dict()
+    info: dict[str, Any] = dict()
 
     namespace = cache.get_namespace(("player", sname))
 
@@ -516,7 +520,9 @@ def sessions() -> dict[str, dict[str, Any]]:
     with s.Admin() as admin:
         snames = admin.sessions
 
-    def get_session_field_value(sname: str, field: str, default_data=None):
+    def get_session_field_value(
+        sname: str, field: str, default_data: Any = None
+    ) -> Any:
         """Get current value of a field for a session, or return default."""
         session_data = cache.get_namespace(("session", sname))
         if (

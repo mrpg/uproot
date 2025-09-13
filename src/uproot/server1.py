@@ -129,7 +129,7 @@ async def show_page(
         try:
             uproot_from_value = formdata["_uproot_from"]
             ensure(isinstance(uproot_from_value, str), ValueError)
-            uproot_from_str = uproot_from_value
+            uproot_from_str = str(uproot_from_value)
 
             # Check for back navigation
             if uproot_from_str.startswith("back-"):
