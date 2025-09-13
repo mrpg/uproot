@@ -3,7 +3,7 @@
 
 from inspect import currentframe
 from types import TracebackType
-from typing import Any, Callable, Iterator, Optional, cast
+from typing import Any, Callable, Iterator, Optional, Sequence, cast
 
 from typing_extensions import Literal
 
@@ -32,10 +32,10 @@ DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
 
 
 def field_from_namespaces(
-    namespaces: list[str], field: str
-) -> dict[tuple[str, str], Value]:
+    namespaces: Sequence[tuple[str, ...]], field: str
+) -> dict[tuple[tuple[str, ...], str], Value]:
     return cast(
-        dict[tuple[str, str], Value],
+        dict[tuple[tuple[str, ...], str], Value],
         db_request(
             None,
             "get_many",

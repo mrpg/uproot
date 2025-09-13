@@ -8,7 +8,7 @@ This file exposes an internal API that end users MUST NOT rely upon. Rely upon s
 import copy
 import threading
 from time import time
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Sequence, Union, cast
 
 from uproot.constraints import ensure
 from uproot.deployment import DATABASE
@@ -128,6 +128,7 @@ def db_request(
         Union[
             str,
             tuple[list[str], str],
+            tuple[Sequence[tuple[str, ...]], str],
             tuple[str, float],
             dict[str, Any],
         ]
@@ -233,12 +234,11 @@ def db_request(
                 rval = current if current and isinstance(current, dict) else {}
 
         case "get_many", "", None if isinstance(extra, tuple):
-            mnamespaces: list[str]
-            mnamespaces, mkey = cast(tuple[list[str], str], extra)
+            mnamespaces: Sequence[tuple[str, ...]]
+            mnamespaces, mkey = cast(tuple[Sequence[tuple[str, ...]], str], extra)
             with LOCK:
                 result = {}
-                for namespace_str in mnamespaces:
-                    namespace = dbns2tuple(namespace_str)
+                for namespace in mnamespaces:
                     current = get_namespace(namespace)
                     if (
                         current
@@ -249,7 +249,7 @@ def db_request(
                     ):
                         latest = current[mkey][-1]
                         if not latest.unavailable:
-                            result[(namespace_str, mkey)] = latest
+                            result[(namespace, mkey)] = latest
                 rval = result
 
         case "fields_from_session", "", None if isinstance(extra, tuple):

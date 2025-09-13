@@ -395,16 +395,15 @@ async def sessionwide(
 
         pids = session.players
 
-    namespace_tuples = [
+    namespaces = [
         ("player", sname, uname) for sname, uname in pids
     ]  # This has players in order
-    namespace_strings = ["/".join(ns) for ns in namespace_tuples]
-    all_started = field_from_namespaces(namespace_strings, "started")
+    all_started = field_from_namespaces(namespaces, "started")
 
     free_uname = None
 
-    for namespace_tuple, namespace_str in zip(namespace_tuples, namespace_strings):
-        key = (namespace_str, "started")
+    for namespace in namespaces:
+        key = (namespace, "started")
 
         if key not in all_started or all_started[key].unavailable:
             # Should not be possible, but skip if it happens
@@ -413,7 +412,7 @@ async def sessionwide(
             # This player has started, so also skip
             pass
         else:
-            free_uname = namespace_tuple[2]
+            free_uname = namespace[2]
             break
 
     # Redirect to player

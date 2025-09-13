@@ -105,9 +105,9 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
                 continue
 
         if storage.startswith("session/"):
-            namespace_tuple = cache.dbns2tuple(storage)
-            if len(namespace_tuple) >= 2:
-                _, sname = namespace_tuple[0], namespace_tuple[1]
+            namespace = cache.dbns2tuple(storage)
+            if len(namespace) >= 2:
+                _, sname = namespace[0], namespace[1]
             else:
                 continue
 
