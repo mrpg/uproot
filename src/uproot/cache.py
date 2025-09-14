@@ -313,65 +313,124 @@ def db_request(
                             f"No value found for {key} within the specified context in namespace {namespace}"
                         )
 
-                # Find latest valid target in matching context window
-                for i in range(len(tvals) - 1, -1, -1):
-                    tv = tvals[i]
-                    if tv.unavailable:
-                        continue
-
-                    tt = cast(float, tv.time)
-
-                    # Check context at target time and find context window end
-                    ctx_valid = True
-                    ctx_end = None
-
-                    for cf, rv in ctx.items():
-                        ctx_vals = ns_[cf]
-
-                        # Binary search for context state at tt (latest value <= tt)
-                        # Create a dummy Value object for binary search
-                        search_val = Value(tt, True, None, "")
-                        idx = ctx_vals.bisect_right(search_val) - 1
-                        if idx < 0:
-                            ctx_valid = False
+                if not ctx:  # Empty context
+                    # Return the latest value
+                    for val in reversed(tvals):
+                        if not val.unavailable:
+                            rval = val.data
                             break
-
-                        ctx_state = ctx_vals[idx]
-                        if ctx_state.unavailable or ctx_state.data != rv:
-                            ctx_valid = False
-                            break
-
-                        # Find when this context changes after tt
-                        next_idx = ctx_vals.bisect_right(search_val)
-                        for k in range(next_idx, len(ctx_vals)):
-                            cv = ctx_vals[k]
-                            if cv.unavailable or cv.data != rv:
-                                if ctx_end is None or cv.time < ctx_end:
-                                    ctx_end = cv.time
-                                break
-
-                    if not ctx_valid:
-                        continue
-
-                    # Check if any later target exists before context end
-                    is_latest = True
-                    if ctx_end is not None:
-                        for j in range(i + 1, len(tvals)):
-                            tv_later = tvals[j]
-                            if (
-                                not tv_later.unavailable
-                                and cast(float, tv_later.time) < ctx_end
-                            ):
-                                is_latest = False
-                                break
-
-                    if is_latest:
-                        rval = tv.data
-                        break
+                    else:
+                        raise AttributeError(
+                            f"No value found for {key} within the specified context in namespace {namespace}"
+                        )
                 else:
-                    raise AttributeError(
-                        f"No value found for {key} within the specified context in namespace {namespace}"
-                    )
+                    # New approach: Find all time periods when context is satisfied,
+                    # then find the latest target value from the latest such period
+
+                    # Get all times when context field values were set
+                    context_times = []
+                    for cf in ctx:
+                        for ctx_val in ns_[cf]:
+                            if not ctx_val.unavailable:
+                                context_times.append(cast(float, ctx_val.time))
+
+                    if not context_times:
+                        latest_value = None
+                    else:
+                        context_times = sorted(set(context_times))
+                        # Add a "current time" after the last change
+                        context_times.append(max(context_times) + 1)
+
+                        # Find all time intervals where context is satisfied
+                        satisfied_intervals = []
+
+                        for i in range(len(context_times)):
+                            check_time = context_times[i]
+
+                            # Check if all context conditions are satisfied at this time
+                            all_satisfied = True
+                            for cf, expected_val in ctx.items():
+                                ctx_vals = ns_[cf]
+                                search_val = Value(check_time, True, None, "")
+                                idx = ctx_vals.bisect_right(search_val) - 1
+
+                                if idx < 0:
+                                    all_satisfied = False
+                                    break
+
+                                actual_val = ctx_vals[idx]
+                                if (
+                                    actual_val.unavailable
+                                    or actual_val.data != expected_val
+                                ):
+                                    all_satisfied = False
+                                    break
+
+                            if all_satisfied:
+                                # This time period satisfies the context
+                                start_time = check_time
+                                end_time = (
+                                    context_times[i + 1]
+                                    if i + 1 < len(context_times)
+                                    else float("inf")
+                                )
+                                satisfied_intervals.append((start_time, end_time))
+
+                        if not satisfied_intervals:
+                            latest_value = None
+                        else:
+                            # Use the latest satisfied interval
+                            latest_start, latest_end = satisfied_intervals[-1]
+
+                            # Find the latest target value that was current during this interval
+                            for val in reversed(tvals):
+                                if val.unavailable:
+                                    continue
+
+                                val_time = cast(float, val.time)
+
+                                # Check if this target value was current during the context interval
+                                if val_time < latest_end:
+                                    # This value was set before the interval ended
+                                    # Check if it was still current at the start of the interval
+
+                                    # Find the next target value after this one
+                                    next_target_time = float("inf")
+                                    for next_val in tvals:
+                                        if (
+                                            not next_val.unavailable
+                                            and cast(float, next_val.time) > val_time
+                                        ):
+                                            next_target_time = cast(
+                                                float, next_val.time
+                                            )
+                                            break
+
+                                    # Check if this value was current during any part of the interval
+                                    if (
+                                        val_time < latest_end
+                                        and next_target_time > latest_start
+                                    ):
+                                        latest_value = val.data
+                                        break
+
+                            if latest_value is None:
+                                # Fallback: find any value that existed before the context started
+                                for val in reversed(tvals):
+                                    if (
+                                        not val.unavailable
+                                        and cast(float, val.time) <= latest_start
+                                    ):
+                                        latest_value = val.data
+                                        cast(float, val.time)
+                                        break
+
+                    if latest_value is None:
+                        raise AttributeError(
+                            f"No value found for {key} within the specified context in namespace {namespace}"
+                        )
+
+                    rval = latest_value
 
         # ERROR
         case _, _, _:
