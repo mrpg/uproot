@@ -115,10 +115,18 @@ def timeout_reached(page: type[Page], player: Storage, tol: float) -> bool:
     return False
 
 
-def class_to_dict(cls: type) -> dict[str, Any]:
-    return {
-        k: v for k, v in vars(cls).items() if not k.startswith("_") and not callable(v)
-    }
+def exported_constants(app: Any) -> dict[str, Any]:
+    if hasattr(app, "C") and hasattr(app.C, "__export__"):
+        if isinstance(app.C, type):
+            grabber = getattr
+        elif isinstance(app.C, dict):
+            grabber = dict.__getitem__  # type: ignore[assignment]
+        else:
+            raise TypeError(f"'C' must be class or dict (app: {app.__name__})")
+
+        return {k: grabber(app.C, k) for k in grabber(app.C, "__export__")}
+
+    return {}
 
 
 async def render(
@@ -188,20 +196,7 @@ async def render(
             root=d.ROOT,
             language=language,
             is_admin=is_admin,
-            C=class_to_dict(
-                cast(
-                    type,
-                    getattr(
-                        app,
-                        "C",
-                        type(
-                            "C",
-                            tuple(),
-                            dict(),
-                        ),
-                    ),
-                )
-            ),
+            C=exported_constants(app),
         )
         | (metadata if metadata is not None else {})
     )
