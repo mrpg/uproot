@@ -10,6 +10,8 @@ import threading
 from time import time
 from typing import TYPE_CHECKING, Any, Optional, Sequence, Union, cast
 
+from sortedcontainers import SortedList
+
 from uproot.constraints import ensure
 from uproot.deployment import DATABASE
 from uproot.stable import IMMUTABLE_TYPES
@@ -45,7 +47,7 @@ def flatten(
     for k, v in d.items():
         new_trail = trail + (k,)
 
-        if isinstance(v, list):
+        if hasattr(v, "__iter__") and not isinstance(v, (dict, str)):
             result[new_trail] = v
         elif isinstance(v, dict):
             result.update(flatten(v, new_trail))
@@ -56,7 +58,8 @@ def flatten(
 
 
 def get_namespace(
-    namespace: tuple[str, ...], create: bool = False
+    namespace: tuple[str, ...],
+    create: bool = False,
 ) -> Optional[dict[str, Any]]:
     """Navigate to namespace location. If create=True, creates missing levels."""
     current: Any = MEMORY_HISTORY
@@ -75,6 +78,27 @@ def get_namespace(
     return cast(Optional[dict[str, Any]], current)
 
 
+def field_history_since(
+    namespace: tuple[str, ...],
+    field: str,
+    since: float,
+) -> list[Value]:
+    with LOCK:
+        current = get_namespace(namespace)
+        if not current or not isinstance(current, dict) or field not in current:
+            return []
+
+        values = current[field]
+        if hasattr(values, "__iter__") and hasattr(values, "bisect_right"):
+            # Use binary search to find first entry after 'since'
+            search_val = Value(since, True, None, "")
+            start_idx = values.bisect_right(search_val)
+            return list(values[start_idx:])
+        else:
+            # Fallback for non-SortedList (shouldn't happen with current implementation)
+            return [v for v in values if cast(float, v.time) > since]
+
+
 def load_database_into_memory() -> None:
     """Load the entire database history into memory at startup for faster access."""
     global MEMORY_HISTORY
@@ -90,11 +114,11 @@ def load_database_into_memory() -> None:
             nested_dict = get_namespace(namespace, create=True)
 
             if nested_dict is not None and field not in nested_dict:
-                nested_dict[field] = []
+                nested_dict[field] = SortedList(key=lambda v: v.time)
 
             # Add to history
             if nested_dict is not None:
-                nested_dict[field].append(value)
+                nested_dict[field].add(value)
 
 
 def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
@@ -106,7 +130,7 @@ def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
         current
         and isinstance(current, dict)
         and field in current
-        and isinstance(current[field], list)
+        and hasattr(current[field], "__iter__")
         and current[field]
     ):
         # Check if latest entry is available (not a tombstone)
@@ -159,7 +183,7 @@ def db_request(
                 nested_dict = get_namespace(namespace, create=True)
 
                 if nested_dict is not None and key not in nested_dict:
-                    nested_dict[key] = []
+                    nested_dict[key] = SortedList(key=lambda v: v.time)
 
                 # Add to history with current timestamp
                 new_value = Value(DATABASE.now, False, safe_deepcopy(value), context)
@@ -167,9 +191,9 @@ def db_request(
                 # Special handling for player lists - replace entire history like database does
                 if nested_dict is not None:
                     if key == "players" and namespace[0] == "session":
-                        nested_dict[key] = [new_value]
+                        nested_dict[key] = SortedList([new_value], key=lambda v: v.time)
                     else:
-                        nested_dict[key].append(new_value)
+                        nested_dict[key].add(new_value)
             rval = value
 
         case "delete", _, None if isinstance(context, str):
@@ -179,11 +203,11 @@ def db_request(
                 # Add tombstone to history
                 nested_dict = get_namespace(namespace, create=True)
                 if nested_dict is not None and key not in nested_dict:
-                    nested_dict[key] = []
+                    nested_dict[key] = SortedList(key=lambda v: v.time)
 
                 tombstone = Value(DATABASE.now, True, None, context)
                 if nested_dict is not None:
-                    nested_dict[key].append(tombstone)
+                    nested_dict[key].add(tombstone)
 
         # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:
@@ -196,7 +220,7 @@ def db_request(
                 if current and isinstance(current, dict) and key in current:
                     rval = current[key]
                 else:
-                    rval = []
+                    rval = SortedList(key=lambda v: v.time)
 
         case "fields", "", None:
             with LOCK:
@@ -206,13 +230,13 @@ def db_request(
                     rval = []
                     for field in current.keys():
                         if (
-                            isinstance(current[field], list)
+                            hasattr(current[field], "__iter__")
                             and current[field]
                             and not current[field][-1].unavailable
                         ):
                             rval.append(field)
                 else:
-                    rval = []
+                    rval = SortedList(key=lambda v: v.time)
 
         case "has_fields", "", None:
             with LOCK:
@@ -220,7 +244,7 @@ def db_request(
                 if current and isinstance(current, dict):
                     # Check if any field has current (non-tombstone) values
                     rval = any(
-                        isinstance(values, list)
+                        hasattr(values, "__iter__")
                         and values
                         and not values[-1].unavailable
                         for values in current.values()
@@ -244,7 +268,7 @@ def db_request(
                         current
                         and isinstance(current, dict)
                         and mkey in current
-                        and isinstance(current[mkey], list)
+                        and hasattr(current[mkey], "__iter__")
                         and current[mkey]
                     ):
                         latest = current[mkey][-1]
@@ -258,7 +282,6 @@ def db_request(
             sname, since = cast(tuple[str, float], extra)
             with LOCK:
                 session_result: dict[tuple[tuple[str, str, str], str], Any] = {}
-                # Direct access to player data for this session
                 session_players = get_namespace(("player", sname))
                 if session_players and isinstance(session_players, dict):
                     for player_name, player_fields in session_players.items():
@@ -266,94 +289,85 @@ def db_request(
                             ns = ("player", sname, player_name)
                             for field_name, values in player_fields.items():
                                 field = cast(str, field_name)
-                                if (
-                                    values
-                                    and isinstance(values, list)
-                                    and values[-1].time > since
-                                ):
-                                    session_result[(ns, field)] = values[-1]
+                                if values and hasattr(values, "__iter__") and values:
+                                    latest = values[-1]
+                                    if latest.time > since:
+                                        session_result[(ns, field)] = latest
                 rval = session_result
 
         case "get_within_context", _, None if isinstance(extra, dict):
-            context_fields: dict[str, Any]
-            context_fields = extra
+            ctx = extra
             with LOCK:
-                # This is complex - need to implement the context window logic using in-memory data
-                current = get_namespace(namespace)
-                if not current or not isinstance(current, dict) or key not in current:
+                ns_ = get_namespace(namespace)
+                if not ns_ or not isinstance(ns_, dict) or key not in ns_:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
                     )
 
-                target_values = current[key]
+                tvals = ns_[key]
 
-                # Iterate from newest to oldest
-                for i in range(len(target_values) - 1, -1, -1):
-                    target_value = target_values[i]
+                # Verify all context fields exist
+                for cf in ctx:
+                    if cf not in ns_:
+                        raise AttributeError(
+                            f"No value found for {key} within the specified context in namespace {namespace}"
+                        )
 
-                    if target_value.unavailable:
+                # Find latest valid target in matching context window
+                for i in range(len(tvals) - 1, -1, -1):
+                    tv = tvals[i]
+                    if tv.unavailable:
                         continue
 
-                    target_time = cast(float, target_value.time)
-                    all_contexts_match = True
+                    tt = cast(float, tv.time)
 
-                    # Check each required context field at target_time
-                    for context_field, required_value in context_fields.items():
-                        if context_field not in current:
-                            all_contexts_match = False
+                    # Check context at target time and find context window end
+                    ctx_valid = True
+                    ctx_end = None
+
+                    for cf, rv in ctx.items():
+                        ctx_vals = ns_[cf]
+
+                        # Binary search for context state at tt (latest value <= tt)
+                        # Create a dummy Value object for binary search
+                        search_val = Value(tt, True, None, "")
+                        idx = ctx_vals.bisect_right(search_val) - 1
+                        if idx < 0:
+                            ctx_valid = False
                             break
 
-                        context_values = current[context_field]
+                        ctx_state = ctx_vals[idx]
+                        if ctx_state.unavailable or ctx_state.data != rv:
+                            ctx_valid = False
+                            break
 
-                        # Find the latest context value at or before target_time
-                        context_state = None
-                        for cv in reversed(context_values):
-                            if cast(float, cv.time) <= target_time:
-                                context_state = cv
+                        # Find when this context changes after tt
+                        next_idx = ctx_vals.bisect_right(search_val)
+                        for k in range(next_idx, len(ctx_vals)):
+                            cv = ctx_vals[k]
+                            if cv.unavailable or cv.data != rv:
+                                if ctx_end is None or cv.time < ctx_end:
+                                    ctx_end = cv.time
                                 break
 
-                        if (
-                            context_state is None
-                            or context_state.unavailable
-                            or context_state.data != required_value
-                        ):
-                            all_contexts_match = False
-                            break
+                    if not ctx_valid:
+                        continue
 
-                    if all_contexts_match:
-                        # Verify this is still the latest within the context window
-                        still_valid = True
-                        earliest_context_change = None
+                    # Check if any later target exists before context end
+                    is_latest = True
+                    if ctx_end is not None:
+                        for j in range(i + 1, len(tvals)):
+                            tv_later = tvals[j]
+                            if (
+                                not tv_later.unavailable
+                                and cast(float, tv_later.time) < ctx_end
+                            ):
+                                is_latest = False
+                                break
 
-                        # Find when any context field changed after target_time
-                        for context_field, required_value in context_fields.items():
-                            if context_field in current:
-                                context_values = current[context_field]
-
-                                for cv in context_values:
-                                    if cast(float, cv.time) > target_time:
-                                        if cv.unavailable or cv.data != required_value:
-                                            if (
-                                                earliest_context_change is None
-                                                or cv.time < earliest_context_change
-                                            ):
-                                                earliest_context_change = cv.time
-                                            break
-
-                        # Check if there's a later target value before context change
-                        if earliest_context_change is not None:
-                            for tv in target_values:
-                                if (
-                                    target_time
-                                    < cast(float, tv.time)
-                                    < earliest_context_change
-                                ):
-                                    still_valid = False
-                                    break
-
-                        if still_valid:
-                            rval = target_value.data
-                            break
+                    if is_latest:
+                        rval = tv.data
+                        break
                 else:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
