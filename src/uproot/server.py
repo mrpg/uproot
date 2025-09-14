@@ -113,16 +113,29 @@ async def favicon(request: Request) -> RedirectResponse:
 
 
 def post_app_import(app: Any) -> Any:
+    appname = app.__name__
+
+    ensure(
+        not hasattr(app, "C") or isinstance(app.C, type),
+        TypeError,
+        f"'C' must be a class (app {appname})",
+    )
+    ensure(
+        not hasattr(app, "Constants"),
+        TypeError,
+        f"Use 'C' instead of 'Constants' (app {appname})",
+    )
+
     # Add landing page (if desired)
     if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
         ensure(
             not hasattr(app, "LandingPage"),
             TypeError,
-            "'LandingPage' is a reserved Page name",
+            f"'LandingPage' is a reserved Page name (app {appname})",
         )
 
         class LandingPage(Page):
-            __module__ = app.__name__
+            __module__ = appname
             template = app_or_default(app, "LandingPage.html")
 
             @classmethod
@@ -135,14 +148,18 @@ def post_app_import(app: Any) -> Any:
         app.page_order.insert(0, app.LandingPage)
 
     # Demarcate beginning of new app and set player.app
-    ensure(not hasattr(app, "NextApp"), TypeError, "'NextApp' is a reserved Page name")
+    ensure(
+        not hasattr(app, "NextApp"),
+        TypeError,
+        f"'NextApp' is a reserved Page name (app {appname})",
+    )
 
     class NextApp(InternalPage):
-        __module__ = app.__name__
+        __module__ = appname
 
         @classmethod
         def after_always_once(page, player: Storage) -> None:
-            player.app = app.__name__
+            player.app = appname
 
     app.NextApp = NextApp
     app.page_order.insert(0, app.NextApp)

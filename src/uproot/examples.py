@@ -113,7 +113,7 @@ DESCRIPTION = "Prisoner’s dilemma"
 LANDING_PAGE = True
 
 
-class Constants:
+class C:
     pass
 
 

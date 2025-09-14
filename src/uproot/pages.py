@@ -115,6 +115,12 @@ def timeout_reached(page: type[Page], player: Storage, tol: float) -> bool:
     return False
 
 
+def class_to_dict(cls: type) -> dict[str, Any]:
+    return {
+        k: v for k, v in vars(cls).items() if not k.startswith("_") and not callable(v)
+    }
+
+
 async def render(
     server: "FastAPI",
     request: "Request",
@@ -182,6 +188,7 @@ async def render(
             root=d.ROOT,
             language=language,
             is_admin=is_admin,
+            C=class_to_dict(cast(type, getattr(app, "C", {}))),
         )
         | (metadata if metadata is not None else {})
     )
@@ -214,6 +221,7 @@ async def render(
                 JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
                 show2path=show2path,
                 app_or_default=app_or_default,
+                C=getattr(app, "C", {}),
                 _uproot_errors=custom_errors,
                 _uproot_js=jsvars,
                 _uproot_testing=is_admin,
