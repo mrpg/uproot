@@ -188,7 +188,20 @@ async def render(
             root=d.ROOT,
             language=language,
             is_admin=is_admin,
-            C=class_to_dict(cast(type, getattr(app, "C", {}))),
+            C=class_to_dict(
+                cast(
+                    type,
+                    getattr(
+                        app,
+                        "C",
+                        type(
+                            "C",
+                            tuple(),
+                            dict(),
+                        ),
+                    ),
+                )
+            ),
         )
         | (metadata if metadata is not None else {})
     )
