@@ -19,9 +19,10 @@ dependencies = [
     "fastapi==0.116.1",
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
-    "msgpack==1.1.0",
+    "msgpack==1.1.1",
     "orjson==3.11.3",
     "pydantic==2.11.7",
+    "strictyaml==1.7.3",
     "python-multipart==0.0.20",
     "sortedcontainers==2.4.0",
     "uvicorn==0.35.0",
@@ -65,16 +66,16 @@ dev = [
     "black==25.1.0",
     "isort==6.0.1",
     "mypy==1.17.1",
-    "pytest==8.4.1",
+    "pytest==8.4.2",
     "pytest-asyncio==1.0.0",
-    "pytest-cov==6.2.1",
+    "pytest-cov==6.3.0",
     "ruff==0.12.11",
 ]
 docs = [
-    "mkdocs-material==9.6.14"
+    "mkdocs-material==9.6.19"
 ]
 iban = [
-    "schwifty==2025.1.0"
+    "schwifty==2025.7.0"
 ]
 
 [tool.mypy]

@@ -6,7 +6,7 @@ import importlib.util
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Dict, Set
+from typing import Any, Callable, Dict, Optional, Set
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -15,18 +15,28 @@ import uproot.deployment as d
 from uproot.constraints import ensure
 
 
+def noop(module: Any) -> None:
+    pass
+
+
 class ModuleManager:
-    def __init__(self) -> None:
+    def __init__(self, hook: Optional[Callable[[Any], None]] = None) -> None:
         self.modules: Dict[str, ModuleType] = {}
         self.watched_dirs: Dict[str, str] = {}
         self.watching_paths: Set[str] = set()
         self.observer = Observer()
+
+        if hook is not None:
+            self.hook = hook
+        else:
+            self.hook = noop
 
     def __getitem__(self, module_name: str) -> Any:
         return self.modules[module_name]
 
     def __setitem__(self, module_name: str, module: Any) -> None:
         self.modules[module_name] = module
+        self.hook(self.modules[module_name])
 
     def __delitem__(self, module_name: str) -> None:
         if module_name in sys.modules:
@@ -67,11 +77,14 @@ class ModuleManager:
             f"Could not create spec for module {module_name}",
         )
 
-        module = importlib.util.module_from_spec(spec)
+        if spec is not None:
+            module = importlib.util.module_from_spec(spec)
+        else:
+            raise ImportError(f"Spec is None for module {module_name}")
         spec.loader.exec_module(module)  # type: ignore[union-attr]
 
         sys.modules[module_name] = module
-        self.modules[module_name] = module
+        self[module_name] = module
         self.watched_dirs[str(path)] = module_name
         self.watched_dirs[str(path.resolve())] = module_name
 
@@ -89,7 +102,7 @@ class ModuleManager:
 
             try:
                 reloaded = importlib.reload(old_module)
-                self.modules[module_name] = reloaded
+                self[module_name] = reloaded
 
                 d.LOGGER.info(f"Reloaded {module_name}.")
             except Exception as e:

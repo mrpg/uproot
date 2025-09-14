@@ -25,7 +25,6 @@ LOGGER: Any = logging.getLogger("uproot")
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = dict()
-SKIP_INTERNAL: bool = True
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
@@ -61,9 +60,9 @@ def project_metadata(uproot: str, *args: Any, **kwargs: Any) -> None:
     PROJECT_METADATA |= kwargs
 
 
-async def lifespan_start(*args, **kwargs) -> None:
+async def lifespan_start(*args: Any, **kwargs: Any) -> None:
     pass
 
 
-async def lifespan_stop(*args, **kwargs) -> None:
+async def lifespan_stop(*args: Any, **kwargs: Any) -> None:
     DATABASE.close()

@@ -16,7 +16,7 @@ import sys
 from itertools import zip_longest
 from random import shuffle
 from time import perf_counter as now
-from typing import Any, Callable, Optional, cast
+from typing import Any, Optional, cast
 
 from fastapi import (
     APIRouter,
@@ -58,7 +58,7 @@ from uproot.storage import Admin, Session
 
 router = APIRouter(prefix=f"{d.ROOT}/admin")
 
-LAST_FAILED_LOGIN = 0
+LAST_FAILED_LOGIN = 0.0
 LOGIN_URL = f"{d.ROOT}/admin/login/"
 BUILTINS = {
     fname: getattr(builtins, fname)
@@ -123,7 +123,7 @@ async def render(
 # Authentication
 
 
-async def auth_required(request: Request):
+async def auth_required(request: Request) -> dict[str, Any]:
     uauth = request.cookies.get("uauth")
     if not uauth:
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
@@ -133,6 +133,8 @@ async def auth_required(request: Request):
     if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
 
+    return data
+
 
 # Root directory
 
@@ -140,7 +142,7 @@ async def auth_required(request: Request):
 @router.get("/")
 async def home(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     return RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
 
@@ -170,7 +172,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
     )
 
     for jj in j.ADMIN_JOBS:
-        fun = cast(Callable, jj)
+        fun = cast(Any, jj)
 
         tasks[asyncio.create_task(fun(**args[jj.__name__]))] = jj.__name__, jj
 
@@ -193,10 +195,8 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                 "mname": "subscribe_to_attendance",
                                 "args": [sname],
                             },
-                        } if isinstance(
-                            sname, str  # type: ignore[has-type]
-                        ):
-                            newfname = "subscribe_to_attendance"  # type: ignore[unreachable]
+                        } if isinstance(sname, str):
+                            newfname = "subscribe_to_attendance"
                             args[newfname] = dict(sname=sname)
                             tasks[
                                 asyncio.create_task(
@@ -223,7 +223,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                 dict(
                                     kind="invoke",
                                     payload=dict(
-                                        data=await cast(Callable, FUNS[mname])(
+                                        data=await cast(Any, FUNS[mname])(
                                             *margs,
                                             **mkwargs,
                                         ),
@@ -236,7 +236,13 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             # ~ raise NotImplementedError(result)
                 elif fname == "subscribe_to_attendance":
                     pid = t.PlayerIdentifier(args[fname]["sname"], result)
-                    info = u.get_info(pid)
+
+                    with pid() as p:
+                        info = (
+                            p.id,
+                            p.page_order,
+                            p.show_page,
+                        )  # TODO: Remove monkeypatch
 
                     await websocket.send_json(
                         dict(
@@ -264,7 +270,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                 return None
 
             # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Callable, factory)(**args[fname]))
+            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
             tasks[new_task] = (fname, factory)
 
 
@@ -323,7 +329,7 @@ async def login_post(
 @router.get("/logout/")
 def logout(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> RedirectResponse:
     """Logout and revoke the current authentication token."""
     uauth = request.cookies.get("uauth")
@@ -361,7 +367,7 @@ def set_auth_cookie(
 @router.get("/dashboard/")
 async def dashboard(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     return HTMLResponse(
         await render(
@@ -383,7 +389,7 @@ async def dashboard(
 @router.get("/rooms/")
 async def rooms(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     return HTMLResponse(
         await render(
@@ -402,7 +408,7 @@ async def rooms(
 @router.get("/rooms/new/")
 async def new_room(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     with Admin() as admin:
         return HTMLResponse(
@@ -418,7 +424,7 @@ async def new_room(
 
 
 @router.post("/rooms/new/")
-async def new_room(
+async def new_room2(
     request: Request,
     name: str = Form(),
     use_config: Optional[bool] = Form(False),
@@ -430,7 +436,7 @@ async def new_room(
     use_session: Optional[bool] = Form(False),
     sname: Optional[str] = Form(""),
     start: Optional[bool] = Form(False),
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     if sname:
         a.session_exists(sname)
@@ -444,12 +450,12 @@ async def new_room(
             config=(config if use_config else None),
             labels=(
                 [a.strip() for a in labels.split("\n") if a.strip()]
-                if use_labels
-                else None
+                if labels
+                else [] if use_labels else None
             ),
             capacity=(capacity if use_capacity else None),
             start=bool(start),
-            sname=(sname if use_session and sname.strip() else None),
+            sname=(sname if use_session and sname and sname.strip() else None),
         )
 
     if sname:
@@ -466,7 +472,7 @@ async def new_room(
 async def roommain(
     request: Request,
     roomname: str,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     with Admin() as admin:
         ensure(roomname in admin.rooms, ValueError, "Room not found")
@@ -496,25 +502,25 @@ async def new_session_in_room(
     sname: Optional[str] = Form(""),
     unames: Optional[str] = Form(""),
     nogrow: Optional[bool] = Form(False),
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.room_exists(roomname)
 
     if assignees:
-        assignees = json.loads(assignees)
+        assignees_list = json.loads(assignees)
         ensure(
-            all(isinstance(ass, str) for ass in assignees),
+            all(isinstance(ass, str) for ass in assignees_list),
             ValueError,
             "All assignees must be strings",
         )
-        shuffle(assignees)
+        shuffle(assignees_list)
     else:
-        assignees = []
+        assignees_list = []
 
-    data = []
-    nplayers = max(nplayers, len(assignees))
+    data: list[Any] = []
+    nplayers = max(nplayers, len(assignees_list))
 
-    for _, label in zip_longest(range(nplayers), assignees):
+    for _, label in zip_longest(range(nplayers), assignees_list):
         if label is None:
             data.append({})
         else:
@@ -546,7 +552,9 @@ async def new_session_in_room(
             session,
             n=nplayers,
             unames=(
-                None if automatic_unames else [a.strip() for a in unames.split("\n")]
+                None
+                if automatic_unames or unames is None
+                else [a.strip() for a in unames.split("\n")]
             ),
             data=data,
         )
@@ -565,7 +573,7 @@ async def new_session_in_room(
 @router.get("/sessions/")
 async def sessions(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     return HTMLResponse(
         await render(
@@ -583,13 +591,13 @@ async def sessions(
 @router.get("/sessions/new/")
 async def new_session(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     return HTMLResponse(await render("SessionsNew.html", dict(configs=a.configs())))
 
 
 @router.post("/sessions/new/")
-async def new_session(
+async def new_session2(
     request: Request,
     config: str = Form(),
     nplayers: int = Form(),
@@ -597,7 +605,7 @@ async def new_session(
     automatic_unames: Optional[bool] = Form(False),
     sname: Optional[str] = Form(""),
     unames: Optional[str] = Form(""),
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     with Admin() as admin:
         sid = c.create_session(
@@ -611,7 +619,9 @@ async def new_session(
             session,
             n=nplayers,
             unames=(
-                None if automatic_unames else [a.strip() for a in unames.split("\n")]
+                None
+                if automatic_unames or unames is None
+                else [a.strip() for a in unames.split("\n")]
             ),
         )
 
@@ -625,7 +635,7 @@ async def new_session(
 async def sessionmain(
     request: Request,
     sname: t.Sessionname,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
 
@@ -652,7 +662,7 @@ async def sessionmain(
 async def session_data(
     request: Request,
     sname: t.Sessionname,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(await render("SessionData.html", dict(sname=sname)))
@@ -660,19 +670,20 @@ async def session_data(
 
 # Particular session: get data
 @router.get("/session/{sname}/data/get/")
-async def session_data(
+async def session_data_download(
     request: Request,
     sname: t.Sessionname,
     format: str,
+    filetype: str,
     gvar: list[str] = Query(default=[]),
-    filetype: str = "csv",
-    auth=Depends(auth_required),
+    filters: bool = Query(default=False),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
 
     if filetype == "csv":
         t0 = now()
-        csv = a.generate_csv(sname, format, gvar)
+        csv = a.generate_csv(sname, format, gvar, filters)
         t1 = now()
 
         if t1 - t0 > 0.1:
@@ -685,7 +696,7 @@ async def session_data(
         )
     elif filetype == "json":
         return StreamingResponse(
-            a.generate_json(sname, format, gvar),
+            a.generate_json(sname, format, gvar, filters),
             media_type="text/json",
             headers={"Content-Disposition": f"attachment; filename={sname}.json"},
         )
@@ -698,7 +709,7 @@ async def session_data(
 async def session_viewdata(
     request: Request,
     sname: t.Sessionname,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(await render("SessionViewdata.html", dict(sname=sname)))
@@ -709,7 +720,7 @@ async def session_viewdata(
 async def session_multiview(
     request: Request,
     sname: t.Sessionname,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
 
@@ -724,13 +735,14 @@ async def session_multiview(
 @router.get("/status/")
 async def status(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    dbsize = d.DATABASE.size()
-    missing = dict()
+    dbsize_bytes = d.DATABASE.size()
+    missing: dict[str, Any] = dict()
 
-    if dbsize is not None:
-        dbsize /= 1024**2
+    dbsize = None
+    if dbsize_bytes is not None:
+        dbsize = float(dbsize_bytes) / (1024**2)
 
     for term, lang in sorted(i18n.MISSING):
         if term not in missing:
@@ -767,7 +779,7 @@ async def status(
 @router.get("/status/logout-all/")
 async def logout_all(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     """Logout from all sessions by revoking all tokens for the current user."""
     uauth = request.cookies.get("uauth")
@@ -790,7 +802,7 @@ async def logout_all(
 @router.get("/dump/")
 async def dump(
     request: Request,
-    auth=Depends(auth_required),
+    auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     return StreamingResponse(
         d.DATABASE.dump(),

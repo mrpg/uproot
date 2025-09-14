@@ -370,7 +370,12 @@ window.uproot = {
     },
 
     onStart(fun) {
-        window.addEventListener("DOMContentLoaded", fun);
+        if (document.readyState === "loading") {
+            window.addEventListener("DOMContentLoaded", fun);
+        }
+        else {
+            fun();
+        }
     },
 
     onReady(fun) {

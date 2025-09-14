@@ -1,0 +1,98 @@
+? 'The Use of Knowledge in Society'
+: 'The Use of Knowledge in Society'
+
+? 'Welcome'
+: 'Willkommen'
+
+? 'Please wait'
+: 'Bitte warten'
+
+? 'Next'
+: 'Weiter'
+
+? 'Back'
+: 'Zurück'
+
+? 'End'
+: 'Ende'
+
+? 'You have reached the end of this study.'
+: 'Sie haben das Ende dieser Studie erreicht.'
+
+? 'You may now close this page.'
+: 'Sie können diese Seite jetzt schließen.'
+
+? 'Close'
+: 'Schließen'
+
+? 'Remaining time on this page:'
+: 'Verbleibende Zeit auf dieser Seite:'
+
+? 'Error'
+: 'Fehler'
+
+? 'Login'
+: 'Login'
+
+? 'Username'
+: 'Nutzername'
+
+? 'Password'
+: 'Kennwort'
+
+? 'Submit'
+: 'Absenden'
+
+? 'You provided invalid credentials.'
+: 'Sie haben ungültige Anmeldedaten angegeben.'
+
+? '(Or you were too fast.)'
+: '(Oder Sie waren zu schnell.)'
+
+? 'Dashboard'
+: 'Übersicht'
+
+? 'Send message'
+: 'Nachricht senden'
+
+? 'Insert fields'
+: 'Felder einfügen'
+
+? 'Reload page'
+: 'Seite neu laden'
+
+? 'You have selected <b><span class="pcount"></span> subject(s)</b>.'
+: 'Sie haben <b><span class="pcount"></span> Versuchsperson(en)</b> ausgewählt.'
+
+? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
+: 'Das Einfügen von Feldern wird nicht als gute Praxis angesehen. Verwenden Sie diese Funktion nur zu Testzwecken oder in Notfällen. Manuelle Feldeinfügungen werden unwiderruflich als solche in der Datenbank gespeichert.'
+
+? 'Mark as dropout'
+: 'Als Dropout markieren'
+
+? 'Put to end'
+: 'Ans Ende stellen'
+
+? 'Advance by one page'
+: 'Um eine Seite vorrücken'
+
+? 'Revert by one page'
+: 'Um eine Seite zurückgehen'
+
+? 'Manage subjects'
+: 'Versuchspersonen verwalten'
+
+? 'Select subjects'
+: 'Versuchspersonen auswählen'
+
+? 'Select all'
+: 'Alle auswählen'
+
+? 'Deselect all'
+: 'Alle abwählen'
+
+? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
+: 'Bitte geben Sie ein gültiges JSON-<i>Objekt</i> ein. Zum Beispiel fügt dies die Felder <code>foo</code> (eine Ganzzahl) und <code>bar</code> (eine Liste) hinzu:'
+
+? 'View session details'
+: 'Sessiondetails ansehen'

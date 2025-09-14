@@ -18,6 +18,7 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    Collection,
     Iterable,
     Iterator,
     Literal,
@@ -168,7 +169,16 @@ class ModelIdentifier(Identifier):
         return Model(self.sname, self.mname, **kwargs)
 
 
-async def optional_call(
+async def maybe_await(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    result = func(*args, **kwargs)
+
+    if inspect.iscoroutine(result):
+        return await result
+
+    return result
+
+
+def optional_call(
     obj: Any,
     attr: str,
     *,
@@ -181,15 +191,12 @@ async def optional_call(
         return default_return
 
     if callable(attr_):
-        if inspect.iscoroutinefunction(attr_):
-            return await attr_(**kwargs)
-        else:
-            return attr_(**kwargs)
+        return attr_(**kwargs)
     else:
         return attr_
 
 
-async def optional_call_once(
+def optional_call_once(
     obj: Any,
     attr: str,
     default_return: Optional[Any] = None,
@@ -201,20 +208,20 @@ async def optional_call_once(
     if not hasattr(obj, attr):
         return default_return  # short circuit
 
-    rantpl = (show_page, attr)
+    hereruns = f"{show_page}:{attr}"
 
     if not hasattr(storage, "_uproot_what_ran"):
-        storage._uproot_what_ran = list()
+        storage._uproot_what_ran = set()
 
-    if rantpl in storage._uproot_what_ran:
+    if hereruns in storage._uproot_what_ran:
         return default_return
 
-    storage._uproot_what_ran.append(rantpl)
+    storage._uproot_what_ran.add(hereruns)
 
     try:
-        return await optional_call(obj, attr, default_return=default_return, **kwargs)
+        return optional_call(obj, attr, default_return=default_return, **kwargs)
     except Exception as e:
-        storage._uproot_what_ran.remove(rantpl)
+        storage._uproot_what_ran.remove(hereruns)
 
         raise e
 
@@ -303,10 +310,8 @@ class StorageBunch:
                 )
                 rkeys.append(k.path[-1])
 
-        dtuple = namedtuple("data", rkeys)  # type: ignore[misc]
-        rval: list[NamedTuple] = [
-            dtuple(**{k: getattr(p, k) for k in rkeys}) for p in self.l
-        ]
+        dtuple = cast(type[NamedTuple], namedtuple("data", rkeys))
+        rval = [dtuple(**{k: getattr(p, k) for k in rkeys}) for p in self.l]  # type: ignore[call-overload]
 
         if len(rkeys) == 1 and simplify:
             return [v for (v,) in rval]
@@ -338,11 +343,18 @@ def token_unchecked(outlen: int) -> str:
     )
 
 
-@validate_call
-def token(not_in: list[str] | Bunch, postprocess: Callable[str, str] = noop) -> str:
-    if not_in and isinstance(not_in[0], PlayerIdentifier):
+def token(
+    not_in: Collection[str] | Bunch, postprocess: Callable[[str], str] = noop
+) -> str:
+    if not_in and isinstance(not_in, list) and isinstance(not_in[0], PlayerIdentifier):
         not_in = cast(Bunch, not_in)
         not_in = [el.uname for el in not_in]
+
+    ensure(
+        not not_in or not isinstance(not_in, list) or type(not_in[0]) is str,
+        TypeError,
+        "Argument has invalid type",
+    )
 
     length = 5
     acc = int((len(ascii_lowercase) * len(ALPHANUMERIC) ** length) / TOKEN_SPARSITY)
@@ -371,10 +383,10 @@ def tokens(not_in: list[str] | Bunch, n: int) -> list[str]:
     for _ in range(n):
         t = None
 
-        while t is None or t in rval:  # type: ignore[unreachable]
+        while t is None or t in rval:
             t = token(not_in)
 
-        rval.append(t)  # type: ignore[unreachable]
+        rval.append(t)
 
     return rval
 
@@ -390,7 +402,7 @@ def uuid() -> str:
     return str(uuid4())
 
 
-def longest_common_prefix(strings: list[str]):
+def longest_common_prefix(strings: list[str]) -> str:
     if not strings:
         return ""
 
@@ -470,7 +482,9 @@ class Page(metaclass=FrozenPage):
     async def set_timeout(page: type["Page"], player: "Storage") -> Optional[float]:
         to_sec = cast(
             Optional[float],
-            await optional_call(page, "timeout", default_return=None, player=player),
+            await maybe_await(
+                optional_call, page, "timeout", default_return=None, player=player
+            ),
         )
 
         if to_sec is None:
@@ -506,24 +520,22 @@ def timed(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
 
 
 def internal_live(method: Callable[..., Any]) -> Callable[..., Any]:
-    wrapped = timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore [call-overload]
+    wrapped = timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore[call-overload]
     newmethod = classmethod(wrapped)
-    newmethod.__func__.__live__ = True  # type: ignore [attr-defined]
 
-    return newmethod  # type: ignore [return-value]
+    newmethod.__func__.__live__ = True  # type: ignore[attr-defined]
+
+    return newmethod  # type: ignore[return-value]
 
 
 def context(frame: FrameType | None) -> str:
     try:
-        ensure(
-            frame is not None, RuntimeError, "Frame cannot be None"
-        )  # for type checker
+        if frame is None:
+            return "<unknown>"
 
         caller_frame = frame.f_back
-
-        ensure(
-            caller_frame is not None, RuntimeError, "Caller frame cannot be None"
-        )  # for type checker
+        if caller_frame is None:
+            return "<unknown>"
 
         caller_function = caller_frame.f_code.co_name
         caller_lineno = caller_frame.f_lineno
@@ -555,16 +567,16 @@ class GroupCreatingWait(InternalPage):
     @classmethod
     async def show(page, player: "Storage") -> bool:
         # Already in a group - don't show page
-        if player._uproot_group is not None:
+        if page.call_after(player):
             return False
 
         # Try to create a group immediately
         from uproot.jobs import try_group
 
-        group_name = try_group(player, player.show_page, page.group_size)
+        try_group(player, player.show_page, page.group_size)
 
         # If grouping succeeded, player now has a group - don't show page
-        if player._uproot_group is not None:
+        if page.call_after(player):
             return False
 
         # Need to wait for more players
@@ -582,7 +594,7 @@ class GroupCreatingWait(InternalPage):
         try_group(player, player.show_page, page.group_size)
 
         # Re-check group status after grouping attempt
-        if player._uproot_group is not None:
+        if page.call_after(player):
             return "submit", 1
 
         # Get fresh count for progress display
@@ -605,11 +617,15 @@ class GroupCreatingWait(InternalPage):
 
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
+        return page.call_after(player)
+
+    @classmethod
+    def call_after(page, player: "Storage") -> bool:
         if player._uproot_group is not None:
-            group = player._uproot_group()
+            group = player.group
 
             with group:
-                await optional_call_once(
+                optional_call_once(
                     page,
                     "after_grouping",
                     storage=group,
@@ -617,7 +633,7 @@ class GroupCreatingWait(InternalPage):
                     group=group,
                 )
 
-            # This is safe because all_here and after_grouping must not be async
+            # This works because all_here and after_grouping must not be async
 
             return True
         else:
@@ -676,7 +692,8 @@ class SynchronizingWait(InternalPage):
             group = player._uproot_group()
 
             with group:
-                await optional_call_once(
+                await maybe_await(
+                    optional_call_once,
                     page,
                     "all_here",
                     storage=group,
@@ -687,7 +704,8 @@ class SynchronizingWait(InternalPage):
             session = player.session
 
             with session:
-                await optional_call_once(
+                await maybe_await(
+                    optional_call_once,
                     page,
                     "all_here",
                     storage=session,

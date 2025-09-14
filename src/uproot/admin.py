@@ -4,8 +4,7 @@
 import asyncio
 import secrets
 from datetime import datetime
-from itertools import chain
-from typing import Any, AsyncGenerator, Callable, Iterator, Optional
+from typing import Any, AsyncGenerator, Callable, Iterator, Optional, cast
 
 import aiohttp
 from fastapi import HTTPException
@@ -20,7 +19,9 @@ import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 
-EXPORT_NAMESPACES = ("player/*/", "group/*/", "model/*/", "session/*")
+ADMINS: dict[str, str] = dict()
+ADMINS_HASH: Optional[str] = None
+ADMINS_SECRET_KEY: Optional[str] = None
 
 
 async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> None:
@@ -39,15 +40,25 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
         )
 
 
-def admins() -> str:
-    return t.sha256("\n".join(f"{user}\t{pw}" for user, pw in d.ADMINS.items()))
+def _get_secret_key() -> str:
+    global ADMINS, ADMINS_HASH, ADMINS_SECRET_KEY
+
+    if ADMINS_HASH is None:
+        ADMINS_HASH = t.sha256(
+            "\n".join(f"{user}\t{pw}" for user, pw in d.ADMINS.items())
+        )
+        ADMINS_SECRET_KEY = t.sha256(f"{u.KEY}:{ADMINS_HASH}")
+
+        # Prevent direct modification of d.ADMINS
+        ADMINS = d.ADMINS
+        del d.ADMINS
+
+    return cast(str, ADMINS_SECRET_KEY)
 
 
 def _get_serializer() -> URLSafeTimedSerializer:
     """Get configured token serializer."""
-    # Use key + admins hash as secret key for maximum security
-    secret_key = t.sha256(f"{u.KEY}:{admins()}")
-    return URLSafeTimedSerializer(secret_key)
+    return URLSafeTimedSerializer(_get_secret_key())
 
 
 def _get_active_tokens() -> set[str]:
@@ -103,13 +114,6 @@ async def advance_by_one(
                     ),
                 )
 
-                u.set_info(
-                    pid,
-                    None,
-                    player.page_order,
-                    player.show_page,
-                )
-
     return info_online(sname)
 
 
@@ -118,7 +122,7 @@ async def announcements() -> dict[str, Any]:
 
     async with aiohttp.ClientSession() as session:
         async with session.get(ANNOUNCEMENTS_URL) as response:
-            return await response.json(content_type="text/plain")
+            return cast(dict[str, Any], await response.json(content_type="text/plain"))
 
 
 def config_summary(cname: str) -> str:
@@ -179,63 +183,77 @@ def from_cookie(uauth: str) -> dict[str, str]:
         return dict(user="", token="")
 
 
-def generate_csv(sname: t.Sessionname, format: str, gvar: list[str]) -> str:
-    gvar = [gv for gv in gvar if gv]
+def everything_from_session(
+    sname: t.Sessionname,
+) -> dict[tuple[str, ...], list[t.Value]]:
+    # Go ahead… https://www.youtube.com/watch?v=2WhHW8zD620
 
-    transformer: Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]]
-    transkwargs: dict[str, list[str]]
-    priority_fields: list[str]
+    matches: dict[tuple[str, ...], Any] = dict()
+    sname = str(sname)
 
-    match format:
-        case "ultralong":
-            transformer, transkwargs, priority_fields = data.noop, {}, []
-        case "sparse":
-            transformer, transkwargs, priority_fields = data.long_to_wide, {}, []
-        case "latest":
-            transformer, transkwargs, priority_fields = (
-                data.latest,
-                {"group_by_fields": gvar},
-                gvar,
+    for lvl1_k, lvl1_v in cache.MEMORY_HISTORY.items():
+        if isinstance(lvl1_v, dict) and sname in lvl1_v:
+            k = (
+                lvl1_k,
+                sname,
             )
-        case _:
-            raise NotImplementedError
+            namespace = cache.get_namespace(k)
+            if namespace is not None:
+                matches |= cache.flatten(namespace, k)
 
-    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)  # TODO: broken
-    alldata = data.partial_matrix(
-        chain.from_iterable(
-            cache.MEMORY_HISTORY[ns] for ns in namespaces if ns in cache.MEMORY_HISTORY
-        )
-    )
-
-    return data.csv_out(
-        transformer(alldata, **transkwargs), priority_fields=priority_fields
-    )
+    return matches
 
 
-async def generate_json(
-    sname: t.Sessionname, format: str, gvar: list[str]
-) -> AsyncGenerator:
+def generate_data(
+    sname: t.Sessionname,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+) -> tuple[
+    Iterator[dict[str, Any]],
+    Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]],
+    dict[str, list[str]],
+]:
     gvar = [gv for gv in gvar if gv]
-
-    transformer: Callable[[Iterator[dict]], Iterator[dict]]
-    transkwargs: dict[str, list[str]]
 
     match format:
         case "ultralong":
-            transformer, transkwargs = data.noop, {}
+            transkwargs_ul: dict[str, Any] = {}
+            transformer, transkwargs = data.noop, transkwargs_ul
         case "sparse":
-            transformer, transkwargs = data.long_to_wide, {}
+            transkwargs_sp: dict[str, Any] = {}
+            transformer, transkwargs = data.long_to_wide, transkwargs_sp
         case "latest":
             transformer, transkwargs = data.latest, {"group_by_fields": gvar}
         case _:
             raise NotImplementedError
 
-    namespaces = (ns.replace("*", sname) for ns in EXPORT_NAMESPACES)  # TODO: broken
-    alldata = data.partial_matrix(
-        chain.from_iterable(
-            cache.MEMORY_HISTORY[ns] for ns in namespaces if ns in cache.MEMORY_HISTORY
-        )
-    )
+    alldata = data.partial_matrix(everything_from_session(sname))
+
+    if filters:
+        alldata = data.reasonable_filters(alldata)
+
+    return alldata, transformer, transkwargs
+
+
+def generate_csv(
+    sname: t.Sessionname,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+) -> str:
+    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
+
+    return data.csv_out(transformer(alldata, **transkwargs))
+
+
+async def generate_json(
+    sname: t.Sessionname,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+) -> AsyncGenerator[str, None]:
+    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
 
     async for chunk in data.json_out(transformer(alldata, **transkwargs)):
         yield chunk
@@ -253,7 +271,7 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
         Signed token string if credentials are valid, None otherwise
     """
     # Verify credentials first
-    if user not in d.ADMINS or d.ADMINS[user] != pw:
+    if user not in ADMINS or ADMINS[user] != pw:
         return None
 
     # Create token data
@@ -337,9 +355,13 @@ def get_active_sessions() -> dict[str, dict[str, Any]]:
                 user = data["user"]
                 if user not in sessions:
                     sessions[user] = {"token_count": 0, "created_at": []}
-                sessions[user]["token_count"] += 1
+                token_count = sessions[user]["token_count"]
+                if isinstance(token_count, int):
+                    sessions[user]["token_count"] = token_count + 1
                 if "created_at" in data:
-                    sessions[user]["created_at"].append(data["created_at"])
+                    created_at_list = sessions[user]["created_at"]
+                    if isinstance(created_at_list, list):
+                        created_at_list.append(data["created_at"])
         except (BadSignature, SignatureExpired):
             continue
 
@@ -349,14 +371,31 @@ def get_active_sessions() -> dict[str, dict[str, Any]]:
 def info_online(
     sname: t.Sessionname,
 ) -> dict[str, Any]:
-    info = u.INFO[sname]
+    info: dict[str, Any] = dict()
+
+    namespace = cache.get_namespace(("player", sname))
+
+    if namespace is None:
+        return info
+
+    for uname, fields in namespace.items():
+        # TODO: Improve this object structure in JavaScript
+        info[uname] = (
+            fields["id"][-1].data,
+            fields["page_order"][-1].data,
+            fields["show_page"][-1].data,
+        )  # These fields are never unavailable
+
     online = u.ONLINE[sname]
 
     return dict(info=info, online=online)
 
 
 async def insert_fields(
-    sname: t.Sessionname, unames: list[str], fields: dict, reload: bool = False
+    sname: t.Sessionname,
+    unames: list[str],
+    fields: dict[str, Any],
+    reload: bool = False,
 ) -> None:
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
@@ -387,7 +426,9 @@ async def mark_dropout(sname: t.Sessionname, unames: list[str]) -> None:
         u.MANUAL_DROPOUTS.add(pid)
 
 
-async def put_to_end(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]:
+async def put_to_end(
+    sname: t.Sessionname, unames: list[str]
+) -> dict[str, dict[str, Any]]:
     session_exists(sname, False)
 
     for uname in unames:
@@ -406,13 +447,6 @@ async def put_to_end(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]
                             action="reload",
                         ),
                     ),
-                )
-
-                u.set_info(
-                    pid,
-                    None,
-                    player.page_order,
-                    player.show_page,
                 )
 
     return info_online(sname)
@@ -436,7 +470,9 @@ async def reload(sname: t.Sessionname, unames: list[str]) -> None:
         )
 
 
-async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, dict]:
+async def revert_by_one(
+    sname: t.Sessionname, unames: list[str]
+) -> dict[str, dict[str, Any]]:
     session_exists(sname, False)
 
     for uname in unames:
@@ -455,13 +491,6 @@ async def revert_by_one(sname: t.Sessionname, unames: list[str]) -> dict[str, di
                             action="reload",
                         ),
                     ),
-                )
-
-                u.set_info(
-                    pid,
-                    None,
-                    player.page_order,
-                    player.show_page,
                 )
 
     return info_online(sname)
@@ -504,44 +533,33 @@ def rooms() -> SortedDict[str, dict]:
 def sessions() -> dict[str, dict[str, Any]]:
     with s.Admin() as admin:
         snames = admin.sessions
-        session_namespaces = [("session", sname) for sname in snames]
 
-    fields = ["config", "description", "room", "players", "groups", "active"]
-
-    data = {
-        field: s.field_from_namespaces(session_namespaces, field) for field in fields
-    }
+    def get_session_field_value(
+        sname: str, field: str, default_data: Any = None
+    ) -> Any:
+        """Get current value of a field for a session, or return default."""
+        session_data = cache.get_namespace(("session", sname))
+        if (
+            session_data
+            and isinstance(session_data, dict)
+            and field in session_data
+            and isinstance(session_data[field], list)
+            and session_data[field]
+            and not session_data[field][-1].unavailable
+        ):
+            return session_data[field][-1]
+        return t.Value(0.0, False, default_data)
 
     return {
         sname: {
             "sname": sname,
-            "active": data["active"]
-            .get((f"session/{sname}", "active"), t.Value(0.0, False, False))
-            .data,
-            "config": data["config"]
-            .get((f"session/{sname}", "config"), t.Value(0.0, False, None))
-            .data,
-            "room": data["room"]
-            .get((f"session/{sname}", "room"), t.Value(0.0, False, None))
-            .data,
-            "description": data["description"]
-            .get((f"session/{sname}", "description"), t.Value(0.0, False, None))
-            .data,
-            "n_players": len(
-                data["players"]
-                .get((f"session/{sname}", "players"), t.Value(0.0, False, []))
-                .data
-                or []
-            ),
-            "n_groups": len(
-                data["groups"]
-                .get((f"session/{sname}", "groups"), t.Value(0.0, False, []))
-                .data
-                or []
-            ),
-            "started": data["config"]
-            .get((f"session/{sname}", "config"), t.Value(0.0, False, None))
-            .time,
+            "active": get_session_field_value(sname, "active", False).data,
+            "config": get_session_field_value(sname, "config", None).data,
+            "room": get_session_field_value(sname, "room", None).data,
+            "description": get_session_field_value(sname, "description", None).data,
+            "n_players": len(get_session_field_value(sname, "players", []).data or []),
+            "n_groups": len(get_session_field_value(sname, "groups", []).data or []),
+            "started": get_session_field_value(sname, "config", None).time,
         }
         for sname in snames
     }
@@ -564,6 +582,9 @@ def verify_auth_token(user: str, token: str) -> Optional[str]:
     Returns:
         Username if token is valid, None otherwise
     """
+    if not user or not token:
+        return None
+
     try:
         serializer = _get_serializer()
         active_tokens = _get_active_tokens()
@@ -589,7 +610,7 @@ async def viewdata(
     session_exists(sname, False)
 
     rval: SortedDict = SortedDict()
-    latest: dict = s.fields_from_session(sname, since_epoch)
+    latest: dict[Any, Any] = s.fields_from_session(sname, since_epoch)
     last_update: float = since_epoch
 
     for (parts, field), v in latest.items():

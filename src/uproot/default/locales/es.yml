@@ -1,0 +1,98 @@
+? 'The Use of Knowledge in Society'
+: 'The Use of Knowledge in Society'
+
+? 'Welcome'
+: 'Bienvenido'
+
+? 'Please wait'
+: 'Por favor espere'
+
+? 'Next'
+: 'Siguiente'
+
+? 'Back'
+: 'Atrás'
+
+? 'End'
+: 'Fin'
+
+? 'You have reached the end of this study.'
+: 'Ha llegado al final de este estudio.'
+
+? 'You may now close this page.'
+: 'Ahora puede cerrar esta página.'
+
+? 'Close'
+: 'Cerrar'
+
+? 'Remaining time on this page:'
+: 'Tiempo restante en esta página:'
+
+? 'Error'
+: 'Error'
+
+? 'Login'
+: 'Iniciar sesión'
+
+? 'Username'
+: 'Nombre de usuario'
+
+? 'Password'
+: 'Contraseña'
+
+? 'Submit'
+: 'Enviar'
+
+? 'You provided invalid credentials.'
+: 'Ha proporcionado credenciales inválidas.'
+
+? '(Or you were too fast.)'
+: '(O ha sido demasiado rápido).'
+
+? 'Dashboard'
+: 'Panel de control'
+
+? 'Send message'
+: 'Enviar mensaje'
+
+? 'Insert fields'
+: 'Insertar campos'
+
+? 'Reload page'
+: 'Recargar página'
+
+? 'You have selected <b><span class="pcount"></span> subject(s)</b>.'
+: 'Ha seleccionado <b><span class="pcount"></span> sujeto(s)</b>.'
+
+? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
+: 'Insertar campos no se considera una buena práctica. Use esta función solo cuando esté probando o en emergencias. Las inserciones manuales de campos se registran irrevocablemente como tales en la base de datos.'
+
+? 'Mark as dropout'
+: 'Marcar como abandono'
+
+? 'Put to end'
+: 'Poner al final'
+
+? 'Advance by one page'
+: 'Avanzar una página'
+
+? 'Revert by one page'
+: 'Retroceder una página'
+
+? 'Manage subjects'
+: 'Gestionar sujetos'
+
+? 'Select subjects'
+: 'Seleccionar sujetos'
+
+? 'Select all'
+: 'Seleccionar todo'
+
+? 'Deselect all'
+: 'Deseleccionar todo'
+
+? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
+: 'Por favor ingrese un <i>objeto</i> JSON válido. Por ejemplo, esto inserta los campos <code>foo</code> (un entero) y <code>bar</code> (una lista):'
+
+? 'View session details'
+: 'Ver detalles de la sesión'

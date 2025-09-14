@@ -19,7 +19,8 @@ from uproot.storage import Player, Storage
 def live(method: Callable[..., Any]) -> Callable[..., Any]:
     wrapped = t.timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore[call-overload]
     newmethod = classmethod(wrapped)
-    newmethod.__func__.__live__ = True  # type: ignore [attr-defined]
+
+    newmethod.__func__.__live__ = True  # type: ignore[attr-defined]
 
     return newmethod  # type: ignore[return-value]
 
@@ -48,7 +49,7 @@ def send_to(
     if is_player_like(recipient):
         send_to_one(recipient, data, event)
     elif isinstance(recipient, Iterable):
-        for one_recipient in recipient:  # type: ignore [union-attr]
+        for one_recipient in recipient:  # type: ignore[union-attr]
             send_to_one(one_recipient, data, event)
     else:
         raise TypeError(
@@ -171,9 +172,11 @@ def watch_for_dropout(
 class Random(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
         self.pages: list[t.PageLike] = [
+            INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RandomStart"],
             *pages,
             INTERNAL_PAGES["RandomEnd"],
+            INTERNAL_PAGES["}"],
         ]
 
     def expand(self) -> list[t.PageLike]:
@@ -183,26 +186,81 @@ class Random(t.SmoothOperator):
     async def start(page, player: Storage) -> None:
         from random import shuffle
 
-        end_ix = player.page_order.index("#RandomEnd", player.show_page)
-
-        for start_ix in range(end_ix - 1, -1, -1):
-            if player.page_order[start_ix] == "#RandomStart":
+        # Find the nearest #RandomStart before our position
+        start_ix = None
+        for i in range(player.show_page, -1, -1):
+            if player.page_order[i] == "#RandomStart":
+                start_ix = i
                 break
-        else:
+
+        if start_ix is None:
             raise RuntimeError("Could not find #RandomStart")
 
-        pages = player.page_order[start_ix + 1 : end_ix]
-        shuffle(pages)
+        # Find the matching #RandomEnd for this #RandomStart
+        random_depth = 1
+        end_ix = None
+        for i in range(start_ix + 1, len(player.page_order)):
+            if player.page_order[i] == "#RandomStart":
+                random_depth += 1
+            elif player.page_order[i] == "#RandomEnd":
+                random_depth -= 1
+                if random_depth == 0:
+                    end_ix = i
+                    break
 
-        player.page_order[start_ix + 1 : end_ix] = pages
+        if end_ix is None:
+            raise RuntimeError("Could not find matching #RandomEnd")
+
+        pages = player.page_order[start_ix + 1 : end_ix]
+
+        # Group pages by brackets
+        grouped_pages = []
+        i = 0
+        while i < len(pages):
+            if pages[i] == "#{":
+                # Find the matching closing bracket
+                bracket_group = ["#{"]
+                bracket_depth = 1
+                i += 1  # Skip the opening bracket
+
+                while i < len(pages) and bracket_depth > 0:
+                    if pages[i] == "#{":
+                        bracket_depth += 1
+                    elif pages[i] == "#}":
+                        bracket_depth -= 1
+
+                    bracket_group.append(pages[i])
+                    i += 1
+
+                if bracket_depth == 0:
+                    grouped_pages.append(bracket_group)
+                else:
+                    raise RuntimeError("Unmatched opening bracket")
+            elif pages[i] == "#}":
+                raise RuntimeError("Unmatched closing bracket")
+            else:
+                grouped_pages.append([pages[i]])
+                i += 1
+
+        # Shuffle the groups
+        shuffle(grouped_pages)
+
+        # Flatten back to page list
+        shuffled_pages = []
+        for group in grouped_pages:
+            shuffled_pages.extend(group)
+
+        player.page_order[start_ix + 1 : end_ix] = shuffled_pages
 
 
 class Rounds(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike, n: int) -> None:
         self.pages = [
+            INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RoundStart"],
             *pages,
             INTERNAL_PAGES["RoundEnd"],
+            INTERNAL_PAGES["}"],
         ]
         self.n = n
 
@@ -220,9 +278,11 @@ class Rounds(t.SmoothOperator):
 class Repeat(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
         self.pages = [
+            INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RepeatStart"],
             *pages,
             INTERNAL_PAGES["RepeatEnd"],
+            INTERNAL_PAGES["}"],
         ]
 
     def expand(self) -> list[t.PageLike]:
@@ -255,6 +315,18 @@ class Repeat(t.SmoothOperator):
             player.round += 1
 
 
+class Bracket(t.SmoothOperator):
+    def __init__(self, *pages: t.PageLike) -> None:
+        self.pages = [
+            INTERNAL_PAGES["{"],
+            *pages,
+            INTERNAL_PAGES["}"],
+        ]
+
+    def expand(self) -> list[t.PageLike]:
+        return self.pages
+
+
 INTERNAL_PAGES = {
     "RandomStart": type(
         "RandomStart",
@@ -285,6 +357,16 @@ INTERNAL_PAGES = {
         "RepeatEnd",
         (t.InternalPage,),
         dict(before_always_once=Repeat.__dict__["continue_maybe"]),
+    ),
+    "{": type(
+        "{",
+        (t.InternalPage,),
+        dict(),
+    ),
+    "}": type(
+        "}",
+        (t.InternalPage,),
+        dict(),
     ),
 }
 

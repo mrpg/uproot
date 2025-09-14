@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from inspect import currentframe
-from typing import Any, Callable, Iterator, Optional, cast
+from types import TracebackType
+from typing import Any, Callable, Iterator, Optional, Sequence, cast
 
 from typing_extensions import Literal
 
@@ -31,10 +32,10 @@ DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
 
 
 def field_from_namespaces(
-    namespaces: list[str], field: str
-) -> dict[tuple[str, str], Value]:
+    namespaces: Sequence[tuple[str, ...]], field: str
+) -> dict[tuple[tuple[str, ...], str], Value]:
     return cast(
-        dict[tuple[str, str], Value],
+        dict[tuple[tuple[str, ...], str], Value],
         db_request(
             None,
             "get_many",
@@ -49,9 +50,9 @@ def all_good(key: tuple[str, str]) -> bool:
 
 def fields_from_session(
     sname: Sessionname, since_epoch: float = 0
-) -> dict[tuple[str, str], Value]:
+) -> dict[tuple[tuple[str, str, str], str], Value]:
     return cast(
-        dict[tuple[str, str], Value],
+        dict[tuple[tuple[str, str, str], str], Value],
         db_request(
             None,
             "fields_from_session",
@@ -227,7 +228,12 @@ class Storage:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> Literal[False]:  # type: ignore[no-untyped-def]
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> Literal[False]:
         if exc_type is None:
             self.flush()
             self.__allow_mutable__ = False
@@ -296,7 +302,7 @@ class Storage:
         return cast(bool, db_request(self, "has_fields"))
 
     def __history__(self) -> dict[str, list[Value]]:
-        return cast(list[tuple[str, Value]], db_request(self, "history"))
+        return cast(dict[str, list[Value]], db_request(self, "history"))
 
     def __repr__(self) -> str:
         if len(self.__namespace__) == 1:

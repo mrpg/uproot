@@ -6,6 +6,7 @@
 # created, initialized, and so on.
 
 import importlib.metadata
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence
 
 import uproot as u
@@ -46,7 +47,6 @@ def create_session(
 
     with s.Session(sname) as session:
         session.active = True
-        session.testing = False
         session.name = sname
         session.config = config
         session.description = None
@@ -154,12 +154,15 @@ def initialize_player(
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
         player.key = t.uuid()
+        player.payoff = Decimal("0")
         player.started = False
         player.show_page = -1
         player.page_order = u.CONFIGS_PPATHS[config]
+        player.app = None
         player._uproot_adminchat = None
         player._uproot_dropout = False
         player._uproot_group = None
+        player._uproot_part = 0
         player._uproot_session = t.SessionIdentifier(pid.sname)
         player._uproot_timeouts_until = dict()
 
@@ -172,13 +175,6 @@ def initialize_player(
 
             if hasattr(app, "new_player"):
                 app.new_player(player=player)
-
-        u.set_info(
-            pid,
-            has_id,
-            u.CONFIGS_PPATHS[config],
-            -1,
-        )
 
 
 def create_player(

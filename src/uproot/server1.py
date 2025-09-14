@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from email.utils import formatdate, parsedate_to_datetime
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Iterable, Optional, cast
+from typing import Any, Iterable, Optional, cast
 
 from fastapi import (
     APIRouter,
@@ -51,8 +51,9 @@ from uproot.storage import (
     Storage,
     field_from_namespaces,
 )
+from uproot.types import maybe_await, optional_call, optional_call_once
 
-PROCESSED_FUTURES = deque(maxlen=8 * 1024)
+PROCESSED_FUTURES: deque[str] = deque(maxlen=8 * 1024)
 router = APIRouter(prefix=d.ROOT)
 
 
@@ -103,8 +104,8 @@ async def show_page(
     metadata = dict()
 
     if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
-        await t.optional_call(
-            page, "timeout_reached", default_return=True, player=player
+        await maybe_await(
+            optional_call, page, "timeout_reached", default_return=True, player=player
         )
         proceed = True
 
@@ -112,7 +113,9 @@ async def show_page(
         if player.show_page == -1:
             pass
         elif player.started and len(player.page_order) > player.show_page > -1:
-            if await t.optional_call(page, "show", default_return=True, player=player):
+            if await maybe_await(
+                optional_call, page, "show", default_return=True, player=player
+            ):
                 pass
             else:
                 proceed = True
@@ -124,8 +127,9 @@ async def show_page(
         formdata = await request.form()
 
         try:
-            ensure(isinstance(formdata["_uproot_from"], str), ValueError)
-            uproot_from_str = formdata["_uproot_from"]
+            uproot_from_value = formdata["_uproot_from"]
+            ensure(isinstance(uproot_from_value, str), ValueError)
+            uproot_from_str = str(uproot_from_value)
 
             # Check for back navigation
             if uproot_from_str.startswith("back-"):
@@ -172,8 +176,12 @@ async def show_page(
 
                 for stealth in cast(
                     Iterable[str],
-                    await t.optional_call(
-                        page, "stealth_fields", default_return=(), player=player
+                    await maybe_await(
+                        optional_call,
+                        page,
+                        "stealth_fields",
+                        default_return=(),
+                        player=player,
                     ),
                 ):
                     stealth_fields[stealth] = None
@@ -190,7 +198,8 @@ async def show_page(
                                 setattr(player, fname, field.data)
 
                         if stealth_fields:
-                            await t.optional_call(
+                            await maybe_await(
+                                optional_call,
                                 page,
                                 "handle_stealth_fields",
                                 player=player,
@@ -206,20 +215,22 @@ async def show_page(
     if proceed:
         proceed = cast(
             bool,
-            await t.optional_call(
-                page, "may_proceed", default_return=True, player=player
+            await maybe_await(
+                optional_call, page, "may_proceed", default_return=True, player=player
             ),
         )
 
     if proceed and player.show_page < len(player.page_order):
-        await t.optional_call_once(
+        await maybe_await(
+            optional_call_once,
             page,
             "after_once",
             storage=player,
             show_page=player.show_page,
             player=player,
         )
-        await t.optional_call_once(
+        await maybe_await(
+            optional_call_once,
             page,
             "after_always_once",
             storage=player,
@@ -233,15 +244,18 @@ async def show_page(
 
             while candidate <= len(player.page_order):
                 page = path2page(show2path(player.page_order, candidate))
+                player.show_page = candidate
 
-                await t.optional_call(
+                await maybe_await(
+                    optional_call,
                     page,
                     "early",
                     player=player,
                     request=request,
                 )
 
-                await t.optional_call_once(
+                await maybe_await(
+                    optional_call_once,
                     page,
                     "before_always_once",
                     storage=player,
@@ -249,14 +263,14 @@ async def show_page(
                     player=player,
                 )
 
-                if await t.optional_call(
-                    page, "show", default_return=True, player=player
+                if await maybe_await(
+                    optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
-                    player.show_page = candidate
                     break
                 else:
-                    await t.optional_call_once(
+                    await maybe_await(
+                        optional_call_once,
                         page,
                         "after_always_once",
                         storage=player,
@@ -271,32 +285,53 @@ async def show_page(
 
             while candidate >= 0:
                 page = path2page(show2path(player.page_order, candidate))
+                player.show_page = candidate
 
-                await t.optional_call(
+                await maybe_await(
+                    optional_call,
                     page,
                     "early",
                     player=player,
                     request=request,
                 )
 
-                if await t.optional_call(
-                    page, "show", default_return=True, player=player
+                await maybe_await(
+                    optional_call_once,
+                    page,
+                    "before_always_once",
+                    storage=player,
+                    show_page=candidate,
+                    player=player,
+                )
+
+                if await maybe_await(
+                    optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
-                    player.show_page = candidate
                     break
+                else:
+                    await maybe_await(
+                        optional_call_once,
+                        page,
+                        "after_always_once",
+                        storage=player,
+                        show_page=candidate,
+                        player=player,
+                    )
 
                 candidate -= 1
 
-    if (to := await t.optional_call(page, "set_timeout", player=player)) is not None:
+    if (
+        to := await maybe_await(optional_call, page, "set_timeout", player=player)
+    ) is not None:
         metadata["remaining_seconds"] = to
 
     pid = cast(t.PlayerIdentifier, ~player)
 
-    u.set_info(pid, None, player.page_order, player.show_page)
     u.set_online(pid)
 
-    await t.optional_call_once(
+    await maybe_await(
+        optional_call_once,
         page,
         "before_once",
         storage=player,
@@ -350,7 +385,7 @@ async def sessionwide(
     request: Request,
     sname: t.Sessionname,
     secret: str,
-) -> RedirectResponse:
+) -> Response:
     # Verify sname and secret
     a.session_exists(sname)
 
@@ -368,7 +403,7 @@ async def sessionwide(
     free_uname = None
 
     for namespace in namespaces:
-        key = namespace, "started"
+        key = (namespace, "started")
 
         if key not in all_started or all_started[key].unavailable:
             # Should not be possible, but skip if it happens
@@ -455,7 +490,7 @@ async def ws(
     )
 
     for jj in j.PLAYER_JOBS:
-        tasks[asyncio.create_task(cast(Callable, jj)(**args[jj.__name__]))] = (
+        tasks[asyncio.create_task(cast(Any, jj)(**args[jj.__name__]))] = (
             jj.__name__,
             jj,
         )
@@ -505,9 +540,8 @@ async def ws(
                         PROCESSED_FUTURES.append(result["future"])
 
                     invoke_respond = True
-                    invoke_response = None
+                    invoke_response: Any = None
                     invoke_exception = False
-                    session = Session(sname)
 
                     with player:
                         match result:
@@ -524,8 +558,8 @@ async def ws(
                             case {
                                 "endpoint": "skip",
                                 "payload": new_show_page,
-                            } if isinstance(new_show_page, int) and (
-                                is_admin or session.testing
+                            } if (
+                                isinstance(new_show_page, int) and is_admin
                             ):
                                 player.show_page = new_show_page
                             case {
@@ -645,7 +679,7 @@ async def ws(
                 raise exc
 
             # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Callable, factory)(**args[fname]))
+            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
             tasks[new_task] = (fname, factory)
 
 

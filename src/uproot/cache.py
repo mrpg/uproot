@@ -1,14 +1,26 @@
+# Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
+"""
+This file exposes an internal API that end users MUST NOT rely upon. Rely upon storage.py instead.
+"""
+
 import copy
 import threading
 from time import time
-from typing import Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Sequence, Union, cast
+
+from sortedcontainers import SortedList
 
 from uproot.constraints import ensure
 from uproot.deployment import DATABASE
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import Value
 
-MEMORY_HISTORY: dict[tuple[str, ...], dict[str, list[Value]]] = {}
+if TYPE_CHECKING:
+    from uproot.storage import Storage
+
+MEMORY_HISTORY: dict[str, Any] = {}
 LOCK = threading.RLock()
 
 
@@ -23,12 +35,68 @@ def tuple2dbns(ns: tuple[str, ...]) -> str:
     return "/".join(ns)
 
 
-def dbns2tuple(dbns: str) -> tuple[str]:
+def dbns2tuple(dbns: str) -> tuple[str, ...]:
     return tuple(dbns.split("/"))
 
 
-def nsstartswith(ns: tuple[str, ...], prefix: tuple[str, ...]) -> bool:
-    return ns[: len(prefix)] == prefix
+def flatten(
+    d: dict[str, Any], trail: tuple[str, ...] = ()
+) -> dict[tuple[str, ...], Any]:
+    result = {}
+
+    for k, v in d.items():
+        new_trail = trail + (k,)
+
+        if hasattr(v, "__iter__") and not isinstance(v, (dict, str)):
+            result[new_trail] = v
+        elif isinstance(v, dict):
+            result.update(flatten(v, new_trail))
+        else:
+            result[new_trail] = v
+
+    return result
+
+
+def get_namespace(
+    namespace: tuple[str, ...],
+    create: bool = False,
+) -> Optional[dict[str, Any]]:
+    """Navigate to namespace location. If create=True, creates missing levels."""
+    current: Any = MEMORY_HISTORY
+
+    for part in namespace:
+        if not isinstance(current, dict):
+            return None
+
+        if create and part not in current:
+            current[part] = {}
+        elif part not in current:
+            return None
+
+        current = current[part]
+
+    return cast(Optional[dict[str, Any]], current)
+
+
+def field_history_since(
+    namespace: tuple[str, ...],
+    field: str,
+    since: float,
+) -> list[Value]:
+    with LOCK:
+        current = get_namespace(namespace)
+        if not current or not isinstance(current, dict) or field not in current:
+            return []
+
+        values = current[field]
+        if hasattr(values, "__iter__") and hasattr(values, "bisect_right"):
+            # Use binary search to find first entry after 'since'
+            search_val = Value(since, True, None, "")
+            start_idx = values.bisect_right(search_val)
+            return list(values[start_idx:])
+        else:
+            # Fallback for non-SortedList (shouldn't happen with current implementation)
+            return [v for v in values if cast(float, v.time) > since]
 
 
 def load_database_into_memory() -> None:
@@ -42,47 +110,35 @@ def load_database_into_memory() -> None:
         for dbns, field, value in DATABASE.history_all():
             namespace = dbns2tuple(dbns)
 
-            if namespace not in MEMORY_HISTORY:
-                MEMORY_HISTORY[namespace] = {}
+            # Get or create the nested dictionary for this namespace
+            nested_dict = get_namespace(namespace, create=True)
 
-            if field not in MEMORY_HISTORY[namespace]:
-                MEMORY_HISTORY[namespace][field] = []
+            if nested_dict is not None and field not in nested_dict:
+                nested_dict[field] = SortedList(key=lambda v: v.time)
 
             # Add to history
-            MEMORY_HISTORY[namespace][field].append(value)
+            if nested_dict is not None:
+                nested_dict[field].add(value)
 
 
-def get_current_value(namespace: str, field: str) -> Any:
+def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
     """Get current value from last history entry.
     NOTE: Assumes caller holds LOCK.
     """
+    current = get_namespace(namespace)
     if (
-        namespace in MEMORY_HISTORY
-        and field in MEMORY_HISTORY[namespace]
-        and MEMORY_HISTORY[namespace][field]
+        current
+        and isinstance(current, dict)
+        and field in current
+        and hasattr(current[field], "__iter__")
+        and current[field]
     ):
         # Check if latest entry is available (not a tombstone)
-        latest = MEMORY_HISTORY[namespace][field][-1]
+        latest = current[field][-1]
         if not latest.unavailable:
             return safe_deepcopy(latest.data)
 
     raise AttributeError(f"Key not found: ({namespace}, {field})")
-
-
-def has_current_value(namespace: str, field: str) -> bool:
-    """Check if there's a current (non-tombstone) value.
-    NOTE: Assumes caller holds LOCK.
-    """
-    if (
-        namespace in MEMORY_HISTORY
-        and field in MEMORY_HISTORY[namespace]
-        and MEMORY_HISTORY[namespace][field]
-    ):
-        # Check if latest entry is available (not a tombstone)
-        latest = MEMORY_HISTORY[namespace][field][-1]
-        return not latest.unavailable
-
-    return False
 
 
 def db_request(
@@ -96,6 +152,7 @@ def db_request(
         Union[
             str,
             tuple[list[str], str],
+            tuple[Sequence[tuple[str, ...]], str],
             tuple[str, float],
             dict[str, Any],
         ]
@@ -122,20 +179,21 @@ def db_request(
             DATABASE.insert(tuple2dbns(namespace), key, value, context)
             # Update in-memory data
             with LOCK:
-                if namespace not in MEMORY_HISTORY:
-                    MEMORY_HISTORY[namespace] = {}
+                # Get or create the nested dictionary for this namespace
+                nested_dict = get_namespace(namespace, create=True)
 
-                if key not in MEMORY_HISTORY[namespace]:
-                    MEMORY_HISTORY[namespace][key] = []
+                if nested_dict is not None and key not in nested_dict:
+                    nested_dict[key] = SortedList(key=lambda v: v.time)
 
                 # Add to history with current timestamp
                 new_value = Value(DATABASE.now, False, safe_deepcopy(value), context)
 
                 # Special handling for player lists - replace entire history like database does
-                if key == "players" and namespace[0] == "session":
-                    MEMORY_HISTORY[namespace][key] = [new_value]
-                else:
-                    MEMORY_HISTORY[namespace][key].append(new_value)
+                if nested_dict is not None:
+                    if key == "players" and namespace[0] == "session":
+                        nested_dict[key] = SortedList([new_value], key=lambda v: v.time)
+                    else:
+                        nested_dict[key].add(new_value)
             rval = value
 
         case "delete", _, None if isinstance(context, str):
@@ -143,13 +201,13 @@ def db_request(
             # Update in-memory data
             with LOCK:
                 # Add tombstone to history
-                if namespace not in MEMORY_HISTORY:
-                    MEMORY_HISTORY[namespace] = {}
-                if key not in MEMORY_HISTORY[namespace]:
-                    MEMORY_HISTORY[namespace][key] = []
+                nested_dict = get_namespace(namespace, create=True)
+                if nested_dict is not None and key not in nested_dict:
+                    nested_dict[key] = SortedList(key=lambda v: v.time)
 
                 tombstone = Value(DATABASE.now, True, None, context)
-                MEMORY_HISTORY[namespace][key].append(tombstone)
+                if nested_dict is not None:
+                    nested_dict[key].add(tombstone)
 
         # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:
@@ -158,55 +216,64 @@ def db_request(
 
         case "get_field_history", _, None:
             with LOCK:
-                if namespace in MEMORY_HISTORY and key in MEMORY_HISTORY[namespace]:
-                    rval = MEMORY_HISTORY[namespace][key]
+                current = get_namespace(namespace)
+                if current and isinstance(current, dict) and key in current:
+                    rval = current[key]
                 else:
-                    rval = []
+                    rval = SortedList(key=lambda v: v.time)
 
         case "fields", "", None:
             with LOCK:
-                if namespace in MEMORY_HISTORY:
+                current = get_namespace(namespace)
+                if current and isinstance(current, dict):
                     # Return only fields that have current (non-tombstone) values
-                    rval = [
-                        field
-                        for field in MEMORY_HISTORY[namespace].keys()
-                        if has_current_value(namespace, field)
-                    ]
-                else:
                     rval = []
+                    for field in current.keys():
+                        if (
+                            hasattr(current[field], "__iter__")
+                            and current[field]
+                            and not current[field][-1].unavailable
+                        ):
+                            rval.append(field)
+                else:
+                    rval = SortedList(key=lambda v: v.time)
 
         case "has_fields", "", None:
             with LOCK:
-                if namespace in MEMORY_HISTORY:
+                current = get_namespace(namespace)
+                if current and isinstance(current, dict):
+                    # Check if any field has current (non-tombstone) values
                     rval = any(
-                        has_current_value(namespace, field)
-                        for field in MEMORY_HISTORY[namespace].keys()
+                        hasattr(values, "__iter__")
+                        and values
+                        and not values[-1].unavailable
+                        for values in current.values()
                     )
                 else:
                     rval = False
 
         case "history", "", None:
             with LOCK:
-                rval = (
-                    MEMORY_HISTORY[namespace] if namespace in MEMORY_HISTORY else dict()
-                )
+                current = get_namespace(namespace)
+                rval = current if current and isinstance(current, dict) else {}
 
         case "get_many", "", None if isinstance(extra, tuple):
-            mnamespaces: list[str]
-            mnamespaces, mkey = cast(tuple[list[str], str], extra)
+            mnamespaces: Sequence[tuple[str, ...]]
+            mnamespaces, mkey = cast(tuple[Sequence[tuple[str, ...]], str], extra)
             with LOCK:
                 result = {}
                 for namespace in mnamespaces:
-                    if has_current_value(namespace, mkey):
-                        # Get the latest non-tombstone value
-                        if (
-                            namespace in MEMORY_HISTORY
-                            and mkey in MEMORY_HISTORY[namespace]
-                            and MEMORY_HISTORY[namespace][mkey]
-                        ):
-                            latest = MEMORY_HISTORY[namespace][mkey][-1]
-                            if not latest.unavailable:
-                                result[(namespace, mkey)] = latest
+                    current = get_namespace(namespace)
+                    if (
+                        current
+                        and isinstance(current, dict)
+                        and mkey in current
+                        and hasattr(current[mkey], "__iter__")
+                        and current[mkey]
+                    ):
+                        latest = current[mkey][-1]
+                        if not latest.unavailable:
+                            result[(namespace, mkey)] = latest
                 rval = result
 
         case "fields_from_session", "", None if isinstance(extra, tuple):
@@ -214,108 +281,156 @@ def db_request(
             since: float
             sname, since = cast(tuple[str, float], extra)
             with LOCK:
-                result = {}
-                for ns, fields in MEMORY_HISTORY.items():
-                    if nsstartswith(ns, ("player", sname)):
-                        for field, values in fields.items():
-                            if values and values[-1].time > since:
-                                result[(ns, field)] = values[-1]
-                rval = result
+                session_result: dict[tuple[tuple[str, str, str], str], Any] = {}
+                session_players = get_namespace(("player", sname))
+                if session_players and isinstance(session_players, dict):
+                    for player_name, player_fields in session_players.items():
+                        if isinstance(player_fields, dict):
+                            ns = ("player", sname, player_name)
+                            for field_name, values in player_fields.items():
+                                field = cast(str, field_name)
+                                if values and hasattr(values, "__iter__") and values:
+                                    latest = values[-1]
+                                    if latest.time > since:
+                                        session_result[(ns, field)] = latest
+                rval = session_result
 
         case "get_within_context", _, None if isinstance(extra, dict):
-            context_fields: dict[str, Any]
-            context_fields = extra
+            ctx = extra
             with LOCK:
-                # This is complex - need to implement the context window logic using in-memory data
-                if (
-                    namespace not in MEMORY_HISTORY
-                    or key not in MEMORY_HISTORY[namespace]
-                ):
+                ns_ = get_namespace(namespace)
+                if not ns_ or not isinstance(ns_, dict) or key not in ns_:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
                     )
 
-                target_values = MEMORY_HISTORY[namespace][key]
+                tvals = ns_[key]
 
-                # Iterate from newest to oldest
-                for i in range(len(target_values) - 1, -1, -1):
-                    target_value = target_values[i]
+                # Verify all context fields exist
+                for cf in ctx:
+                    if cf not in ns_:
+                        raise AttributeError(
+                            f"No value found for {key} within the specified context in namespace {namespace}"
+                        )
 
-                    if target_value.unavailable:
-                        continue
-
-                    target_time = cast(float, target_value.time)
-                    all_contexts_match = True
-
-                    # Check each required context field at target_time
-                    for context_field, required_value in context_fields.items():
-                        if (
-                            namespace not in MEMORY_HISTORY
-                            or context_field not in MEMORY_HISTORY[namespace]
-                        ):
-                            all_contexts_match = False
+                if not ctx:  # Empty context
+                    # Return the latest value
+                    for val in reversed(tvals):
+                        if not val.unavailable:
+                            rval = val.data
                             break
+                    else:
+                        raise AttributeError(
+                            f"No value found for {key} within the specified context in namespace {namespace}"
+                        )
+                else:
+                    # New approach: Find all time periods when context is satisfied,
+                    # then find the latest target value from the latest such period
 
-                        context_values = MEMORY_HISTORY[namespace][context_field]
+                    # Get all times when context field values were set
+                    context_times = []
+                    for cf in ctx:
+                        for ctx_val in ns_[cf]:
+                            if not ctx_val.unavailable:
+                                context_times.append(cast(float, ctx_val.time))
 
-                        # Find the latest context value at or before target_time
-                        context_state = None
-                        for cv in reversed(context_values):
-                            if cast(float, cv.time) <= target_time:
-                                context_state = cv
-                                break
+                    if not context_times:
+                        latest_value = None
+                    else:
+                        context_times = sorted(set(context_times))
+                        # Add a "current time" after the last change
+                        context_times.append(max(context_times) + 1)
 
-                        if (
-                            context_state is None
-                            or context_state.unavailable
-                            or context_state.data != required_value
-                        ):
-                            all_contexts_match = False
-                            break
+                        # Find all time intervals where context is satisfied
+                        satisfied_intervals = []
 
-                    if all_contexts_match:
-                        # Verify this is still the latest within the context window
-                        still_valid = True
-                        earliest_context_change = None
+                        for i in range(len(context_times)):
+                            check_time = context_times[i]
 
-                        # Find when any context field changed after target_time
-                        for context_field, required_value in context_fields.items():
-                            if (
-                                namespace in MEMORY_HISTORY
-                                and context_field in MEMORY_HISTORY[namespace]
-                            ):
-                                context_values = MEMORY_HISTORY[namespace][
-                                    context_field
-                                ]
+                            # Check if all context conditions are satisfied at this time
+                            all_satisfied = True
+                            for cf, expected_val in ctx.items():
+                                ctx_vals = ns_[cf]
+                                search_val = Value(check_time, True, None, "")
+                                idx = ctx_vals.bisect_right(search_val) - 1
 
-                                for cv in context_values:
-                                    if cast(float, cv.time) > target_time:
-                                        if cv.unavailable or cv.data != required_value:
-                                            if (
-                                                earliest_context_change is None
-                                                or cv.time < earliest_context_change
-                                            ):
-                                                earliest_context_change = cv.time
-                                            break
-
-                        # Check if there's a later target value before context change
-                        if earliest_context_change is not None:
-                            for tv in target_values:
-                                if (
-                                    target_time
-                                    < cast(float, tv.time)
-                                    < earliest_context_change
-                                ):
-                                    still_valid = False
+                                if idx < 0:
+                                    all_satisfied = False
                                     break
 
-                        if still_valid:
-                            rval = target_value.data
-                            break
-                else:
-                    raise AttributeError(
-                        f"No value found for {key} within the specified context in namespace {namespace}"
-                    )
+                                actual_val = ctx_vals[idx]
+                                if (
+                                    actual_val.unavailable
+                                    or actual_val.data != expected_val
+                                ):
+                                    all_satisfied = False
+                                    break
+
+                            if all_satisfied:
+                                # This time period satisfies the context
+                                start_time = check_time
+                                end_time = (
+                                    context_times[i + 1]
+                                    if i + 1 < len(context_times)
+                                    else float("inf")
+                                )
+                                satisfied_intervals.append((start_time, end_time))
+
+                        if not satisfied_intervals:
+                            latest_value = None
+                        else:
+                            # Use the latest satisfied interval
+                            latest_start, latest_end = satisfied_intervals[-1]
+
+                            # Find the latest target value that was current during this interval
+                            for val in reversed(tvals):
+                                if val.unavailable:
+                                    continue
+
+                                val_time = cast(float, val.time)
+
+                                # Check if this target value was current during the context interval
+                                if val_time < latest_end:
+                                    # This value was set before the interval ended
+                                    # Check if it was still current at the start of the interval
+
+                                    # Find the next target value after this one
+                                    next_target_time = float("inf")
+                                    for next_val in tvals:
+                                        if (
+                                            not next_val.unavailable
+                                            and cast(float, next_val.time) > val_time
+                                        ):
+                                            next_target_time = cast(
+                                                float, next_val.time
+                                            )
+                                            break
+
+                                    # Check if this value was current during any part of the interval
+                                    if (
+                                        val_time < latest_end
+                                        and next_target_time > latest_start
+                                    ):
+                                        latest_value = val.data
+                                        break
+
+                            if latest_value is None:
+                                # Fallback: find any value that existed before the context started
+                                for val in reversed(tvals):
+                                    if (
+                                        not val.unavailable
+                                        and cast(float, val.time) <= latest_start
+                                    ):
+                                        latest_value = val.data
+                                        cast(float, val.time)
+                                        break
+
+                    if latest_value is None:
+                        raise AttributeError(
+                            f"No value found for {key} within the specified context in namespace {namespace}"
+                        )
+
+                    rval = latest_value
 
         # ERROR
         case _, _, _:

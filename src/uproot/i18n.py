@@ -1,21 +1,36 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import csv
-import io
+"""
+Basic usage:
+    import uproot.i18n as i18n
+
+    # Load your project's translations
+    i18n.load("/path/to/your/locales/")
+
+    # Use in templates: {% translate %}Welcome{% endtranslate %}
+    # Use in code: i18n.lookup("Welcome", "de") -> "Willkommen"
+"""
+
 import os
 import re
 from textwrap import dedent
-from typing import Annotated, Callable, Optional
+from typing import Annotated, Callable
 
 import orjson
+import strictyaml
 from jinja2 import BaseLoader, Environment
 
 ISO639 = Annotated[
     str,
     "ISO 639 language code (ISO 639-1 codes preferred, e.g., en, de, it, pt)",
 ]
-LANGUAGES: set[ISO639] = set(["en"])
+
+LANGUAGES: set[ISO639] = set()
+LOCALES_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "default", "locales"
+)
+
 MISSING: set[tuple[str, ISO639]] = set()
 TERMS: dict[str, dict[ISO639, str]] = dict()
 JSON: dict[ISO639, str] = dict()
@@ -58,7 +73,12 @@ def lookup(s: str, target: ISO639) -> str:
     try:
         return TERMS[s][target]
     except KeyError:
-        return missing(s, target)
+        # Try fallback with line endings normalized
+        normalized = s.replace("\r", "").replace("\n", " ")
+        try:
+            return TERMS[normalized][target]
+        except KeyError:
+            return missing(s, target)
 
 
 def compile_translate_block(s: str) -> str:
@@ -85,45 +105,79 @@ def compile_translate_block(s: str) -> str:
     )
 
 
-def add_terms(terms_list: list[dict[ISO639, str]], default: ISO639 = "en") -> None:
-    global TERMS, LANGUAGES
-
-    for t in terms_list:
-        TERMS[t[default]] = {k: v for k, v in t.items() if isinstance(v, str)}
-        LANGUAGES |= t.keys()
-
-
-def terms_from_csv(
-    filename: str, delimiter: Optional[str] = None
-) -> list[dict[ISO639, str]]:
-    if delimiter is None:
-        with io.open(filename, encoding="utf-8-sig", newline="") as f:
-            sample = f.read(1024)
-
-        dialect = csv.Sniffer().sniff(sample, delimiters=",;|")
-        delimiter = dialect.delimiter
-
-    with io.open(filename, encoding="utf-8-sig", newline="") as f:
-        reader = csv.DictReader(f, delimiter=delimiter)
-
-        return [{k: v for k, v in row.items()} for row in reader]
-
-
 def json(target: ISO639) -> str:
     if target not in JSON:
-        JSON[target] = orjson.dumps(
-            {
-                src: translations[target]
-                for src, translations in TERMS.items()
-                if target in translations
-            }
-        ).decode()
+        translations = {
+            src: translations[target]
+            for src, translations in TERMS.items()
+            if target in translations
+        }
+
+        JSON[target] = orjson.dumps(translations).decode()
 
     return JSON[target]
 
 
-add_terms(
-    terms_from_csv(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "default", "terms.csv")
-    )
-)
+def load(yaml_path: str, default_language: ISO639 = "en") -> None:
+    """
+    Load translation terms from YAML files or directory.
+
+    Args:
+        yaml_path: Path to directory containing YAML files, or path to a single YAML file
+        default_language: The language to use as the key (uproot default is English)
+    """
+    global TERMS, LANGUAGES
+
+    all_translations = {}
+
+    if os.path.isfile(yaml_path):
+        # Single YAML file - assume it contains all languages
+        try:
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                data = strictyaml.load(f.read()).data
+                if isinstance(data, dict):
+                    all_translations = data
+        except Exception:
+            return
+    else:
+        # Directory containing separate YAML files
+        if not os.path.isdir(yaml_path):
+            return
+
+        # Load all YAML files in the directory
+        for filename in os.listdir(yaml_path):
+            if filename.endswith(".yml") or filename.endswith(".yaml"):
+                lang = filename.split(".")[0]
+                file_path = os.path.join(yaml_path, filename)
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    lang_data = strictyaml.load(f.read()).data
+
+                    if isinstance(lang_data, dict):
+                        all_translations[lang] = lang_data
+
+    # Add translations to TERMS cache
+    if all_translations:
+        all_keys: set[str] = set()
+
+        for lang_data in all_translations.values():
+            if isinstance(lang_data, dict):
+                all_keys.update(lang_data.keys())
+
+        for key in all_keys:
+            if key not in TERMS:
+                TERMS[key] = {}
+
+            for lang, lang_data in all_translations.items():
+                if isinstance(lang_data, dict) and key in lang_data:
+                    TERMS[key][lang] = lang_data[key]
+
+        LANGUAGES.update(all_translations.keys())
+
+
+def load_defaults() -> None:
+    if os.path.exists(LOCALES_DIR):
+        load(LOCALES_DIR)
+
+
+load_defaults()

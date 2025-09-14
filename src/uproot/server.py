@@ -25,11 +25,12 @@ import uproot.jobs as j
 from uproot.cache import load_database_into_memory
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
-from uproot.pages import page2path
+from uproot.pages import app_or_default, page2path
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
-from uproot.storage import Admin
+from uproot.storage import Admin, Storage
+from uproot.types import InternalPage, Page
 
 
 @asynccontextmanager
@@ -63,10 +64,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         print(file=stderr)
 
         for i, (user, pw) in enumerate(d.ADMINS.items(), 1):
-            if not isinstance(pw, str):
-                # This is for future enhancements of admin authentication
-                pw = "???"
-
             print(f"ADMIN {i}:")
             print(f"  Username: {user}", file=stderr)
             print(f"  Password: {pw}", file=stderr)
@@ -112,7 +109,60 @@ uproot_server.include_router(router3)
 
 @uproot_server.get("/favicon.ico")
 async def favicon(request: Request) -> RedirectResponse:
-    return RedirectResponse(f"{d.ROOT}/static/uproot/favicon.ico", status_code=301)
+    return RedirectResponse(f"{d.ROOT}/static/_uproot/favicon.ico", status_code=301)
+
+
+def post_app_import(app: Any) -> Any:
+    appname = app.__name__
+
+    ensure(
+        not hasattr(app, "C") or isinstance(app.C, type),
+        TypeError,
+        f"'C' must be a class (app {appname})",
+    )
+    ensure(
+        not hasattr(app, "Constants"),
+        TypeError,
+        f"Use 'C' instead of 'Constants' (app {appname})",
+    )
+
+    # Add landing page (if desired)
+    if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
+        ensure(
+            not hasattr(app, "LandingPage"),
+            TypeError,
+            f"'LandingPage' is a reserved Page name (app {appname})",
+        )
+
+        class LandingPage(Page):
+            __module__ = appname
+            template = app_or_default(app, "LandingPage.html")
+
+            @classmethod
+            async def before_always_once(page, player: Storage) -> None:
+                player._uproot_part += 1
+
+        app.LandingPage = (
+            LandingPage  # This is not technically necessary, but good practice
+        )
+        app.page_order.insert(0, app.LandingPage)
+
+    # Demarcate beginning of new app and set player.app
+    ensure(
+        not hasattr(app, "NextApp"),
+        TypeError,
+        f"'NextApp' is a reserved Page name (app {appname})",
+    )
+
+    class NextApp(InternalPage):
+        __module__ = appname
+
+        @classmethod
+        def after_always_once(page, player: Storage) -> None:
+            player.app = appname
+
+    app.NextApp = NextApp
+    app.page_order.insert(0, app.NextApp)
 
 
 @validate_call(config=dict(arbitrary_types_allowed=True))
@@ -122,7 +172,7 @@ def load_config(
     ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
 
     if not hasattr(u, "APPS"):
-        u.APPS = ModuleManager()
+        u.APPS = ModuleManager(post_app_import)
 
     u.CONFIGS[config] = list()
     u.CONFIGS_PPATHS[config] = list()

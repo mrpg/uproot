@@ -3,6 +3,7 @@
 
 import os
 import platform
+import sys
 import time
 from pathlib import Path
 
@@ -11,6 +12,8 @@ import uvicorn
 
 import uproot.deployment as d
 import uproot.examples as ex
+
+sys.argv[0] = "uproot"
 
 
 def set_ulimit() -> None:

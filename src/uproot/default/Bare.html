@@ -27,6 +27,8 @@
             {% if noterms is not defined %}
             uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}
             {% endif %}
+            window.C = uproot.vars._uproot_internal?.C;
+
             {% if noautostart is not defined %}
             uproot.onStart(() => {
                 uproot.init();
