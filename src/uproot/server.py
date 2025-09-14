@@ -30,7 +30,7 @@ from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
 from uproot.storage import Admin, Storage
-from uproot.types import Page
+from uproot.types import InternalPage, Page
 
 
 @asynccontextmanager
@@ -113,7 +113,13 @@ async def favicon(request: Request) -> RedirectResponse:
 
 
 def post_app_import(app: Any) -> Any:
+    # Add landing page (if desired)
     if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
+        ensure(
+            not hasattr(app, "LandingPage"),
+            TypeError,
+            "'LandingPage' is a reserved Page name",
+        )
 
         class LandingPage(Page):
             __module__ = app.__name__
@@ -123,7 +129,23 @@ def post_app_import(app: Any) -> Any:
             async def before_always_once(page, player: Storage) -> None:
                 player._uproot_part += 1
 
-        app.page_order.insert(0, LandingPage)
+        app.LandingPage = (
+            LandingPage  # This is not technically necessary, but good practice
+        )
+        app.page_order.insert(0, app.LandingPage)
+
+    # Demarcate beginning of new app and set player.app
+    ensure(not hasattr(app, "NextApp"), TypeError, "'NextApp' is a reserved Page name")
+
+    class NextApp(InternalPage):
+        __module__ = app.__name__
+
+        @classmethod
+        def after_always_once(page, player: Storage) -> None:
+            player.app = app.__name__
+
+    app.NextApp = NextApp
+    app.page_order.insert(0, app.NextApp)
 
 
 @validate_call(config=dict(arbitrary_types_allowed=True))

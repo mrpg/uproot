@@ -158,6 +158,7 @@ def initialize_player(
         player.started = False
         player.show_page = -1
         player.page_order = u.CONFIGS_PPATHS[config]
+        player.app = None
         player._uproot_adminchat = None
         player._uproot_dropout = False
         player._uproot_group = None

@@ -72,6 +72,9 @@ PAGES: dict[str, Union[tuple[str, str], type[Page]]] = {
         dict(
             show=True,
             template="End.html",
+            before_always_once=classmethod(
+                lambda page, player: setattr(player, "app", None)
+            ),  # See Lundh's rules: https://docs.python.org/3/howto/functional.html …
         ),
     ),
 }
