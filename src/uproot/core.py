@@ -47,6 +47,7 @@ def create_session(
 
     with s.Session(sname) as session:
         session.active = True
+        session.apps = u.CONFIGS[config]  # Use this instead of CONFIGS (TODO)
         session.name = sname
         session.config = config
         session.description = None
@@ -63,13 +64,16 @@ def create_session(
 
         admin.sessions.append(sname)
 
-        for appname in u.CONFIGS[config]:
+    return t.SessionIdentifier(sname)
+
+
+def finalize_session(sid: t.SessionIdentifier) -> None:
+    with sid() as session:
+        for appname in session.apps:
             app = u.APPS[appname]
 
             if hasattr(app, "new_session"):
                 app.new_session(session)
-
-    return t.SessionIdentifier(sname)
 
 
 def create_model(
