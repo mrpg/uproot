@@ -302,6 +302,7 @@ async def login_post(
 
     # Rate limiting: require 5 second delay after failed login
     if now() - LAST_FAILED_LOGIN <= 5.0:
+        d.LOGGER.debug("POSTed too quickly")
         LAST_FAILED_LOGIN = now()
         return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
