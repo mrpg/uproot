@@ -1,12 +1,15 @@
-{% set _uproot_title %}
-{% block title %}
-{% endblock title %}
-{% endset %}
+{% set _uproot_title %}{% block title %}{% endblock title %}{% endset %}
 <!doctype html>{% import "Macros.html" as uproot %}
 <html lang="{{ _uproot_internal.language }}" data-bs-theme="auto">
     <head>
         <title>
+            {% if _uproot_title %}
             {{ _uproot_title | striptags }}
+            {% else %}
+            {% translate %}
+            Study
+            {% endtranslate %}
+            {% endif %}
         </title>
 
         <meta charset="utf-8">
