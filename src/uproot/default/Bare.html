@@ -1,12 +1,15 @@
-{% set _uproot_title %}
-{% block title %}
-{% endblock title %}
-{% endset %}
+{% set _uproot_title %}{% block title %}{% endblock title %}{% endset %}
 <!doctype html>{% import "Macros.html" as uproot %}
 <html lang="{{ _uproot_internal.language }}" data-bs-theme="auto">
     <head>
         <title>
+            {% if _uproot_title %}
             {{ _uproot_title | striptags }}
+            {% else %}
+            {% translate %}
+            Study
+            {% endtranslate %}
+            {% endif %}
         </title>
 
         <meta charset="utf-8">
@@ -123,11 +126,13 @@
             {% endif %}
 
             {% block timeoutbox %}
-            <div class="alert alert-light" role="alert" id="uproot-timeout">
+            <div class="alert alert-light mt-3" role="alert" id="uproot-timeout">
+                <span id="uproot-time-remaining-preamble">
                 {% translate %}
                 Remaining time on this page:
                 {% endtranslate %}
-                <span id="uproot-time-remaining">60:00</span>.
+                </span>
+                <span id="uproot-time-remaining">60:00</span>
             </div>
             {% endblock timeoutbox %}
 

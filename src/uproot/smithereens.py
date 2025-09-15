@@ -1,6 +1,7 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from decimal import Decimal
 from typing import Annotated, Any, Awaitable, Callable, Iterable, cast
 
 from pydantic import validate_call
@@ -101,7 +102,8 @@ def players(
     if isinstance(arg, list):
         return t.StorageBunch([Player(*pid) for pid in arg])
     elif isinstance(arg, Storage) and arg.__namespace__[0] in ("session", "group"):
-        return players(getattr(arg, "players"))
+        with arg:
+            return players(getattr(arg, "players"))
     else:
         raise NotImplementedError(
             f"players() can only be called with a Session or Group storage object or a list, "
@@ -372,6 +374,7 @@ INTERNAL_PAGES = {
 
 
 chat = uproot.chat
+cu = Decimal
 GroupCreatingWait = t.GroupCreatingWait
 Page = t.Page
 _p = FieldReferent()

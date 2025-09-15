@@ -107,7 +107,8 @@ async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
 def timeout_reached(page: type[Page], player: Storage, tol: float) -> bool:
     try:
         return cast(
-            bool, time.time() + tol >= player._uproot_timeouts_until[player.show_page]
+            bool,
+            time.time() + tol >= player._uproot_timeouts_until[str(player.show_page)],
         )
     except (AttributeError, KeyError):
         pass

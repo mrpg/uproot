@@ -6,9 +6,11 @@
 
 {% block titlearea %}
 
+{% if _uproot_title %}
 <h1 id="uproot-title" class="my-4">
     {{ _uproot_title }}
 </h1>
+{% endif %}
 
 {% endblock titlearea %}
 

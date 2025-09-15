@@ -560,6 +560,8 @@ async def new_session_in_room(
             data=data,
         )
 
+    c.finalize_session(sid)
+
     e.set_room(roomname)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
@@ -625,6 +627,8 @@ async def new_session2(
                 else [a.strip() for a in unames.split("\n")]
             ),
         )
+
+    c.finalize_session(sid)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 
