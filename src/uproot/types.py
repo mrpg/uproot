@@ -490,13 +490,13 @@ class Page(metaclass=FrozenPage):
         if to_sec is None:
             return None
 
-        if player.show_page in player._uproot_timeouts_until:
+        if str(player.show_page) in player._uproot_timeouts_until:
             return cast(
                 float,
-                max(0.0, player._uproot_timeouts_until[player.show_page] - time()),
+                max(0.0, player._uproot_timeouts_until[str(player.show_page)] - time()),
             )
         else:
-            player._uproot_timeouts_until[player.show_page] = time() + to_sec
+            player._uproot_timeouts_until[str(player.show_page)] = time() + to_sec
 
             return to_sec
 

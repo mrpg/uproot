@@ -162,6 +162,8 @@ window.uproot = {
                 I("uproot-timeout").classList.add("alert-warning");
             }
         }
+
+        window.dispatchEvent(new CustomEvent(`UprootInternalPageTimeout`));
     },
 
     getParam(name) {

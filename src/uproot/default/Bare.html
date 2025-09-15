@@ -123,11 +123,13 @@
             {% endif %}
 
             {% block timeoutbox %}
-            <div class="alert alert-light" role="alert" id="uproot-timeout">
+            <div class="alert alert-light mt-3" role="alert" id="uproot-timeout">
+                <span id="uproot-time-remaining-preamble">
                 {% translate %}
                 Remaining time on this page:
                 {% endtranslate %}
-                <span id="uproot-time-remaining">60:00</span>.
+                </span>
+                <span id="uproot-time-remaining">60:00</span>
             </div>
             {% endblock timeoutbox %}
 
