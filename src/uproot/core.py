@@ -254,7 +254,9 @@ def create_players(
         initialize_player(pid, startid, config, data=d_)
         rval.append(pid)
 
-    session.players.extend(pids)
+    session.players.extend(
+        pids
+    )  # TODO: this causes app.new_player to receive a stale player.session
 
     return rval
 
