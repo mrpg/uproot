@@ -18,7 +18,6 @@ DATABASE: uproot.drivers.DBDriver = uproot.drivers.Memory()
 DBENV: str = os.getenv("UPROOT_DATABASE", "sqlite3")
 DEFAULT_ROOMS: list["RoomType"] = list()
 FIRST_RUN: bool = False
-HIDE_MISSING_I18N: bool = True
 HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
 LOGGER: Any = logging.getLogger("uproot")
