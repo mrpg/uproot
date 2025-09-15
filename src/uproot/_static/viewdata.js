@@ -275,8 +275,14 @@ async function updateData() {
     }
 }
 
-function refreshData() {
-    updateData();
+async function refreshData() {
+    const tableHolder = document.getElementsByClassName("tabulator-tableholder")[0];
+    if (!tableHolder) return;
+    const scrollPosX = tableHolder.scrollLeft;
+    const scrollPosY = tableHolder.scrollTop;
+    await updateData();
+    tableHolder.scrollLeft = scrollPosX;
+    tableHolder.scrollTop = scrollPosY;
 }
 
 function initializeTable() {
@@ -285,5 +291,5 @@ function initializeTable() {
     lastUpdate = 0;
 
     createTable(currentContainer);
-    refreshData();
+    updateData();
 }
