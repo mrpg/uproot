@@ -145,10 +145,23 @@ window.uproot = {
 
     reshowTimeout() {
         const remainingSeconds = Math.max(0, (uproot.timeoutUntil - Date.now()) / 1000);
-        const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
-        const seconds = Math.floor(remainingSeconds - 60 * minutes).toString().padStart(2, "0");
 
-        I("uproot-time-remaining").innerText = `${minutes}:${seconds}`;
+        const days = Math.floor(remainingSeconds / 86400);
+        const hours = Math.floor((remainingSeconds % 86400) / 3600);
+        const minutes = Math.floor((remainingSeconds % 3600) / 60);
+        const seconds = Math.floor(remainingSeconds % 60);
+
+        const parts = [];
+        if (days > 0) parts.push(_(days === 1 ? "#x# day" : "#x# days").replace("#x#", days));
+        if (hours > 0) parts.push(_(hours === 1 ? "#x# hour" : "#x# hours").replace("#x#", hours));
+        if (minutes > 0) parts.push(_(minutes === 1 ? "#x# minute" : "#x# minutes").replace("#x#", minutes));
+        if (seconds > 0 || parts.length === 0) parts.push(_(seconds === 1 ? "#x# second" : "#x# seconds").replace("#x#", seconds));
+
+        const timeText = parts.length > 1 
+            ? parts.slice(0, -1).join(_(", ")) + _(" and ") + parts[parts.length - 1]
+            : parts[0];
+
+        I("uproot-time-remaining").innerText = timeText;
         I("uproot-timeout").style.display = "block";
 
         if (remainingSeconds < 60) {
