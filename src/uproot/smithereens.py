@@ -1,6 +1,7 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from decimal import Decimal
 from typing import Annotated, Any, Awaitable, Callable, Iterable, cast
 
 from pydantic import validate_call
@@ -373,6 +374,7 @@ INTERNAL_PAGES = {
 
 
 chat = uproot.chat
+cu = Decimal
 GroupCreatingWait = t.GroupCreatingWait
 Page = t.Page
 _p = FieldReferent()
