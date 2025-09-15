@@ -101,7 +101,8 @@ def players(
     if isinstance(arg, list):
         return t.StorageBunch([Player(*pid) for pid in arg])
     elif isinstance(arg, Storage) and arg.__namespace__[0] in ("session", "group"):
-        return players(getattr(arg, "players"))
+        with arg:
+            return players(getattr(arg, "players"))
     else:
         raise NotImplementedError(
             f"players() can only be called with a Session or Group storage object or a list, "
