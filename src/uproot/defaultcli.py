@@ -36,7 +36,7 @@ def setup_command(path: str, force: bool = False, no_example: bool = False) -> N
 
         print("📂 A new project has been created in '" + path + "'.")
         print("✅ 'main.py' and some other files have been written.")
-        print("⬇️  Go to the new project directory by running")
+        print("🚶 Go to the new project directory by running")
         print("\tcd " + path)
         print("📖 Get started by reading 'main.py'.")
         print("🚀 Then you may run this project using")
