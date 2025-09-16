@@ -13,13 +13,13 @@
 :root {
     font-variant: tabular-nums;
     font-feature-settings:
-    "ss01",  /* “Open” digits */
-    "cv05",  /* Lowercase l with tail */
-    "cv07";  /* Alternate German ß */
+        "ss01",  /* “Open” digits */
+        "cv05",  /* Lowercase l with tail */
+        "cv07";  /* Alternate German ß */
 }
 
 /* uproot color scheme */
-:root{
+:root {
     --bs-uproot: #4e1388;
     --bs-uproot-rgb: 68, 17, 119;
     --bs-uproot-rgb: 78, 19, 136;
