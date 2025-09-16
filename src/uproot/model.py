@@ -398,18 +398,16 @@ def filter_entries(
 @overload
 def filter_entries(
     mid: ModelIdentifier,
-    predicate: Optional[Callable[..., bool]] = None,
-    *,
     as_type: Type[T],
+    predicate: Optional[Callable[..., bool]] = None,
     **field_filters: Any,
 ) -> list[T]: ...
 
 
 def filter_entries(
     mid: ModelIdentifier,
-    predicate: Optional[Callable[..., bool]] = None,
-    *,
     as_type: Type[T] = FrozenDottedDict,
+    predicate: Optional[Callable[..., bool]] = None,
     **field_filters: Any,
 ) -> list[T]:
     """
