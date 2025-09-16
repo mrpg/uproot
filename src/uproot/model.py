@@ -4,7 +4,6 @@
 import inspect
 from builtins import all as pyall
 from dataclasses import asdict
-from functools import wraps
 from typing import (
     Any,
     Callable,
@@ -201,7 +200,7 @@ def add_entry(
 
 def add_entry(
     mid: ModelIdentifier,
-    pid_or_entry: Union[PlayerIdentifier, dict[str, Any], Any],
+    pid_or_entry: Union[PlayerIdentifier, s.Storage, dict[str, Any], Any],
     entry_type_or_preserve_time: Union[Any, bool] = False,
     **other_fields_or_kwargs: Any,
 ) -> Union[Any, None]:
@@ -239,6 +238,10 @@ def add_entry(
         # Raw mode (advanced)
         add_entry(model_id, Offer(pid=player_id, price=100.0), preserve_time=True)
     """
+    if isinstance(pid_or_entry, s.Storage):
+        # We don't use @flexible here because it cannot handle Unions (neither can Max)
+        pid_or_entry = ~pid_or_entry
+
     # Detect which mode we're in based on the second argument
     if isinstance(pid_or_entry, PlayerIdentifier):
         # Auto-filling mode: pid_or_entry is PlayerIdentifier, entry_type_or_preserve_time is Type
@@ -280,48 +283,38 @@ def add_raw_entry(
     Raises:
         ValueError: If entry format is invalid or adding to model fails
     """
-    try:
-        # Convert entry to dict format
-        if hasattr(entry, "__is_pydantic_dataclass__"):
-            entry_dict = asdict(entry)
-            is_entry_instance = isinstance(type(entry), Entry)
-            time_should_be_removed = (
-                is_entry_instance
-                and entry_dict.get("time") is None
-                and not preserve_time
-            )
-        else:
-            entry_dict = dict(entry) if not isinstance(entry, dict) else entry
-            time_should_be_removed = False
+    # Convert entry to dict format
+    if hasattr(entry, "__is_pydantic_dataclass__"):
+        entry_dict = asdict(entry)
+        is_entry_instance = isinstance(type(entry), Entry)
+        time_should_be_removed = (
+            is_entry_instance and entry_dict.get("time") is None and not preserve_time
+        )
+    else:
+        entry_dict = dict(entry) if not isinstance(entry, dict) else entry
+        time_should_be_removed = False
 
-        # Validate entry structure
-        if not pyall(
-            isinstance(k, str) and k.isidentifier() for k in entry_dict.keys()
-        ):
-            invalid_keys = [
-                k
-                for k in entry_dict.keys()
-                if not (isinstance(k, str) and k.isidentifier())
-            ]
-            raise ValueError(
-                f"Entry keys must be valid Python identifiers. Invalid keys: {invalid_keys}"
-            )
+    # Validate entry structure
+    if not pyall(isinstance(k, str) and k.isidentifier() for k in entry_dict.keys()):
+        invalid_keys = [
+            k
+            for k in entry_dict.keys()
+            if not (isinstance(k, str) and k.isidentifier())
+        ]
+        raise ValueError(
+            f"Entry keys must be valid Python identifiers. Invalid keys: {invalid_keys}"
+        )
 
-        # Filter out time field if appropriate
-        filtered_entry = {
-            k: v
-            for k, v in entry_dict.items()
-            if k != "time" or preserve_time or not time_should_be_removed
-        }
+    # Filter out time field if appropriate
+    filtered_entry = {
+        k: v
+        for k, v in entry_dict.items()
+        if k != "time" or preserve_time or not time_should_be_removed
+    }
 
-        # Store the entry
-        with get_storage(mid) as storage:
-            setattr(storage, "entry", filtered_entry)
-
-    except ValueError:
-        raise
-    except Exception as e:
-        raise ValueError(f"Failed to add entry to model {mid}: {e}") from e
+    # Store the entry
+    with get_storage(mid) as storage:
+        setattr(storage, "entry", filtered_entry)
 
 
 def _with_time(
@@ -540,17 +533,3 @@ def model_exists(mid: ModelIdentifier) -> bool:
         return bool(get_storage(mid))
     except (ValueError, AttributeError):
         return False
-
-
-def ignore_time_field(func: Callable[..., T]) -> Callable[..., T]:
-    """
-    Decorator to ignore time field in function arguments.
-
-    Useful for functions that should not process time fields from entries.
-    """
-
-    @wraps(func)
-    def wrapper(time: Optional[float] = None, **kwargs: Any) -> T:
-        return func(**kwargs)
-
-    return wrapper

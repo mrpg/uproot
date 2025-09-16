@@ -20,7 +20,6 @@ import uproot.deployment as d
 import uproot.model as mod
 import uproot.storage as s
 import uproot.types as t
-from uproot.types import FrozenDottedDict
 
 # Reset database for tests
 d.DATABASE.reset()
@@ -352,22 +351,6 @@ def test_multiple_entries_performance(model_and_player):
     # Filter some
     level_0_entries = list(mod.filter_entries(mid, level="level_0"))
     assert len(level_0_entries) == 20  # Every 5th entry
-
-
-# Utility function tests
-def test_ignore_time_field_decorator():
-    """Test the ignore_time_field decorator."""
-
-    @mod.ignore_time_field
-    def test_function(value: int, message: str) -> str:
-        return f"{message}: {value}"
-
-    # Should work with and without time parameter
-    result1 = test_function(value=42, message="test")
-    result2 = test_function(time=123.45, value=42, message="test")
-
-    assert result1 == "test: 42"
-    assert result2 == "test: 42"  # time is ignored
 
 
 if __name__ == "__main__":
