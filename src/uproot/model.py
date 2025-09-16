@@ -7,7 +7,6 @@ from dataclasses import asdict
 from typing import (
     Any,
     Callable,
-    Iterator,
     Optional,
     Type,
     TypeVar,
@@ -327,17 +326,17 @@ def _with_time(
 
 
 @overload
-def get_entries(mid: ModelIdentifier) -> Iterator[FrozenDottedDict]: ...
+def get_entries(mid: ModelIdentifier) -> list[FrozenDottedDict]: ...
 
 
 @overload
-def get_entries(mid: ModelIdentifier, as_type: Type[T]) -> Iterator[T]: ...
+def get_entries(mid: ModelIdentifier, as_type: Type[T]) -> list[T]: ...
 
 
 def get_entries(
     mid: ModelIdentifier,
     as_type: Type[T] = FrozenDottedDict,
-) -> Iterator[T]:
+) -> list[T]:
     """
     Get all entries from a model.
 
@@ -346,17 +345,21 @@ def get_entries(
         as_type: Type to convert entries to (defaults to FrozenDottedDict)
 
     Returns:
-        Iterator of entries with timestamps
+        List of entries with timestamps
 
     Raises:
         ValueError: If model access fails
     """
     try:
+        retval = []
+
         with get_storage(mid) as storage:
             for value in storage.__history__().get("entry", []):
                 if not value.unavailable:
                     entry_data = cast(dict[str, Any], value.data)
-                    yield _with_time(entry_data, value.time, as_type)
+                    retval.append(_with_time(entry_data, value.time, as_type))
+
+        return retval
     except Exception as e:
         raise ValueError(f"Failed to get entries from model {mid}: {e}") from e
 
@@ -389,7 +392,7 @@ def filter_entries(
     mid: ModelIdentifier,
     predicate: Optional[Callable[..., bool]] = None,
     **field_filters: Any,
-) -> Iterator[FrozenDottedDict]: ...
+) -> list[FrozenDottedDict]: ...
 
 
 @overload
@@ -399,7 +402,7 @@ def filter_entries(
     *,
     as_type: Type[T],
     **field_filters: Any,
-) -> Iterator[T]: ...
+) -> list[T]: ...
 
 
 def filter_entries(
@@ -408,7 +411,7 @@ def filter_entries(
     *,
     as_type: Type[T] = FrozenDottedDict,
     **field_filters: Any,
-) -> Iterator[T]:
+) -> list[T]:
     """
     Filter entries from a model based on predicate and field values.
 
@@ -419,7 +422,7 @@ def filter_entries(
         **field_filters: Field name/value pairs for exact matching
 
     Returns:
-        Iterator of matching entries with timestamps
+        List of matching entries with timestamps
 
     Raises:
         ValueError: If model access fails
@@ -438,14 +441,17 @@ def filter_entries(
             print(entry)
     """
     try:
+        retval = []
+
         with get_storage(mid) as storage:
             for value in storage.__history__().get("entry", []):
                 if not value.unavailable:
                     entry_data = cast(dict[str, Any], value.data)
 
                     if _entry_matches(entry_data, predicate, field_filters):
-                        yield _with_time(entry_data, value.time, as_type)
+                        retval.append(_with_time(entry_data, value.time, as_type))
 
+        return retval
     except Exception as e:
         raise ValueError(f"Failed to filter entries from model {mid}: {e}") from e
 
