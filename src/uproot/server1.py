@@ -16,6 +16,7 @@ from pathlib import Path
 from time import time
 from typing import Any, Iterable, Optional, cast
 
+import orjson
 from fastapi import (
     APIRouter,
     Cookie,
@@ -514,21 +515,25 @@ async def ws(
                             "kind": kind_,
                             "payload": payload_,
                         } if isinstance(kind_, str) and isinstance(payload_, dict):
-                            await websocket.send_json(
-                                dict(
-                                    kind=kind_,
-                                    payload=payload_,
-                                    source="admin",
+                            await websocket.send_bytes(
+                                orjson.dumps(
+                                    dict(
+                                        kind=kind_,
+                                        payload=payload_,
+                                        source="admin",
+                                    )
                                 )
                             )
                         case _:
-                            await websocket.send_json(
-                                dict(
-                                    kind="queue",
-                                    payload=dict(
-                                        u=u_,
-                                        entry=entry,
-                                    ),
+                            await websocket.send_bytes(
+                                orjson.dumps(
+                                    dict(
+                                        kind="queue",
+                                        payload=dict(
+                                            u=u_,
+                                            entry=entry,
+                                        ),
+                                    )
                                 )
                             )
                 elif fname == "from_websocket":
@@ -654,14 +659,16 @@ async def ws(
                                 )
 
                     if invoke_respond:
-                        await websocket.send_json(
-                            dict(
-                                kind="invoke",
-                                payload=dict(
-                                    data=invoke_response,
-                                    future=result["future"],
-                                    error=invoke_exception,
-                                ),
+                        await websocket.send_bytes(
+                            orjson.dumps(
+                                dict(
+                                    kind="invoke",
+                                    payload=dict(
+                                        data=invoke_response,
+                                        future=result["future"],
+                                        error=invoke_exception,
+                                    ),
+                                )
                             )
                         )
                 elif fname == "timer":

@@ -8,6 +8,7 @@ This file implements room routes.
 import asyncio
 from typing import Any, Optional, cast
 
+import orjson
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
@@ -204,15 +205,17 @@ async def ws(
                     u.set_online(pid)
                     # Otherwise ignore messages (for now)
                 elif fname == "subscribe_to_room":
-                    await websocket.send_json(
-                        dict(
-                            kind="event",
-                            payload=dict(
-                                event="RoomStarted",
-                                detail=dict(
-                                    label=local_context,
+                    await websocket.send_bytes(
+                        orjson.dumps(
+                            dict(
+                                kind="event",
+                                payload=dict(
+                                    event="RoomStarted",
+                                    detail=dict(
+                                        label=local_context,
+                                    ),
                                 ),
-                            ),
+                            )
                         )
                     )
                 elif fname == "timer":

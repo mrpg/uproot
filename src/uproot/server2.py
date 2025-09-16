@@ -10,7 +10,6 @@ This file implements admin routes.
 import asyncio
 import builtins
 import importlib.metadata
-import json
 import os
 import sys
 from itertools import zip_longest
@@ -18,6 +17,7 @@ from random import shuffle
 from time import perf_counter as now
 from typing import Any, Optional, cast
 
+import orjson
 from fastapi import (
     APIRouter,
     Cookie,
@@ -219,16 +219,18 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             and isinstance(mkwargs, dict)
                             and mname in FUNS
                         ):
-                            await websocket.send_json(
-                                dict(
-                                    kind="invoke",
-                                    payload=dict(
-                                        data=await cast(Any, FUNS[mname])(
-                                            *margs,
-                                            **mkwargs,
+                            await websocket.send_bytes(
+                                orjson.dumps(
+                                    dict(
+                                        kind="invoke",
+                                        payload=dict(
+                                            data=await cast(Any, FUNS[mname])(
+                                                *margs,
+                                                **mkwargs,
+                                            ),
+                                            future=result["future"],
                                         ),
-                                        future=result["future"],
-                                    ),
+                                    )
                                 )
                             )
                         case _:
@@ -244,17 +246,19 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             p.show_page,
                         )  # TODO: Remove monkeypatch
 
-                    await websocket.send_json(
-                        dict(
-                            kind="event",
-                            payload=dict(
-                                event="Attended",
-                                detail=dict(
-                                    uname=pid.uname,
-                                    info=info,
-                                    online=u.find_online(pid),
+                    await websocket.send_bytes(
+                        orjson.dumps(
+                            dict(
+                                kind="event",
+                                payload=dict(
+                                    event="Attended",
+                                    detail=dict(
+                                        uname=pid.uname,
+                                        info=info,
+                                        online=u.find_online(pid),
+                                    ),
                                 ),
-                            ),
+                            )
                         )
                     )
                 elif fname == "timer":
@@ -508,7 +512,7 @@ async def new_session_in_room(
     a.room_exists(roomname)
 
     if assignees:
-        assignees_list = json.loads(assignees)
+        assignees_list = orjson.loads(assignees)
         ensure(
             all(isinstance(ass, str) for ass in assignees_list),
             ValueError,
