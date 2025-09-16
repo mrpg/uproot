@@ -129,12 +129,14 @@ def post_app_import(app: Any) -> Any:
     # Add landing page (if desired)
     if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
         ensure(
-            not hasattr(app, "LandingPage"),
+            not hasattr(app, "LandingPage")
+            or getattr(app.LandingPage, "__injected__", False),
             TypeError,
             f"'LandingPage' is a reserved Page name (app {appname})",
         )
 
         class LandingPage(Page):
+            __injected__ = True
             __module__ = appname
             template = app_or_default(app, "LandingPage.html")
 
@@ -149,12 +151,13 @@ def post_app_import(app: Any) -> Any:
 
     # Demarcate beginning of new app and set player.app
     ensure(
-        not hasattr(app, "NextApp"),
+        not hasattr(app, "NextApp") or getattr(app.NextApp, "__injected__", False),
         TypeError,
         f"'NextApp' is a reserved Page name (app {appname})",
     )
 
     class NextApp(InternalPage):
+        __injected__ = True
         __module__ = appname
 
         @classmethod
