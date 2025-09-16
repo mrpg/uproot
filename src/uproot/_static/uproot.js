@@ -240,53 +240,55 @@ window.uproot = {
     },
 
     fromServer(event, ws) {
-        const msg = Object.assign({ received: Date.now() }, JSON.parse(event.data));
-        const kind = msg.kind, payload = msg.payload;
+        event.data.text().then(rawJson => {
+            const msg = Object.assign({ received: Date.now() }, JSON.parse(rawJson));
+            const kind = msg.kind, payload = msg.payload;
 
-        if (kind === undefined || payload === undefined) {
-            /* all server msgs need to have a kind and a payload */
-            return;
-        }
-
-        if (this.verbose) {
-            console.log(msg);
-        }
-
-        this.serverThere = Date.now();
-
-        if (kind == "invoke" && "future" in payload) {
-            const fut = this.futStore[payload.future];
-
-            if (!payload.error) {
-                fut.resolve(payload.data);
-            }
-            else {
-                fut.reject(new Error("Server-side Exception occurred"));
+            if (kind === undefined || payload === undefined) {
+                /* all server msgs need to have a kind and a payload */
+                return;
             }
 
-            delete this.futStore[payload.future];
-        }
-        else if (kind == "action" && "action" in payload) {
-            const action = payload.action;
-
-            if (action == "reload") {
-                this.reload();
+            if (this.verbose) {
+                console.log(msg);
             }
-            else if (action == "submit") {
-                this.submit();
-            }
-        }
-        else if (kind == "event" && "event" in payload) {
-            const eventName = payload.event;
-            const ev = new CustomEvent(`UprootCustom${eventName}`, {
-                detail: payload.detail,
-            });
 
-            window.dispatchEvent(ev);
-        }
-        else if (kind == "queue") {
-            this.queueDispatch(payload.u, payload.entry);
-        }
+            this.serverThere = Date.now();
+
+            if (kind == "invoke" && "future" in payload) {
+                const fut = this.futStore[payload.future];
+
+                if (!payload.error) {
+                    fut.resolve(payload.data);
+                }
+                else {
+                    fut.reject(new Error("Server-side Exception occurred"));
+                }
+
+                delete this.futStore[payload.future];
+            }
+            else if (kind == "action" && "action" in payload) {
+                const action = payload.action;
+
+                if (action == "reload") {
+                    this.reload();
+                }
+                else if (action == "submit") {
+                    this.submit();
+                }
+            }
+            else if (kind == "event" && "event" in payload) {
+                const eventName = payload.event;
+                const ev = new CustomEvent(`UprootCustom${eventName}`, {
+                    detail: payload.detail,
+                });
+
+                window.dispatchEvent(ev);
+            }
+            else if (kind == "queue") {
+                this.queueDispatch(payload.u, payload.entry);
+            }
+        });
     },
 
     isPythonIdentifier(str) {
