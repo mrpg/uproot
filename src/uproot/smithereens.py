@@ -379,3 +379,4 @@ GroupCreatingWait = t.GroupCreatingWait
 Page = t.Page
 _p = FieldReferent()
 SynchronizingWait = t.SynchronizingWait
+uuid = t.uuid
