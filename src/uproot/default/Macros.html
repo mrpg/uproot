@@ -45,7 +45,7 @@
                 <td class="ps-0">
                     {{ field_.label(class_="form-label uproot-formlabel") }}
                     {% if field_.description %}
-                        <small class="form-text text-muted uproot-formdesc">{{ field_.description }}</small>
+                        <small class="form-text text-muted uproot-formdesc">{{ field_.description | safe }}</small>
                     {% endif %}
                 </td>
                 {% for subfield in field_ %}
@@ -54,7 +54,7 @@
                     </td>
                 {% endfor %}
             </tr>
-        {% endfor %} 
+        {% endfor %}
     </table>
 {% endmacro %}
 
@@ -70,7 +70,7 @@
             {{ field(class_=" ".join(class_list)) | safe }}
             {{ field.label(class_="form-check-label uproot-formlabel") }}
             {% if field.description %}
-                <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+                <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
             {% endif %}
         </div>
     {% elif field.type == "DecimalRangeField" %}
@@ -84,7 +84,7 @@
         {% endif %}
         {{ field(class_=" ".join(class_list)) | safe }}
         {% if field.description %}
-            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% elif field.type == "EmailField" %}
         {{ field.label(class_="form-label uproot-formlabel") }}
@@ -97,7 +97,7 @@
             <label class="pb-0 pt-2 text-body-tertiary bg-transparent">E-Mail</label>
         </div>
         {% if field.description %}
-            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% elif field.type == "LikertField" %}
         {{ field.label(class_="form-label uproot-formlabel") }}
@@ -128,7 +128,7 @@
             </tr>
         </table>
         {% if field.description %}
-            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% elif field.type == "RadioField" %}
         {{ field.label(class_="form-label uproot-formlabel") }}
@@ -143,7 +143,7 @@
             </div>
         {% endfor %}
         {% if field.description %}
-            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% elif field.type == "SelectField" %}
         {{ field.label(class_="form-label uproot-formlabel") }}
@@ -153,7 +153,7 @@
         {% endif %}
         {{ field(class_=" ".join(class_list)) | safe }}
         {% if field.description %}
-            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% elif field.type == "StringField" or field.type == "TextAreaField" %}
         {{ field.label(class_="form-label uproot-formlabel") }}
@@ -166,7 +166,7 @@
             <label class="pb-0 pt-2 text-body-tertiary bg-transparent">Text</label>
         </div>
         {% if field.description %}
-            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% else %}
         {# DateField, FileField, IntegerField, DecimalField #}
@@ -177,7 +177,7 @@
         {% endif %}
         {{ field(class_=" ".join(class_list)) | safe }}
         {% if field.description %}
-            <small class="form-text text-muted uproot-formdesc">{{ field.description }}</small>
+            <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% endif %}
     {{ errors(field) }}
