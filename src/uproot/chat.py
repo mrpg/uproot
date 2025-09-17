@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from typing import Any, Optional
-from uuid import uuid4
 
 from pydantic import Field, validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
@@ -17,7 +16,7 @@ COLLISIONS: tuple[dict[str, str], dict[str, str]] = dict(), dict()
 
 class Message(metaclass=um.Entry):
     id: str = Field(
-        default_factory=lambda: str(uuid4()),
+        default_factory=t.uuid,
         exclude=True,
         repr=False,
     )
