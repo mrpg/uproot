@@ -1,7 +1,7 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from typing import Any, Iterator, Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 from pydantic import Field, validate_call
@@ -37,7 +37,7 @@ def show_msg(
     *,
     with_time: Optional[float] = None,
 ) -> dict[str, Any]:
-    pseudonyms = um.get(chat, "pseudonyms")
+    pseudonyms = um.get_field(chat, "pseudonyms")
 
     if msg.sender is not None:
         joined_pid = str(msg.sender)
@@ -80,9 +80,9 @@ def anonymize(s: str) -> str:
 @flexible
 @validate_call
 def create(session: t.SessionIdentifier) -> t.ModelIdentifier:
-    chat = um.create(session, tag="chat")
+    chat = um.create_model(session, tag="chat")
 
-    with um.model(chat) as m:
+    with um.get_storage(chat) as m:
         m.players = list()
         m.pseudonyms = dict()
 
@@ -91,12 +91,12 @@ def create(session: t.SessionIdentifier) -> t.ModelIdentifier:
 
 @validate_call
 def model(chat: t.ModelIdentifier) -> Storage:
-    return um.model(chat)
+    return um.get_storage(chat)
 
 
 @validate_call
 def players(chat: t.ModelIdentifier) -> list[t.PlayerIdentifier]:
-    return ConveniencePlayerIdentifierList(_list=um.get(chat, "players"))._list
+    return ConveniencePlayerIdentifierList(_list=um.get_field(chat, "players"))._list
 
 
 @flexible
@@ -112,16 +112,16 @@ def add_player(
 
 
 @validate_call
-def messages(chat: t.ModelIdentifier) -> Iterator[Message]:
-    return um.all(chat, as_type=Message)
+def messages(chat: t.ModelIdentifier) -> list[Message]:
+    return um.get_entries(chat, Message)
 
 
 @flexible
 @validate_call
 def add(chat: t.ModelIdentifier, msg: Message) -> None:
-    return um.add(chat, msg)
+    return um.add_raw_entry(chat, msg)
 
 
 @validate_call
 def exists(chat: t.ModelIdentifier) -> bool:
-    return um.exists(chat)
+    return um.model_exists(chat)
