@@ -4,6 +4,7 @@
 from decimal import Decimal
 from typing import Annotated, Any, Awaitable, Callable, Iterable, cast
 
+from markupsafe import Markup
 from pydantic import validate_call
 
 import uproot as u
@@ -378,5 +379,6 @@ cu = Decimal
 GroupCreatingWait = t.GroupCreatingWait
 Page = t.Page
 _p = FieldReferent()
+safe = Markup
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
