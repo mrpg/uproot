@@ -30,8 +30,8 @@
             <td></td>
             {% for subfield in field0 %}
                 <td>
-                    {% if field0.render_kw and field0.render_kw.class %}
-                        <div class="{{ field0.render_kw.class }}">
+                    {% if field0.render_kw and field0.render_kw.get("class") %}
+                        <div class="{{ field0.render_kw.get("class") }}">
                     {% else %}
                         <div class="text-body-tertiary text-center">
                     {% endif %}
@@ -64,8 +64,8 @@
     {% if field.type == "BooleanField" %}
         <div class="form-check">
             {% set class_list = ["form-check-input"] %}
-            {% if field.render_kw and field.render_kw.class %}
-                {% set _ = class_list.append(field.render_kw.class) %}
+            {% if field.render_kw and field.render_kw.get("class") %}
+                {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
             {{ field(class_=" ".join(class_list)) | safe }}
             {{ field.label(class_="form-check-label uproot-formlabel") }}
@@ -76,8 +76,8 @@
     {% elif field.type == "DecimalRangeField" %}
         {{ field.label(class_="form-label uproot-formlabel") }}
         {% set class_list = ["form-range"] %}
-        {% if field.render_kw and field.render_kw.class %}
-            {% set _ = class_list.append(field.render_kw.class) %}
+        {% if field.render_kw and field.render_kw.get("class") %}
+            {% set _ = class_list.append(field.render_kw.get("class")) %}
         {% endif %}
         {% if not field.anchoring %}
             {% set _ = class_list.append("without-anchoring") %}
@@ -90,8 +90,8 @@
         {{ field.label(class_="form-label uproot-formlabel") }}
         <div class="form-floating">
             {% set class_list = ["form-control"] %}
-            {% if field.render_kw and field.render_kw.class %}
-                {% set _ = class_list.append(field.render_kw.class) %}
+            {% if field.render_kw and field.render_kw.get("class") %}
+                {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
             {{ field(class_=" ".join(class_list)) | safe }}
             <label class="pb-0 pt-2 text-body-tertiary bg-transparent">E-Mail</label>
@@ -106,8 +106,8 @@
                 <td class="w-10"></td>
                 {% for subfield in field %}
                     <td class="text-center w-auto">
-                        {% if field.render_kw and field.render_kw.class %}
-                            <div class="{{ field.render_kw.class }}">
+                        {% if field.render_kw and field.render_kw.get("class") %}
+                            <div class="{{ field.render_kw.get("class") }}">
                         {% else %}
                             <div class="text-body-tertiary">
                         {% endif %}
@@ -134,8 +134,8 @@
         {{ field.label(class_="form-label uproot-formlabel") }}
         {% for subfield in field %}
             {% set div_class_list = ["form-check"] %}
-            {% if field.render_kw and field.render_kw.class %}
-                {% set _ = div_class_list.append(field.render_kw.class) %}
+            {% if field.render_kw and field.render_kw.get("class") %}
+                {% set _ = div_class_list.append(field.render_kw.get("class")) %}
             {% endif %}
             <div class="{{ " ".join(div_class_list) }}">
                 {{ subfield(class_="form-check-input") }}
@@ -148,8 +148,8 @@
     {% elif field.type == "SelectField" %}
         {{ field.label(class_="form-label uproot-formlabel") }}
         {% set class_list = ["form-select"] %}
-        {% if field.render_kw and field.render_kw.class %}
-            {% set _ = class_list.append(field.render_kw.class) %}
+        {% if field.render_kw and field.render_kw.get("class") %}
+            {% set _ = class_list.append(field.render_kw.get("class")) %}
         {% endif %}
         {{ field(class_=" ".join(class_list)) | safe }}
         {% if field.description %}
@@ -159,8 +159,8 @@
         {{ field.label(class_="form-label uproot-formlabel") }}
         <div class="form-floating">
             {% set class_list = ["form-control"] %}
-            {% if field.render_kw and field.render_kw.class %}
-                {% set _ = class_list.append(field.render_kw.class) %}
+            {% if field.render_kw and field.render_kw.get("class") %}
+                {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
             {{ field(class_=" ".join(class_list)) | safe }}
             <label class="pb-0 pt-2 text-body-tertiary bg-transparent">Text</label>
@@ -172,8 +172,8 @@
         {# DateField, FileField, IntegerField, DecimalField #}
         {{ field.label(class_="form-label uproot-formlabel") }}
         {% set class_list = ["form-control"] %}
-        {% if field.render_kw and field.render_kw.class %}
-            {% set _ = class_list.append(field.render_kw.class) %}
+        {% if field.render_kw and field.render_kw.get("class") %}
+            {% set _ = class_list.append(field.render_kw.get("class")) %}
         {% endif %}
         {{ field(class_=" ".join(class_list)) | safe }}
         {% if field.description %}
