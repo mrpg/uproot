@@ -263,7 +263,9 @@ def test_filter_entries_by_predicate(model_and_player):
     mod.add_entry(mid, pid, PlayerEntry, score=95.5, level="expert")
 
     # Filter by score > 80
-    high_scores = list(mod.filter_entries(mid, lambda **kwargs: kwargs["score"] > 80.0))
+    high_scores = list(
+        mod.filter_entries(mid, predicate=lambda **kwargs: kwargs["score"] > 80.0)
+    )
     assert len(high_scores) == 2
     for entry in high_scores:
         assert entry.score > 80.0
@@ -279,7 +281,9 @@ def test_filter_entries_combined(model_and_player):
 
     # Filter by level="hard" AND score > 80
     filtered = list(
-        mod.filter_entries(mid, lambda **kwargs: kwargs["score"] > 80.0, level="hard")
+        mod.filter_entries(
+            mid, predicate=lambda **kwargs: kwargs["score"] > 80.0, level="hard"
+        )
     )
     assert len(filtered) == 1
     assert filtered[0].score == 90.0
@@ -331,7 +335,7 @@ def test_filter_entries_bad_predicate(model_and_player):
         raise Exception("Predicate error")
 
     # Should not raise - bad predicates cause entries to not match
-    filtered = list(mod.filter_entries(mid, bad_predicate))
+    filtered = list(mod.filter_entries(mid, predicate=bad_predicate))
     assert len(filtered) == 0
 
 
