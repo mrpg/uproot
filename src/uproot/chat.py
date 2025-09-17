@@ -7,7 +7,7 @@ from uuid import uuid4
 from pydantic import Field, validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
 
-import uproot.model as um
+import uproot.models as um
 import uproot.types as t
 from uproot.flexibility import flexible
 from uproot.storage import Storage

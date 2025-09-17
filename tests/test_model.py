@@ -1,5 +1,5 @@
 """
-Tests for uproot.model module.
+Tests for uproot.models module.
 
 Tests the core model functionality including entry creation, model operations,
 and querying capabilities.
@@ -17,7 +17,7 @@ sys.path.insert(0, str(uproot_src))
 import uproot as u
 import uproot.core as c
 import uproot.deployment as d
-import uproot.model as mod
+import uproot.models as mod
 import uproot.storage as s
 import uproot.types as t
 
