@@ -35,7 +35,7 @@
                     {% else %}
                         <div class="text-body-tertiary text-center">
                     {% endif %}
-                    {{ subfield.label(class_="form-check-label me-0") | replace("-", "&minus;") }}
+                    {{ subfield.label(class_="form-check-label me-0") | replace("-", "−") }}
                     </div>
                 </td>
             {% endfor %}
@@ -111,7 +111,7 @@
                         {% else %}
                             <div class="text-body-tertiary">
                         {% endif %}
-                            {{ subfield.label(class_="form-check-label me-0") | replace("-", "&minus;") }}
+                            {{ subfield.label(class_="form-check-label me-0") | replace("-", "−") }}
                         </div>
                     </td>
                 {% endfor %}
