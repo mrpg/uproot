@@ -3,6 +3,7 @@
 
 import base64
 from decimal import Decimal
+from types import EllipsisType
 from typing import Annotated, Any, Awaitable, Callable, Iterable, cast
 
 from markupsafe import Markup
@@ -30,12 +31,12 @@ def live(method: Callable[..., Any]) -> Callable[..., Any]:
 
 @flexible
 def send_to_one(
-    recipient: t.PlayerIdentifier,
+    recipient: Storage,
     data: Any,
     event: str = "_uproot_Received",
 ) -> None:
     enqueue(
-        tuple(recipient),
+        tuple(~recipient),
         dict(
             source="send_to",
             data=data,
@@ -58,6 +59,17 @@ def send_to(
         raise TypeError(
             "send_to must be called with a PlayerLike or Iterable[PlayerLike]."
         )
+
+
+def notify(
+    sender: PlayerLike | Iterable[PlayerLike],
+    to: PlayerLike | Iterable[PlayerLike],
+    data: Any = None,
+    *,
+    event: str = "_uproot_Received",
+    where: int | None | EllipsisType = None,
+) -> None:
+    raise NotImplementedError  # TODO (issue #62)
 
 
 @flexible
