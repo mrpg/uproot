@@ -1,6 +1,7 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import base64
 from decimal import Decimal
 from typing import Annotated, Any, Awaitable, Callable, Iterable, cast
 
@@ -170,6 +171,25 @@ def watch_for_dropout(
     player._uproot_watch.append(triplet)
 
     u.WATCH.add((cast(t.PlayerIdentifier, ~player), *triplet))
+
+
+def data_uri(data):
+    if data.startswith(b"\xff\xd8\xff"):
+        mime_type = "image/jpeg"
+    elif data.startswith(b"\x89PNG\r\n\x1a\n"):
+        mime_type = "image/png"
+    elif data.startswith(b"GIF8"):
+        mime_type = "image/gif"
+    elif data.startswith(b"%PDF"):
+        mime_type = "application/pdf"
+    elif data.startswith(b"PK"):
+        mime_type = "application/zip"
+    elif data.startswith(b"\x00\x00\x00 ftypmp4"):
+        mime_type = "video/mp4"
+    else:
+        mime_type = "application/octet-stream"
+
+    return f"data:{mime_type};base64," + base64.b64encode(data).decode("ascii")
 
 
 class Random(t.SmoothOperator):
