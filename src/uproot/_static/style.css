@@ -153,6 +153,9 @@
 }
 /* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
 
+.likert-cell {
+    min-width: 4ch;
+}
 
 /* In-text hyperlink with gray underline that turns black on hover */
 /* See https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css */
