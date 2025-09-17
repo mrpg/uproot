@@ -123,15 +123,14 @@ def test_entry_is_immutable():
 
 
 def test_entry_with_time():
-    """Test entry with time field."""
+    """Test entry with automatic time field."""
 
     class TimedEntry(metaclass=mod.Entry):
         value: int
-        time: float
 
-    entry = TimedEntry(value=42, time=123.45)
+    entry = TimedEntry(value=42)
     assert entry.value == 42
-    assert entry.time == 123.45
+    assert entry.time is None  # Time is automatically added by metaclass
 
 
 # Add entry tests
@@ -187,13 +186,13 @@ def test_smart_add_entry_auto_mode(model_and_player):
 
 
 def test_smart_add_entry_raw_mode(model_and_player):
-    """Test smart add_entry in raw mode."""
+    """Test add_raw_entry function."""
     mid, pid = model_and_player
 
     entry = PlayerEntry(pid=pid, score=77.7, level="easy")
-    result = mod.add_entry(mid, entry)
+    result = mod.add_raw_entry(mid, entry)
 
-    assert result is None  # Raw mode returns None
+    assert result is None  # add_raw_entry returns None
 
     # Verify it was added
     entries = list(mod.get_entries(mid))
@@ -248,7 +247,7 @@ def test_filter_entries_by_field(model_and_player):
     mod.add_entry(mid, pid, PlayerEntry, score=85.0, level="hard")
 
     # Filter by level
-    hard_entries = list(mod.filter_entries(mid, level="hard"))
+    hard_entries = list(mod.filter_entries(mid, t.FrozenDottedDict, level="hard"))
     assert len(hard_entries) == 2
     for entry in hard_entries:
         assert entry.level == "hard"
@@ -264,7 +263,9 @@ def test_filter_entries_by_predicate(model_and_player):
 
     # Filter by score > 80
     high_scores = list(
-        mod.filter_entries(mid, predicate=lambda **kwargs: kwargs["score"] > 80.0)
+        mod.filter_entries(
+            mid, t.FrozenDottedDict, predicate=lambda **kwargs: kwargs["score"] > 80.0
+        )
     )
     assert len(high_scores) == 2
     for entry in high_scores:
@@ -282,7 +283,10 @@ def test_filter_entries_combined(model_and_player):
     # Filter by level="hard" AND score > 80
     filtered = list(
         mod.filter_entries(
-            mid, predicate=lambda **kwargs: kwargs["score"] > 80.0, level="hard"
+            mid,
+            t.FrozenDottedDict,
+            predicate=lambda **kwargs: kwargs["score"] > 80.0,
+            level="hard",
         )
     )
     assert len(filtered) == 1
@@ -335,7 +339,9 @@ def test_filter_entries_bad_predicate(model_and_player):
         raise Exception("Predicate error")
 
     # Should not raise - bad predicates cause entries to not match
-    filtered = list(mod.filter_entries(mid, predicate=bad_predicate))
+    filtered = list(
+        mod.filter_entries(mid, t.FrozenDottedDict, predicate=bad_predicate)
+    )
     assert len(filtered) == 0
 
 
@@ -353,7 +359,7 @@ def test_multiple_entries_performance(model_and_player):
     assert len(entries) == 100
 
     # Filter some
-    level_0_entries = list(mod.filter_entries(mid, level="level_0"))
+    level_0_entries = list(mod.filter_entries(mid, t.FrozenDottedDict, level="level_0"))
     assert len(level_0_entries) == 20  # Every 5th entry
 
 

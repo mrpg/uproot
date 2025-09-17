@@ -50,13 +50,18 @@ class Entry(type):
     ) -> Type[Any]:
         annotations = namespace.get("__annotations__", {})
 
-        if "time" not in annotations:
-            annotations["time"] = Optional[float]
-            namespace["time"] = Field(
-                default_factory=lambda: None,
-                exclude=True,
-                repr=False,
+        # Always add time field, prevent user override
+        if "time" in annotations:
+            raise ValueError(
+                f"Class {name} cannot define 'time' field - it's automatically added by Entry metaclass"
             )
+
+        annotations["time"] = Optional[float]
+        namespace["time"] = Field(
+            default_factory=lambda: None,
+            exclude=True,
+            repr=False,
+        )
 
         namespace["__annotations__"] = annotations
 
@@ -175,123 +180,64 @@ def auto_add_entry(
         raise ValueError(f"Failed to auto-add entry: {e}") from e
 
 
-@overload
 def add_entry(
     mid: ModelIdentifier,
     pid: PlayerIdentifier,
     entry_type: Any,
     **other_fields: Any,
 ) -> Any:
-    """Auto-fill identifiers and add entry."""
-    ...
-
-
-@overload
-def add_entry(
-    mid: ModelIdentifier,
-    entry: Union[dict[str, Any], Any],
-    *,
-    preserve_time: bool = False,
-) -> None:
-    """Add raw entry without auto-filling."""
-    ...
-
-
-def add_entry(
-    mid: ModelIdentifier,
-    pid_or_entry: Union[PlayerIdentifier, s.Storage, dict[str, Any], Any],
-    entry_type_or_preserve_time: Union[Any, bool] = False,
-    **other_fields_or_kwargs: Any,
-) -> Union[Any, None]:
     """
-    Add an entry to the model with smart auto-filling behavior.
+    Add an entry to the model with auto-filling of identifier fields.
 
-    This function has two modes:
-
-    1. Auto-filling mode (recommended):
-       add_entry(model_id, player_id, EntryClass, field1=value1, field2=value2)
-       - Automatically fills identifier fields based on type annotations
-       - Returns the created entry instance
-
-    2. Raw mode (for advanced use):
-       add_entry(model_id, entry_instance_or_dict, preserve_time=False)
-       - Adds entry as-is without auto-filling
-       - Returns None
+    Automatically fills identifier fields (PlayerIdentifier, SessionIdentifier,
+    GroupIdentifier, ModelIdentifier) based on type annotations in the entry class.
 
     Args:
-        mid: The model identifier
-        pid_or_entry: PlayerIdentifier (auto mode) or entry instance/dict (raw mode)
-        entry_type_or_preserve_time: Entry class (auto mode) or preserve_time flag (raw mode)
-        **other_fields_or_kwargs: Field values (auto mode) or additional kwargs (raw mode)
+        mid: The model identifier to add the entry to
+        pid: The player identifier for auto-filling
+        entry_type: The entry class to create
+        **other_fields: Additional fields to set on the entry
 
     Returns:
-        Created entry instance in auto mode, None in raw mode
+        The created entry instance
 
     Raises:
         ValueError: If entry creation or adding fails
 
-    Examples:
-        # Auto-filling mode (recommended)
+    Example:
         offer = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
-
-        # Raw mode (advanced)
-        add_entry(model_id, Offer(pid=player_id, price=100.0), preserve_time=True)
     """
-    if isinstance(pid_or_entry, s.Storage):
+    if isinstance(pid, s.Storage):
         # We don't use @flexible here because it cannot handle Unions (neither can Max)
-        pid_or_entry = ~pid_or_entry
+        pid = ~pid  # type: ignore[assignment]
 
-    # Detect which mode we're in based on the second argument
-    if isinstance(pid_or_entry, PlayerIdentifier):
-        # Auto-filling mode: pid_or_entry is PlayerIdentifier, entry_type_or_preserve_time is Type
-        return auto_add_entry(
-            mid,
-            pid_or_entry,
-            entry_type_or_preserve_time,  # type: ignore
-            **other_fields_or_kwargs,
-        )
-    else:
-        # Raw mode: pid_or_entry is the entry, entry_type_or_preserve_time might be preserve_time
-        preserve_time = (
-            bool(entry_type_or_preserve_time)
-            if isinstance(entry_type_or_preserve_time, bool)
-            else False
-        )
-        add_raw_entry(mid, pid_or_entry, preserve_time=preserve_time)
-        return None
+    return auto_add_entry(mid, pid, entry_type, **other_fields)
 
 
 @validate_call
 def add_raw_entry(
     mid: ModelIdentifier,
     entry: Union[dict[str, Any], Any],
-    *,
-    preserve_time: bool = False,
 ) -> None:
     """
     Add a raw entry to the model without auto-filling identifier fields.
 
     Use this when you need direct control over all fields or when adding
-    non-Entry objects (like plain dicts).
+    non-Entry objects (like plain dicts). The time field is always filtered out
+    since it's managed by the storage system.
 
     Args:
         mid: The model identifier to add the entry to
         entry: The entry to add (dataclass instance or dict)
-        preserve_time: Whether to preserve the time field if present
 
     Raises:
         ValueError: If entry format is invalid or adding to model fails
     """
     # Convert entry to dict format
     if hasattr(entry, "__is_pydantic_dataclass__"):
-        entry_dict = asdict(entry)
-        is_entry_instance = isinstance(type(entry), Entry)
-        time_should_be_removed = (
-            is_entry_instance and entry_dict.get("time") is None and not preserve_time
-        )
+        entry_dict = asdict(entry)  # type: ignore[arg-type]
     else:
         entry_dict = dict(entry) if not isinstance(entry, dict) else entry
-        time_should_be_removed = False
 
     # Validate entry structure
     if not pyall(isinstance(k, str) and k.isidentifier() for k in entry_dict.keys()):
@@ -304,12 +250,8 @@ def add_raw_entry(
             f"Entry keys must be valid Python identifiers. Invalid keys: {invalid_keys}"
         )
 
-    # Filter out time field if appropriate
-    filtered_entry = {
-        k: v
-        for k, v in entry_dict.items()
-        if k != "time" or preserve_time or not time_should_be_removed
-    }
+    # Always filter out time field since it's managed by the storage system
+    filtered_entry = {k: v for k, v in entry_dict.items() if k != "time"}
 
     # Store the entry
     with get_storage(mid) as storage:
@@ -319,14 +261,14 @@ def add_raw_entry(
 def _with_time(
     rawentry: dict[str, Any],
     time: Optional[float],
-    as_type: Type[T] = FrozenDottedDict,
+    as_type: Type[T] = FrozenDottedDict,  # type: ignore[assignment]
 ) -> T:
     """Create an instance with time field added."""
     return as_type(**(dict(time=time) | rawentry))
 
 
 @overload
-def get_entries(mid: ModelIdentifier) -> list[FrozenDottedDict]: ...
+def get_entries(mid: ModelIdentifier) -> list[FrozenDottedDict[Any]]: ...
 
 
 @overload
@@ -335,7 +277,7 @@ def get_entries(mid: ModelIdentifier, as_type: Type[T]) -> list[T]: ...
 
 def get_entries(
     mid: ModelIdentifier,
-    as_type: Type[T] = FrozenDottedDict,
+    as_type: Type[T] = FrozenDottedDict,  # type: ignore[assignment]
 ) -> list[T]:
     """
     Get all entries from a model.
@@ -387,26 +329,10 @@ def _entry_matches(
     return True
 
 
-@overload
-def filter_entries(
-    mid: ModelIdentifier,
-    predicate: Optional[Callable[..., bool]] = None,
-    **field_filters: Any,
-) -> list[FrozenDottedDict]: ...
-
-
-@overload
 def filter_entries(
     mid: ModelIdentifier,
     as_type: Type[T],
-    predicate: Optional[Callable[..., bool]] = None,
-    **field_filters: Any,
-) -> list[T]: ...
-
-
-def filter_entries(
-    mid: ModelIdentifier,
-    as_type: Type[T] = FrozenDottedDict,
+    *,
     predicate: Optional[Callable[..., bool]] = None,
     **field_filters: Any,
 ) -> list[T]:
@@ -415,8 +341,8 @@ def filter_entries(
 
     Args:
         mid: The model identifier
+        as_type: Type to convert entries to
         predicate: Optional callable predicate that receives entry fields as kwargs
-        as_type: Type to convert entries to (defaults to FrozenDottedDict)
         **field_filters: Field name/value pairs for exact matching
 
     Returns:
@@ -425,18 +351,22 @@ def filter_entries(
     Raises:
         ValueError: If model access fails
 
-    Example:
+    Examples:
         # Filter by field value
-        for entry in filter_entries(mid, player_id=123):
-            print(entry)
+        entries = filter_entries(mid, FrozenDottedDict, player_id=123)
 
-        # Filter by predicate (must accept **kwargs)
-        for entry in filter_entries(mid, lambda **kwargs: kwargs['score'] > 100):
-            print(entry)
+        # Filter by predicate
+        high_scores = filter_entries(
+            mid, FrozenDottedDict,
+            predicate=lambda **kwargs: kwargs['score'] > 100
+        )
 
-        # Combine both
-        for entry in filter_entries(mid, lambda **kwargs: kwargs['score'] > 100, status="active"):
-            print(entry)
+        # Combine field filter and predicate
+        active_high_scores = filter_entries(
+            mid, FrozenDottedDict,
+            predicate=lambda **kwargs: kwargs['score'] > 100,
+            status="active"
+        )
     """
     try:
         retval = []
@@ -455,7 +385,7 @@ def filter_entries(
 
 
 @overload
-def get_latest_entry(mid: ModelIdentifier) -> FrozenDottedDict: ...
+def get_latest_entry(mid: ModelIdentifier) -> FrozenDottedDict[Any]: ...
 
 
 @overload
@@ -464,7 +394,7 @@ def get_latest_entry(mid: ModelIdentifier, as_type: Type[T]) -> T: ...
 
 def get_latest_entry(
     mid: ModelIdentifier,
-    as_type: Type[T] = FrozenDottedDict,
+    as_type: Type[T] = FrozenDottedDict,  # type: ignore[assignment]
 ) -> T:
     """
     Get the most recent entry from a model.
