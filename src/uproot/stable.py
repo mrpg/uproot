@@ -1,7 +1,13 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+"""
+This file provides low-level encoding and decoding facilities. THE FUNCTIONALITY
+EXHIBITED BY THIS FILE MUST REMAIN BACKWARD COMPATIBLE EVEN ACROSS MAJOR VERSIONS.
+"""
+
 import base64
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
 
@@ -21,6 +27,9 @@ TYPES: dict[type, int] = {
     type(None): 7,  # JSON "null"
     Decimal: 8,
     frozenset: 9,
+    date: 10,
+    time: 11,
+    datetime: 12,
     t.PlayerIdentifier: 64,
     t.SessionIdentifier: 65,
     t.GroupIdentifier: 66,
@@ -63,6 +72,12 @@ def _encode(data: Any) -> tuple[int, bytes]:
             return 8, jd(str(data))
         case frozenset():
             return 9, jd(list(data))
+        case _ if isinstance(data, datetime):
+            return 12, jd(data.isoformat())
+        case _ if isinstance(data, date):
+            return 10, jd(data.isoformat())
+        case _ if isinstance(data, time):
+            return 11, jd(data.isoformat())
         case t.PlayerIdentifier():
             return 64, jd([data.sname, data.uname])
         case t.GroupIdentifier():
@@ -109,6 +124,12 @@ def _decode(typeid: int, raw: bytes) -> Any:
             return Decimal(jl(raw))
         case 9:  # frozenset
             return frozenset(jl(raw))
+        case 10:  # date
+            return date.fromisoformat(jl(raw))
+        case 11:  # time
+            return time.fromisoformat(jl(raw))
+        case 12:  # datetime
+            return datetime.fromisoformat(jl(raw))
         case 64:  # PlayerIdentifier
             sname, uname = jl(raw)
             return t.PlayerIdentifier(sname, uname)
