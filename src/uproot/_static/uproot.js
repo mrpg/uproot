@@ -518,17 +518,71 @@ window.uproot = {
         const sliders = document.querySelectorAll("input[type='range'].without-anchoring");
 
         sliders.forEach((slider) => {
-            slider.value = "";
+            // Remove the name attribute so this slider won't be submitted
+            const originalName = slider.name;
+            slider.removeAttribute("name");
 
-            // Create hidden input to track actual value
+            // Create a hidden input to track interaction
             const hiddenInput = document.createElement("input");
             hiddenInput.type = "hidden";
-            hiddenInput.name = slider.name;
+            hiddenInput.name = originalName;
             hiddenInput.value = ""; // Empty until user interacts
+            slider.insertAdjacentElement("afterend", hiddenInput);
 
-            // Change slider name so it won't be submitted
-            slider.name = slider.name + "_display";
-            slider.insertAdjacentElement('afterend', hiddenInput);
+            // Mark slider as uninteracted
+            slider.dataset.interacted = "false";
+
+            // Function to calculate step-aligned value from click position
+            const calculateSteppedValue = (clickX, sliderRect) => {
+                // Parse slider attributes with proper defaults
+                const min = parseFloat(slider.min) || 0;
+                const max = parseFloat(slider.max) || 100;
+                let step = parseFloat(slider.step);
+
+                // Handle step="any" or invalid step
+                if (isNaN(step) || step <= 0 || slider.step === "any") {
+                    step = 1; // Default step
+                }
+
+                // Handle edge case where max < min
+                if (max <= min) {
+                    return min;
+                }
+
+                // Handle zero width (shouldn't happen but be safe)
+                if (sliderRect.width <= 0) {
+                    return min;
+                }
+
+                // Calculate percentage of click position, clamped to [0,1]
+                const percentage = Math.max(0, Math.min(1, clickX / sliderRect.width));
+
+                // Calculate raw value based on percentage
+                const rawValue = min + (percentage * (max - min));
+
+                // Calculate step base according to HTML spec
+                // Step base is min if specified, otherwise 0
+                const stepBase = isNaN(parseFloat(slider.min)) ? 0 : min;
+
+                // Calculate number of steps from base
+                // Round to nearest step (HTML spec: "preferring to round numbers up when there are two equally close options")
+                const stepsFromBase = Math.round((rawValue - stepBase) / step);
+
+                // Calculate final stepped value
+                let steppedValue = stepBase + (stepsFromBase * step);
+
+                // Handle floating point precision issues
+                steppedValue = Math.round(steppedValue / step) * step;
+
+                // Ensure value is within bounds
+                steppedValue = Math.max(min, Math.min(max, steppedValue));
+
+                // Final validation: ensure the value is actually valid according to step
+                const finalStepsFromBase = Math.round((steppedValue - stepBase) / step);
+                const validatedValue = stepBase + (finalStepsFromBase * step);
+
+                return Math.max(min, Math.min(max, validatedValue));
+            };
 
             // Capture slider dimensions before hiding
             const sliderRect = slider.getBoundingClientRect();
@@ -537,39 +591,55 @@ window.uproot = {
             // Create wrapper with exact slider dimensions
             const wrapper = document.createElement("div");
             wrapper.style.cssText = `
-            position: relative;
-            display: inline-block;
-            width: ${sliderRect.width || computedStyle.width}px;
-            height: ${sliderRect.height || computedStyle.height}px;
-        `;
+                position: relative;
+                display: inline-block;
+                width: ${sliderRect.width || computedStyle.width}px;
+                height: ${sliderRect.height || computedStyle.height}px;
+            `;
 
             // Insert wrapper before slider and move slider into wrapper
             slider.parentNode.insertBefore(wrapper, slider);
             wrapper.appendChild(slider);
 
+            // Create overlay to hide slider and capture clicks
             const overlay = document.createElement("div");
             overlay.classList.add("without-anchoring-overlay");
 
+            // Hide slider initially and reset width
+            slider.style.display = "none";
+            slider.classList.remove("w-50");
+
+            // Add overlay click handler
             overlay.addEventListener("click", (e) => {
                 const rect = overlay.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
-                const percentage = clickX / rect.width;
+                const steppedValue = calculateSteppedValue(clickX, rect);
 
-                const min = parseFloat(slider.min) || 0;
-                const max = parseFloat(slider.max) || 100;
-                const value = min + (percentage * (max - min));
+                // Set the calculated step-aligned value
+                slider.value = steppedValue;
+                slider.dataset.interacted = "true";
+                hiddenInput.value = steppedValue;
 
-                slider.value = value;
-                hiddenInput.value = value; // Set the value that will be submitted
-                slider.dispatchEvent(new Event("input", { bubbles: true }));
-                slider.dispatchEvent(new Event("change", { bubbles: true }));
-
+                // Remove overlay and reveal slider
                 overlay.remove();
                 slider.style.display = "block";
+
+                // Dispatch events for consistency
+                slider.dispatchEvent(new Event("input", { bubbles: true }));
+                slider.dispatchEvent(new Event("change", { bubbles: true }));
             });
 
-            slider.style.display = "none";
+            // Add overlay to wrapper
             wrapper.appendChild(overlay);
+
+            // Add event listeners to track further direct interaction and update hidden input
+            const handleDirectInteraction = () => {
+                slider.dataset.interacted = "true";
+                hiddenInput.value = slider.value;
+            };
+
+            slider.addEventListener("input", handleDirectInteraction);
+            slider.addEventListener("change", handleDirectInteraction);
         });
     },
 

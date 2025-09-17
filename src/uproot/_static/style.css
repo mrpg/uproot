@@ -269,12 +269,13 @@ input[type="radio"].form-check-input {
 }
 
 div.without-anchoring-overlay {
+    background: rgba(0, 100, 255, 0.7);
+    border-radius: inherit;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 100, 255, 0.7);
     cursor: pointer;
     z-index: 10;
 }
