@@ -82,13 +82,13 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
         if step is not None:
             kwargs.setdefault("render_kw", {})["step"] = step
 
+        self.anchoring = anchoring
+
         super().__init__(
             label=label,
             validators=v,
             **kwargs,
         )
-
-        self.anchoring = anchoring
 
 
 class EmailField(wtforms.fields.EmailField):
@@ -175,16 +175,17 @@ class LikertField(wtforms.fields.RadioField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
+        self.min = min
+        self.max = max
+        self.label_min = label_min
+        self.label_max = label_max
+
         super().__init__(
             label=label,
             choices=choices,
             validators=v,
             **kwargs,
         )
-        self.min = min
-        self.max = max
-        self.label_min = label_min
-        self.label_max = label_max
 
 
 class RadioField(wtforms.fields.RadioField):

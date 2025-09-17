@@ -79,7 +79,7 @@
         {% if field.render_kw and field.render_kw.get("class") %}
             {% set _ = class_list.append(field.render_kw.get("class")) %}
         {% endif %}
-        {% if not field.anchoring %}
+        {% if field.__module__ == "uproot.fields" and not field.anchoring %}
             {% set _ = class_list.append("without-anchoring") %}
         {% endif %}
         {{ field(class_=" ".join(class_list)) | safe }}
