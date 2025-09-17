@@ -274,9 +274,9 @@ class PostgreSQL(DBDriver):
                     )
                     """
                 )
-                # Create unique index for efficient upserts on players field
+                # Create unique index for efficient upserts on players field in session namespaces
                 cur.execute(
-                    f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players'"
+                    f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players' AND namespace LIKE 'session/%'"
                 )
 
     def dump(self) -> Iterator[bytes]:
@@ -548,9 +548,9 @@ class Sqlite3(DBDriver):
                 )
                 """
             )
-            # Create unique index for efficient upserts on players field
+            # Create unique index for efficient upserts on players field in session namespaces
             conn.execute(
-                f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players'"
+                f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players' AND namespace LIKE 'session/%'"
             )
             conn.commit()
 
