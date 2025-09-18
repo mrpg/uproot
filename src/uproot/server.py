@@ -116,13 +116,8 @@ def post_app_import(app: Any) -> Any:
     appname = app.__name__
 
     ensure(
-        not hasattr(app, "C") or isinstance(app.C, type),
-        TypeError,
-        f"'C' must be a class (app {appname})",
-    )
-    ensure(
         not hasattr(app, "Constants"),
-        TypeError,
+        AttributeError,
         f"Use 'C' instead of 'Constants' (app {appname})",
     )
 
