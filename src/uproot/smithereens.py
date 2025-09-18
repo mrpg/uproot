@@ -34,42 +34,53 @@ def send_to_one(
     recipient: Storage,
     data: Any,
     event: str = "_uproot_Received",
+    *,
+    where: int | EllipsisType = ...,
 ) -> None:
-    enqueue(
-        tuple(~recipient),
-        dict(
-            source="send_to",
-            data=data,
-            event=event,
-        ),
-    )
+    ensure(where is ... or isinstance(where, int), ValueError)
+
+    if where is ... or recipient.show_page == where:
+        enqueue(
+            tuple(~recipient),
+            dict(
+                source="send_to",
+                data=data,
+                event=event,
+            ),
+        )
 
 
 def send_to(
     recipient: PlayerLike | Iterable[PlayerLike],
     data: Any,
     event: str = "_uproot_Received",
+    *,
+    where: int | EllipsisType = ...,
 ) -> None:
     if is_player_like(recipient):
-        send_to_one(recipient, data, event)
+        send_to_one(recipient, data, event, where=where)
     elif isinstance(recipient, Iterable):
         for one_recipient in recipient:  # type: ignore[union-attr]
-            send_to_one(one_recipient, data, event)
+            send_to_one(one_recipient, data, event, where=where)
     else:
         raise TypeError(
             "send_to must be called with a PlayerLike or Iterable[PlayerLike]."
         )
 
 
+@flexible
 def notify(
-    sender: PlayerLike | Iterable[PlayerLike],
+    sender: Storage,
     to: PlayerLike | Iterable[PlayerLike],
     data: Any = None,
     *,
     event: str = "_uproot_Received",
     where: int | None | EllipsisType = None,
 ) -> None:
-    raise NotImplementedError  # TODO (issue #62)
+    if where is None:
+        where = sender.show_page
+
+    return send_to(recipient=to, data=data, event=event, where=where)
 
 
 @flexible
