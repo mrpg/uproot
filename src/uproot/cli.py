@@ -118,11 +118,15 @@ def restore(ctx: click.Context, file: str, yes: bool) -> None:
 
 # fmt: off
 @click.command(help="Create new app")
+@click.option("--minimal", is_flag=True, help="Create a minimal app.")
 @click.argument("app")
 @click.pass_context
 # fmt: on
-def new(ctx: click.Context, app: str) -> None:
-    ex.setup_mere_app(Path("."), app)
+def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
+    if minimal:
+        ex.new_minimal_app(Path("."), app)
+    else:
+        ex.new_prisoners_dilemma(Path("."), app)
 
 
 # fmt: off

@@ -21,7 +21,9 @@ def forward(args: list[str], command: Optional[str] = None) -> None:
     sys.exit(subprocess.call(cmd))
 
 
-def setup_command(path: str, force: bool = False, no_example: bool = False) -> None:
+def setup_command(
+    path: str, force: bool = False, no_example: bool = False, minimal: bool = False
+) -> None:
     path_ = Path(path)
 
     if (path_ / "main.py").is_file() and not force:
@@ -29,10 +31,13 @@ def setup_command(path: str, force: bool = False, no_example: bool = False) -> N
         sys.exit(1)
     else:
         path_.mkdir(exist_ok=True)
-        ex.setup_mere_project(path_)
+        ex.setup_empty_project(path_, minimal)
 
         if not no_example:
-            ex.setup_mere_app(path_)
+            if minimal:
+                ex.new_minimal_app(path_)
+            else:
+                ex.new_prisoners_dilemma(path_)
 
         print("📂 A new project has been created in '" + path + "'.")
         print("✅ 'main.py' and some other files have been written.")
@@ -74,6 +79,9 @@ def main() -> None:
     setup_parser.add_argument("path")
     setup_parser.add_argument("--force", action="store_true", help="Skip checks.")
     setup_parser.add_argument(
+        "--minimal", action="store_true", help="Create a minimal example app."
+    )
+    setup_parser.add_argument(
         "--no-example", action="store_true", help="Don't create example app."
     )
 
@@ -87,7 +95,7 @@ def main() -> None:
     elif args.help:
         forward(sys.argv[1:])
     elif args.command == "setup":
-        setup_command(args.path, args.force, args.no_example)
+        setup_command(args.path, args.force, args.no_example, args.minimal)
     elif args.command in ["deployment", "dump", "new", "reset", "restore", "run"]:
         forward(unknown, args.command)
     else:

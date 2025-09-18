@@ -68,7 +68,7 @@ upd.project_metadata(created="#TODAY#", uproot="#VERSION#")
 # Load your app configs here
 # Examples are available at https://github.com/mrpg/uproot-examples
 
-load_config(uproot_server, config="my_config", apps=["prisoners_dilemma"])
+load_config(uproot_server, config="study01", apps=["#EXAMPLE#"])
 
 # Create admin
 
@@ -94,7 +94,54 @@ if __name__ == "__main__":
     cli()
 """.lstrip()
 
-APP_TEMPLATE = '''
+MINIMAL_INIT_PY = '''
+"""
+Copyright (c) 2025 [Insert Your Name Here] - MIT License
+
+Third-party dependencies:
+- uproot: LGPL v3+, see ../uproot_license.txt
+
+Docs are available at https://uproot.science/
+Examples are available at https://github.com/mrpg/uproot-examples
+"""
+
+from uproot.fields import *
+from uproot.smithereens import *
+
+
+DESCRIPTION = ""
+LANDING_PAGE = False
+
+
+class C:
+    pass
+
+
+class FirstPage(Page):
+    pass
+
+
+page_order = [
+    FirstPage,
+]
+'''.lstrip()
+
+FIRSTPAGE_HTML = """
+{% extends "Base.html" %}
+
+{% block title %}
+First page
+{% endblock title %}
+
+
+{% block main %}
+
+<p>… or isn’t <i>more</i> more?</p>
+
+{% endblock main %}
+""".lstrip()
+
+PD_INIT_PY = '''
 """
 Copyright (c) 2025 [Insert Your Name Here] - MIT License
 
@@ -209,7 +256,7 @@ Results
 """.lstrip()
 
 
-def setup_mere_project(path: Path) -> None:
+def setup_empty_project(path: Path, minimal: bool) -> None:
     mainpath = path / "main.py"
     staticdir = path / "_static"
 
@@ -218,6 +265,7 @@ def setup_mere_project(path: Path) -> None:
             PROJECT_TEMPLATE.replace("#PASSWORD#", t.token_unchecked(18))
             .replace("#VERSION#", u.__version__)
             .replace("#TODAY#", date.today().strftime("%Y-%m-%d"))
+            .replace("#EXAMPLE#", "my_app" if minimal else "prisoners_dilemma")
         )
         mf.write(template)
 
@@ -237,7 +285,7 @@ def setup_mere_project(path: Path) -> None:
     shutil.copy(LICENSE_PATH, path / "uproot_license.txt")
 
 
-def setup_mere_app(path: Path, app: str = "prisoners_dilemma") -> None:
+def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
     ensure(
         app.isidentifier(),
         ValueError,
@@ -249,10 +297,28 @@ def setup_mere_app(path: Path, app: str = "prisoners_dilemma") -> None:
     (appdir / "_static").mkdir(exist_ok=False)
 
     with open(appdir / "__init__.py", "w", encoding="utf-8") as f1:
-        f1.write(APP_TEMPLATE)
+        f1.write(PD_INIT_PY)
 
     with open(appdir / "Dilemma.html", "w", encoding="utf-8") as f2:
         f2.write(DILEMMA_HTML)
 
     with open(appdir / "Results.html", "w", encoding="utf-8") as f3:
         f3.write(RESULTS_HTML)
+
+
+def new_minimal_app(path: Path, app: str = "my_app") -> None:
+    ensure(
+        app.isidentifier(),
+        ValueError,
+        "Apps must have valid Python identifiers as names.",
+    )
+    appdir = path / app
+
+    appdir.mkdir(exist_ok=False)
+    (appdir / "_static").mkdir(exist_ok=False)
+
+    with open(appdir / "__init__.py", "w", encoding="utf-8") as f1:
+        f1.write(MINIMAL_INIT_PY)
+
+    with open(appdir / "FirstPage.html", "w", encoding="utf-8") as f2:
+        f2.write(FIRSTPAGE_HTML)
