@@ -151,12 +151,12 @@ def post_app_import(app: Any) -> Any:
 
     # Demarcate beginning of new app and set player.app
     ensure(
-        not hasattr(app, "NextApp") or getattr(app.NextApp, "__injected__", False),
+        not hasattr(app, "StartApp") or getattr(app.StartApp, "__injected__", False),
         TypeError,
-        f"'NextApp' is a reserved Page name (app {appname})",
+        f"'StartApp' is a reserved Page name (app {appname})",
     )
 
-    class NextApp(InternalPage):
+    class StartApp(InternalPage):
         __injected__ = True
         __module__ = appname
 
@@ -164,8 +164,8 @@ def post_app_import(app: Any) -> Any:
         def after_always_once(page, player: Storage) -> None:
             player.app = appname
 
-    app.NextApp = NextApp
-    app.page_order.insert(0, app.NextApp)
+    app.StartApp = StartApp
+    app.page_order.insert(0, app.StartApp)
 
 
 @validate_call(config=dict(arbitrary_types_allowed=True))
