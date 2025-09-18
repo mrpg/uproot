@@ -21,7 +21,6 @@ import uproot.deployment as d
 import uproot.i18n as i18n
 from uproot.constraints import ensure
 from uproot.storage import Storage
-from uproot.storage import within as s_within
 from uproot.types import (
     InternalPage,
     Page,
@@ -38,10 +37,7 @@ BUILTINS = {
     fname: getattr(builtins, fname)
     for fname in dir(builtins)
     if callable(getattr(builtins, fname))
-} | dict(
-    within=s_within,
-    along=s_within.along,
-)
+}
 
 ENV = Environment(
     loader=i18n.TranslateLoader(
