@@ -235,10 +235,6 @@ footer {
     margin: 0;
     padding: 0;
 }
-#data {
-    margin-top: 1em;
-    text-align: left;
-}
 
 input[type="radio"].form-check-input {
     border-color: var(--bs-gray-500);
