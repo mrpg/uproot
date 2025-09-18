@@ -33,6 +33,7 @@ from fastapi import (
 )
 from fastapi.responses import (
     HTMLResponse,
+    PlainTextResponse,
     RedirectResponse,
     Response,
     StreamingResponse,
@@ -847,6 +848,16 @@ async def dump(
         media_type="application/msgpack",
         headers={"Content-Disposition": "attachment; filename=uproot.msgpack"},
     )
+
+
+# Dummy route (for benchmarking)
+
+
+@router.get("/dummy/")
+async def dummy(
+    request: Request,
+) -> PlainTextResponse:
+    return PlainTextResponse("Ecce, præceptor œconomiae!")
 
 
 # Functions
