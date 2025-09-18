@@ -649,16 +649,14 @@ async def sessionmain(
     a.session_exists(sname)
 
     with Session(sname) as session:
-        # TODO: Eliminate use of session.get()
-
         return HTMLResponse(
             await render(
                 "Session.html",
                 dict(
                     sname=sname,
-                    description=session.get("description"),
-                    room=session.get("room"),
-                    secret=session.get("_uproot_secret"),
+                    description=session.description,
+                    room=session.room,
+                    secret=session._uproot_secret,
                     active=session.active,
                 )
                 | a.info_online(sname),
