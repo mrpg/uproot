@@ -13,6 +13,7 @@ import importlib.metadata
 import os
 import sys
 from itertools import zip_longest
+from pathlib import Path
 from random import shuffle
 from time import perf_counter as now
 from typing import Any, Optional, cast
@@ -709,6 +710,36 @@ async def session_data_download(
         )
     else:
         raise NotImplementedError
+
+
+# Particular session: digests
+@router.get("/session/{sname}/digest/{appname}/")
+async def session_data(
+    request: Request,
+    sname: t.Sessionname,
+    appname: str,
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.session_exists(sname)
+    ensure(appname.isidentifier(), TypeError, "Invalid app")
+
+    with Session(sname) as session:
+        ensure(
+            appname in session.apps,
+            ValueError,
+            f"App {appname} not used in session",
+        )
+
+    digest_template = Path(".") / appname / "AdminDigest.html"
+    ensure(
+        digest_template.exists(),
+        RuntimeError,
+        f"App {appname} has no AdminDigest.html",
+    )
+
+    raise NotImplementedError  # TODO
+
+    # return HTMLResponse(await render("SessionDigest.html", dict(sname=sname, appname=appname)))
 
 
 # Particular session: view data
