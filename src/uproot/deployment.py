@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 logging.basicConfig(level=logging.INFO)
 
 ADMINS: dict[str, str] = dict()
+API_KEYS: set[str] = set()
 DATABASE: uproot.drivers.DBDriver = uproot.drivers.Memory()
 DBENV: str = os.getenv("UPROOT_DATABASE", "sqlite3")
 DEFAULT_ROOMS: list["RoomType"] = list()

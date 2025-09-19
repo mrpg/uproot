@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any, AsyncGenerator, Callable, Iterator, Optional, cast
 
 import aiohttp
-from fastapi import HTTPException
+from fastapi import Header, HTTPException
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sortedcontainers import SortedDict
 
@@ -609,6 +609,39 @@ def verify_auth_token(user: str, token: str) -> Optional[str]:
         return user
     except (BadSignature, SignatureExpired, Exception):
         return None
+
+
+def verify_bearer_token(authorization: Optional[str]) -> bool:
+    """Verify a Bearer token from the Authorization header.
+
+    Args:
+        authorization: The Authorization header value (e.g., "Bearer <token>")
+
+    Returns:
+        True if the token is valid, False otherwise
+    """
+    if not authorization:
+        return False
+
+    # Check if it starts with "Bearer "
+    if not authorization.startswith("Bearer "):
+        return False
+
+    # Extract the token
+    token = authorization[7:]  # Remove "Bearer " prefix
+
+    # Check if the token is in the API_KEYS set
+    return token in d.API_KEYS
+
+
+def require_bearer_token(authorization: Optional[str] = Header(None)) -> None:
+    """FastAPI dependency that validates Bearer token from Authorization header.
+
+    Raises:
+        HTTPException: 401 if authentication fails
+    """
+    if not verify_bearer_token(authorization):
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 async def viewdata(

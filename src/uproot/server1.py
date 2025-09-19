@@ -70,14 +70,18 @@ async def index(request: Request) -> RedirectResponse:
 
 
 @router.post("/enqueue/{queue:path}")
-async def enqueue(request: q.EntryRequest, queue: str) -> dict[str, Any]:
+async def enqueue(
+    request: Request,
+    queue: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
     path = tuple(queue.strip("/").split("/"))
 
-    # TODO: Use Bearer authentication
-    if not q.is_authorized(path, request.credential):
-        raise HTTPException(status_code=403, detail="Bad credential")
+    # Parse request body
+    body = await request.json()
+    entry = body.get("entry")
 
-    path, u = q.enqueue(path, request.entry)
+    path, u = q.enqueue(path, entry)
 
     return {
         "status": "enqueued",
@@ -773,9 +777,8 @@ async def app_queries(
     request: Request,
     appname: str,
     sname: t.Sessionname,
+    bauth: None = Depends(a.require_bearer_token),
 ) -> ORJSONResponse:
-    # TODO: Use Bearer authentication
-
     if appname not in u.APPS:
         raise HTTPException(status_code=400, detail="Invalid app")
 
