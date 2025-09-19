@@ -73,6 +73,7 @@ async def index(request: Request) -> RedirectResponse:
 async def enqueue(request: q.EntryRequest, queue: str) -> dict[str, Any]:
     path = tuple(queue.strip("/").split("/"))
 
+    # TODO: Use Bearer authentication
     if not q.is_authorized(path, request.credential):
         raise HTTPException(status_code=403, detail="Bad credential")
 
@@ -596,7 +597,8 @@ async def ws(
                                             f"{live_method} must be decorated with @live"
                                         )
                                     else:
-                                        invoke_response = await live_method(
+                                        invoke_response = await maybe_await(
+                                            live_method,
                                             player,
                                             *margs,
                                             **mkwargs,
@@ -772,6 +774,8 @@ async def app_queries(
     appname: str,
     sname: t.Sessionname,
 ) -> ORJSONResponse:
+    # TODO: Use Bearer authentication
+
     if appname not in u.APPS:
         raise HTTPException(status_code=400, detail="Invalid app")
 

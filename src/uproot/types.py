@@ -501,22 +501,41 @@ class Page(metaclass=FrozenPage):
             return to_sec
 
 
-def timed(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
-    @functools.wraps(func)  # Preserves metadata
-    async def wrapper(*args: Any, **kwargs: Any) -> Any:
-        t0 = now()
-        result = await func(*args, **kwargs)
+def timed(func: Callable[..., Any]) -> Callable[..., Any]:
+    if asyncio.iscoroutinefunction(func):
 
-        if (t := now() - t0) > 0.01:
-            import uproot.deployment as d
+        @functools.wraps(func)
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+            t0 = now()
+            result = await func(*args, **kwargs)
 
-            d.LOGGER.warning(
-                f"{func.__module__}.{func.__name__} is slow (took {t:.3f} seconds)"
-            )
+            if (t := now() - t0) > 0.01:
+                import uproot.deployment as d
 
-        return result
+                d.LOGGER.warning(
+                    f"{func.__module__}.{func.__name__} is slow (took {t:.3f} seconds)"
+                )
 
-    return wrapper
+            return result
+
+        return async_wrapper
+    else:
+
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            t0 = now()
+            result = func(*args, **kwargs)
+
+            if (t := now() - t0) > 0.01:
+                import uproot.deployment as d
+
+                d.LOGGER.warning(
+                    f"{func.__module__}.{func.__name__} is slow (took {t:.3f} seconds)"
+                )
+
+            return result
+
+        return sync_wrapper
 
 
 def internal_live(method: Callable[..., Any]) -> Callable[..., Any]:
