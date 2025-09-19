@@ -715,7 +715,7 @@ async def session_data_download(
 
 # Particular session: digests
 @router.get("/session/{sname}/digest/{appname}/")
-async def session_data(
+async def session_digest(
     request: Request,
     sname: t.Sessionname,
     appname: str,

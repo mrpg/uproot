@@ -196,7 +196,7 @@ def watch_for_dropout(
     u.WATCH.add((cast(t.PlayerIdentifier, ~player), *triplet))
 
 
-def data_uri(data):
+def data_uri(data: bytes) -> str:
     if data.startswith(b"\xff\xd8\xff"):
         mime_type = "image/jpeg"
     elif data.startswith(b"\x89PNG\r\n\x1a\n"):
