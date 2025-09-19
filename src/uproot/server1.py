@@ -26,7 +26,13 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    ORJSONResponse,
+    RedirectResponse,
+    Response,
+)
 from starlette.datastructures import UploadFile
 
 import uproot as u
@@ -757,3 +763,28 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     }
 
     return FileResponse(target_path, headers=headers)
+
+
+@router.get("/api/{appname}/{sname}/")
+@router.post("/api/{appname}/{sname}/")
+async def app_queries(
+    request: Request,
+    appname: str,
+    sname: t.Sessionname,
+) -> ORJSONResponse:
+    if appname not in u.APPS:
+        raise HTTPException(status_code=400, detail="Invalid app")
+
+    if not hasattr(u.APPS[appname], "api"):
+        raise HTTPException(status_code=400, detail="App has no api()")
+
+    a.session_exists(sname)
+
+    with Session(sname) as session:
+        return ORJSONResponse(
+            await maybe_await(
+                u.APPS[appname].api,
+                request=request,
+                session=session,
+            )
+        )
