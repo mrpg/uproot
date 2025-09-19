@@ -326,16 +326,16 @@ class TestContextManagerSemantics:
         # All should require context manager for access
         player = pid()
 
-        with pytest.raises(ValueError, match="context manager"):
+        with pytest.raises(TypeError, match="context manager"):
             _ = player.list_val
 
-        with pytest.raises(ValueError, match="context manager"):
+        with pytest.raises(TypeError, match="context manager"):
             _ = player.dict_val
 
-        with pytest.raises(ValueError, match="context manager"):
+        with pytest.raises(TypeError, match="context manager"):
             _ = player.set_val
 
-        with pytest.raises(ValueError, match="context manager"):
+        with pytest.raises(TypeError, match="context manager"):
             _ = player.bytearray_val
 
     def test_nested_context_manager_prevention(self):

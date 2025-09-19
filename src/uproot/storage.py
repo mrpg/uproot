@@ -175,13 +175,15 @@ class Storage:
         # Track the originally assigned value to detect post-assignment modifications
         self.__assigned_values__[name] = safe_deepcopy(newval)
 
-    def __guarded_return__(self, value: Any) -> Any:
-        if isinstance(value, IMMUTABLE_TYPES) or self.__allow_mutable__:
-            return value
-        else:
-            raise ValueError(
-                f"This {repr(self)} must be wrapped in a context manager (use 'with')."
-            )
+    def __guarded_return__(self, name: str, value: Any) -> Any:
+        ensure(
+            isinstance(value, IMMUTABLE_TYPES) or self.__allow_mutable__,
+            TypeError,
+            f"This {repr(self)} must be wrapped in a context manager (use 'with') "
+            f"because the field '{name}' is of a mutable type ({type(value).__name__}).",
+        )
+
+        return value
 
     def __getattribute__(self, name: str) -> Any:
         if name in ("name", "flush", "get") or (
@@ -198,7 +200,7 @@ class Storage:
 
         # Check if we have a cached copy of this field
         if name in field_cache:
-            return self.__guarded_return__(field_cache[name])
+            return self.__guarded_return__(name, field_cache[name])
 
         try:
             value = db_request(self, "get", name)
@@ -207,7 +209,7 @@ class Storage:
             # For deep modification detection, store a copy of the original only on first access
             if name not in accessed_fields:
                 accessed_fields[name] = safe_deepcopy(value)
-            return self.__guarded_return__(value)
+            return self.__guarded_return__(name, value)
         except NameError as e:
             raise AttributeError(f"{self} has no .{name}") from e
 
