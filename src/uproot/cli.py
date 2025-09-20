@@ -8,7 +8,9 @@ import shutil
 import sys
 import time
 import zipfile
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Any, Generator
 
 import aiohttp
 import click
@@ -18,6 +20,31 @@ import uproot.deployment as d
 import uproot.examples as ex
 
 sys.argv[0] = "uproot"
+
+
+@contextmanager
+def confirmation(action: str, ctx: click.Context, yes: bool = False) -> Generator[Any]:
+    """Context manager for dangerous operations requiring confirmation."""
+    if not yes:
+        user_says = input(f"Please type YES to {action}: ")
+
+        if user_says != "YES":
+            click.echo("Aborting.")
+            if ctx:
+                ctx.exit(1)
+            else:
+                sys.exit(1)
+
+        for i in range(3):
+            # We are nice
+            print(f"{3-i}...")
+            time.sleep(1)
+
+    try:
+        yield
+    finally:
+        if not yes:
+            click.echo("Done.")
 
 
 def set_ulimit() -> None:
@@ -36,26 +63,6 @@ def set_ulimit() -> None:
             resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
         except (OSError, ValueError):
             pass
-
-
-def do_reset(ctx: click.Context, yes: bool) -> None:
-    if not yes:
-        user_says = input("Please type YES to reset the database: ")
-
-        if user_says != "YES":
-            click.echo("Aborting.")
-            ctx.exit(1)
-
-        for i in range(3):
-            # we are nice
-            print(f"{3-i}...")
-            time.sleep(1)
-
-    d.DATABASE.reset()
-    d.DATABASE.close()
-
-    if not yes:
-        click.echo("Database was reset.")
 
 
 async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
@@ -138,7 +145,9 @@ def run(ctx: click.Context, host: str, port: int) -> None:
 @click.pass_context
 # fmt: on
 def reset(ctx: click.Context, yes: bool) -> None:
-    return do_reset(ctx, yes)
+    with confirmation("reset the database", ctx, yes):
+        d.DATABASE.reset()
+        d.DATABASE.close()
 
 
 # fmt: off
@@ -159,7 +168,9 @@ def dump(ctx: click.Context, file: str) -> None:
 @click.pass_context
 # fmt: on
 def restore(ctx: click.Context, file: str, yes: bool) -> None:
-    do_reset(ctx, yes)
+    with confirmation("reset the database", ctx, yes):
+        d.DATABASE.reset()
+        d.DATABASE.close()
 
     with open(file, "rb") as f:
         d.DATABASE.restore(f)
