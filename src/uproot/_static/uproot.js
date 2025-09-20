@@ -245,6 +245,7 @@ window.uproot = {
         event.data.text().then(rawJson => {
             const msg = Object.assign({ received: Date.now() }, JSON.parse(rawJson));
             const kind = msg.kind, payload = msg.payload;
+            const currentPage = this.vars?._uproot_internal?.thisis || null;
 
             if (kind === undefined || payload === undefined) {
                 /* all server msgs need to have a kind and a payload */
@@ -288,7 +289,9 @@ window.uproot = {
                 window.dispatchEvent(ev);
             }
             else if (kind == "queue") {
-                this.queueDispatch(payload.u, payload.entry);
+                if (!("constraint" in payload.entry) || payload.entry.constraint === null || payload.entry.constraint == currentPage) {
+                    this.queueDispatch(payload.u, payload.entry);
+                }
             }
         });
     },

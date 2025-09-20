@@ -90,6 +90,7 @@ def send_to_one(
             tuple(~recipient),
             dict(
                 source="send_to",
+                constraint=None if where is ... else where,
                 data=data,
                 event=event,
             ),
