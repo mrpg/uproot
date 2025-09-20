@@ -10,6 +10,7 @@ import base64
 from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 from orjson import dumps as jd
 from orjson import loads as jl
@@ -30,6 +31,7 @@ TYPES: dict[type, int] = {
     date: 10,
     time: 11,
     datetime: 12,
+    UUID: 13,
     t.PlayerIdentifier: 64,
     t.SessionIdentifier: 65,
     t.GroupIdentifier: 66,
@@ -78,6 +80,8 @@ def _encode(data: Any) -> tuple[int, bytes]:
             return 10, jd(data.isoformat())
         case _ if isinstance(data, time):
             return 11, jd(data.isoformat())
+        case UUID():
+            return 13, jd(base64.b64encode(data.bytes).decode("ascii"))
         case t.PlayerIdentifier():
             return 64, jd([data.sname, data.uname])
         case t.GroupIdentifier():
@@ -130,6 +134,8 @@ def _decode(typeid: int, raw: bytes) -> Any:
             return time.fromisoformat(jl(raw))
         case 12:  # datetime
             return datetime.fromisoformat(jl(raw))
+        case 13:  # UUID
+            return UUID(bytes=base64.b64decode(jl(raw).encode("ascii")))
         case 64:  # PlayerIdentifier
             sname, uname = jl(raw)
             return t.PlayerIdentifier(sname, uname)

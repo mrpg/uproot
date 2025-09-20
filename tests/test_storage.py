@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import NAMESPACE_DNS, UUID, uuid1, uuid3, uuid4, uuid5
 
 import uproot as u
 import uproot.core as c
@@ -226,3 +227,174 @@ def test_bunch():
         # Check all elements are PlayerIdentifiers
         for elem in result:
             assert type(elem) is t.PlayerIdentifier
+
+
+def test_uuid_v1():
+    """Test UUID version 1 (MAC address and timestamp based)"""
+    original_uuid = uuid1()
+    pid().uuid_v1 = original_uuid
+
+    with pid() as player:
+        result = player.uuid_v1
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.version == 1
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_v3():
+    """Test UUID version 3 (MD5 hash based)"""
+    original_uuid = uuid3(NAMESPACE_DNS, "example.com")
+    pid().uuid_v3 = original_uuid
+
+    with pid() as player:
+        result = player.uuid_v3
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.version == 3
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_v4():
+    """Test UUID version 4 (random)"""
+    original_uuid = uuid4()
+    pid().uuid_v4 = original_uuid
+
+    with pid() as player:
+        result = player.uuid_v4
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.version == 4
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_v5():
+    """Test UUID version 5 (SHA-1 hash based)"""
+    original_uuid = uuid5(NAMESPACE_DNS, "example.com")
+    pid().uuid_v5 = original_uuid
+
+    with pid() as player:
+        result = player.uuid_v5
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.version == 5
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_from_string():
+    """Test UUID created from string"""
+    uuid_str = "550e8400-e29b-41d4-a716-446655440000"
+    original_uuid = UUID(uuid_str)
+    pid().uuid_from_str = original_uuid
+
+    with pid() as player:
+        result = player.uuid_from_str
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_from_bytes():
+    """Test UUID created from bytes"""
+    uuid_bytes = b"\x55\x0e\x84\x00\xe2\x9b\x41\xd4\xa7\x16\x44\x66\x55\x44\x00\x00"
+    original_uuid = UUID(bytes=uuid_bytes)
+    pid().uuid_from_bytes = original_uuid
+
+    with pid() as player:
+        result = player.uuid_from_bytes
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert result.bytes == uuid_bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_from_hex():
+    """Test UUID created from hex"""
+    uuid_hex = "550e8400e29b41d4a716446655440000"
+    original_uuid = UUID(hex=uuid_hex)
+    pid().uuid_from_hex = original_uuid
+
+    with pid() as player:
+        result = player.uuid_from_hex
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_from_int():
+    """Test UUID created from integer"""
+    uuid_int = 113059749145936325711455712000
+    original_uuid = UUID(int=uuid_int)
+    pid().uuid_from_int = original_uuid
+
+    with pid() as player:
+        result = player.uuid_from_int
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert result.int == uuid_int
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_nil():
+    """Test nil UUID (all zeros)"""
+    original_uuid = UUID("00000000-0000-0000-0000-000000000000")
+    pid().uuid_nil = original_uuid
+
+    with pid() as player:
+        result = player.uuid_nil
+
+    assert result == original_uuid
+    assert type(result) is UUID
+    assert result.variant == original_uuid.variant
+    assert result.bytes == original_uuid.bytes
+    assert str(result) == str(original_uuid)
+
+
+def test_uuid_variant_preservation():
+    """Test that different UUID variants are preserved"""
+    # Create UUIDs with different variants by manipulating bytes
+    variants_to_test = [
+        # Standard RFC 4122 variant
+        UUID("550e8400-e29b-41d4-a716-446655440000"),  # variant 2 (10 binary)
+        # Microsoft GUID variant (variant 1 - 0 binary)
+        UUID(bytes=b"\x55\x0e\x84\x00\xe2\x9b\x41\xd4\x27\x16\x44\x66\x55\x44\x00\x00"),
+        # Reserved variant (variant 3 - 11 binary)
+        UUID(bytes=b"\x55\x0e\x84\x00\xe2\x9b\x41\xd4\xf7\x16\x44\x66\x55\x44\x00\x00"),
+    ]
+
+    for i, original_uuid in enumerate(variants_to_test):
+        attr_name = f"uuid_variant_{i}"
+        setattr(pid(), attr_name, original_uuid)
+
+        with pid() as player:
+            result = getattr(player, attr_name)
+
+        assert result == original_uuid
+        assert type(result) is UUID
+        assert result.variant == original_uuid.variant
+        assert result.bytes == original_uuid.bytes
+        assert str(result) == str(original_uuid)
