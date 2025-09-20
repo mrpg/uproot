@@ -116,6 +116,7 @@ window.uproot = {
     timeout1: null,
     timeout2: null,
     verbose: false,
+    isInitialized: false,
     I: (id_) => document.getElementById(id_),
 
     aer1945() {
@@ -314,7 +315,12 @@ window.uproot = {
                 window.setInterval(this.hello, 9000);
 
                 this.hello().then(() => {
-                    window.dispatchEvent(new Event("UprootReady"));
+                    if (!this.isInitialized) {
+                        this.isInitialized = true;
+                        window.dispatchEvent(new Event("UprootReady"));
+                    } else {
+                        window.dispatchEvent(new Event("UprootReconnect"));
+                    }
                 });
             },
             onMessage: (event, ws) => {
@@ -397,6 +403,10 @@ window.uproot = {
 
     onReady(fun) {
         window.addEventListener("UprootReady", fun);
+    },
+
+    onReconnect(fun) {
+        window.addEventListener("UprootReconnect", fun);
     },
 
     onCustomEvent(evname, fun) {
