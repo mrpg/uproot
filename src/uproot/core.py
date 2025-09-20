@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def create_admin(admin: s.Storage) -> None:
     if not hasattr(admin, "_uproot_key"):
-        admin._uproot_key = str(t.uuid())  # TODO?
+        admin._uproot_key = t.uuid()
 
     if not hasattr(admin, "sessions"):
         admin.sessions = list()
@@ -155,17 +155,17 @@ def initialize_player(
     data: Optional[dict[str, Any]] = None,
 ) -> None:
     with pid() as player:
+        player.app = None
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
-        player.key = str(t.uuid())  # TODO?
-        player.payoff = Decimal("0")
-        player.started = False
-        player.show_page = -1
         player.page_order = u.CONFIGS_PPATHS[config]
-        player.app = None
+        player.payoff = Decimal("0")
+        player.show_page = -1
+        player.started = False
         player._uproot_adminchat = None
         player._uproot_dropout = False
         player._uproot_group = None
+        player._uproot_key = t.uuid()
         player._uproot_part = 0
         player._uproot_session = t.SessionIdentifier(pid.sname)
         player._uproot_timeouts_until = dict()

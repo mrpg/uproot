@@ -11,7 +11,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
+import orjson
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 from pydantic import validate_call
 from wtforms import Form as BaseForm
 
@@ -148,7 +150,7 @@ async def render(
             player._uproot_session,
             player.name,
             player.show_page,
-            player.key,
+            player._uproot_key,
         )
         part = player._uproot_part
         session = player.session
@@ -398,7 +400,7 @@ async def validate(
 
 
 def verify_csrf(page: type[Page], player: Storage, formdata: "FormData") -> bool:
-    base = f"{player._uproot_session}+{player.name}+{player.key}"
+    base = f"{player._uproot_session}+{player.name}+{player._uproot_key}"
 
     return "_uproot_csrf" in formdata and formdata["_uproot_csrf"] == sha256(
         base.encode("utf-8")
@@ -422,7 +424,12 @@ def type_filter(x: Any) -> str:
     return str(type(x))
 
 
+def tojson_filter(x: Any) -> str:
+    return Markup(orjson.dumps(x).decode("utf-8"))
+
+
 ENV.filters["to"] = to_filter
+ENV.filters["tojson"] = tojson_filter
 ENV.filters["unixtime2datetime"] = unixtime2datetime_filter
 ENV.filters["repr"] = repr
 ENV.filters["type"] = type_filter
