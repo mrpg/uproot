@@ -3,7 +3,7 @@
 
 from typing import Any, Optional
 
-from pydantic import Field, validate_call
+from pydantic import validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
 
 import uproot.models as um
@@ -15,11 +15,6 @@ COLLISIONS: tuple[dict[str, str], dict[str, str]] = dict(), dict()
 
 
 class Message(metaclass=um.Entry):
-    id: str = Field(
-        default_factory=t.uuid,
-        exclude=True,
-        repr=False,
-    )
     sender: Optional[t.PlayerIdentifier] = None
     text: str = ""
 

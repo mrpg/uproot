@@ -14,6 +14,7 @@ from typing import (
     cast,
     overload,
 )
+from uuid import UUID
 
 from pydantic import Field, validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
@@ -28,6 +29,7 @@ from uproot.types import (
     ModelIdentifier,
     PlayerIdentifier,
     SessionIdentifier,
+    uuid,
 )
 
 E = TypeVar("E")
@@ -56,11 +58,23 @@ class Entry(type):
                 f"Class {name} cannot define 'time' field - it's automatically added by Entry metaclass"
             )
 
+        # Always add id field, prevent user override
+        if "id" in annotations:
+            raise ValueError(
+                f"Class {name} cannot define 'id' field - it's automatically added by Entry metaclass"
+            )
+
         annotations["time"] = Optional[float]
         namespace["time"] = Field(
             default_factory=lambda: None,
             exclude=True,
             repr=False,
+        )
+
+        annotations["id"] = UUID
+        namespace["id"] = Field(
+            default_factory=uuid,
+            exclude=True,
         )
 
         namespace["__annotations__"] = annotations
