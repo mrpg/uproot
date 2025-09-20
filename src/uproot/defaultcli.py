@@ -64,6 +64,8 @@ def main() -> None:
         print("Use --help for more options")
         return
 
+    cmds = ["deployment", "dump", "examples", "new", "reset", "restore", "run"]
+
     parser = argparse.ArgumentParser(prog="uproot", add_help=False)
     parser.add_argument(
         "--version", action="store_true", help="Show version information."
@@ -85,7 +87,7 @@ def main() -> None:
         "--no-example", action="store_true", help="Don't create example app."
     )
 
-    for cmd in ["deployment", "dump", "new", "reset", "restore", "run"]:
+    for cmd in cmds:
         subparsers.add_parser(cmd, add_help=False)
 
     args, unknown = parser.parse_known_args()
@@ -96,7 +98,7 @@ def main() -> None:
         forward(sys.argv[1:])
     elif args.command == "setup":
         setup_command(args.path, args.force, args.no_example, args.minimal)
-    elif args.command in ["deployment", "dump", "new", "reset", "restore", "run"]:
+    elif args.command in cmds:
         forward(unknown, args.command)
     else:
         forward(sys.argv[1:])

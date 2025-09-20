@@ -1,12 +1,16 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import asyncio
 import os
 import platform
+import shutil
 import sys
 import time
+import zipfile
 from pathlib import Path
 
+import aiohttp
 import click
 import uvicorn
 
@@ -52,6 +56,54 @@ def do_reset(ctx: click.Context, yes: bool) -> None:
 
     if not yes:
         click.echo("Database was reset.")
+
+
+async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            response.raise_for_status()
+
+            zip_path = "temp.zip"
+            with open(zip_path, "wb") as f:
+                async for chunk in response.content.iter_chunked(8192):
+                    f.write(chunk)
+
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            all_files = zip_ref.namelist()
+
+            readme_dirs = set()
+            target_prefix = target_dir + "/"
+
+            for file_path in all_files:
+                if file_path.startswith(target_prefix) and file_path.endswith(
+                    "README.md"
+                ):
+                    rel_path = file_path[len(target_prefix) :]
+                    path_parts = rel_path.split("/")
+
+                    if len(path_parts) == 2 and path_parts[1] == "README.md":
+                        dir_name = path_parts[0]
+                        readme_dirs.add(target_prefix + dir_name)
+
+            for file_path in all_files:
+                for readme_dir in readme_dirs:
+                    if file_path.startswith(readme_dir + "/"):
+                        rel_path = file_path[len(target_prefix) :]
+                        target_path = Path(rel_path)
+
+                        # Only create parent directory if the file is not at root level
+                        if target_path.parent != Path("."):
+                            target_path.parent.mkdir(parents=True, exist_ok=True)
+
+                        # Skip if it's a directory entry
+                        if not file_path.endswith("/"):
+                            with zip_ref.open(file_path) as source:
+                                with open(target_path, "wb") as target:
+                                    shutil.copyfileobj(source, target)
+                        break
+    finally:
+        Path(zip_path).unlink(missing_ok=True)
 
 
 @click.group()
@@ -130,6 +182,18 @@ def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
 
 
 # fmt: off
+@click.command(help="Download examples")
+@click.pass_context
+# fmt: on
+def examples(ctx: click.Context) -> None:
+    asyncio.run(
+        get_examples(
+            "https://github.com/mrpg/uproot-examples/archive/refs/heads/master.zip"
+        )
+    )
+
+
+# fmt: off
 @click.command(help="View deployment")
 @click.pass_context
 # fmt: on
@@ -141,7 +205,8 @@ def deployment(ctx: click.Context) -> None:
 
 cli.add_command(deployment)
 cli.add_command(dump)
+cli.add_command(examples)
+cli.add_command(new)
 cli.add_command(reset)
 cli.add_command(restore)
 cli.add_command(run)
-cli.add_command(new)
