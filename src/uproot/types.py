@@ -40,6 +40,7 @@ from uproot.queries import Comparison, FieldReferent
 
 ALPHANUMERIC: str = ascii_lowercase + digits
 TOKEN_SPARSITY: float = 1_000_000
+LOGGER: Any = None
 
 if TYPE_CHECKING:
     from uproot.storage import Storage
@@ -126,6 +127,15 @@ class ModelIdentifier(Identifier):
         from uproot.storage import Model
 
         return Model(self.sname, self.mname, **kwargs)
+
+
+def ensure_local_logger() -> Any:
+    global LOGGER
+
+    if LOGGER is None:
+        import uproot.deployment as d
+
+        LOGGER = d.LOGGER
 
 
 async def maybe_await(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
@@ -464,18 +474,26 @@ class Page(metaclass=FrozenPage):
 
 
 def timed(func: Callable[..., Any]) -> Callable[..., Any]:
+    ensure_local_logger()
+
     if asyncio.iscoroutinefunction(func):
 
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             t0 = now()
             result = await func(*args, **kwargs)
+            delta = now() - t0
 
-            if (t := now() - t0) > 0.01:
-                import uproot.deployment as d
+            if delta > 0.01:
+                LOGGER.warning(
+                    f"{func.__module__}.{func.__name__} is slow (took {delta:.3f} seconds)"
+                )
 
-                d.LOGGER.warning(
-                    f"{func.__module__}.{func.__name__} is slow (took {t:.3f} seconds)"
+            if LOGGER.level >= 10:
+                # Checking this before debug(), as this is itself slow
+
+                LOGGER.debug(
+                    f"{func.__module__}.{func.__name__} took {delta:.5f} seconds"
                 )
 
             return result
@@ -487,12 +505,18 @@ def timed(func: Callable[..., Any]) -> Callable[..., Any]:
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             t0 = now()
             result = func(*args, **kwargs)
+            delta = now() - t0
 
-            if (t := now() - t0) > 0.01:
-                import uproot.deployment as d
+            if delta > 0.01:
+                LOGGER.warning(
+                    f"{func.__module__}.{func.__name__} is slow (took {delta:.3f} seconds)"
+                )
 
-                d.LOGGER.warning(
-                    f"{func.__module__}.{func.__name__} is slow (took {t:.3f} seconds)"
+            if LOGGER.level >= 10:
+                # Checking this before debug(), as this is itself slow
+
+                LOGGER.debug(
+                    f"{func.__module__}.{func.__name__} took {delta:.5f} seconds"
                 )
 
             return result

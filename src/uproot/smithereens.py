@@ -68,6 +68,7 @@ def send_to(
         )
 
 
+@t.timed
 @flexible
 def notify(
     sender: Storage,
