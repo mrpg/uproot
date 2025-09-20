@@ -12,7 +12,6 @@ from typing import (
     TypeVar,
     Union,
     cast,
-    overload,
 )
 from uuid import UUID
 
@@ -23,7 +22,6 @@ import uproot.core as c
 import uproot.storage as s
 from uproot.flexibility import flexible
 from uproot.types import (
-    FrozenDottedDict,
     GroupIdentifier,
     Identifier,
     ModelIdentifier,
@@ -275,30 +273,22 @@ def add_raw_entry(
 def _with_time(
     rawentry: dict[str, Any],
     time: Optional[float],
-    as_type: Type[T] = FrozenDottedDict,  # type: ignore[assignment]
+    as_type: Type[T],
 ) -> T:
     """Create an instance with time field added."""
     return as_type(**(dict(time=time) | rawentry))
 
 
-@overload
-def get_entries(mid: ModelIdentifier) -> list[FrozenDottedDict[Any]]: ...
-
-
-@overload
-def get_entries(mid: ModelIdentifier, as_type: Type[T]) -> list[T]: ...
-
-
 def get_entries(
     mid: ModelIdentifier,
-    as_type: Type[T] = FrozenDottedDict,  # type: ignore[assignment]
+    as_type: Type[T],
 ) -> list[T]:
     """
     Get all entries from a model.
 
     Args:
         mid: The model identifier
-        as_type: Type to convert entries to (defaults to FrozenDottedDict)
+        as_type: Type to convert entries to
 
     Returns:
         List of entries with timestamps
@@ -367,17 +357,17 @@ def filter_entries(
 
     Examples:
         # Filter by field value
-        entries = filter_entries(mid, FrozenDottedDict, player_id=123)
+        entries = filter_entries(mid, EntryType, player_id=123)
 
         # Filter by predicate
         high_scores = filter_entries(
-            mid, FrozenDottedDict,
+            mid, EntryType,
             predicate=lambda **kwargs: kwargs['score'] > 100
         )
 
         # Combine field filter and predicate
         active_high_scores = filter_entries(
-            mid, FrozenDottedDict,
+            mid, EntryType,
             predicate=lambda **kwargs: kwargs['score'] > 100,
             status="active"
         )
@@ -398,24 +388,16 @@ def filter_entries(
         raise ValueError(f"Failed to filter entries from model {mid}: {e}") from e
 
 
-@overload
-def get_latest_entry(mid: ModelIdentifier) -> FrozenDottedDict[Any]: ...
-
-
-@overload
-def get_latest_entry(mid: ModelIdentifier, as_type: Type[T]) -> T: ...
-
-
 def get_latest_entry(
     mid: ModelIdentifier,
-    as_type: Type[T] = FrozenDottedDict,  # type: ignore[assignment]
+    as_type: Type[T],
 ) -> T:
     """
     Get the most recent entry from a model.
 
     Args:
         mid: The model identifier
-        as_type: Type to convert entry to (defaults to FrozenDottedDict)
+        as_type: Type to convert entry to
 
     Returns:
         The latest entry (without timestamp since it's the current state)

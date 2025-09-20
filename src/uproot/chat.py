@@ -1,33 +1,33 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from pydantic import validate_call
-from pydantic.dataclasses import dataclass as validated_dataclass
 
 import uproot.models as um
-import uproot.types as t
 from uproot.flexibility import flexible
 from uproot.storage import Storage
+from uproot.types import (
+    Bunch,
+    ModelIdentifier,
+    PlayerIdentifier,
+    SessionIdentifier,
+    token_unchecked,
+)
 
 COLLISIONS: tuple[dict[str, str], dict[str, str]] = dict(), dict()
 
 
 class Message(metaclass=um.Entry):
-    sender: Optional[t.PlayerIdentifier] = None
+    sender: Optional[PlayerIdentifier] = None
     text: str = ""
 
 
-@validated_dataclass
-class ConveniencePlayerIdentifierList:
-    _list: list[t.PlayerIdentifier]
-
-
 def show_msg(
-    chat: t.ModelIdentifier,
+    chat: ModelIdentifier,
     msg: Message,
-    as_viewed_by: Optional[t.PlayerIdentifier] = None,
+    as_viewed_by: Optional[PlayerIdentifier] = None,
     *,
     with_time: Optional[float] = None,
 ) -> dict[str, Any]:
@@ -51,7 +51,7 @@ def show_msg(
 
     return dict(
         cname=chat.mname,
-        id=msg.id,
+        id=msg.id,  # type: ignore[attr-defined]
         sender=sender_representation,
         time=msg.time or with_time,  # type: ignore[attr-defined]
         text=msg.text,
@@ -61,7 +61,7 @@ def show_msg(
 def anonymize(s: str) -> str:
     if s not in COLLISIONS[0]:
         while True:
-            anonid = t.token_unchecked(6).upper()
+            anonid = token_unchecked(6).upper()
 
             if anonid not in COLLISIONS[1]:
                 COLLISIONS[0][s] = anonid
@@ -73,7 +73,7 @@ def anonymize(s: str) -> str:
 
 @flexible
 @validate_call
-def create(session: t.SessionIdentifier) -> t.ModelIdentifier:
+def create(session: SessionIdentifier) -> ModelIdentifier:
     chat = um.create_model(session, tag="chat")
 
     with um.get_storage(chat) as m:
@@ -84,19 +84,18 @@ def create(session: t.SessionIdentifier) -> t.ModelIdentifier:
 
 
 @validate_call
-def model(chat: t.ModelIdentifier) -> Storage:
+def model(chat: ModelIdentifier) -> Storage:
     return um.get_storage(chat)
 
 
 @validate_call
-def players(chat: t.ModelIdentifier) -> list[t.PlayerIdentifier]:
-    return ConveniencePlayerIdentifierList(_list=um.get_field(chat, "players"))._list
+def players(chat: ModelIdentifier) -> Bunch:
+    return cast(Bunch, um.get_field(chat, "players"))
 
 
 @flexible
-@validate_call
 def add_player(
-    chat: t.ModelIdentifier, pid: t.PlayerIdentifier, pseudonym: Optional[str] = None
+    chat: ModelIdentifier, pid: PlayerIdentifier, pseudonym: Optional[str] = None
 ) -> None:
     with model(chat) as m:
         m.players.append(pid)
@@ -106,16 +105,16 @@ def add_player(
 
 
 @validate_call
-def messages(chat: t.ModelIdentifier) -> list[Message]:
+def messages(chat: ModelIdentifier) -> list[Message]:
     return um.get_entries(chat, Message)
 
 
 @flexible
 @validate_call
-def add(chat: t.ModelIdentifier, msg: Message) -> None:
+def add(chat: ModelIdentifier, msg: Message) -> None:
     return um.add_raw_entry(chat, msg)
 
 
 @validate_call
-def exists(chat: t.ModelIdentifier) -> bool:
+def exists(chat: ModelIdentifier) -> bool:
     return um.model_exists(chat)

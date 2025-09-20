@@ -2,11 +2,11 @@
 
 import asyncio
 from unittest.mock import Mock, patch
+from uuid import UUID
 
 import pytest
 
 from uproot.types import (
-    FrozenDottedDict,
     GroupIdentifier,
     Identifier,
     InternalPage,
@@ -30,114 +30,6 @@ from uproot.types import (
     uuid,
     vertical,
 )
-
-
-class TestFrozenDottedDict:
-    """Test the FrozenDottedDict class."""
-
-    def test_init_empty(self):
-        """Test creating empty FrozenDottedDict."""
-        fdd = FrozenDottedDict()
-        assert len(fdd) == 0
-
-    def test_init_with_dict(self):
-        """Test creating FrozenDottedDict with initial data."""
-        fdd = FrozenDottedDict({"a": 1, "b": 2})
-        assert len(fdd) == 2
-        assert fdd["a"] == 1
-        assert fdd["b"] == 2
-
-    def test_init_with_kwargs(self):
-        """Test creating FrozenDottedDict with keyword arguments."""
-        fdd = FrozenDottedDict(x=10, y=20)
-        assert fdd["x"] == 10
-        assert fdd["y"] == 20
-
-    def test_setitem_raises_error(self):
-        """Test that __setitem__ raises TypeError."""
-        fdd = FrozenDottedDict()
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support item assignment"
-        ):
-            fdd["key"] = "value"
-
-    def test_setattr_raises_error(self):
-        """Test that __setattr__ raises TypeError."""
-        fdd = FrozenDottedDict()
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support attribute assignment"
-        ):
-            fdd.key = "value"
-
-    def test_delitem_raises_error(self):
-        """Test that __delitem__ raises TypeError."""
-        fdd = FrozenDottedDict({"key": "value"})
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support item deletion"
-        ):
-            del fdd["key"]
-
-    def test_delattr_raises_error(self):
-        """Test that __delattr__ raises TypeError."""
-        fdd = FrozenDottedDict({"key": "value"})
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support attribute deletion"
-        ):
-            del fdd.key
-
-    def test_getattr_success(self):
-        """Test accessing attributes via dot notation."""
-        fdd = FrozenDottedDict({"key": "value", "number": 42})
-        assert fdd.key == "value"
-        assert fdd.number == 42
-
-    def test_getattr_missing_raises_attribute_error(self):
-        """Test that accessing missing attribute raises AttributeError."""
-        fdd = FrozenDottedDict()
-        with pytest.raises(
-            AttributeError, match="'FrozenDottedDict' object has no attribute 'missing'"
-        ):
-            _ = fdd.missing
-
-    def test_clear_raises_error(self):
-        """Test that clear() raises TypeError."""
-        fdd = FrozenDottedDict({"key": "value"})
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support clear\\(\\)"
-        ):
-            fdd.clear()
-
-    def test_pop_raises_error(self):
-        """Test that pop() raises TypeError."""
-        fdd = FrozenDottedDict({"key": "value"})
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support pop\\(\\)"
-        ):
-            fdd.pop("key")
-
-    def test_popitem_raises_error(self):
-        """Test that popitem() raises TypeError."""
-        fdd = FrozenDottedDict({"key": "value"})
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support popitem\\(\\)"
-        ):
-            fdd.popitem()
-
-    def test_setdefault_raises_error(self):
-        """Test that setdefault() raises TypeError."""
-        fdd = FrozenDottedDict()
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support setdefault\\(\\)"
-        ):
-            fdd.setdefault("key", "default")
-
-    def test_update_raises_error(self):
-        """Test that update() raises TypeError."""
-        fdd = FrozenDottedDict()
-        with pytest.raises(
-            TypeError, match="FrozenDottedDict does not support update\\(\\)"
-        ):
-            fdd.update({"key": "value"})
 
 
 class TestValue:
@@ -547,11 +439,11 @@ class TestUtilityFunctions:
         result1 = uuid()
         result2 = uuid()
 
-        assert isinstance(result1, str)
-        assert isinstance(result2, str)
+        assert isinstance(result1, UUID)
+        assert isinstance(result2, UUID)
         assert result1 != result2
-        assert len(result1) == 36  # Standard UUID length
-        assert "-" in result1  # UUID format
+        assert len(str(result1)) == 36  # Standard UUID length
+        assert "-" in str(result1)  # UUID format
 
     def test_vertical(self):
         """Test vertical function."""

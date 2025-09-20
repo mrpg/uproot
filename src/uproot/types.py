@@ -24,7 +24,6 @@ from typing import (
     Iterator,
     Literal,
     NamedTuple,
-    Never,
     Optional,
     TypeAlias,
     TypeVar,
@@ -55,46 +54,6 @@ Username: TypeAlias = str
 PageLike: TypeAlias = Union[type["Page"], "SmoothOperator"]
 PlayerType: TypeAlias = Annotated["Storage", "Player"]
 Bunch: TypeAlias = list["PlayerIdentifier"]
-
-
-class FrozenDottedDict(dict[str, V]):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-
-    def __setitem__(self, key: str, value: Any) -> Never:
-        raise TypeError("FrozenDottedDict does not support item assignment")
-
-    def __setattr__(self, name: str, value: Any) -> Never:
-        raise TypeError("FrozenDottedDict does not support attribute assignment")
-
-    def __delitem__(self, key: str) -> Never:
-        raise TypeError("FrozenDottedDict does not support item deletion")
-
-    def __delattr__(self, name: str) -> Never:
-        raise TypeError("FrozenDottedDict does not support attribute deletion")
-
-    def __getattr__(self, name: str) -> V:
-        try:
-            return self[name]
-        except KeyError:
-            raise AttributeError(
-                f"'{type(self).__name__}' object has no attribute '{name}'"
-            )
-
-    def clear(self) -> Never:
-        raise TypeError("FrozenDottedDict does not support clear()")
-
-    def pop(self, *args: Any) -> Never:
-        raise TypeError("FrozenDottedDict does not support pop()")
-
-    def popitem(self) -> Never:
-        raise TypeError("FrozenDottedDict does not support popitem()")
-
-    def setdefault(self, *args: Any) -> Never:
-        raise TypeError("FrozenDottedDict does not support setdefault()")
-
-    def update(self, *args: Any, **kwargs: Any) -> Never:
-        raise TypeError("FrozenDottedDict does not support update()")
 
 
 @validated_dataclass(frozen=True)
@@ -400,7 +359,7 @@ def sha256(b: str | bytes) -> str:
 
 def uuid() -> pyuuid.UUID:
     if hasattr(pyuuid, "uuid7"):
-        return pyuuid.uuid7()  # type: ignore[no-any-return]
+        return cast(pyuuid.UUID, pyuuid.uuid7())
     else:
         return pyuuid.uuid4()
 

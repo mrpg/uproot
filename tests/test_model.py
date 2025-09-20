@@ -142,10 +142,10 @@ def test_add_raw_entry_simple(model_and_player):
     mod.add_raw_entry(mid, entry)
 
     # Verify it was added by checking we can get entries
-    entries = list(mod.get_entries(mid))
+    entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    assert entries[0].value == 123
-    assert entries[0].message == "raw test"
+    assert entries[0]["value"] == 123
+    assert entries[0]["message"] == "raw test"
 
 
 def test_add_raw_entry_with_dict(model_and_player):
@@ -155,10 +155,10 @@ def test_add_raw_entry_with_dict(model_and_player):
     entry_dict = {"x": 42, "y": "hello"}
     mod.add_raw_entry(mid, entry_dict)
 
-    entries = list(mod.get_entries(mid))
+    entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    assert entries[0].x == 42
-    assert entries[0].y == "hello"
+    assert entries[0]["x"] == 42
+    assert entries[0]["y"] == "hello"
 
 
 def test_auto_add_entry(model_and_player):
@@ -195,9 +195,9 @@ def test_smart_add_entry_raw_mode(model_and_player):
     assert result is None  # add_raw_entry returns None
 
     # Verify it was added
-    entries = list(mod.get_entries(mid))
+    entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    assert entries[0].score == 77.7
+    assert entries[0]["score"] == 77.7
 
 
 # Query tests
@@ -205,7 +205,7 @@ def test_get_entries_empty(model_and_player):
     """Test getting entries from empty model."""
     mid, pid = model_and_player
 
-    entries = list(mod.get_entries(mid))
+    entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 0
 
 
@@ -217,12 +217,12 @@ def test_get_entries_with_data(model_and_player):
     mod.add_entry(mid, pid, PlayerEntry, score=90.0, level="hard")
     mod.add_entry(mid, pid, PlayerEntry, score=75.5, level="medium")
 
-    entries = list(mod.get_entries(mid))
+    entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 2
 
     # Check entries have timestamps
     for entry in entries:
-        assert hasattr(entry, "time")
+        assert "time" in entry
 
 
 def test_get_entries_with_type(model_and_player):
@@ -247,10 +247,10 @@ def test_filter_entries_by_field(model_and_player):
     mod.add_entry(mid, pid, PlayerEntry, score=85.0, level="hard")
 
     # Filter by level
-    hard_entries = list(mod.filter_entries(mid, t.FrozenDottedDict, level="hard"))
+    hard_entries = list(mod.filter_entries(mid, dict, level="hard"))
     assert len(hard_entries) == 2
     for entry in hard_entries:
-        assert entry.level == "hard"
+        assert entry["level"] == "hard"
 
 
 def test_filter_entries_by_predicate(model_and_player):
@@ -263,13 +263,11 @@ def test_filter_entries_by_predicate(model_and_player):
 
     # Filter by score > 80
     high_scores = list(
-        mod.filter_entries(
-            mid, t.FrozenDottedDict, predicate=lambda **kwargs: kwargs["score"] > 80.0
-        )
+        mod.filter_entries(mid, dict, predicate=lambda **kwargs: kwargs["score"] > 80.0)
     )
     assert len(high_scores) == 2
     for entry in high_scores:
-        assert entry.score > 80.0
+        assert entry["score"] > 80.0
 
 
 def test_filter_entries_combined(model_and_player):
@@ -284,14 +282,14 @@ def test_filter_entries_combined(model_and_player):
     filtered = list(
         mod.filter_entries(
             mid,
-            t.FrozenDottedDict,
+            dict,
             predicate=lambda **kwargs: kwargs["score"] > 80.0,
             level="hard",
         )
     )
     assert len(filtered) == 1
-    assert filtered[0].score == 90.0
-    assert filtered[0].level == "hard"
+    assert filtered[0]["score"] == 90.0
+    assert filtered[0]["level"] == "hard"
 
 
 def test_get_latest_entry(model_and_player):
@@ -303,10 +301,10 @@ def test_get_latest_entry(model_and_player):
     mod.add_entry(mid, pid, PlayerEntry, score=90.0, level="medium")
     mod.add_entry(mid, pid, PlayerEntry, score=95.0, level="hard")
 
-    latest = mod.get_latest_entry(mid)
+    latest = mod.get_latest_entry(mid, dict)
     # Latest should be the last one added
-    assert latest.score == 95.0
-    assert latest.level == "hard"
+    assert latest["score"] == 95.0
+    assert latest["level"] == "hard"
 
 
 # Error handling tests
@@ -326,7 +324,7 @@ def test_get_latest_entry_empty_model(model_and_player):
     mid, pid = model_and_player
 
     with pytest.raises(ValueError):
-        mod.get_latest_entry(mid)
+        mod.get_latest_entry(mid, dict)
 
 
 def test_filter_entries_bad_predicate(model_and_player):
@@ -339,9 +337,7 @@ def test_filter_entries_bad_predicate(model_and_player):
         raise Exception("Predicate error")
 
     # Should not raise - bad predicates cause entries to not match
-    filtered = list(
-        mod.filter_entries(mid, t.FrozenDottedDict, predicate=bad_predicate)
-    )
+    filtered = list(mod.filter_entries(mid, dict, predicate=bad_predicate))
     assert len(filtered) == 0
 
 
@@ -355,11 +351,11 @@ def test_multiple_entries_performance(model_and_player):
         mod.add_entry(mid, pid, PlayerEntry, score=float(i), level=f"level_{i % 5}")
 
     # Query all
-    entries = list(mod.get_entries(mid))
+    entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 100
 
     # Filter some
-    level_0_entries = list(mod.filter_entries(mid, t.FrozenDottedDict, level="level_0"))
+    level_0_entries = list(mod.filter_entries(mid, dict, level="level_0"))
     assert len(level_0_entries) == 20  # Every 5th entry
 
 
