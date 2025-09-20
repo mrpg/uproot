@@ -92,7 +92,7 @@ class within:
 class Storage:
     __slots__ = (
         "__accessed_fields__",
-        "__allow_mutable__",
+        "__contexts__",
         "__field_cache__",
         "__explicitly_set__",
         "__assigned_values__",
@@ -116,7 +116,7 @@ class Storage:
 
         object.__setattr__(self, "name", namespace[-1])
         object.__setattr__(self, "__namespace__", namespace)
-        object.__setattr__(self, "__allow_mutable__", False)
+        object.__setattr__(self, "__contexts__", 0)
         object.__setattr__(self, "__accessed_fields__", dict())
         object.__setattr__(self, "__field_cache__", dict())
         object.__setattr__(self, "__explicitly_set__", set())
@@ -169,7 +169,7 @@ class Storage:
         self.__field_cache__[name] = newval
         # Don't set baseline in __accessed_fields__ if we're in a context manager
         # The baseline will be set at context exit to capture any in-place changes
-        if not self.__allow_mutable__:
+        if self.__contexts__ == 0:
             self.__accessed_fields__[name] = safe_deepcopy(newval)
         self.__explicitly_set__.add(name)
         # Track the originally assigned value to detect post-assignment modifications
@@ -177,7 +177,7 @@ class Storage:
 
     def __guarded_return__(self, name: str, value: Any) -> Any:
         ensure(
-            isinstance(value, IMMUTABLE_TYPES) or self.__allow_mutable__,
+            isinstance(value, IMMUTABLE_TYPES) or self.__contexts__ > 0,
             TypeError,
             f"This {repr(self)} must be wrapped in a context manager (use 'with') "
             f"because the field '{name}' is of a mutable type ({type(value).__name__}).",
@@ -221,7 +221,7 @@ class Storage:
         self.__assigned_values__.pop(name, None)
 
     def __enter__(self) -> "Storage":
-        self.__allow_mutable__ = True
+        self.__contexts__ += 1
         # Clear caches to ensure fresh values and baselines for this context
         self.__field_cache__.clear()
         self.__accessed_fields__.clear()
@@ -238,7 +238,7 @@ class Storage:
     ) -> Literal[False]:
         if exc_type is None:
             self.flush()
-            self.__allow_mutable__ = False
+            self.__contexts__ -= 1
         # Clear field cache when exiting context to ensure fresh values next time
         self.__field_cache__.clear()
 
