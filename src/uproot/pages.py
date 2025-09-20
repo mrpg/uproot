@@ -340,9 +340,10 @@ def page2path(page: type[Page]) -> str:
             # This is a true uproot-core-defined InternalPage
             return f"#{page.__name__}"
         else:
+            # E.g., landing pages and StartApp
             return f"{page.__module__}/#{page.__name__}"
     else:
-        return f"{page.__module__}/{page.__name__}.html"
+        return f"{page.__module__}/{page.__name__}"
 
 
 def path2page(path: str) -> type[Page]:
