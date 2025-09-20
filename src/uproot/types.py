@@ -244,6 +244,12 @@ class StorageBunch:
 
         return StorageBunch(result)
 
+    def find_one(self, fieldref: FieldReferent, value: Any = True) -> "Storage":
+        matches = self.filter(fieldref == value)
+        ensure(len(matches) == 1)
+
+        return matches[0]
+
     def assign(self, key: str, values: Iterable[Any]) -> None:
         for p, val in zip(self, values):
             setattr(p, key, val)
