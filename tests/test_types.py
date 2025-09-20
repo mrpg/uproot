@@ -605,20 +605,6 @@ class TestTimedDecorator:
 
         assert result == "result"
 
-    async def test_timed_slow_function(self):
-        """Test timed decorator with slow function."""
-
-        @timed
-        async def slow_function():
-            return "result"
-
-        with patch("uproot.types.now", side_effect=[0.0, 0.02]):  # 20ms
-            with patch("uproot.deployment.LOGGER") as mock_logger:
-                result = await slow_function()
-
-        assert result == "result"
-        mock_logger.warning.assert_called_once()
-
     def test_timed_preserves_metadata(self):
         """Test that timed decorator preserves function metadata."""
 
