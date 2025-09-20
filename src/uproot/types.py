@@ -185,14 +185,10 @@ def optional_call_once(
     if hereruns in storage._uproot_what_ran:
         return default_return
 
+    retval = optional_call(obj, attr, default_return=default_return, **kwargs)
     storage._uproot_what_ran.add(hereruns)
 
-    try:
-        return optional_call(obj, attr, default_return=default_return, **kwargs)
-    except Exception as e:
-        storage._uproot_what_ran.remove(hereruns)
-
-        raise e
+    return retval
 
 
 class StorageBunch:
@@ -694,7 +690,7 @@ class SynchronizingWait(InternalPage):
             return False
 
         if page.synchronize == "group":
-            group = player._uproot_group()
+            group = player.group
 
             with group:
                 await maybe_await(
