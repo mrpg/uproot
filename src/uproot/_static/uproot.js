@@ -117,6 +117,7 @@ window.uproot = {
     timeout2: null,
     verbose: false,
     isInitialized: false,
+    keepAliveInterval: null,
     I: (id_) => document.getElementById(id_),
 
     aer1945() {
@@ -312,7 +313,10 @@ window.uproot = {
     wsstart() {
         this.ws = new RobustWebSocket(this.wsurl(), {
             onOpen: (ws) => {
-                window.setInterval(this.hello, 9000);
+                if (this.keepAliveInterval !== null) {
+                    window.clearInterval(this.keepAliveInterval);
+                }
+                this.keepAliveInterval = window.setInterval(this.hello, 9000);
 
                 this.hello().then(() => {
                     if (!this.isInitialized) {
@@ -325,6 +329,11 @@ window.uproot = {
             },
             onMessage: (event, ws) => {
                 this.fromServer(event, ws);
+            },
+            onClose: (event, ws) => {
+                if (this.isInitialized) {
+                    window.dispatchEvent(new Event("UprootDisconnect"));
+                }
             },
         });
     },
@@ -407,6 +416,10 @@ window.uproot = {
 
     onReconnect(fun) {
         window.addEventListener("UprootReconnect", fun);
+    },
+
+    onDisconnect(fun) {
+        window.addEventListener("UprootDisconnect", fun);
     },
 
     onCustomEvent(evname, fun) {
