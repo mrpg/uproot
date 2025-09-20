@@ -6,7 +6,7 @@ from collections import defaultdict
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, validate_call
+from pydantic import validate_call
 
 from uproot.types import uuid
 
@@ -17,34 +17,6 @@ PathType = tuple[str, ...]
 Q: defaultdict[PathType, asyncio.Queue[tuple[UUID, EntryType]]] = defaultdict(
     asyncio.Queue
 )
-CREDENTIALS: dict[PathType, CredentialType] = dict()
-
-
-class EntryRequest(BaseModel):
-    credential: CredentialType
-    entry: EntryType
-
-
-# TODO: remove
-@validate_call
-def is_authorized(path: PathType, cred: CredentialType) -> bool:
-    """
-    Verify if the provided credential is authorized to access the specified path.
-
-    This function checks if the given credential matches the one stored for the
-    specified path in the CREDENTIALS dictionary. It's designed to be used as
-    a simple authentication mechanism to protect queue access.
-
-    Args:
-        path: A tuple of strings identifying the queue.
-        cred: The API key or credential string to validate against the stored
-              credential for the specified path.
-
-    Returns:
-        bool: True if the credential is valid for the path (exists and matches),
-              False otherwise.
-    """
-    return path in CREDENTIALS and CREDENTIALS[path] == cred
 
 
 @validate_call
