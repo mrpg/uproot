@@ -20,16 +20,14 @@ COLLISIONS: tuple[dict[str, str], dict[str, str]] = dict(), dict()
 
 
 class Message(metaclass=um.Entry):
-    sender: Optional[PlayerIdentifier] = None
-    text: str = ""
+    sender: Optional[PlayerIdentifier]
+    text: str
 
 
 def show_msg(
     chat: ModelIdentifier,
     msg: Message,
     as_viewed_by: Optional[PlayerIdentifier] = None,
-    *,
-    with_time: Optional[float] = None,
 ) -> dict[str, Any]:
     pseudonyms = um.get_field(chat, "pseudonyms")
 
@@ -53,7 +51,7 @@ def show_msg(
         cname=chat.mname,
         id=msg.id,  # type: ignore[attr-defined]
         sender=sender_representation,
-        time=msg.time or with_time,  # type: ignore[attr-defined]
+        time=msg.time,  # type: ignore[attr-defined]
         text=msg.text,
     )
 
@@ -111,8 +109,19 @@ def messages(chat: ModelIdentifier) -> list[Message]:
 
 @flexible
 @validate_call
-def add(chat: ModelIdentifier, msg: Message) -> None:
-    return um.add_raw_entry(chat, msg)
+def add_message(
+    chat: ModelIdentifier,
+    sender: Optional[PlayerIdentifier],
+    msgtext: str,
+) -> Message:
+    from uproot.deployment import DATABASE
+
+    um.add_raw_entry(
+        chat,
+        dict(sender=sender, text=msgtext),
+    )
+
+    return Message(sender, msgtext, time=DATABASE.now)  # type: ignore
 
 
 @validate_call

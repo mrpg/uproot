@@ -624,8 +624,7 @@ async def ws(
                                 if chat.exists(mid) and pid in (
                                     pp := chat.players(mid)
                                 ):
-                                    msg = chat.Message(sender=pid, text=msgtext)  # type: ignore[call-arg]
-                                    _, now = chat.add(mid, msg), time()
+                                    msg = chat.add_message(mid, pid, msgtext)
 
                                     for p in pp:
                                         q.enqueue(
@@ -636,7 +635,6 @@ async def ws(
                                                     mid,
                                                     msg,
                                                     p,
-                                                    with_time=now,
                                                 ),
                                                 event="_uproot_Chatted",
                                             ),
