@@ -6,6 +6,7 @@ import functools
 import hashlib
 import inspect
 import random
+import uuid as pyuuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from string import ascii_lowercase, digits
@@ -31,7 +32,6 @@ from typing import (
     cast,
     overload,
 )
-from uuid import uuid4
 
 from pydantic import validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
@@ -398,8 +398,11 @@ def sha256(b: str | bytes) -> str:
     return hashlib.sha256(b).hexdigest()
 
 
-def uuid() -> str:
-    return str(uuid4())
+def uuid() -> pyuuid.UUID:
+    if hasattr(pyuuid, "uuid7"):
+        return pyuuid.uuid7()  # type: ignore[no-any-return]
+    else:
+        return pyuuid.uuid4()
 
 
 def longest_common_prefix(strings: list[str]) -> str:

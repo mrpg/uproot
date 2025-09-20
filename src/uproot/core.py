@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def create_admin(admin: s.Storage) -> None:
     if not hasattr(admin, "_uproot_key"):
-        admin._uproot_key = t.uuid()
+        admin._uproot_key = str(t.uuid())  # TODO?
 
     if not hasattr(admin, "sessions"):
         admin.sessions = list()
@@ -157,7 +157,7 @@ def initialize_player(
     with pid() as player:
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
-        player.key = t.uuid()
+        player.key = str(t.uuid())  # TODO?
         player.payoff = Decimal("0")
         player.started = False
         player.show_page = -1

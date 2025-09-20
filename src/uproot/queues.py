@@ -4,6 +4,7 @@
 import asyncio
 from collections import defaultdict
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, validate_call
 
@@ -13,7 +14,7 @@ CredentialType = str
 EntryType = dict[str, Any]
 PathType = tuple[str, ...]
 
-Q: defaultdict[PathType, asyncio.Queue[tuple[str, EntryType]]] = defaultdict(
+Q: defaultdict[PathType, asyncio.Queue[tuple[UUID, EntryType]]] = defaultdict(
     asyncio.Queue
 )
 CREDENTIALS: dict[PathType, CredentialType] = dict()
@@ -24,6 +25,7 @@ class EntryRequest(BaseModel):
     entry: EntryType
 
 
+# TODO: remove
 @validate_call
 def is_authorized(path: PathType, cred: CredentialType) -> bool:
     """
@@ -46,7 +48,7 @@ def is_authorized(path: PathType, cred: CredentialType) -> bool:
 
 
 @validate_call
-def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, str]:
+def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, UUID]:
     """
     Enqueue an entry into the queue specified by path.
 
@@ -65,7 +67,7 @@ def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, str]:
 
 
 @validate_call
-async def read(path: PathType) -> tuple[str, EntryType]:
+async def read(path: PathType) -> tuple[UUID, EntryType]:
     """
     Read and remove the next entry from the queue specified by path.
 

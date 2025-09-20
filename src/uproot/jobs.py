@@ -3,6 +3,7 @@
 
 import asyncio
 from typing import Any, Optional, cast
+from uuid import UUID
 
 from fastapi import FastAPI, WebSocket
 
@@ -21,7 +22,7 @@ from uproot.types import (
 )
 
 
-async def from_queue(pid: PlayerIdentifier) -> tuple[str, q.EntryType]:
+async def from_queue(pid: PlayerIdentifier) -> tuple[UUID, q.EntryType]:
     return await q.read(tuple(pid))  # convention: queue path = (sname, uname)
 
 
