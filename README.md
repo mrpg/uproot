@@ -8,8 +8,9 @@
 
 We are working on producing the first alpha version (0.0.1), and invite you to join us.
 
-**Note: This repository contains a pre-alpha version. Breaking changes are made with reckless abandon. DO NOT USE IN PRODUCTION.**
-
+> [!IMPORTANT]
+> This repository contains a pre-alpha version. Breaking changes are made with reckless abandon. **Do not use in production.**
+>
 
 ## Getting started
 
@@ -51,9 +52,10 @@ If you're new to Python or don't have Python 3.11+ installed, follow these platf
 
 1. **Install Python** (requires administrator privileges):
    - Download Python 3.11+ from [python.org](https://www.python.org/downloads/)
-   - **Important**: During installation, check "Add Python to PATH" - this is crucial
    - Run the installer as administrator
-   - Choose "Install for all users" if prompted
+   - Select the following advanced options:
+       - **Important**: During installation, check "Add Python to PATH" - this is crucial
+       - Choose "Install for all users"
    - Verify installation by opening Command Prompt and running:
      ```cmd
      python --version
