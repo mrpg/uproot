@@ -31,7 +31,7 @@
             {% for subfield in field0 %}
                 <td>
                     {% if field0.render_kw and field0.render_kw.get("class") %}
-                        <div class="{{ field0.render_kw.get("class") }}">
+                        <div class="{{ field0.render_kw.get('class') }}">
                     {% else %}
                         <div class="text-body-tertiary text-center">
                     {% endif %}
@@ -107,7 +107,7 @@
                 {% for subfield in field %}
                     <td class="text-center w-auto">
                         {% if field.render_kw and field.render_kw.get("class") %}
-                            <div class="{{ field.render_kw.get("class") }}">
+                            <div class="{{ field.render_kw.get('class') }}">
                         {% else %}
                             <div class="text-body-tertiary">
                         {% endif %}
@@ -137,7 +137,7 @@
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set _ = div_class_list.append(field.render_kw.get("class")) %}
             {% endif %}
-            <div class="{{ " ".join(div_class_list) }}">
+            <div class="{{ ' '.join(div_class_list) }}">
                 {{ subfield(class_="form-check-input") }}
                 {{ subfield.label(class_="form-check-label") }}
             </div>
