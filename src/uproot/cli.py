@@ -23,7 +23,9 @@ sys.argv[0] = "uproot"
 
 
 @contextmanager
-def confirmation(action: str, ctx: click.Context, yes: bool = False) -> Generator[Any]:
+def confirmation(
+    action: str, ctx: click.Context, yes: bool = False
+) -> Generator[None, None, None]:
     """Context manager for dangerous operations requiring confirmation."""
     if not yes:
         user_says = input(f"Please type YES to {action}: ")
