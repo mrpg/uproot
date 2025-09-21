@@ -1,21 +1,33 @@
 /* Load fonts */
 @import url("CascadiaMono-2407.24.css");
+@import url("vendor/ibm-plex-math/css/ibm-plex-math-all.min.css");
+@import url("vendor/ibm-plex-serif/css/ibm-plex-serif-all.min.css");
 @import url("vendor/Inter-3.19/InterWeb/inter.css");
 
 /* Extending Bootstrap’s default fonts */
 :root {
-    --bs-font-monospace: "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --bs-font-monospace: "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --bs-font-sans-serif: Inter, system-ui, ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --bs-font-serif: ui-serif, "IBM Plex Serif", "New York", serif;
+    --bs-font-serif: "IBM Plex Serif", "New York", ui-serif, serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --bs-font-math: "IBM Plex Math", "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", serif;
     --bs-body-font-family: var(--bs-font-sans-serif);
 }
 /* Adjustments for Inter web font */
+@font-feature-values "Inter" {
+  @character-variant {
+    inter-l-with-tail: 5;  /* alias "l-with-tail" points to OpenType feature cv05 */
+    inter-double-s: 7;  /* German double-s */
+  }
+  @styleset {
+    inter-open-digits: 1;  /* alias "open-digits" points to OpenType feature ss01 */
+  }
+}
+
 :root {
     font-variant: tabular-nums;
-    font-feature-settings:
-        "ss01",  /* “Open” digits */
-        "cv05",  /* Lowercase l with tail */
-        "cv07";  /* Alternate German ß */
+    font-variant-alternates:
+        character-variant(inter-l-with-tail, inter-double-s)
+        styleset(inter-open-digits);
 }
 
 /* uproot color scheme */
@@ -99,6 +111,11 @@
     --bs-btn-border-radius: var(--bs-border-radius-sm);
 }
 
+/* Class for formulas in math font */
+.font-math {
+  font-family: var(--bs-font-math);
+}
+
 /* Class for text in sans-serif font */
 .font-sans-serif {
     font-family: var(--bs-font-sans-serif);
@@ -132,6 +149,9 @@
 }
 .fw-400 {
     font-weight: 400 !important;  /* Normal/Regular */
+}
+.fw-450 {
+    font-weight: 450 !important;  /* Text */
 }
 .fw-500 {
     font-weight: 500 !important;  /* Medium */
@@ -265,6 +285,10 @@ input[type="radio"].form-check-input {
 #uproot-timeout #uproot-time-remaining {
     font-weight: bold;
     font-variant-numeric: tabular-nums;
+}
+
+#uproot-title {
+    font-weight: 600;
 }
 
 div.without-anchoring-overlay {
