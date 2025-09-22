@@ -7,8 +7,6 @@ import wtforms
 import wtforms.fields
 import wtforms.validators
 
-# TODO: eliminate kwargs
-
 
 def type_coercer(choices: list[tuple[Any, str] | Any]) -> Callable[[str], Any]:
     def local_coerce(chosen: str) -> Any:
@@ -33,11 +31,19 @@ class BooleanField(wtforms.fields.BooleanField):
         self,
         *,
         label: str = "",
-        **kwargs: Any,
+        validators: Optional[list[Any]] = None,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         super().__init__(
             label=label,
-            **kwargs,
+            validators=validators,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -47,7 +53,10 @@ class DateField(wtforms.fields.DateField):
         *,
         label: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -57,7 +66,10 @@ class DateField(wtforms.fields.DateField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -69,7 +81,10 @@ class DecimalField(wtforms.fields.DecimalField):
         min: Optional[float] = None,
         max: Optional[float] = None,
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [
@@ -85,7 +100,10 @@ class DecimalField(wtforms.fields.DecimalField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -99,7 +117,10 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
         step: float = 1.0,
         optional: bool = False,
         anchoring: bool = True,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [
@@ -112,15 +133,20 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
+        if render_kw is None:
+            render_kw = {}
         if step is not None:
-            kwargs.setdefault("render_kw", {})["step"] = step
+            render_kw["step"] = step
 
         self.anchoring = anchoring
 
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -130,7 +156,10 @@ class EmailField(wtforms.fields.EmailField):
         *,
         label: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [
@@ -146,7 +175,10 @@ class EmailField(wtforms.fields.EmailField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -156,7 +188,10 @@ class FileField(wtforms.fields.FileField):
         *,
         label: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -166,7 +201,10 @@ class FileField(wtforms.fields.FileField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -178,7 +216,10 @@ class IntegerField(wtforms.fields.IntegerField):
         min: Optional[float] = None,
         max: Optional[float] = None,
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [
@@ -194,7 +235,10 @@ class IntegerField(wtforms.fields.IntegerField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -208,7 +252,10 @@ class LikertField(wtforms.fields.RadioField):
         label_min: str = "",
         label_max: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         choices = [(i, str(i)) for i in range(min, max + 1)]
         if not optional:
@@ -232,7 +279,10 @@ class LikertField(wtforms.fields.RadioField):
             choices=choices,
             validators=v,
             coerce=type_coercer(choices),
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -244,26 +294,33 @@ class RadioField(wtforms.fields.RadioField):
         label: str = "",
         layout: str = "vertical",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
         else:
             v = [wtforms.validators.Optional()]
 
+        if render_kw is None:
+            render_kw = {}
         if layout != "vertical":
-            kwargs.setdefault("render_kw", {})
-            if "class" in kwargs["render_kw"]:
-                kwargs["render_kw"]["class"] += " form-check-inline"
+            if "class" in render_kw:
+                render_kw["class"] += " form-check-inline"
             else:
-                kwargs["render_kw"]["class"] = "form-check-inline"
+                render_kw["class"] = "form-check-inline"
 
         super().__init__(
             choices=choices,
             label=label,
             validators=v,
             coerce=type_coercer(choices),
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -274,7 +331,10 @@ class SelectField(wtforms.fields.SelectField):
         choices: list[tuple[Any, str] | Any],
         label: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -286,7 +346,10 @@ class SelectField(wtforms.fields.SelectField):
             label=label,
             validators=v,
             coerce=type_coercer(choices),
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -296,7 +359,10 @@ class StringField(wtforms.fields.StringField):
         *,
         label: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -306,7 +372,10 @@ class StringField(wtforms.fields.StringField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -316,7 +385,10 @@ class TextAreaField(wtforms.fields.TextAreaField):
         *,
         label: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -326,7 +398,10 @@ class TextAreaField(wtforms.fields.TextAreaField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
 
 
@@ -351,7 +426,10 @@ class IBANField(wtforms.fields.StringField):
         *,
         label: str = "",
         optional: bool = False,
-        **kwargs: Any,
+        render_kw: Optional[dict[str, Any]] = None,
+        description: str = "",
+        widget: Optional[Any] = None,
+        default: Optional[Any] = None,
     ) -> None:
         if not optional:
             v = [
@@ -367,5 +445,8 @@ class IBANField(wtforms.fields.StringField):
         super().__init__(
             label=label,
             validators=v,
-            **kwargs,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
         )
