@@ -575,7 +575,7 @@ async def ws(
                                 "endpoint": "skip",
                                 "payload": new_show_page,
                             } if isinstance(new_show_page, int) and (
-                                is_admin or session.testing
+                                is_admin or player.session.testing
                             ):
                                 player.show_page = new_show_page
                             case {
