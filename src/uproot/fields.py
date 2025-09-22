@@ -173,12 +173,14 @@ class EmailField(wtforms.fields.EmailField):
         if not optional:
             v = [
                 wtforms.validators.InputRequired(),
-                wtforms.validators.Email(),
+                # This requires email_validator to be installed:
+                # wtforms.validators.Email(),
             ]
         else:
             v = [
                 wtforms.validators.Optional(),
-                wtforms.validators.Email(),
+                # This requires email_validator to be installed:
+                # wtforms.validators.Email(),
             ]
 
         super().__init__(

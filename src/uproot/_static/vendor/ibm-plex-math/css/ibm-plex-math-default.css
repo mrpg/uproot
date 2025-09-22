@@ -1,0 +1,6 @@
+@font-face {
+  font-family: "IBM Plex Math";
+  font-style: normal;
+  font-weight: 400;
+  src: local("IBM Plex Math"), local("IBMPlexMath"), url("../fonts/complete/woff2/IBMPlexMath-Regular.woff2") format("woff2"), url("../fonts/complete/woff/IBMPlexMath-Regular.woff") format("woff");
+}
