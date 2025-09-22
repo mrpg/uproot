@@ -25,7 +25,7 @@ dependencies = [
     "strictyaml==1.7.3",
     "python-multipart==0.0.20",
     "sortedcontainers==2.4.0",
-    "uvicorn==0.35.0",
+    "uvicorn==0.36.0",
     "watchdog==6.0.0",
     "websockets==15.0.1",
     "wtforms==3.2.1",
