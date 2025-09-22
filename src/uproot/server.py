@@ -15,6 +15,7 @@ from typing import (
 )
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import validate_call
 
@@ -101,6 +102,8 @@ uproot_server = FastAPI(
     lifespan=lifespan,
     redirect_slashes=False,
 )
+
+uproot_server.add_middleware(GZipMiddleware)
 
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)
