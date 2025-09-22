@@ -185,4 +185,11 @@
 {% endmacro %}
 
 
+{% macro fields() %}
+    {% for field_ in form %}
+        {{ field(field_) }}
+    {% endfor %}
+{% endmacro %}
+
+
 {# Reminder for potential filter: {{ x | default("") }} #}
