@@ -79,7 +79,7 @@ upd.ADMINS["admin"] = "#PASSWORD#"  # Example password
 upd.DEFAULT_ROOMS.append(
     room(
         "test",
-        config="my_config",
+        config="study01",
         start=True,
     )
 )
