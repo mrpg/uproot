@@ -32,6 +32,7 @@ __all__ = [
     "ModelIdentifier",
     "move_to_end",
     "move_to_page",
+    "NoshowPage",
     "notify",
     "other_in_group",
     "other_in_session",
@@ -58,6 +59,7 @@ _ = FieldReferent()
 GroupCreatingWait = t.GroupCreatingWait
 GroupIdentifier = t.GroupIdentifier
 ModelIdentifier = t.ModelIdentifier
+NoshowPage = t.NoshowPage
 Page = t.Page
 PlayerIdentifier = t.PlayerIdentifier
 safe = Markup

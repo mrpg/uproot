@@ -558,6 +558,7 @@ def context(frame: FrameType | None) -> str:
 class NoshowPage(Page):
     @classmethod
     async def show(page, player: "Storage") -> bool:
+        # This is to keep the type checker happy (see Page class)
         return False
 
 
