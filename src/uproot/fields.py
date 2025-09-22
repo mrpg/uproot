@@ -36,6 +36,7 @@ class BooleanField(wtforms.fields.BooleanField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         super().__init__(
             label=label,
@@ -44,6 +45,7 @@ class BooleanField(wtforms.fields.BooleanField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -57,6 +59,7 @@ class DateField(wtforms.fields.DateField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -70,6 +73,7 @@ class DateField(wtforms.fields.DateField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -85,6 +89,7 @@ class DecimalField(wtforms.fields.DecimalField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [
@@ -104,6 +109,7 @@ class DecimalField(wtforms.fields.DecimalField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -121,6 +127,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [
@@ -147,6 +154,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -160,6 +168,7 @@ class EmailField(wtforms.fields.EmailField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [
@@ -179,6 +188,7 @@ class EmailField(wtforms.fields.EmailField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -192,6 +202,7 @@ class FileField(wtforms.fields.FileField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -205,6 +216,7 @@ class FileField(wtforms.fields.FileField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -220,6 +232,7 @@ class IntegerField(wtforms.fields.IntegerField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [
@@ -239,6 +252,7 @@ class IntegerField(wtforms.fields.IntegerField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -256,6 +270,7 @@ class LikertField(wtforms.fields.RadioField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         choices = [(i, str(i)) for i in range(min, max + 1)]
         if not optional:
@@ -283,6 +298,7 @@ class LikertField(wtforms.fields.RadioField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -298,6 +314,7 @@ class RadioField(wtforms.fields.RadioField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -321,6 +338,7 @@ class RadioField(wtforms.fields.RadioField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -335,6 +353,7 @@ class SelectField(wtforms.fields.SelectField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -350,6 +369,7 @@ class SelectField(wtforms.fields.SelectField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -363,6 +383,7 @@ class StringField(wtforms.fields.StringField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -376,6 +397,7 @@ class StringField(wtforms.fields.StringField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -389,6 +411,7 @@ class TextAreaField(wtforms.fields.TextAreaField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -402,6 +425,7 @@ class TextAreaField(wtforms.fields.TextAreaField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
 
@@ -430,6 +454,7 @@ class IBANField(wtforms.fields.StringField):
         description: str = "",
         widget: Optional[Any] = None,
         default: Optional[Any] = None,
+        **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
             v = [
@@ -449,4 +474,5 @@ class IBANField(wtforms.fields.StringField):
             description=description,
             widget=widget,
             default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
         )
