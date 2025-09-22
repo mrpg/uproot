@@ -1,11 +1,32 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import wtforms
 import wtforms.fields
 import wtforms.validators
+
+# TODO: enforce kw-only args
+# TODO: eliminate kwargs
+
+
+def type_coercer(choices: list[tuple[Any, str] | Any]) -> Callable[[str], Any]:
+    def local_coerce(chosen: str) -> Any:
+        for choice in choices:
+            if isinstance(choice, tuple) and len(choice) == 2:
+                coded_as, _ = choice
+            else:
+                coded_as = choice
+
+            submission = str(coded_as)
+
+            if chosen == submission or chosen == coded_as:
+                return coded_as
+
+        raise ValueError("Invalid choice")
+
+    return local_coerce
 
 
 class BooleanField(wtforms.fields.BooleanField):
@@ -184,6 +205,7 @@ class LikertField(wtforms.fields.RadioField):
             label=label,
             choices=choices,
             validators=v,
+            coerce=type_coercer(choices),
             **kwargs,
         )
 
@@ -191,6 +213,7 @@ class LikertField(wtforms.fields.RadioField):
 class RadioField(wtforms.fields.RadioField):
     def __init__(
         self,
+        choices: list[tuple[Any, str] | Any],
         label: str = "",
         layout: str = "vertical",
         optional: bool = False,
@@ -209,22 +232,32 @@ class RadioField(wtforms.fields.RadioField):
                 kwargs["render_kw"]["class"] = "form-check-inline"
 
         super().__init__(
+            choices=choices,
             label=label,
             validators=v,
+            coerce=type_coercer(choices),
             **kwargs,
         )
 
 
 class SelectField(wtforms.fields.SelectField):
-    def __init__(self, label: str = "", optional: bool = False, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        choices: list[tuple[Any, str] | Any],
+        label: str = "",
+        optional: bool = False,
+        **kwargs: Any,
+    ) -> None:
         if not optional:
             v = [wtforms.validators.InputRequired()]
         else:
             v = [wtforms.validators.Optional()]
 
         super().__init__(
+            choices=choices,
             label=label,
             validators=v,
+            coerce=type_coercer(choices),
             **kwargs,
         )
 

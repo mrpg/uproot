@@ -10,7 +10,7 @@ import time
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Generator
+from typing import Generator
 
 import aiohttp
 import click
