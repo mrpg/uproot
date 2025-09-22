@@ -79,7 +79,7 @@ upd.ADMINS["admin"] = "#PASSWORD#"  # Example password
 upd.DEFAULT_ROOMS.append(
     room(
         "test",
-        config="my_config",
+        config="study01",
         start=True,
     )
 )
@@ -94,16 +94,14 @@ if __name__ == "__main__":
     cli()
 """.lstrip()
 
-MINIMAL_INIT_PY = '''
-"""
-Copyright (c) 2025 [Insert Your Name Here] - MIT License
-
-Third-party dependencies:
-- uproot: LGPL v3+, see ../uproot_license.txt
-
-Docs are available at https://uproot.science/
-Examples are available at https://github.com/mrpg/uproot-examples
-"""
+MINIMAL_INIT_PY = """
+# Copyright (c) 2025 [Insert Your Name Here] - MIT License
+#
+# Third-party dependencies:
+# - uproot: LGPL v3+, see ../uproot_license.txt
+#
+# Docs are available at https://uproot.science/
+# Examples are available at https://github.com/mrpg/uproot-examples
 
 from uproot.fields import *
 from uproot.smithereens import *
@@ -124,7 +122,7 @@ class FirstPage(Page):
 page_order = [
     FirstPage,
 ]
-'''.lstrip()
+""".lstrip()
 
 FIRSTPAGE_HTML = """
 {% extends "Base.html" %}
@@ -141,16 +139,14 @@ First page
 {% endblock main %}
 """.lstrip()
 
-PD_INIT_PY = '''
-"""
-Copyright (c) 2025 [Insert Your Name Here] - MIT License
-
-Third-party dependencies:
-- uproot: LGPL v3+, see ../uproot_license.txt
-
-Docs are available at https://uproot.science/
-Examples are available at https://github.com/mrpg/uproot-examples
-"""
+PD_INIT_PY = """
+# Copyright (c) 2025 [Insert Your Name Here] - MIT License
+#
+# Third-party dependencies:
+# - uproot: LGPL v3+, see ../uproot_license.txt
+#
+# Docs are available at https://uproot.science/
+# Examples are available at https://github.com/mrpg/uproot-examples
 
 from uproot.fields import *
 from uproot.smithereens import *
@@ -211,7 +207,7 @@ page_order = [
     Sync,
     Results,
 ]
-'''.lstrip()
+""".lstrip()
 
 DILEMMA_HTML = """
 {% extends "Base.html" %}
@@ -223,7 +219,7 @@ Dilemma
 
 {% block main %}
 
-{{ uproot.field(form.cooperate) }}
+{{ field(form.cooperate) }}
 
 {% endblock main %}
 """.lstrip()

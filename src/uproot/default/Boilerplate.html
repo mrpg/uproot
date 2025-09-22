@@ -1,0 +1,33 @@
+{% set _uproot_title %}{% block title %}{% endblock title %}{% endset %}
+{% from "Macros.html" import likert_field with context %}
+{% from "Macros.html" import field with context %}
+{% from "Macros.html" import fields with context %}
+<!doctype html>
+<html lang="{{ _uproot_internal.language }}" data-bs-theme="auto">
+    <head>
+        <title>
+            {% if _uproot_title %}
+            {{ _uproot_title | striptags }}
+            {% else %}
+            {% translate %}
+            Study
+            {% endtranslate %}
+            {% endif %}
+        </title>
+
+        <meta charset="utf-8">
+        <meta name="generator" content="uproot">
+
+        {% block TOPLEVELhead %}
+        {% endblock TOPLEVELhead %}
+
+        {% include "_static/ProjectHead.html" ignore missing %}
+    </head>
+
+    <body>
+        {% block TOPLEVELbody %}
+        {% endblock TOPLEVELbody %}
+
+        {% include "_static/ProjectBody.html" ignore missing %}
+    </body>
+</html>

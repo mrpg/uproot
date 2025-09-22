@@ -59,6 +59,7 @@ def create_session(
             for dist in importlib.metadata.distributions()
         }
         session.room = None
+        session.testing = False
         session._uproot_secret = t.token_unchecked(8)
         session._uproot_session = ~session
 

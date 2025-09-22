@@ -57,6 +57,7 @@ ENV = Environment(
     cache_size=250,
     auto_reload=True,
     enable_async=True,
+    lstrip_blocks=True,
 )
 
 
@@ -231,7 +232,7 @@ async def render(
                 C=getattr(app, "C", {}),
                 _uproot_errors=custom_errors,
                 _uproot_js=jsvars,
-                _uproot_testing=is_admin,
+                _uproot_testing=(is_admin or (sname is not None and session.testing)),
             )
             | function_context(page)
             | internal
@@ -283,7 +284,7 @@ async def render_error(
             player=player,
             session=session,
             show2path=show2path,
-            _uproot_testing=is_admin,
+            _uproot_testing=(is_admin or (session is not None and session.testing)),
         )
     )
 
