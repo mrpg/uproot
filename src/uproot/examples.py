@@ -223,7 +223,7 @@ Dilemma
 
 {% block main %}
 
-{{ uproot.field(form.cooperate) }}
+{{ field(form.cooperate) }}
 
 {% endblock main %}
 """.lstrip()
