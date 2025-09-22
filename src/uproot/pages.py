@@ -58,7 +58,6 @@ ENV = Environment(
     auto_reload=True,
     enable_async=True,
     lstrip_blocks=True,
-    trim_blocks=True,
 )
 
 
