@@ -103,7 +103,11 @@ uproot_server = FastAPI(
     redirect_slashes=False,
 )
 
-uproot_server.add_middleware(GZipMiddleware)
+uproot_server.add_middleware(
+    GZipMiddleware,
+    minimum_size=2048,
+    compresslevel=3,
+)
 
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)
