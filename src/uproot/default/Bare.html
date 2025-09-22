@@ -1,6 +1,5 @@
 {% extends "Boilerplate.html" %}
 
-
 {% block TOPLEVELhead %}
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +8,10 @@
 {% if nobootstrap is not defined %}
 <link rel="stylesheet" href="{{ internalstatic('vendor/bootstrap/bootstrap.min.css') }}">
 <script src="{{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+{% endif %}
+
+{% if nowebfonts is not defined %}
+<link rel="stylesheet" href="{{ internalstatic('webfonts.css') }}">
 {% endif %}
 
 <link rel="stylesheet" href="{{ internalstatic('style.css') }}">
