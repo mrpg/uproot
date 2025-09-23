@@ -1,29 +1,3 @@
-/* Extending Bootstrap’s default fonts */
-:root {
-    --bs-font-monospace: "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --bs-font-sans-serif: Inter, system-ui, ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --bs-font-serif: "IBM Plex Serif", "New York", ui-serif, serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --bs-font-math: "IBM Plex Math", "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", serif;
-    --bs-body-font-family: var(--bs-font-sans-serif);
-}
-/* Adjustments for Inter web font */
-@font-feature-values "Inter" {
-  @character-variant {
-    inter-l-with-tail: 5;  /* alias "l-with-tail" points to OpenType feature cv05 */
-    inter-double-s: 7;  /* German double-s */
-  }
-  @styleset {
-    inter-open-digits: 1;  /* alias "open-digits" points to OpenType feature ss01 */
-  }
-}
-
-:root {
-    font-variant: tabular-nums;
-    font-variant-alternates:
-        character-variant(inter-l-with-tail, inter-double-s)
-        styleset(inter-open-digits);
-}
-
 /* uproot color scheme */
 :root {
     --bs-uproot: #4e1388;
@@ -105,19 +79,14 @@
     --bs-btn-border-radius: var(--bs-border-radius-sm);
 }
 
-/* Class for formulas in math font */
-.font-math {
-  font-family: var(--bs-font-math);
+/* Dedicated classes for switching to sans-serif and serif font */
+/* Adapted from https://tailwindcss.com/docs/font-family */
+:root {
+    --bs-font-serif: ui-serif, "Times New Roman", Times, Cambria, Georgia, serif;
 }
-/* Class for text in monospace/typewriter font */
-.font-monospace {
-    font-family: var(--bs-font-monospace);
-}
-/* Class for text in sans-serif font */
 .font-sans-serif {
     font-family: var(--bs-font-sans-serif);
 }
-/* Class for text in serif font */
 .font-serif {
     font-family: var(--bs-font-serif);
 }
