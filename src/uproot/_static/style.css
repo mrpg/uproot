@@ -109,12 +109,14 @@
 .font-math {
   font-family: var(--bs-font-math);
 }
-
+/* Class for text in monospace/typewriter font */
+.font-monospace {
+    font-family: var(--bs-font-monospace);
+}
 /* Class for text in sans-serif font */
 .font-sans-serif {
     font-family: var(--bs-font-sans-serif);
 }
-
 /* Class for text in serif font */
 .font-serif {
     font-family: var(--bs-font-serif);
@@ -140,6 +142,9 @@
 }
 .fw-300 {
     font-weight: 300 !important;  /* Light */
+}
+.fw-350 {
+    font-weight: 350 !important;  /* SemiLight/Book */
 }
 .fw-400 {
     font-weight: 400 !important;  /* Normal/Regular */
@@ -226,9 +231,6 @@ main {
 }
 footer {
     border-top: 1px solid lightgrey;
-}
-.font-monospaced {
-    font-family: "Cascadia Mono", var(--bs-font-monospace);
 }
 .hidden {
     display: none;
