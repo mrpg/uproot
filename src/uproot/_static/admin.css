@@ -34,38 +34,89 @@ h1, h2, h3, h4, h5, h6 {
     border: 2px solid #dee2e6;
     border-radius: 8px;
     background: #f8f9fa;
-    resize: both;
     overflow: hidden;
     min-width: 200px;
     min-height: 150px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .iframe-container:hover {
     border-color: var(--bs-uproot);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .iframe-header {
     background: #e9ecef;
-    padding: 4px 8px;
+    padding: 6px 12px;
     font-size: 12px;
+    font-weight: 500;
     border-bottom: 1px solid #dee2e6;
+    cursor: move;
+    user-select: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.iframe-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    cursor: move;
-    user-select: none;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.reload-button {
+    background: var(--bs-uproot, #007bff);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    flex-shrink: 0;
+}
+
+.reload-button:hover {
+    background: var(--bs-uproot-dark, #0056b3);
+    transform: scale(1.1);
+}
+
+.reload-button:active {
+    transform: scale(0.95);
+}
+
+.iframe-header:hover {
+    background: #dde2e5;
 }
 
 .iframe-container.dragging {
     z-index: 1001;
     opacity: 0.8;
+    transform: rotate(1deg);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.iframe-container.resizing {
+    z-index: 1001;
+    border-color: var(--bs-uproot);
 }
 
 .iframe-container iframe {
     width: 100%;
-    height: calc(100% - 25px);
+    height: calc(100% - 27px);
     border: none;
+    display: block;
 }
+
 
 .form-check-input:checked {
     background-color: var(--bs-uproot);
