@@ -673,6 +673,13 @@ window.uproot = {
         messageStore: {},
         ignoreChatted: true,
 
+        handleChatKeydown(event, chatId) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                this.sendMessage(chatId);
+            }
+        },
+
         create(el, chatId) {
             chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
 
@@ -695,6 +702,11 @@ window.uproot = {
             </div>`;
 
             const ch = el.children[0];
+            const input = ch.querySelector(`#message-input-chat-${chatId}`);
+
+            if (input) {
+                input.addEventListener("keydown", (e) => this.handleChatKeydown(e, chatId));
+            }
 
             if (!this.messageStore[chatId]) {
                 this.messageStore[chatId] = new Set();
