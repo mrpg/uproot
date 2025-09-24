@@ -203,6 +203,7 @@ function renderRooms(rooms, containerId) {
         badges.appendChild(capacityBadge);
 
         const nPlayersBadge = document.createElement("div");
+        console.log(room.sname);
         if (room.sname && uproot.vars.sessions[room.sname]) {
             if (room.capacity != null) {
                 // If full, show as success; if more than 90% full, show as warning; otherwise show as danger
@@ -214,9 +215,6 @@ function renderRooms(rooms, containerId) {
                 nPlayersBadge.className = "badge bg-success border border-success mb-2";
                 nPlayersBadge.textContent = `${_("Players")}: ${n_players}`;
             }
-        } else {
-            nPlayersBadge.className = room.start ? "badge bg-danger border border-danger mb-2" : "badge border border-danger text-danger mb-2";
-            nPlayersBadge.textContent = `${_("Players")}: 0`;
         }
         badges.appendChild(nPlayersBadge);
 
