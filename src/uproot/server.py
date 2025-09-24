@@ -36,10 +36,6 @@ from uproot.types import InternalPage, Page
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
-    if not d.DATABASE.ensure():
-        # This is the first time the DB is used when running a project
-        d.FIRST_RUN = True
-
     load_database_into_memory()
 
     with Admin() as admin:
@@ -55,19 +51,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     else:
         d.LOGGER.info(f"There are {la} admins")
 
-    if d.FIRST_RUN:
+    if len(d.ADMINS) == 1 and "admin" in d.ADMINS:
         print(file=stderr)
         print(
-            "Since this is the first run, here are the admins' credentials.",
+            "The following credentials are shown because you're using the default\n"
+            "administrator ('admin'). If you add more administrators, or change\n"
+            "admin's username through 'main.py', this message will no longer appear.",
             file=stderr,
         )
-        print("You can view and change them in 'main.py'.", file=stderr)
         print(file=stderr)
 
-        for i, (user, pw) in enumerate(d.ADMINS.items(), 1):
-            print(f"ADMIN {i}:")
-            print(f"  Username: {user}", file=stderr)
-            print(f"  Password: {pw}", file=stderr)
+        print("  Username:  ", "admin", file=stderr)
+        print("  Password:  ", d.ADMINS["admin"], file=stderr)
 
         print(file=stderr)
 
