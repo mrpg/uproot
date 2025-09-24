@@ -21,10 +21,31 @@ Login
 }
 </style>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Check for login token in URL fragment
+    if (window.location.hash) {
+        const token = window.location.hash.substring(1);
+
+        if (token) {
+            document.getElementById("token").value = token;
+            document.getElementById("user").value = "admin";
+            document.getElementById("pw").value = "";
+
+            history.replaceState(null, null, window.location.pathname + window.location.search);
+
+            document.getElementById("uproot-form").submit();
+        }
+    }
+});
+</script>
+
 {% endblock _uproot_scripts %}
 
 
 {% block main %}
+
+<input type="hidden" id="token" name="token" value="">
 
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">

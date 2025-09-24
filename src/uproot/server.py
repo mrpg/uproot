@@ -52,6 +52,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         d.LOGGER.info(f"There are {la} admins")
 
     if len(d.ADMINS) == 1 and "admin" in d.ADMINS:
+        d.ensure_login_token()
+
         print(file=stderr)
         print(
             "The following credentials are shown because you're using the default\n"
@@ -63,6 +65,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
         print("  Username:  ", "admin", file=stderr)
         print("  Password:  ", d.ADMINS["admin"], file=stderr)
+        print(
+            "  Auto login:",
+            f"http://{d.HOST}:{d.PORT}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
+            file=stderr,
+        )
 
         print(file=stderr)
 

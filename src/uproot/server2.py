@@ -301,6 +301,7 @@ async def login_post(
     request: Request,
     user: str = Form(),
     pw: str = Form(),
+    token: str = Form(""),
     host: str = Header(""),
     x_forwarded_proto: str = Header(""),
 ) -> Response:
@@ -312,7 +313,27 @@ async def login_post(
         LAST_FAILED_LOGIN = now()
         return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
-    # Attempt to create authentication token
+    # Check for login token first
+    if token and user == "admin" and d.LOGIN_TOKEN is not None:
+        if token == d.LOGIN_TOKEN:
+            a.ensure_globals()
+            token = a.create_auth_token(user, a.ADMINS[user])
+
+            if token is not None:
+                response = RedirectResponse(
+                    f"{d.ROOT}/admin/dashboard/", status_code=303
+                )
+                set_auth_cookie(
+                    response,
+                    token,
+                    x_forwarded_proto.lower() == "https"
+                    or not (
+                        host.startswith("localhost") or host.startswith("127.0.0.")
+                    ),  # Safari really sucks
+                )
+                return response
+
+    # Attempt to create authentication token with regular credentials
     token = a.create_auth_token(user, pw)
     if token is not None:
         response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)

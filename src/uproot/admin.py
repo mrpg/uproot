@@ -40,7 +40,7 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
         )
 
 
-def _ensure_globals() -> None:
+def ensure_globals() -> None:
     global ADMINS, ADMINS_HASH, ADMINS_SECRET_KEY
 
     if ADMINS_HASH is None:
@@ -55,7 +55,7 @@ def _ensure_globals() -> None:
 
 
 def _get_secret_key() -> str:
-    _ensure_globals()
+    ensure_globals()
     return cast(str, ADMINS_SECRET_KEY)
 
 
@@ -273,7 +273,7 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
     Returns:
         Signed token string if credentials are valid, None otherwise
     """
-    _ensure_globals()
+    ensure_globals()
 
     # Verify credentials first
     if user not in ADMINS or ADMINS[user] != pw:

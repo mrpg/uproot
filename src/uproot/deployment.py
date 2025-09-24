@@ -3,7 +3,8 @@
 
 import logging
 import os
-from typing import TYPE_CHECKING, Any
+import secrets
+from typing import TYPE_CHECKING, Any, Optional
 
 import uproot.drivers
 from uproot.i18n import ISO639
@@ -20,6 +21,7 @@ DBENV: str = os.getenv("UPROOT_DATABASE", "sqlite3")
 DEFAULT_ROOMS: list["RoomType"] = list()
 HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
+LOGIN_TOKEN: Optional[str] = None
 LOGGER: Any = logging.getLogger("uproot")
 PATH: str = os.getcwd()
 PORT: int = 8000
@@ -57,6 +59,14 @@ def project_metadata(uproot: str, *args: Any, **kwargs: Any) -> None:
 
     PROJECT_METADATA |= dict(uproot=uproot)
     PROJECT_METADATA |= kwargs
+
+
+def ensure_login_token() -> None:
+    # Callers must ensure any conditions are met
+    global LOGIN_TOKEN
+
+    if LOGIN_TOKEN is None:
+        LOGIN_TOKEN = secrets.token_urlsafe()
 
 
 async def lifespan_start(*args: Any, **kwargs: Any) -> None:
