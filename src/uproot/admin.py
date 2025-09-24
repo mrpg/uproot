@@ -538,38 +538,24 @@ def rooms() -> SortedDict[str, dict]:
 
 
 def sessions() -> dict[str, dict[str, Any]]:
+    stats = dict()
+
     with s.Admin() as admin:
         snames = admin.sessions
 
-    def get_session_field_value(
-        sname: str, field: str, default_data: Any = None
-    ) -> Any:
-        """Get current value of a field for a session, or return default."""
-        session_data = cache.get_namespace(("session", sname))
-        if (
-            session_data
-            and isinstance(session_data, dict)
-            and field in session_data
-            and isinstance(session_data[field], list)
-            and session_data[field]
-            and not session_data[field][-1].unavailable
-        ):
-            return session_data[field][-1]
-        return t.Value(0.0, False, default_data)
+    for sname in snames:
+        with s.Session(sname) as session:
+            stats[sname] = dict(
+                sname=session.name,  # Exactly equal to sname
+                active=session.active,
+                config=session.config,
+                room=session.room,
+                description=session.description,
+                n_players=len(session.players),
+                n_groups=len(session.groups),
+            )  # TODO: created
 
-    return {
-        sname: {
-            "sname": sname,
-            "active": get_session_field_value(sname, "active", False).data,
-            "config": get_session_field_value(sname, "config", None).data,
-            "room": get_session_field_value(sname, "room", None).data,
-            "description": get_session_field_value(sname, "description", None).data,
-            "n_players": len(get_session_field_value(sname, "players", []).data or []),
-            "n_groups": len(get_session_field_value(sname, "groups", []).data or []),
-            "started": get_session_field_value(sname, "config", None).time,
-        }
-        for sname in snames
-    }
+    return stats
 
 
 async def flip_active(sname: t.Sessionname) -> None:
