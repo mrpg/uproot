@@ -36,6 +36,7 @@ from uproot.types import InternalPage, Page
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
+    d.DATABASE.ensure()
     load_database_into_memory()
 
     with Admin() as admin:
