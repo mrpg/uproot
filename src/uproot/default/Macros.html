@@ -192,4 +192,11 @@
 {% endmacro %}
 
 
+{% macro chat(chatid) %}
+    {% with chat=chatid %}
+        {% include "Chat.html" %}
+    {% endwith %}
+{% endmacro %}
+
+
 {# Reminder for potential filter: {{ x | default("") }} #}
