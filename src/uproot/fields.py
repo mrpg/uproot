@@ -308,7 +308,7 @@ class RadioField(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
-        choices: list[tuple[Any, str] | Any],
+        choices: Optional[list[tuple[Any, str] | Any]] = None,
         label: str = "",
         layout: str = "vertical",
         optional: bool = False,
@@ -318,6 +318,9 @@ class RadioField(wtforms.fields.RadioField):
         default: Optional[Any] = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
+        if choices is None:
+            choices = [True, False]
+
         if not optional:
             v = [wtforms.validators.InputRequired()]
         else:
