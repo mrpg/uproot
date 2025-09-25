@@ -403,7 +403,8 @@ async def dashboard(
             dict(
                 configs=a.configs(),
                 rooms=a.rooms(),
-                sessions=a.sessions(),
+                sessions={sname: sinfo for sname, sinfo in a.sessions().items() if sinfo["active"]},
+                    # To avoid clutter, Dashboard shows active sessions only
             ),
         )
     )

@@ -59,8 +59,7 @@ Dashboard
     uproot.onStart(() => {
         // From top to bottom
         renderRooms(uproot.vars.rooms, "rooms-container");
-        const activeSessions = Object.values(uproot.vars.sessions).filter((s) => s.active);
-        renderSessions(activeSessions, "sessions-container");
+        renderSessions(uproot.vars.sessions, "sessions-container");  // server2.py transmits only active sessions to Dashboard
         renderConfigsAppsCards(uproot.vars.configs, "configs-container", "configs");
         renderConfigsAppsCards(uproot.vars.configs, "apps-container", "apps");
     });
