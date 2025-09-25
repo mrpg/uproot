@@ -1,4 +1,4 @@
-{% macro errors(field) %}
+{% macro error(field) %}
     {% if field.errors %}
         <div class="card text-bg-danger" role="alert">
             {% for error in field.errors %}
@@ -180,7 +180,7 @@
             <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
         {% endif %}
     {% endif %}
-    {{ errors(field) }}
+    {{ error(field) }}
     </div>
 {% endmacro %}
 
@@ -188,6 +188,15 @@
 {% macro fields() %}
     {% for field_ in form %}
         {{ field(field_) }}
+    {% endfor %}
+{% endmacro %}
+
+
+{% macro errors() %}
+    {% for field_ in form %}
+        <div class="form-group {{ error_class(field_) }}">
+        {{ error(field_) }}
+        </div>
     {% endfor %}
 {% endmacro %}
 
