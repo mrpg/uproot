@@ -1,8 +1,8 @@
 {% macro error(field) %}
     {% if field.errors %}
-        <div class="card text-bg-danger" role="alert">
+        <div class="card mt-2 text-bg-danger border-danger" role="alert">
             {% for error in field.errors %}
-                <div class="card-body pb-2 pt-2">
+                <div class="card-body pb-1 pt-1">
                     <small>{{ error }}</small>
                 </div>
             {% endfor %}
