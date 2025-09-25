@@ -163,7 +163,7 @@
                 {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
             {{ field(class_=" ".join(class_list)) | safe }}
-            <label class="pb-0 pt-2 text-body-tertiary bg-transparent">Text</label>
+            <label class="pb-0 pt-2 text-body-tertiary bg-transparent">{{ field.label() }}</label>
         </div>
         {% if field.description %}
             <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
