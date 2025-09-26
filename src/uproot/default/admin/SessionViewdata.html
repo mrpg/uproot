@@ -8,17 +8,17 @@
         <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
         <span class="fw-light text-secondary">&gt; {% translate %}Data{% endtranslate %}</span>
     </h2>
-    <div class="btn-group mb-2 mx-2" id="buttongroup-normal-table">
+    <div class="btn-group my-1 mx-2" id="buttongroup-normal-table">
         <button type="button" class="btn btn-outline-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
         <button type="button" class="btn btn-outline-uproot" onclick="fullScreenTable()">{% translate %}Full-screen table{% endtranslate %}</button>
     </div>
     <div id="buttons-normal-table">
-        <a class="btn btn-uproot mb-2 me-2" href="../data/">{% translate %}Download data{% endtranslate %}</a>
+        <a class="btn btn-uproot my-1 me-2" href="../data/">{% translate %}Download data{% endtranslate %}</a>
         {#<a class="btn btn-uproot mb-2" href="../monitor/">{% translate %}Monitor{% endtranslate %}</a>#}
     </div>
-    <div class="btn-group d-none me-2" id="buttons-fullscreen-table">
-        <button type="button" class="btn btn-outline-uproot btn-sm" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
-        <button type="button" class="btn btn-outline-uproot btn-sm" onclick="normalTable()">{% translate %}Normal table{% endtranslate %}</button>
+    <div class="btn-group d-none my-1 me-2" id="buttons-fullscreen-table">
+        <button type="button" class="btn btn-outline-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
+        <button type="button" class="btn btn-outline-uproot" onclick="normalTable()">{% translate %}Normal table{% endtranslate %}</button>
     </div>
 </div>
 

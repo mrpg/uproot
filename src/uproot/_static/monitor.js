@@ -54,9 +54,17 @@ function createTable(containerId) {
         height: "100%",
         layout: "fitColumns",
         placeholder: "No players available",
-        selectableRows: true,
+        //selectableRows: true,
         columns: columns,
-        data: transformMonitorDataForTabulator(initialData)
+        data: transformMonitorDataForTabulator(initialData),
+    });
+
+    table.on("cellClick", (e, cell) => {
+        if (e.target.tagName === "A") {
+            return false;
+        } else {
+            cell.getRow().toggleSelect();
+        }
     });
 
     // Wait for table to be built before setting up event handlers
@@ -78,9 +86,6 @@ function createMonitorColumns(data) {
             hozAlign: "center",
             headerSort: false,
             width: 40,
-            cellClick: function (e, cell) {
-                cell.getRow().toggleSelect();
-            }
         }
     ];
 
