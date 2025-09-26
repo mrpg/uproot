@@ -204,17 +204,21 @@ footer {
 .hidden {
     display: none;
 }
-.uproot-formlabel {
+.uproot-form-label {
     font-weight: bold;
     display: block;
 }
-.uproot-formdesc {
+.uproot-form-description {
     display: block;
 }
-.form-group {
+.uproot-form-group {
     margin-bottom: 1em;
 }
-.form-group ul {
+.uproot-form-group {
+    margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
+}  /* Corresponds to mb-4 mt-4 */
+.uproot-form-group ul {
     list-style-type: none;
     list-style-position: inside;
     margin: 0;
@@ -257,8 +261,8 @@ input[type="radio"].form-check-input {
 }
 
 div.without-anchoring-overlay {
-    background: rgba(0, 100, 255, 0.7);
-    border-radius: inherit;
+    background: var(--bs-primary);
+    border-radius: var(--bs-border-radius-pill);
     position: absolute;
     top: 0;
     left: 0;
