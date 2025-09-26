@@ -10,7 +10,6 @@
                id="message-input-chat-{{ chat.mname }}"
                class="form-control"
                placeholder="{% translate %}Type your message{% endtranslate %}"
-               required
                autocomplete="off"
                onkeydown="uproot.chat.handleChatKeydown(event, '{{ chat.mname }}')">
         <button type="button" class="btn btn-outline-primary" onclick="uproot.chat.sendMessage('{{ chat.mname }}')" aria-label="Send message">Send</button>
