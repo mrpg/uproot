@@ -720,22 +720,44 @@ async function updateData() {
             const newColumnFields = columns.map(col => col.field);
 
             if (JSON.stringify(currentColumnFields) !== JSON.stringify(newColumnFields)) {
-                // Save current sort before recreating table
+                // Save current sort and selected rows before recreating table
                 const currentSort = table.getSorters();
+                const selectedPlayers = getSelectedPlayers();
                 createTable(currentContainer);
-                // Restore sort after table is built
-                if (currentSort.length > 0) {
+                // Restore sort and selection after table is built
+                if (currentSort.length > 0 || selectedPlayers.length > 0) {
                     table.on("tableBuilt", function() {
-                        table.setSort(currentSort);
+                        if (currentSort.length > 0) {
+                            table.setSort(currentSort);
+                        }
+                        if (selectedPlayers.length > 0) {
+                            // Restore selected rows
+                            selectedPlayers.forEach(player => {
+                                const rows = table.searchRows("player", "=", player);
+                                if (rows.length > 0) {
+                                    rows[0].select();
+                                }
+                            });
+                        }
                     });
                 }
             } else {
-                // Preserve current sort when updating data
+                // Preserve current sort and selected rows when updating data
                 const currentSort = table.getSorters();
+                const selectedPlayers = getSelectedPlayers();
                 table.setData(transformedData);
                 // Restore sort if it was cleared
                 if (currentSort.length > 0) {
                     table.setSort(currentSort);
+                }
+                // Restore selected rows
+                if (selectedPlayers.length > 0) {
+                    selectedPlayers.forEach(player => {
+                        const rows = table.searchRows("player", "=", player);
+                        if (rows.length > 0) {
+                            rows[0].select();
+                        }
+                    });
                 }
             }
         } else {
