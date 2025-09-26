@@ -813,7 +813,7 @@ async def status(
             missing[term] = list()
         missing[term].append(lang)
 
-    sessions = a.get_active_sessions()
+    sessions = a.get_active_auth_sessions()
 
     return HTMLResponse(
         await render(

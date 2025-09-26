@@ -345,7 +345,7 @@ def revoke_all_user_tokens(user: str) -> int:
     return revoked_count
 
 
-def get_active_sessions() -> dict[str, dict[str, Any]]:
+def get_active_auth_sessions() -> dict[str, dict[str, Any]]:
     """Get information about all active authentication sessions.
 
     Returns:
