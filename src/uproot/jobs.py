@@ -39,6 +39,15 @@ async def subscribe_to_attendance(
     )
 
 
+async def subscribe_to_fieldchange(
+    sname: Sessionname,
+) -> Username:
+    return cast(
+        Username,
+        await e.FIELDCHANGE[sname].wait(),
+    )
+
+
 async def subscribe_to_room(roomname: str) -> bool:
     return cast(
         bool,
