@@ -221,15 +221,23 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             and isinstance(mkwargs, dict)
                             and mname in FUNS
                         ):
+                            t0 = now()
+                            retval = await cast(Any, FUNS[mname])(
+                                *margs,
+                                **mkwargs,
+                            )
+                            delta = now() - t0
+
+                            d.LOGGER.debug(
+                                f"{FUNS[mname].__name__} took {delta:.5f} seconds"
+                            )
+
                             await websocket.send_bytes(
                                 orjson.dumps(
                                     dict(
                                         kind="invoke",
                                         payload=dict(
-                                            data=await cast(Any, FUNS[mname])(
-                                                *margs,
-                                                **mkwargs,
-                                            ),
+                                            data=retval,
                                             future=result["future"],
                                         ),
                                     )
@@ -905,6 +913,7 @@ FUNS = dict(
     advance_by_one=a.advance_by_one,
     announcements=a.announcements,
     disassociate=a.disassociate,
+    fields_from_all=a.fields_from_all,
     flip_active=a.flip_active,
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,

@@ -398,6 +398,23 @@ def info_online(
     return dict(info=info, online=online)
 
 
+async def fields_from_all(
+    sname: t.Sessionname,
+    fields: list[str],
+) -> dict[t.Username, dict[str, Any]]:
+    retval = dict()
+
+    with s.Session(sname) as session:
+        for pid in session.players:
+            with pid() as player:
+                retval[pid.uname] = dict()
+
+                for field in fields:
+                    retval[pid.uname][field] = player.get(field)
+
+    return retval
+
+
 async def insert_fields(
     sname: t.Sessionname,
     unames: list[str],
