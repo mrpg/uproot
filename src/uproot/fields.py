@@ -30,6 +30,7 @@ class BooleanField(wtforms.fields.BooleanField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
         validators: Optional[list[Any]] = None,
         render_kw: Optional[dict[str, Any]] = None,
@@ -38,6 +39,8 @@ class BooleanField(wtforms.fields.BooleanField):
         default: Optional[Any] = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
+        self.class_wrapper = class_wrapper
+
         super().__init__(
             label=label,
             validators=validators,
@@ -53,6 +56,7 @@ class DateField(wtforms.fields.DateField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
@@ -65,6 +69,8 @@ class DateField(wtforms.fields.DateField):
             v = [wtforms.validators.InputRequired()]
         else:
             v = [wtforms.validators.Optional()]
+
+        self.class_wrapper = class_wrapper
 
         super().__init__(
             label=label,
@@ -81,6 +87,7 @@ class DecimalField(wtforms.fields.DecimalField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
         min: Optional[float] = None,
         max: Optional[float] = None,
@@ -102,6 +109,8 @@ class DecimalField(wtforms.fields.DecimalField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
+        self.class_wrapper = class_wrapper
+
         super().__init__(
             label=label,
             validators=v,
@@ -117,6 +126,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
         min: Optional[float] = None,
         max: Optional[float] = None,
@@ -146,6 +156,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
             render_kw["step"] = step
 
         self.anchoring = anchoring
+        self.class_wrapper = class_wrapper
 
         super().__init__(
             label=label,
@@ -162,7 +173,9 @@ class EmailField(wtforms.fields.EmailField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
+        label_floating: Optional[str] = None,
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
         description: str = "",
@@ -183,6 +196,9 @@ class EmailField(wtforms.fields.EmailField):
                 # wtforms.validators.Email(),
             ]
 
+        self.class_wrapper = class_wrapper
+        self.label_floating = label_floating
+
         super().__init__(
             label=label,
             validators=v,
@@ -198,6 +214,7 @@ class FileField(wtforms.fields.FileField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
@@ -210,6 +227,8 @@ class FileField(wtforms.fields.FileField):
             v = [wtforms.validators.InputRequired()]
         else:
             v = [wtforms.validators.Optional()]
+
+        self.class_wrapper = class_wrapper
 
         super().__init__(
             label=label,
@@ -226,6 +245,7 @@ class IntegerField(wtforms.fields.IntegerField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
         min: Optional[float] = None,
         max: Optional[float] = None,
@@ -247,6 +267,8 @@ class IntegerField(wtforms.fields.IntegerField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
+        self.class_wrapper = class_wrapper
+
         super().__init__(
             label=label,
             validators=v,
@@ -262,11 +284,12 @@ class LikertField(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
-        min: int = 1,
-        max: int = 7,
-        label_min: str = "",
         label_max: str = "",
+        label_min: str = "",
+        max: int = 7,
+        min: int = 1,
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
         description: str = "",
@@ -286,10 +309,11 @@ class LikertField(wtforms.fields.RadioField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
-        self.min = min
-        self.max = max
-        self.label_min = label_min
+        self.class_wrapper = class_wrapper
         self.label_max = label_max
+        self.label_min = label_min
+        self.max = max
+        self.min = min
 
         super().__init__(
             label=label,
@@ -309,6 +333,7 @@ class RadioField(wtforms.fields.RadioField):
         self,
         *,
         choices: Optional[list[tuple[Any, str] | Any]] = None,
+        class_wrapper: Optional[str] = None,
         label: str = "",
         layout: str = "vertical",
         optional: bool = False,
@@ -334,6 +359,8 @@ class RadioField(wtforms.fields.RadioField):
             else:
                 render_kw["class"] = "form-check-inline"
 
+        self.class_wrapper = class_wrapper
+
         super().__init__(
             choices=choices,
             label=label,
@@ -352,6 +379,7 @@ class SelectField(wtforms.fields.SelectField):
         self,
         *,
         choices: list[tuple[Any, str] | Any],
+        class_wrapper: Optional[str] = None,
         label: str = "",
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
@@ -364,6 +392,8 @@ class SelectField(wtforms.fields.SelectField):
             v = [wtforms.validators.InputRequired()]
         else:
             v = [wtforms.validators.Optional()]
+
+        self.class_wrapper = class_wrapper
 
         super().__init__(
             choices=choices,
@@ -382,7 +412,9 @@ class StringField(wtforms.fields.StringField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
+        label_floating: Optional[str] = None,
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
         description: str = "",
@@ -394,6 +426,9 @@ class StringField(wtforms.fields.StringField):
             v = [wtforms.validators.InputRequired()]
         else:
             v = [wtforms.validators.Optional()]
+
+        self.class_wrapper = class_wrapper
+        self.label_floating = label_floating
 
         super().__init__(
             label=label,
@@ -410,7 +445,9 @@ class TextAreaField(wtforms.fields.TextAreaField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
+        label_floating: Optional[str] = None,
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
         description: str = "",
@@ -422,6 +459,9 @@ class TextAreaField(wtforms.fields.TextAreaField):
             v = [wtforms.validators.InputRequired()]
         else:
             v = [wtforms.validators.Optional()]
+
+        self.class_wrapper = class_wrapper
+        self.label_floating = label_floating
 
         super().__init__(
             label=label,
@@ -453,7 +493,9 @@ class IBANField(wtforms.fields.StringField):
     def __init__(
         self,
         *,
+        class_wrapper: Optional[str] = None,
         label: str = "",
+        label_floating: Optional[str] = None,
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
         description: str = "",
@@ -471,6 +513,9 @@ class IBANField(wtforms.fields.StringField):
                 wtforms.validators.Optional(),
                 IBANValidator(),
             ]
+
+        self.class_wrapper = class_wrapper
+        self.label_floating = label_floating
 
         super().__init__(
             label=label,
