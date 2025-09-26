@@ -1,9 +1,31 @@
+const extraFields = ["label", "round", "_uproot_group", "member_id"];
 const heartbeats = {};
 
 uproot.onStart(() => {
     createTable("tableOuter");
-    window.uproot?.invoke("subscribe_to_attendance", window.uproot?.vars?.sname);
 });
+
+uproot.onStart(() => {
+    loadExtraData();
+    uproot.invoke("subscribe_to_attendance", uproot.vars.sname);
+});
+
+function loadExtraData() {
+    uproot.invoke("fields_from_all", uproot.vars.sname, extraFields).then(reshapeAndUpdateExtraData);
+}
+
+function reshapeAndUpdateExtraData(data) {
+    const newData = {};
+
+    for (const [key, value] of Object.entries(data)) {
+        value.group = (value._uproot_group) ? value._uproot_group.gname : null;
+        delete value["_uproot_group"];
+
+        newData[key] = value;
+    }
+
+    updateExtraData(newData);
+}
 
 // Override createTable for monitor-specific setup
 function createTable(containerId) {
@@ -73,7 +95,7 @@ function createMonitorColumns(data) {
     });
 
     // Sort fields by monitor priority
-    const monitorPriorityFields = ["id", "label", "player", "page", "progress", "lastSeen"];
+    const monitorPriorityFields = ["id", "label", "player", "page", "progress", "lastSeen", "round", "group", "member_id"];
     const sortedFields = Array.from(allFields).sort((a, b) => {
         const ai = monitorPriorityFields.indexOf(a);
         const bi = monitorPriorityFields.indexOf(b);
@@ -85,14 +107,12 @@ function createMonitorColumns(data) {
     });
 
     sortedFields.forEach((field, index) => {
-        const colWidth = field === "id" ? 60 : (field === "label" ? 80 : (field === "player" ? 120 : (field === "page" ? 200 : (field === "progress" || field === "lastSeen" ? 120 : 100))));
         const frozen = ["id", "label", "player"].includes(field);
 
         const column = {
             title: field,
             field: field,
             frozen: frozen,
-            width: colWidth,
             headerFilter: "input"
         };
 
@@ -150,9 +170,9 @@ function createMonitorColumns(data) {
 }
 
 function getMonitorDataForTabulator() {
-    const info = window.uproot?.vars?.info || {};
-    const online = window.uproot?.vars?.online || {};
-    const extraData = window.uproot?.vars?.extraData || {};
+    const info = uproot.vars.info || {};
+    const online = uproot.vars.online || {};
+    const extraData = uproot.vars.extraData || {};
 
     const monitorData = {};
 
@@ -172,7 +192,6 @@ function getMonitorDataForTabulator() {
 
         monitorData[uname] = {
             id: { value_representation: id ?? "", time: 0, context: "system" },
-            label: { value_representation: "", time: 0, context: "system" },
             player: { value_representation: uname, time: 0, context: "system" },
             page: { value_representation: pageName, time: 0, context: "system" },
             progress: { value_representation: `${Math.max(0, showPage + 1)}/${Math.max(0, pageOrder.length)}`, time: 0, context: "system" },
@@ -298,17 +317,17 @@ function ppath(pageOrder, showPage) {
 
 // Monitor-specific functions
 window.new_info_online = function new_info_online(data) {
-    if (!window.uproot) return;
+    if (!uproot) return;
     uproot.vars.online = data.online || {};
     uproot.vars.info = data.info || {};
     updateData();
 };
 
 window.updateExtraData = function updateExtraData(extraDataObj) {
-    if (!window.uproot) return;
-    if (!window.uproot.vars.extraData) window.uproot.vars.extraData = {};
+    if (!uproot) return;
+    if (!uproot.vars.extraData) uproot.vars.extraData = {};
 
-    Object.assign(window.uproot.vars.extraData, extraDataObj);
+    Object.assign(uproot.vars.extraData, extraDataObj);
 
     updateData();
 };
@@ -319,24 +338,24 @@ function getSelectedPlayers() {
 }
 
 window.invoke_from_monitor = function invoke_from_monitor(fname, ...args) {
-    return window.uproot?.invoke(
+    return uproot.invoke(
         fname,
-        window.uproot?.vars?.sname,
+        uproot.vars.sname,
         getSelectedPlayers(),
         ...args,
     );
 };
 
 window.actually_manage = function actually_manage() {
-    const action = window.uproot?.selectedValue("manage");
+    const action = uproot.selectedValue("manage");
     if (action) {
         window.bootstrap?.Modal.getOrCreateInstance(I("manage-modal")).hide();
         window.invoke_from_monitor(action).then((data) => {
             if (data) window.new_info_online(data);
-            window.uproot?.alert("The action has completed.");
+            uproot.alert("The action has completed.");
         });
     } else {
-        window.uproot?.error("No action was selected.");
+        uproot.error("No action was selected.");
     }
 };
 
@@ -347,11 +366,11 @@ window.actually_insert = function actually_insert() {
     try {
         fields = JSON.parse(json);
     } catch {
-        return window.uproot?.error("Invalid JSON.");
+        return uproot.error("Invalid JSON.");
     }
     window.bootstrap?.Modal.getOrCreateInstance(I("insert-modal")).hide();
     window.invoke_from_monitor("insert_fields", { fields, reload }).then(() => {
-        window.uproot?.alert("The action has completed.");
+        uproot.alert("The action has completed.");
     });
 };
 
@@ -359,7 +378,7 @@ window.actually_adminmessage_send = function actually_adminmessage_send() {
     const msg = I("adminmsg")?.value ?? "";
     window.bootstrap?.Modal.getOrCreateInstance(I("adminmessage_send-modal")).hide();
     window.invoke_from_monitor("adminmessage", msg).then(() => {
-        window.uproot?.alert("The action has completed.");
+        uproot.alert("The action has completed.");
     });
 };
 
@@ -370,12 +389,12 @@ window.mmodal = function mmodal(moname) {
         document.querySelectorAll(".pcount").forEach((el) => { el.innerText = String(selected.length); });
         modal?.show();
     } else {
-        window.uproot?.error("No subjects were selected.");
+        uproot.error("No subjects were selected.");
     }
 };
 
 function triggerHeartbeat(uname) {
-    if (!window.uproot) return;
+    if (!uproot) return;
 
     // Set heartbeat active
     heartbeats[uname] = true;
@@ -392,18 +411,18 @@ function triggerHeartbeat(uname) {
     }, 5000);
 }
 
-window.uproot?.onCustomEvent("Attended", (event) => {
+uproot.onCustomEvent("Attended", (event) => {
     const uname = event?.detail?.uname;
     const info = event?.detail?.info;
     if (!uname || !Array.isArray(info)) return;
 
     // Update the uproot vars with new info
-    if (!window.uproot.vars.info) window.uproot.vars.info = {};
-    if (!window.uproot.vars.online) window.uproot.vars.online = {};
+    if (!uproot.vars.info) uproot.vars.info = {};
+    if (!uproot.vars.online) uproot.vars.online = {};
 
     // Update player info
-    window.uproot.vars.info[uname] = info;
-    window.uproot.vars.online[uname] = Date.now() / 1000; // Current timestamp in seconds
+    uproot.vars.info[uname] = info;
+    uproot.vars.online[uname] = Date.now() / 1000; // Current timestamp in seconds
 
     // Trigger table refresh and heartbeat
     updateData();
