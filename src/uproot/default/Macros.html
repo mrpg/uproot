@@ -1,8 +1,8 @@
 {% macro error(field) %}
     {% if field.errors %}
-        <div class="card text-bg-danger" role="alert">
+        <div class="card mt-2 text-bg-danger border-danger" role="alert">
             {% for error in field.errors %}
-                <div class="card-body pb-2 pt-2">
+                <div class="card-body pb-1 pt-1">
                     <small>{{ error }}</small>
                 </div>
             {% endfor %}
@@ -93,8 +93,13 @@
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
-            {{ field(class_=" ".join(class_list)) | safe }}
-            <label class="pb-0 pt-2 text-body-tertiary bg-transparent">E-Mail</label>
+            {% if field.render_kw and field.render_kw.get("placeholder") %}
+                {{ field(class_=" ".join(class_list)) | safe }}
+                <label class="pb-0 pt-2 text-body-tertiary bg-transparent" for="{{ field.name }}">{{ field.render_kw.get("placeholder") }}</label>
+            {% else %}
+                {{ field(class_=" ".join(class_list), placeholder="e-mail") | safe }}
+                <label class="pb-0 pt-2 text-body-tertiary bg-transparent" for="{{ field.name }}">{% translate %}E-mail{% endtranslate %}</label>
+            {% endif %}
         </div>
         {% if field.description %}
             <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
@@ -162,8 +167,13 @@
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
-            {{ field(class_=" ".join(class_list)) | safe }}
-            <label class="pb-0 pt-2 text-body-tertiary bg-transparent">{{ field.label() }}</label>
+            {% if field.render_kw and field.render_kw.get("placeholder") %}
+                {{ field(class_=" ".join(class_list)) | safe }}
+                <label class="pb-0 pt-2 text-body-tertiary bg-transparent" for="{{ field.name }}">{{ field.render_kw.get("placeholder") }}</label>
+            {% else %}
+                {{ field(class_=" ".join(class_list), placeholder_="text") | safe }}
+                <label class="pb-0 pt-2 text-body-tertiary bg-transparent" for="{{ field.name }}">{% translate %}Text{% endtranslate %}</label>
+            {% endif %}
         </div>
         {% if field.description %}
             <small class="form-text text-muted uproot-formdesc">{{ field.description | safe }}</small>
