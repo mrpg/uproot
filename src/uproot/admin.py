@@ -117,7 +117,7 @@ async def advance_by_one(
                     ),
                 )
 
-    return info_online(sname)
+    return await info_online(sname)
 
 
 async def announcements() -> dict[str, Any]:
@@ -375,27 +375,20 @@ def get_active_auth_sessions() -> dict[str, dict[str, Any]]:
     return sessions
 
 
-def info_online(
+async def info_online(
     sname: t.Sessionname,
-) -> dict[str, Any]:
-    info: dict[str, Any] = dict()
-
-    namespace = cache.get_namespace(("player", sname))
-
-    if namespace is None:
-        return info
-
-    for uname, fields in namespace.items():
-        # TODO: Improve this object structure in JavaScript
-        info[uname] = (
-            fields["id"][-1].data,
-            fields["page_order"][-1].data,
-            fields["show_page"][-1].data,
-        )  # These fields are never unavailable
-
+) -> dict[t.Username, Any]:
     online = u.ONLINE[sname]
+    rawinfo: dict[t.Username, dict[str, Any]] = await fields_from_all(
+        sname, ["id", "page_order", "show_page"]
+    )
 
-    return dict(info=info, online=online)
+    return dict(
+        info={
+            k: (v["id"], v["page_order"], v["show_page"]) for k, v in rawinfo.items()
+        },
+        online=online,
+    )
 
 
 async def fields_from_all(
@@ -405,6 +398,9 @@ async def fields_from_all(
     retval = dict()
 
     with s.Session(sname) as session:
+        if not session:
+            return retval
+
         for pid in session.players:
             with pid() as player:
                 retval[pid.uname] = dict()
@@ -473,7 +469,7 @@ async def put_to_end(
                     ),
                 )
 
-    return info_online(sname)
+    return await info_online(sname)
 
 
 async def reload(sname: t.Sessionname, unames: list[str]) -> None:
@@ -517,7 +513,7 @@ async def revert_by_one(
                     ),
                 )
 
-    return info_online(sname)
+    return await info_online(sname)
 
 
 def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:

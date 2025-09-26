@@ -525,7 +525,7 @@ async def roommain(
                     room=admin.rooms[roomname],
                     configs=a.configs(),
                 )
-                | a.info_online(f"^{roomname}"),
+                | await a.info_online(f"^{roomname}"),
             )
         )
 
@@ -694,7 +694,7 @@ async def sessionmain(
                     secret=session._uproot_secret,
                     active=session.active,
                 )
-                | a.info_online(sname),
+                | await a.info_online(sname),
             )
         )
 
@@ -797,7 +797,10 @@ async def session_multiview(
     a.session_exists(sname)
 
     return HTMLResponse(
-        await render("SessionMultiview.html", dict(sname=sname) | a.info_online(sname))
+        await render(
+            "SessionMultiview.html",
+            dict(sname=sname) | await a.info_online(sname),
+        )
     )
 
 
