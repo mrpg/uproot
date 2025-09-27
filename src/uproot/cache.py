@@ -14,6 +14,7 @@ from sortedcontainers import SortedList
 
 from uproot.constraints import ensure
 from uproot.deployment import DATABASE
+from uproot.events import set_fieldchange
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import Value
 
@@ -194,6 +195,14 @@ def db_request(
                         nested_dict[key] = SortedList([new_value], key=lambda v: v.time)
                     else:
                         nested_dict[key].add(new_value)
+
+                if namespace[0] in ("session", "player", "group", "model"):
+                    set_fieldchange(
+                        namespace,
+                        key,
+                        new_value,
+                    )
+
             rval = value
 
         case "delete", _, None if isinstance(context, str):
@@ -208,6 +217,13 @@ def db_request(
                 tombstone = Value(DATABASE.now, True, None, context)
                 if nested_dict is not None:
                     nested_dict[key].add(tombstone)
+
+                if namespace[0] in ("session", "player", "group", "model"):
+                    set_fieldchange(
+                        namespace,
+                        key,
+                        tombstone,
+                    )
 
         # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:

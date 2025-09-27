@@ -3,15 +3,26 @@
 
 from collections import defaultdict
 
-from uproot.types import PlayerIdentifier, Pulse, Sessionname
+from uproot.types import PlayerIdentifier, Pulse, Sessionname, Value
 
 ATTENDANCE: defaultdict[Sessionname, Pulse] = defaultdict(Pulse)
+FIELDCHANGE: defaultdict[Sessionname, Pulse] = defaultdict(Pulse)
 ROOMS: defaultdict[str, Pulse] = defaultdict(Pulse)
 
 
 def set_attendance(pid: PlayerIdentifier) -> None:
     if pid.sname in ATTENDANCE:
         ATTENDANCE[pid.sname].set(pid.uname)
+
+
+def set_fieldchange(
+    namespace: tuple[str, ...],
+    field: str,
+    value: Value,
+) -> None:
+    sname = namespace[1]
+
+    FIELDCHANGE[sname].set((namespace, field, value))
 
 
 def set_room(roomname: str) -> None:

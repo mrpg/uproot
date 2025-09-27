@@ -211,6 +211,23 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                         case {
                             "endpoint": "invoke",
                             "payload": {
+                                "mname": "subscribe_to_fieldchange",
+                                "args": [sname],
+                            },
+                        } if isinstance(sname, str):
+                            newfname = "subscribe_to_fieldchange"
+                            args[newfname] = dict(sname=sname)
+                            tasks[
+                                asyncio.create_task(
+                                    j.subscribe_to_fieldchange(**args[newfname])
+                                )
+                            ] = (
+                                newfname,
+                                j.subscribe_to_fieldchange,
+                            )
+                        case {
+                            "endpoint": "invoke",
+                            "payload": {
                                 "mname": mname,
                                 "args": margs,
                                 "kwargs": mkwargs,
@@ -267,6 +284,18 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                         info=info,
                                         online=u.find_online(pid),
                                     ),
+                                ),
+                            )
+                        )
+                    )
+                elif fname == "subscribe_to_fieldchange":
+                    await websocket.send_bytes(
+                        orjson.dumps(
+                            dict(
+                                kind="event",
+                                payload=dict(
+                                    event="FieldChanged",
+                                    detail=result,
                                 ),
                             )
                         )
