@@ -59,6 +59,15 @@
     #data-table .tabulator-row.tabulator-selected {
         background-color: var(--bs-uproot-bg-light) !important;
     }
+
+    .table-sticky-outer-full-width {
+        margin-left: 50%;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        width: 99vw;
+        transform: translate(-50%, 0%);
+    }
+
     /* Sticky column styling for Tabulator */
     .tabulator-col[aria-sort="ascending"] .tabulator-col-content, .tabulator-col[aria-sort="descending"] .tabulator-col-content {
         background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
@@ -210,9 +219,14 @@
 
 <div class="align-items-center d-flex justify-content-between mb-0 pb-2">
     <h3 class="fw-semibold me-3 mb-3 mt-2">{% translate %}Player monitor{% endtranslate %}</h3>
-    <button type="button" class="btn btn-outline-uproot mb-3 mt-2" onclick="loadExtraData()">
-        {% translate %}Refresh{% endtranslate %}
-    </button>
+    <div class="btn-group mb-3 mx-2 mt-2" id="buttongroup-normal-table">
+        <button type="button" class="btn btn-outline-uproot " onclick="loadExtraData()">
+            {% translate %}Refresh{% endtranslate %}
+        <button type="button" class="btn btn-outline-uproot" onclick="toggleTableWidth()">
+            <span class="d-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
+            <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
+        </button>
+    </div>
     <div class="btn-group mb-3 ms-2 mt-2">
         <button type="button" class="btn btn-uproot" onclick="mmodal('manage')">
             {% translate %}Manage players{% endtranslate %}
@@ -517,6 +531,20 @@
         setTimeout(function() {
             I("urls-copied").classList.add("invisible");
         }, 3000);
+    };
+    var fullWidthTable = false;
+    function toggleTableWidth() {
+        if (fullWidthTable == true) {
+            I("full-width-text").className = "d-block";
+            I("normal-width-text").className = "d-none";
+            I("tableContainer").classList.remove("table-sticky-outer-full-width");
+            fullWidthTable = false;
+        } else {
+            I("full-width-text").className = "d-none";
+            I("normal-width-text").className = "d-block";
+            I("tableContainer").classList.add("table-sticky-outer-full-width");
+            fullWidthTable = true;
+        };
     };
 </script>
 
