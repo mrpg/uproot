@@ -222,6 +222,7 @@
     <div class="btn-group mb-3 mx-2 mt-2" id="buttongroup-normal-table">
         <button type="button" class="btn btn-outline-uproot " onclick="loadExtraData()">
             {% translate %}Refresh{% endtranslate %}
+        </button>
         <button type="button" class="btn btn-outline-uproot" onclick="toggleTableWidth()">
             <span class="d-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
             <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
@@ -234,17 +235,17 @@
         <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
         <ul class="dropdown-menu">
             <li>
-                <span  class="dropdown-item" onclick="mmodal('manage')" role="button">
+                <span class="dropdown-item" onclick="mmodal('manage')" role="button">
                     {% translate %}Manage players{% endtranslate %}
                 </span>
             </li>
             <li>
-                <span  class="dropdown-item" onclick="mmodal('insert')" role="button">
+                <span class="dropdown-item" onclick="mmodal('insert')" role="button">
                     {% translate %}Insert fields{% endtranslate %}
                 </span>
             </li>
             <li>
-                <span  class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
+                <span class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
                     {% translate %}Send message{% endtranslate %}
                 </span>
             </li>

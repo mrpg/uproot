@@ -11,6 +11,20 @@
     <div class="btn-group my-1 mx-2" id="buttongroup-normal-table">
         <button type="button" class="btn btn-outline-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
         <button type="button" class="btn btn-outline-uproot" onclick="fullScreenTable()">{% translate %}Full-screen table{% endtranslate %}</button>
+        <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+        <ul class="dropdown-menu">
+            <li>
+                <span class="dropdown-item" onclick="fullScreenTable()" role="button">
+                    {% translate %}Full-screen table{% endtranslate %}
+                </span>
+            </li>
+            <li>
+                <span class="dropdown-item" onclick="toggleTableWidth()" role="button">
+                    <span class="d-inline-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
+                    <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
+                </span>
+            </li>
+        </ul>
     </div>
     <div id="buttons-normal-table">
         <a class="btn btn-uproot my-1 me-2" href="../data/">{% translate %}Download data{% endtranslate %}</a>
@@ -45,6 +59,15 @@
     #data-table .tabulator-row:hover {
         background-color: #eeeeee;
     }
+
+    .table-sticky-outer-full-width {
+        margin-left: 50%;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        width: 99vw;
+        transform: translate(-50%, 0%);
+    }
+
     /* Sticky column styling for Tabulator */
     .tabulator-col[aria-sort="ascending"] .tabulator-col-content, .tabulator-col[aria-sort="descending"] .tabulator-col-content {
         background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
@@ -114,11 +137,25 @@
         I("uproot-footer").classList.remove("d-none");
         I("uproot-navbar").classList.remove("d-none");
         I("tableContainer").setAttribute("class", "mt-0 table-sticky-outer");
-        I("tableOuter").classList.remove("mx-3");
         I("buttons-fullscreen-table").classList.add("d-none");
         I("buttongroup-normal-table").classList.remove("d-none");
         I("buttons-normal-table").classList.remove("d-none");
     }
+
+    var fullWidthTable = false;
+    function toggleTableWidth() {
+        if (fullWidthTable == true) {
+            I("full-width-text").className = "d-inline-block";
+            I("normal-width-text").className = "d-none";
+            I("tableContainer").classList.remove("table-sticky-outer-full-width");
+            fullWidthTable = false;
+        } else {
+            I("full-width-text").className = "d-none";
+            I("normal-width-text").className = "d-inline-block";
+            I("tableContainer").classList.add("table-sticky-outer-full-width");
+            fullWidthTable = true;
+        };
+    };
 </script>
 
 {% endblock late %}
