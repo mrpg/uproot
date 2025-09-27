@@ -96,6 +96,43 @@
     .tabulator-headers {
         vertical-align: bottom !important;
     }
+    /* Sticky row headers for first 4 columns */
+    .tabulator-headers > div:nth-of-type(1),
+    .tabulator-headers > div:nth-of-type(2),
+    .tabulator-headers > div:nth-of-type(3),
+    .tabulator-headers > div:nth-of-type(4) {
+        position: sticky !important;
+        z-index: 99;
+    }
+    .tabulator-row > div:nth-of-type(1),
+    .tabulator-row > div:nth-of-type(2),
+    .tabulator-row > div:nth-of-type(3),
+    .tabulator-row > div:nth-of-type(4) {
+        font-weight: bolder;
+        position: sticky !important;
+        z-index: 97;
+    }
+    /* Position to stick at for column 1 */
+    .tabulator-headers > div:nth-of-type(1),
+    .tabulator-row > div:nth-of-type(1) {
+        left: 0em !important;
+    }
+    /* Position to stick at for column 2 */
+    .tabulator-headers > div:nth-of-type(2),
+    .tabulator-row > div:nth-of-type(2) {
+        left: 2.5em !important;
+    }
+    /* Position to stick at for column 3 */
+    .tabulator-headers > div:nth-of-type(3),
+    .tabulator-row > div:nth-of-type(3) {
+        left: 6em !important;
+    }
+    /* Position to stick at for column 4 */
+    .tabulator-headers > div:nth-of-type(4),
+    .tabulator-row > div:nth-of-type(4) {
+        left: 12em !important;
+    }
+
     /* Heartbeat animation */
     .heartbeat {
         transition: color 0.3s ease;

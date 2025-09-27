@@ -179,7 +179,7 @@ footer a {
     position: sticky;
     z-index: 97;
 }
-/* Positions to stick at for first column */
+/* Position to stick at for first column */
 .table-sticky tr > td:nth-of-type(1),
 .table-sticky tr > th:nth-of-type(1) {
     left: 0em;
