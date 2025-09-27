@@ -3,6 +3,7 @@
 const ignoredFields = ["session", "key"];
 const priorityFields = ["id", "label", "_uproot_group", "member_id", "page_order", "show_page", "started", "round"];
 
+let FILTER; // TODO: grouping var, actually
 let lastData, lastUpdate = 0;
 let table;
 let currentContainer = "tableOuter";
@@ -240,14 +241,65 @@ function mergeDiffIntoDataset(diffData) {
     }
 }
 
-function latest(obj) {
+function latest(obj, conditions = {}) {
+    // If no conditions, return simple latest (existing behavior)
+    if (Object.keys(conditions).length === 0) {
+        const result = {};
+        for (const [key, fields] of Object.entries(obj)) {
+            result[key] = {};
+            for (const [field, arr] of Object.entries(fields)) {
+                result[key][field] = arr[arr.length - 1];
+            }
+        }
+        return result;
+    }
+
     const result = {};
 
-    for (const [key, fields] of Object.entries(obj)) {
-        result[key] = {};
+    // Process each user independently
+    for (const [uname, fields] of Object.entries(obj)) {
+        // Collect all changes for this user with timestamps
+        const changes = [];
+        for (const [field, values] of Object.entries(fields)) {
+            for (let i = 0; i < values.length; i++) {
+                changes.push({
+                    field: field,
+                    time: values[i][0],
+                    payload: values[i]
+                });
+            }
+        }
 
-        for (const [field, arr] of Object.entries(fields)) {
-            result[key][field] = arr[arr.length - 1];
+        // Sort by time
+        changes.sort((a, b) => a.time - b.time);
+
+        // Build state evolution and find latest matching snapshot
+        const currentState = {};
+        let latestMatchingState = null;
+
+        for (const change of changes) {
+            // Update state
+            currentState[change.field] = change.payload;
+
+            // Check if all conditions are met
+            let allConditionsMet = true;
+            for (const [condField, condValue] of Object.entries(conditions)) {
+                const fieldState = currentState[condField];
+                if (!fieldState || fieldState[3] !== condValue) {
+                    allConditionsMet = false;
+                    break;
+                }
+            }
+
+            // Save snapshot if conditions are met
+            if (allConditionsMet) {
+                latestMatchingState = { ...currentState };
+            }
+        }
+
+        // Add to result if we found a matching state
+        if (latestMatchingState) {
+            result[uname] = latestMatchingState;
         }
     }
 
@@ -260,29 +312,27 @@ async function updateData() {
 
         [lastData, lastUpdate] = await uproot.invoke("everything_from_session_display", uproot.vars.sname, lastUpdate);
 
-        if (lastData && Object.keys(lastData).length > 0) {
-            // Merge the diff into our full dataset
-            mergeDiffIntoDataset(lastData);
+        // Merge the diff into our full dataset
+        mergeDiffIntoDataset(lastData);
 
-            if (table) {
-                const latestOnly = latest(fullDataset);
-                const transformedData = transformDataForTabulator(latestOnly);
-                const columns = createColumns(latestOnly);
+        if (table) {
+            const latestOnly = latest(fullDataset, FILTER);
+            const transformedData = transformDataForTabulator(latestOnly);
+            const columns = createColumns(latestOnly);
 
-                // Update columns if they've changed (only on significant changes)
-                const currentColumnFields = table.getColumnDefinitions().map(col => col.field);
-                const newColumnFields = columns.map(col => col.field);
+            // Update columns if they've changed (only on significant changes)
+            const currentColumnFields = table.getColumnDefinitions().map(col => col.field);
+            const newColumnFields = columns.map(col => col.field);
 
-                if (JSON.stringify(currentColumnFields) !== JSON.stringify(newColumnFields)) {
-                    table.setColumns(columns);
-                }
+            if (JSON.stringify(currentColumnFields) !== JSON.stringify(newColumnFields)) {
+                table.setColumns(columns);
+            }
 
-                // Update data with full merged dataset
-                table.setData(transformedData);
+            // Update data with full merged dataset
+            table.setData(transformedData);
 
-                if (firstLoad) {
-                    table.setSort("id", "asc");
-                }
+            if (firstLoad) {
+                table.setSort("id", "asc");
             }
         }
     } catch (error) {
