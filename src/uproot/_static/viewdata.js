@@ -28,7 +28,7 @@ function transformField(field) {
 }
 
 function formatCellValue(value, metadata) {
-    if (metadata.unavailable) {
+    if (!metadata || metadata.unavailable) {
         return "<small class='text-muted'>(" + _("unset") + ")</small>";
     }
 
@@ -53,7 +53,7 @@ function showCellDetails(field, metadata) {
     const lastChangedLabel = _("Last changed");
     const unsetLabel = _("Unset or deleted");
 
-    if (metadata.unavailable) {
+    if (!metadata || metadata.unavailable) {
         details = `<h4>${uproot.escape(field)}</h4>
             <p><strong>${unsetLabel}</strong></p>
             <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}</p>`;
