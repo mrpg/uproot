@@ -945,6 +945,7 @@ FUNS = dict(
     advance_by_one=a.advance_by_one,
     announcements=a.announcements,
     disassociate=a.disassociate,
+    everything_from_session_display=a.everything_from_session_display,
     fields_from_all=a.fields_from_all,
     flip_active=a.flip_active,
     insert_fields=a.insert_fields,

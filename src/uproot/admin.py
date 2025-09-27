@@ -4,7 +4,16 @@
 import asyncio
 import secrets
 from datetime import datetime
-from typing import Any, AsyncGenerator, Callable, Iterator, Optional, cast
+from typing import (
+    Annotated,
+    Any,
+    AsyncGenerator,
+    Callable,
+    Iterator,
+    Optional,
+    TypeAlias,
+    cast,
+)
 
 import aiohttp
 from fastapi import Header, HTTPException
@@ -22,6 +31,13 @@ import uproot.types as t
 ADMINS: dict[str, str] = dict()
 ADMINS_HASH: Optional[str] = None
 ADMINS_SECRET_KEY: Optional[str] = None
+DisplayValue: TypeAlias = tuple[
+    Annotated[float | None, "time"],
+    Annotated[bool, "unavailable"],
+    Annotated[str | None, "typename"],
+    Annotated[str, "displaystr"],
+    Annotated[str, "context"],
+]
 
 
 async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> None:
@@ -205,6 +221,67 @@ def everything_from_session(
                 matches |= cache.flatten(namespace, k)
 
     return matches
+
+
+def data_display(x: Any) -> str:
+    # This is similar to data.value2json and data.json2csv, but a bit simpler
+    # The intention is to provide a user-friendly string representation of 'x'
+
+    if isinstance(x, (bytearray, bytes)):
+        # Nobody wants to view that in the browser (not in that form at least)
+        return "[Binary]"
+    else:
+        try:
+            return str(x)
+        except Exception:
+            return repr(x)
+
+
+async def everything_from_session_display(
+    sname: t.Sessionname,
+    since_epoch: float = 0.0,
+) -> tuple[dict[str, dict[str, list[DisplayValue]]], float]:
+    # This function returns something that orjson can handle
+
+    sname = str(sname)
+    search_val = t.Value(since_epoch, True, None, "")
+    retval: dict[str, dict[str, list[DisplayValue]]] = dict()
+    last_update: float = since_epoch
+
+    for uname, fields in cache.MEMORY_HISTORY.get("player", {}).get(sname, {}).items():
+        retval[uname] = dict()
+
+        for field, values in fields.items():
+            from_ix = values.bisect_right(search_val)
+            retval[uname][field] = displayvalues = [
+                cast(
+                    DisplayValue,
+                    (
+                        val.time,
+                        val.unavailable,
+                        type(val.data).__name__,
+                        data_display(val.data),
+                        val.context,
+                    ),
+                )
+                for val in values[from_ix:]
+            ]
+
+            if displayvalues:
+                if (
+                    isinstance(displayvalues[-1][0], float)
+                    and displayvalues[-1][0] > last_update
+                ):
+                    last_update = displayvalues[-1][0]
+            else:
+                del retval[uname][field]
+
+        if not retval[uname]:
+            del retval[uname]
+
+        await asyncio.sleep(0)
+
+    return retval, last_update
 
 
 def generate_data(
@@ -395,7 +472,7 @@ async def fields_from_all(
     sname: t.Sessionname,
     fields: list[str],
 ) -> dict[t.Username, dict[str, Any]]:
-    retval = dict()
+    retval: dict[t.Username, dict[str, Any]] = dict()
 
     with s.Session(sname) as session:
         if not session:
