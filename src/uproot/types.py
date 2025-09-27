@@ -71,7 +71,7 @@ class Identifier(ABC):
         raise NotImplementedError
 
     def __str__(self) -> str:
-        return "/".join([*self])
+        return str([*self][-1])
 
 
 @validated_dataclass(frozen=True)
