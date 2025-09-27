@@ -718,33 +718,3 @@ def require_bearer_token(authorization: Optional[str] = Header(None)) -> None:
     """
     if not verify_bearer_token(authorization):
         raise HTTPException(status_code=401, detail="Unauthorized")
-
-
-async def viewdata(
-    sname: t.Sessionname, since_epoch: float = 0
-) -> tuple[SortedDict, float]:
-    session_exists(sname, False)
-
-    rval: SortedDict = SortedDict()
-    latest: dict[Any, Any] = s.fields_from_session(sname, since_epoch)
-    last_update: float = since_epoch
-
-    for (parts, field), v in latest.items():
-        if len(parts) >= 3 and parts[0] == "player":
-            uname = parts[2]
-
-            if uname not in rval:
-                rval[uname] = SortedDict()
-
-            rval[uname][field] = dict(
-                time=v.time,
-                unavailable=v.unavailable,
-                type_representation=str(type(v.data)),
-                value_representation=repr(v.data),
-                context=v.context,
-            )
-
-            if v.time > last_update:
-                last_update = v.time
-
-    return rval, last_update

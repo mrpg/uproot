@@ -953,5 +953,4 @@ FUNS = dict(
     put_to_end=a.put_to_end,
     reload=a.reload,
     revert_by_one=a.revert_by_one,
-    viewdata=a.viewdata,
 )

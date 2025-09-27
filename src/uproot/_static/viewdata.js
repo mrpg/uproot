@@ -26,16 +26,8 @@ function transformField(field) {
     return field;
 }
 
-function transformValue(field, payload) {
-    if (field === "_uproot_group" && payload.value_representation) {
-        const match = payload.value_representation.match(/gname='([^']+)'/);
-        return match ? match[1] : payload.value_representation;
-    }
-    return payload.value_representation;
-}
-
 function formatCellValue(value, metadata) {
-    if (value === null || value === undefined) {
+    if (metadata.unavailable) {
         return "<small class='text-muted'>(" + _("unset") + ")</small>";
     }
 
@@ -55,15 +47,22 @@ function formatCellValue(value, metadata) {
 function showCellDetails(field, metadata) {
     if (!metadata || metadata.no_details) return;
 
+    let details;
     const typeLabel = _("Type");
     const lastChangedLabel = _("Last changed");
+    const unsetLabel = _("Unset or deleted");
 
-    const details = `
-        <h4>${uproot.escape(field)}</h4>
-        <p><strong>${typeLabel}:</strong> ${uproot.escape(metadata.type) || `<i>${_("Unknown")}</i>`}</p>
-        <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}</p>
-        <textarea class="form-control" rows="8" disabled>${uproot.escape(metadata.trueValue) || ''}</textarea>
-    `;
+    if (metadata.unavailable) {
+        details = `<h4>${uproot.escape(field)}</h4>
+            <p><strong>${unsetLabel}</strong></p>
+            <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}</p>`;
+    }
+    else {
+        details = `<h4>${uproot.escape(field)}</h4>
+            <p><strong>${typeLabel}:</strong> ${uproot.escape(metadata.type) || `<i>${_("Unknown")}</i>`}</p>
+            <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}</p>
+            <textarea class="form-control" rows="8" disabled>${uproot.escape(metadata.trueValue) || ''}</textarea>`;
+    }
 
     uproot.alert(details); // SAFE
 }
@@ -163,17 +162,17 @@ function transformDataForTabulator(rawData) {
 
             if (!originalField.startsWith("_uproot_") || originalField === "_uproot_group") {
                 if (!ignoredFields.includes(originalField)) {
-                    const value = transformValue(originalField, payload);
-
                     // Store the display value
-                    row[field] = value;
+                    row[field] = payload[3];
 
                     // Store metadata for tooltips and modals
                     row[field + "_meta"] = {
-                        time: payload.time,
-                        context: payload.context,
-                        type: payload.type_representation,
-                        trueValue: value,
+                        path: [uname, field],
+                        time: payload[0],
+                        unavailable: payload[1],
+                        type: payload[2],
+                        trueValue: payload[3],
+                        context: payload[4],
                         no_details: originalField === "_uproot_group" // Set no_details for group fields
                     };
                 }
@@ -225,31 +224,50 @@ function mergeDiffIntoDataset(diffData) {
     // Merge the diff data into our full dataset
     for (const [uname, fields] of Object.entries(diffData)) {
         if (!fullDataset[uname]) {
-            fullDataset[uname] = {};
+            fullDataset[uname] = { ...fields };
+        }
+        else {
+            for (const [field, arr] of Object.entries(fields)) {
+                fullDataset[uname][field] = fullDataset[uname][field] ? [...fullDataset[uname][field], ...arr] : [...arr];
+            }
         }
 
         // Update only the changed fields for this user
         for (const [field, payload] of Object.entries(fields)) {
-            fullDataset[uname][field] = payload;
             // Track this cell as recently updated
             recentlyUpdated.add(`${uname}:${transformField(field)}`);
         }
     }
 }
 
+function latest(obj) {
+    const result = {};
+
+    for (const [key, fields] of Object.entries(obj)) {
+        result[key] = {};
+
+        for (const [field, arr] of Object.entries(fields)) {
+            result[key][field] = arr[arr.length - 1];
+        }
+    }
+
+    return result;
+}
+
 async function updateData() {
     try {
         const firstLoad = lastUpdate == 0;
 
-        [lastData, lastUpdate] = await uproot.invoke("viewdata", uproot.vars.sname, lastUpdate);
+        [lastData, lastUpdate] = await uproot.invoke("everything_from_session_display", uproot.vars.sname, lastUpdate);
 
         if (lastData && Object.keys(lastData).length > 0) {
             // Merge the diff into our full dataset
             mergeDiffIntoDataset(lastData);
 
             if (table) {
-                const transformedData = transformDataForTabulator(fullDataset);
-                const columns = createColumns(fullDataset);
+                const latestOnly = latest(fullDataset);
+                const transformedData = transformDataForTabulator(latestOnly);
+                const columns = createColumns(latestOnly);
 
                 // Update columns if they've changed (only on significant changes)
                 const currentColumnFields = table.getColumnDefinitions().map(col => col.field);
@@ -286,10 +304,6 @@ async function refreshData() {
 }
 
 function initializeTable() {
-    // Reset dataset and lastUpdate for fresh start
-    fullDataset = {};
-    lastUpdate = 0;
-
     createTable(currentContainer);
     updateData();
 }
