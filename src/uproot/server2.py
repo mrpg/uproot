@@ -264,14 +264,18 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             pass
                             # ~ raise NotImplementedError(result)
                 elif fname == "subscribe_to_attendance":
-                    pid = t.PlayerIdentifier(args[fname]["sname"], result)
+                    sname = args[fname]["sname"]
+                    pid = t.PlayerIdentifier(sname, result)
 
-                    with pid() as p:
-                        info = (
-                            p.id,
-                            p.page_order,
-                            p.show_page,
-                        )  # TODO: Remove monkeypatch
+                    if not sname.startswith("^"):
+                        with pid() as p:
+                            info = (
+                                p.id,
+                                p.page_order,
+                                p.show_page,
+                            )  # TODO: Remove monkeypatch
+                    else:
+                        info = (0, [""], 0)
 
                     await websocket.send_bytes(
                         orjson.dumps(
@@ -784,7 +788,11 @@ async def session_digest(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    ensure(appname.isidentifier(), TypeError, "Invalid app")
+    ensure(
+        appname.isidentifier(),  # KEEP AS IS
+        TypeError,
+        "Invalid app",
+    )
 
     with Session(sname) as session:
         ensure(

@@ -6,6 +6,7 @@ from uuid import UUID
 
 import pytest
 
+from uproot.constraints import valid_token
 from uproot.types import (
     GroupIdentifier,
     Identifier,
@@ -372,14 +373,14 @@ class TestTokenFunctions:
         result = token([])
         assert isinstance(result, str)
         assert len(result) >= 5  # Default minimum length
-        assert result.isidentifier()
+        assert valid_token(result)
 
     def test_token_with_string_list(self):
         """Test token generation avoiding specific strings."""
         not_in = ["abc", "def", "ghi"]
         result = token(not_in)
         assert result not in not_in
-        assert result.isidentifier()
+        assert valid_token(result)
 
     def test_token_with_player_identifiers(self):
         """Test token generation with PlayerIdentifier list."""
@@ -389,7 +390,7 @@ class TestTokenFunctions:
 
         result = token(not_in)
         assert result not in ["user1", "user2"]
-        assert result.isidentifier()
+        assert valid_token(result)
 
     def test_token_with_postprocess(self):
         """Test token generation with postprocessing function."""
@@ -399,7 +400,7 @@ class TestTokenFunctions:
 
         result = token([], postprocess=uppercase)
         assert result.isupper()
-        assert result.isidentifier()
+        assert valid_token(result)
 
     def test_token_invalid_type_raises_error(self):
         """Test token with invalid type raises TypeError."""
@@ -411,7 +412,7 @@ class TestTokenFunctions:
         result = tokens([], 5)
         assert len(result) == 5
         assert len(set(result)) == 5  # All unique
-        assert all(token.isidentifier() for token in result)
+        assert all(valid_token(token) for token in result)
 
     def test_tokens_with_player_identifiers(self):
         """Test tokens function with PlayerIdentifier list."""

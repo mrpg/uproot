@@ -284,7 +284,7 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
 def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
     ensure(
-        app.isidentifier(),
+        app.isidentifier(),  # KEEP AS IS
         ValueError,
         "Apps must have valid Python identifiers as names.",
     )
@@ -305,7 +305,7 @@ def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
 
 def new_minimal_app(path: Path, app: str = "my_app") -> None:
     ensure(
-        app.isidentifier(),
+        app.isidentifier(),  # KEEP AS IS
         ValueError,
         "Apps must have valid Python identifiers as names.",
     )

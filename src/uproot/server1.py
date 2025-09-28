@@ -42,7 +42,7 @@ import uproot.deployment as d
 import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
-from uproot.constraints import ensure
+from uproot.constraints import ensure, valid_token
 from uproot.pages import (
     path2page,
     render,
@@ -615,7 +615,7 @@ async def ws(
                                 len(payload) == 2
                                 and isinstance(payload[0], str)
                                 and isinstance(payload[1], str)
-                                and payload[0].isidentifier()
+                                and valid_token(payload[0])
                             ):
                                 mname, msgtext = payload  # thanks, mypy…
 
@@ -646,9 +646,10 @@ async def ws(
                                         f"Ignored chat message starting with '{msgtext[:32]}' for "
                                         f"non-existing chat starting with '{mname[:32]}' (or no auth)"
                                     )
-                            case {"endpoint": "chat_get", "payload": mname} if (
-                                isinstance(mname, str) and mname.isidentifier()
-                            ):
+                            case {
+                                "endpoint": "chat_get",
+                                "payload": mname,
+                            } if isinstance(mname, str) and valid_token(mname):
                                 mid = t.ModelIdentifier(sname, mname)
 
                                 if chat.exists(mid) and pid in (
@@ -702,7 +703,7 @@ async def ws(
 
 @router.get("/static/{realm}/{location:path}")
 async def anystatic(request: Request, realm: str, location: str) -> Response:
-    if not realm.isidentifier():
+    if not realm.isidentifier():  # KEEP AS IS
         raise HTTPException(status_code=404)
 
     if realm == "_uproot":

@@ -159,7 +159,7 @@ window.uproot = {
         if (minutes > 0) parts.push(_(minutes === 1 ? "#x# minute" : "#x# minutes").replace("#x#", minutes));
         if (seconds > 0 || parts.length === 0) parts.push(_(seconds === 1 ? "#x# second" : "#x# seconds").replace("#x#", seconds));
 
-        const timeText = parts.length > 1 
+        const timeText = parts.length > 1
             ? parts.slice(0, -1).join(_(", ")) + _(" and ") + parts[parts.length - 1]
             : parts[0];
 
@@ -296,10 +296,9 @@ window.uproot = {
         });
     },
 
-    isPythonIdentifier(str) {
-        if (typeof str !== "string" || str.length === 0) return false;
-        const re = /^(?:_|[\p{XID_Start}])[\p{XID_Continue}]*$/u;
-        return re.test(str);
+    isValidToken(x) {
+        if (typeof x !== "string") return false;
+        return /^[a-zA-Z0-9._-]*$/.test(x);
     },
 
     hello() {

@@ -456,8 +456,10 @@ async def info_online(
     sname: t.Sessionname,
 ) -> dict[t.Username, Any]:
     online = u.ONLINE[sname]
-    rawinfo: dict[t.Username, dict[str, Any]] = await fields_from_all(
-        sname, ["id", "page_order", "show_page"]
+    rawinfo: dict[t.Username, dict[str, Any]] = (
+        await fields_from_all(sname, ["id", "page_order", "show_page"])
+        if not sname.startswith("^")
+        else {}
     )
 
     return dict(
