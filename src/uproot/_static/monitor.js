@@ -1,4 +1,4 @@
-const extraFields = ["label", "round", "_uproot_group", "member_id"];
+const extraFields = ["started", "label", "round", "_uproot_group", "member_id"];
 const heartbeats = {};
 
 uproot.onStart(() => {
@@ -16,14 +16,21 @@ function loadExtraData() {
 
 function reshapeAndUpdateExtraData(data) {
     const newData = {};
+    let startedCount = 0;
 
     for (const [key, value] of Object.entries(data)) {
+        // Special handling for .uproot_group
         value.group = (value._uproot_group) ? value._uproot_group.gname : null;
         delete value["_uproot_group"];
+
+        // Special handling for .started
+        startedCount += value["started"];
+        delete value["started"];
 
         newData[key] = value;
     }
 
+    I("started-count").textContent = startedCount;
     updateExtraData(newData);
 }
 
