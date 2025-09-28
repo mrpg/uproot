@@ -332,7 +332,7 @@ class RadioField(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
-        choices: Optional[list[tuple[Any, str] | Any]] = None,
+        choices: Optional[list[tuple[Any, str] | Any] | dict[Any, str]] = None,
         class_wrapper: Optional[str] = None,
         label: str = "",
         layout: str = "vertical",
@@ -345,6 +345,8 @@ class RadioField(wtforms.fields.RadioField):
     ) -> None:
         if choices is None:
             choices = [True, False]
+        elif isinstance(choices, dict):
+            choices = [*choices.items()]
 
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -378,7 +380,7 @@ class SelectField(wtforms.fields.SelectField):
     def __init__(
         self,
         *,
-        choices: list[tuple[Any, str] | Any],
+        choices: list[tuple[Any, str] | Any] | dict[Any, str],
         class_wrapper: Optional[str] = None,
         label: str = "",
         optional: bool = False,
@@ -388,6 +390,9 @@ class SelectField(wtforms.fields.SelectField):
         default: Optional[Any] = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
+        if isinstance(choices, dict):
+            choices = [*choices.items()]
+
         if not optional:
             v = [wtforms.validators.InputRequired()]
         else:
