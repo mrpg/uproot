@@ -375,6 +375,7 @@ window.actually_manage = function actually_manage() {
     } else {
         uproot.error("No action was selected.");
     }
+    loadExtraData();
 };
 
 window.actually_insert = function actually_insert() {
@@ -390,6 +391,7 @@ window.actually_insert = function actually_insert() {
     window.invoke_from_monitor("insert_fields", { fields, reload }).then(() => {
         uproot.alert("The action has completed.");
     });
+    loadExtraData();
 };
 
 window.actually_adminmessage_send = function actually_adminmessage_send() {

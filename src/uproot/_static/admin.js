@@ -353,14 +353,14 @@ function renderSessions(sessions, containerId) {
         if (session.n_players != null) {
             const badge = document.createElement("div");
             badge.className = "badge bg-uproot border border-uproot mb-2";
-            badge.textContent = session.n_players + ` ${_("players")}`;
+            badge.textContent = `${_("Players")}: ${session.n_players}`;
             badges.appendChild(badge);
         }
 
         if (session.n_groups != null) {
             const badge = document.createElement("div");
             badge.className = "badge bg-white border border-uproot ms-2 text-uproot";
-            badge.textContent = session.n_groups + ` ${_("groups")}`;
+            badge.textContent = ` ${_("Groups")}: ${session.n_groups}`;
             badges.appendChild(badge);
         }
 
