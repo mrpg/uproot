@@ -27,7 +27,7 @@
         </ul>
     </div>
     <div id="buttons-normal-table">
-        <a class="btn btn-uproot my-1 me-2" href="../data/">{% translate %}Download data{% endtranslate %}</a>
+        <a class="btn btn-uproot my-1" href="../data/">{% translate %}Download data{% endtranslate %}</a>
         {#<a class="btn btn-uproot mb-2" href="../monitor/">{% translate %}Monitor{% endtranslate %}</a>#}
     </div>
     <div class="btn-group btn-group-sm d-none my-1 me-2" id="buttons-fullscreen-table">
@@ -113,6 +113,24 @@
         <div class="border-bottom border-top border-uproot-subtle table-sticky-inner" id="tableOuter">
         </div>
     </div>
+</div>
+
+<div class="d-flex justify-content-between mt-3" id="buttons-filter">
+    <div class="btn-group dropup" id="buttongroup-normal-table">
+        <button class="btn btn-outline-uproot" type="button">
+            {% translate %}Filter by app{% endtranslate %}
+        </button>
+        <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+        <ul class="dropdown-menu" id="all-app-names">
+        </ul>
+    </div>
+    <div class="border border-uproot input-group rounded w-25">
+        <span class="input-group-text">{% translate %}Filter by round{% endtranslate %}</span>
+        <input class="form-control" id="round-filter" type="number">
+        <button class="btn btn-outline-uproot" onclick="filterThenRefreshData('round', I('round-filter').value)" type="button">{% translate %}Apply{% endtranslate %}</button>
+    </div>
+    <button class="btn btn-outline-uproot" onclick="removeFilter()" type="button">{% translate %}Show current state{% endtranslate %}</button>
+</div>
 </div>
 
 {% endblock main %}

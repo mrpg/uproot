@@ -2,11 +2,16 @@
 
 {% block title %}
 
-{% translate %}
-Session
-{% endtranslate %}
-<a href="../" class="font-monospace link-subtle">{{ sname }}</a>
-<span class="fw-light text-secondary">&gt; {% translate %}Download data{% endtranslate %}</span>
+<div class="align-center d-flex justify-content-between my-4" id="title-container">
+    <h2 id="uproot-title" class="fw-semibold">
+        {% translate %}
+        Session
+        {% endtranslate %}
+        <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
+        <span class="fw-light text-secondary">&gt; {% translate %}Download data{% endtranslate %}</span>
+    </h2>
+    <a class="btn btn-uproot my-1" href="../viewdata/">{% translate %}View data{% endtranslate %}</a>
+</div>
 
 {% endblock title %}
 
