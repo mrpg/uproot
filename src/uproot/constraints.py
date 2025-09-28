@@ -2,10 +2,24 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 """
-This file intends to provide a simple replacement for raw `assert`s.
+This file intends to provide (1) a simple replacement for raw `assert`s and (2) functions for commonly used constraints.
 """
 
+import string
 from typing import Optional
+
+TOKEN_CHARS = set(string.ascii_letters + string.digits + "-._")
+
+
+def valid_token(x: str) -> bool:
+    if not isinstance(x, str):
+        return False
+
+    for ch in x:
+        if ch not in TOKEN_CHARS:
+            return False
+
+    return True
 
 
 def ensure(
