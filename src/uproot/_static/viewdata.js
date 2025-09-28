@@ -70,8 +70,9 @@ function showCellDetails(field, metadata) {
 
 function detectColumnType(field, data) {
     for (const playerData of Object.values(data)) {
-        if (playerData[field] && playerData[field].type_representation) {
-            const type = playerData[field].type_representation.toLowerCase();
+        if (playerData[field] && playerData[field].length == 5) {
+            const type = playerData[field][2].toLowerCase();
+
             if (type.includes("int") || type.includes("float") || type.includes("decimal")) {
                 return "number";
             }
