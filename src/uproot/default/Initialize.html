@@ -1,13 +1,19 @@
-{% extends "Bare.html" %}
+{% extends "Base.html" %}
+{% set buttons = False %}
 
 {% block main %}
 
+{% include app_or_default(app, "InitializeInfo.html") ignore missing %}
+
 {% endblock main %}
+
 
 {% block late %}
 
 <script>
-    uproot.onReady(() => uproot.form.submit());
+    if (typeof stopHere === "undefined" || !stopHere) {
+        uproot.onReady(() => uproot.form.submit());
+    }
 </script>
 
 {% endblock late %}

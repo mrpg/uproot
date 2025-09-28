@@ -17,6 +17,8 @@ Please wait
 
 {% block main3 %}
 
+{% include app_or_default(app, "RoomHelloInfo.html") ignore missing %}
+
 {% if _uproot_internal.needlabel %}
 
 {% if _uproot_internal.bad %}
@@ -79,16 +81,18 @@ Please wait
         return `${protocol}//${host}${ui.root}/roomws/${ui.roomname}/?label=${label}`;
     };
 
-    uproot.onStart(() => {
-        uproot.wsstart();
-    });
+    if (typeof stopHere === "undefined" || !stopHere) {
+        uproot.onStart(() => {
+            uproot.wsstart();
+        });
 
-    uproot.onCustomEvent("RoomStarted", (event) => {
-        const label = event.detail.label;
+        uproot.onCustomEvent("RoomStarted", (event) => {
+            const label = event.detail.label;
 
-        I("label").value = label;
-        I("label-form").submit();
-    });
+            I("label").value = label;
+            I("label-form").submit();
+        });
+    }
 </script>
 
 {% endif %}

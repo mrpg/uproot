@@ -10,7 +10,7 @@ Internal Server Error
 
 {% block main %}
 
-<p>
+<p id="uproot-internalerror">
     {% translate %}
     An internal server error has occurred.
     {% endtranslate %}
@@ -92,5 +92,7 @@ Internal Server Error
 </div>
 
 {% endif %}
+
+{% include app_or_default(app, "InternalErrorInfo.html") ignore missing %}
 
 {% endblock main %}

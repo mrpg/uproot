@@ -3,12 +3,16 @@
 
 {% block main %}
 
+{% include app_or_default(app, "JustPOSTInfo.html") ignore missing %}
+
 {% endblock main %}
 
 {% block late %}
 
 <script>
-    uproot.onStart(() => document.forms[0].submit());
+    if (typeof stopHere === "undefined" || !stopHere) {
+        uproot.onStart(() => document.forms[0].submit());
+    }
 </script>
 
 {% endblock late %}

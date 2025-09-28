@@ -62,13 +62,14 @@ ENV = Environment(
 
 
 def app_or_default(app: Any, filename: str) -> str:
-    in_app = Path(app.__name__) / filename
+    if hasattr(app, "__name__"):
+        in_app = Path(app.__name__) / filename
 
-    if in_app.exists():
-        return str(in_app)
-    else:
-        # uproot default or project default
-        return filename
+        if in_app.exists():
+            return str(in_app)
+
+    # uproot default or project default
+    return filename
 
 
 def static_factory(realm: str = "_uproot") -> Callable[[str], str]:

@@ -10,7 +10,7 @@ End
 
 {% block main %}
 
-<p>
+<p id="uproot-end">
     {% translate %}
     You have reached the end of this study.
     {% endtranslate %}
@@ -18,5 +18,7 @@ End
     You may now close this page.
     {% endtranslate %}
 </p>
+
+{% include app_or_default(app, "EndInfo.html") ignore missing %}
 
 {% endblock main %}

@@ -16,7 +16,7 @@ No more spots available
 
 {% block main %}
 
-<div class="alert alert-warning" role="alert">
+<div id="uproot-roomfull" class="alert alert-warning" role="alert">
     {% translate %}
     Regrettably, this study has reached capacity.
     {% endtranslate %}
@@ -24,5 +24,7 @@ No more spots available
     You may now close this page.
     {% endtranslate %}
 </div>
+
+{% include app_or_default(app, "RoomFullInfo.html") ignore missing %}
 
 {% endblock main %}
