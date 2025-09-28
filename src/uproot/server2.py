@@ -755,10 +755,8 @@ async def session_data_download(
     if filetype == "csv":
         t0 = now()
         csv = a.generate_csv(sname, format, gvar, filters)
-        t1 = now()
 
-        if t1 - t0 > 0.1:
-            d.LOGGER.warning(f"generate_csv('{sname}', ...) took {(t1-t0):3f} seconds")
+        d.LOGGER.debug(f"generate_csv('{sname}', ...) took {(now()-t0):5f} seconds")
 
         return Response(
             csv,
@@ -766,6 +764,8 @@ async def session_data_download(
             headers={"Content-Disposition": f"attachment; filename={sname}.csv"},
         )
     elif filetype == "json":
+        # Time cannot be trivially measured here as this involves an async generator
+
         return StreamingResponse(
             a.generate_json(sname, format, gvar, filters),
             media_type="text/json",
