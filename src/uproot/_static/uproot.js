@@ -164,7 +164,7 @@ window.uproot = {
             : parts[0];
 
         I("uproot-time-remaining").innerText = timeText;
-        I("uproot-timeout").style.display = "block";
+        I("uproot-timeout").hidden = false;
 
         if (remainingSeconds < 60) {
             I("uproot-timeout").classList.remove("alert-light");
@@ -514,7 +514,7 @@ window.uproot = {
     },
 
     ensureBuddy() {
-        this.I("uproot-buddy").style.display = "block";
+        this.I("uproot-buddy").hidden = false;
     },
 
     adminMessage(text) {

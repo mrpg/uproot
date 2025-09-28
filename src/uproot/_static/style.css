@@ -234,7 +234,6 @@ input[type="radio"].form-check-input {
 }
 
 #uproot-buddy {
-    display: none;
     position: fixed;
     left: 2em;
     bottom: 2em;
@@ -248,9 +247,6 @@ input[type="radio"].form-check-input {
     margin-bottom: 250px;
 }
 
-#uproot-timeout {
-    display: none;
-}
 #uproot-timeout #uproot-time-remaining {
     font-weight: bold;
     font-variant-numeric: tabular-nums;

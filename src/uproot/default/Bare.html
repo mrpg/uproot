@@ -110,8 +110,14 @@
     </div>
 </div>
 
-<div id="uproot-buddy">
-    <img src="{{ internalstatic('buddy.svg') }}" width="142" height="142" onclick="uproot.adminMessage()" alt="Smiley face" title="Show message">
+<div id="uproot-buddy" hidden>
+    <img
+        src="{{ internalstatic('buddy.svg') }}"
+        width="142"
+        height="142"
+        onclick="uproot.adminMessage()"
+        alt="{% translate %}Open Chat with Research Coordinator{% endtranslate %}"
+        title="{% translate %}Open Chat with Research Coordinator{% endtranslate %}">
 </div>
 
 <div id="uproot-main-container" class="container">
@@ -120,13 +126,13 @@
     {% endif %}
 
     {% block timeoutbox %}
-    <div class="alert alert-light mt-3" role="alert" id="uproot-timeout">
+    <div class="alert alert-light mt-3" role="alert" id="uproot-timeout" hidden>
         <span id="uproot-time-remaining-preamble">
         {% translate %}
         Remaining time on this page:
         {% endtranslate %}
         </span>
-        <span id="uproot-time-remaining">60:00</span>
+        <span id="uproot-time-remaining">__:__</span>
     </div>
     {% endblock timeoutbox %}
 
