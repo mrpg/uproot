@@ -122,6 +122,8 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: Optional[list[str]] = None
 ) -> Iterator[dict[str, Any]]:
+    # This function should stay algorithmically close to latest() in viewdata.js.
+
     if group_by_fields is None:
         group_by_fields = []
 
@@ -130,40 +132,66 @@ def latest(
 
     for row in pm:
         storage = row["!storage"]
+
         if storage not in storage_changes:
             storage_changes[storage] = []
 
         storage_changes[storage].append(row)
 
-    # Process each storage to build state snapshots
-    all_snapshots = []
-
+    # Process each storage
     for storage, changes in storage_changes.items():
-        # Sort changes by time within this storage
+        # Sort by time (just to be safe)
         changes.sort(key=lambda x: x["!time"])
 
-        # Build state evolution
-        current_state = {"!storage": storage}
+        # Build state evolution and track all seen combinations
+        current_state: dict[str, dict[str, Any]] = {}
+        seen_combinations: dict[tuple, dict[str, Any]] = {}
 
         for change in changes:
-            current_state[change["!field"]] = change["!data"]
-            current_state["!time"] = change["!time"]
-            current_state["!unavailable"] = change["!unavailable"]
-            # Save snapshot after each change
-            all_snapshots.append(current_state.copy())
+            field = change["!field"]
+            # Update current state for this field
+            current_state[field] = {
+                "data": change["!data"],
+                "unavailable": change["!unavailable"],
+                "time": change["!time"],
+            }
 
-    # Group snapshots and keep latest for each group
-    groups: dict[tuple[Any, ...], dict[str, Any]] = {}
+            if group_by_fields:
+                # Check if all group_by_fields exist and are available
+                all_fields_valid = True
+                combination_values = []
 
-    for snapshot in all_snapshots:
-        group_key = tuple(
-            snapshot.get(field) for field in ["!storage"] + group_by_fields
-        )
+                for gf in group_by_fields:
+                    if gf not in current_state or current_state[gf]["unavailable"]:
+                        all_fields_valid = False
+                        break
 
-        if group_key not in groups or snapshot["!time"] > groups[group_key]["!time"]:
-            groups[group_key] = snapshot
+                    combination_values.append(current_state[gf]["data"])
 
-    yield from groups.values()
+                if all_fields_valid:
+                    # Create snapshot of current state
+                    combination_key = tuple(combination_values)
+                    state_snapshot = {"!storage": storage, "!time": change["!time"]}
+
+                    for f, field_state in current_state.items():
+                        if not field_state["unavailable"]:
+                            state_snapshot[f] = field_state["data"]
+
+                    # Update latest state for this combination
+                    seen_combinations[combination_key] = state_snapshot
+            else:
+                # No grouping - track single latest state
+                state_snapshot = {"!storage": storage, "!time": change["!time"]}
+
+                for f, field_state in current_state.items():
+                    if not field_state["unavailable"]:
+                        state_snapshot[f] = field_state["data"]
+
+                seen_combinations[()] = state_snapshot
+
+        # Yield all tracked combinations
+        for state in seen_combinations.values():
+            yield state
 
 
 def csv_out(rows: Iterable[dict[str, Any]]) -> str:
@@ -180,7 +208,10 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
 
     for row in rows:
         dw.writerow(
-            {k: json2csv(value2json(v, row["!unavailable"])) for k, v in row.items()}
+            {
+                k: json2csv(value2json(v, row.get("!unavailable", False)))
+                for k, v in row.items()
+            }
         )
 
     return buffer.getvalue()

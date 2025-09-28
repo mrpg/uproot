@@ -293,15 +293,16 @@ def db_request(
                 rval = result
 
         case "get_within_context", _, None if isinstance(extra, dict):
+            # This code should stay algorithmically close to latest() in viewdata.js.
+
             ctx = extra
             with LOCK:
                 ns_ = get_namespace(namespace)
+
                 if not ns_ or not isinstance(ns_, dict) or key not in ns_:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
                     )
-
-                tvals = ns_[key]
 
                 # Verify all context fields exist
                 for cf in ctx:
@@ -310,124 +311,61 @@ def db_request(
                             f"No value found for {key} within the specified context in namespace {namespace}"
                         )
 
-                if not ctx:  # Empty context
-                    # Return the latest value
-                    for val in reversed(tvals):
-                        if not val.unavailable:
-                            rval = val.data
-                            break
-                    else:
-                        raise AttributeError(
-                            f"No value found for {key} within the specified context in namespace {namespace}"
-                        )
-                else:
-                    # New approach: Find all time periods when context is satisfied,
-                    # then find the latest target value from the latest such period
+                # Collect all changes
+                changes = []
 
-                    # Get all times when context field values were set
-                    context_times = []
-                    for cf in ctx:
-                        for ctx_val in ns_[cf]:
-                            if not ctx_val.unavailable:
-                                context_times.append(cast(float, ctx_val.time))
+                for field in set([key] + list(ctx.keys())):
+                    if field in ns_:
+                        for val in ns_[field]:
+                            changes.append(
+                                {
+                                    "time": cast(float, val.time),
+                                    "field": field,
+                                    "unavailable": val.unavailable,
+                                    "data": val.data,
+                                }
+                            )
 
-                    if not context_times:
-                        latest_value = None
-                    else:
-                        context_times = sorted(set(context_times))
-                        # Add a "current time" after the last change
-                        context_times.append(max(context_times) + 1)
+                # Sort by time (just to be safe)
+                changes.sort(key=lambda x: x["time"])
 
-                        # Find all time intervals where context is satisfied
-                        satisfied_intervals = []
+                # Build state evolution
+                current_state = {}
+                latest_valid_state = None
 
-                        for i in range(len(context_times)):
-                            check_time = context_times[i]
+                for change in changes:
+                    # Update current state
+                    current_state[change["field"]] = {
+                        "unavailable": change["unavailable"],
+                        "data": change["data"],
+                    }
 
-                            # Check if all context conditions are satisfied at this time
-                            all_satisfied = True
-                            for cf, expected_val in ctx.items():
-                                ctx_vals = ns_[cf]
-                                search_val = Value(check_time, True, None, "")
-                                idx = ctx_vals.bisect_right(search_val) - 1
+                    # Check if all conditions are met
+                    all_conditions_met = True
 
-                                if idx < 0:
-                                    all_satisfied = False
-                                    break
+                    if ctx:
+                        for cond_field, cond_value in ctx.items():
+                            if (
+                                cond_field not in current_state
+                                or current_state[cond_field]["unavailable"]
+                                or current_state[cond_field]["data"] != cond_value
+                            ):
+                                all_conditions_met = False
+                                break
 
-                                actual_val = ctx_vals[idx]
-                                if (
-                                    actual_val.unavailable
-                                    or actual_val.data != expected_val
-                                ):
-                                    all_satisfied = False
-                                    break
+                    if all_conditions_met:
+                        if (
+                            key in current_state
+                            and not current_state[key]["unavailable"]
+                        ):
+                            latest_valid_state = current_state[key]["data"]
 
-                            if all_satisfied:
-                                # This time period satisfies the context
-                                start_time = check_time
-                                end_time = (
-                                    context_times[i + 1]
-                                    if i + 1 < len(context_times)
-                                    else float("inf")
-                                )
-                                satisfied_intervals.append((start_time, end_time))
+                if latest_valid_state is None:
+                    raise AttributeError(
+                        f"No value found for {key} within the specified context in namespace {namespace}"
+                    )
 
-                        if not satisfied_intervals:
-                            latest_value = None
-                        else:
-                            # Use the latest satisfied interval
-                            latest_start, latest_end = satisfied_intervals[-1]
-
-                            # Find the latest target value that was current during this interval
-                            for val in reversed(tvals):
-                                if val.unavailable:
-                                    continue
-
-                                val_time = cast(float, val.time)
-
-                                # Check if this target value was current during the context interval
-                                if val_time < latest_end:
-                                    # This value was set before the interval ended
-                                    # Check if it was still current at the start of the interval
-
-                                    # Find the next target value after this one
-                                    next_target_time = float("inf")
-                                    for next_val in tvals:
-                                        if (
-                                            not next_val.unavailable
-                                            and cast(float, next_val.time) > val_time
-                                        ):
-                                            next_target_time = cast(
-                                                float, next_val.time
-                                            )
-                                            break
-
-                                    # Check if this value was current during any part of the interval
-                                    if (
-                                        val_time < latest_end
-                                        and next_target_time > latest_start
-                                    ):
-                                        latest_value = val.data
-                                        break
-
-                            if latest_value is None:
-                                # Fallback: find any value that existed before the context started
-                                for val in reversed(tvals):
-                                    if (
-                                        not val.unavailable
-                                        and cast(float, val.time) <= latest_start
-                                    ):
-                                        latest_value = val.data
-                                        cast(float, val.time)
-                                        break
-
-                    if latest_value is None:
-                        raise AttributeError(
-                            f"No value found for {key} within the specified context in namespace {namespace}"
-                        )
-
-                    rval = latest_value
+                rval = latest_valid_state
 
         # ERROR
         case _, _, _:

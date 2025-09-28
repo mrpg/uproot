@@ -242,64 +242,56 @@ function mergeDiffIntoDataset(diffData) {
 }
 
 function latest(obj, conditions = {}) {
-    // If no conditions, return simple latest (existing behavior)
-    if (Object.keys(conditions).length === 0) {
-        const result = {};
-        for (const [key, fields] of Object.entries(obj)) {
-            result[key] = {};
-            for (const [field, arr] of Object.entries(fields)) {
-                result[key][field] = arr[arr.length - 1];
-            }
-        }
-        return result;
-    }
-
     const result = {};
 
-    // Process each user independently
     for (const [uname, fields] of Object.entries(obj)) {
-        // Collect all changes for this user with timestamps
+        // Collect all changes
         const changes = [];
+
         for (const [field, values] of Object.entries(fields)) {
             for (let i = 0; i < values.length; i++) {
                 changes.push({
-                    field: field,
                     time: values[i][0],
+                    field: field,
+                    unavailable: values[i][1],
+                    data: values[i][3],
                     payload: values[i]
                 });
             }
         }
 
-        // Sort by time
+        // Sort by time (just to be safe)
         changes.sort((a, b) => a.time - b.time);
 
-        // Build state evolution and find latest matching snapshot
+        // Build state evolution
         const currentState = {};
-        let latestMatchingState = null;
+        let latestValidState = null;
 
         for (const change of changes) {
-            // Update state
+            // Update current state
             currentState[change.field] = change.payload;
 
             // Check if all conditions are met
             let allConditionsMet = true;
-            for (const [condField, condValue] of Object.entries(conditions)) {
-                const fieldState = currentState[condField];
-                if (!fieldState || fieldState[3] !== condValue) {
-                    allConditionsMet = false;
-                    break;
+
+            if (Object.keys(conditions).length > 0) {
+                for (const [condField, condValue] of Object.entries(conditions)) {
+                    const fieldState = currentState[condField];
+
+                    if (!fieldState || fieldState[1] || fieldState[3] !== condValue) {
+                        allConditionsMet = false;
+                        break;
+                    }
                 }
             }
 
-            // Save snapshot if conditions are met
             if (allConditionsMet) {
-                latestMatchingState = { ...currentState };
+                latestValidState = { ...currentState };
             }
         }
 
-        // Add to result if we found a matching state
-        if (latestMatchingState) {
-            result[uname] = latestMatchingState;
+        if (latestValidState) {
+            result[uname] = latestValidState;
         }
     }
 
