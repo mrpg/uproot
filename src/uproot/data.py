@@ -229,7 +229,8 @@ async def json_out(rows: Iterable[dict[str, Any]]) -> AsyncGenerator[str, None]:
 
         yield "{"
         yield ",".join(
-            (f'"{k}":{value2json(v, row["!unavailable"])}') for k, v in row.items()
+            (f'"{k}":{value2json(v, row.get("!unavailable", False))}')
+            for k, v in row.items()
         )
         yield "}"
 
