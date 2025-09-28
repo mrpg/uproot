@@ -253,6 +253,11 @@ async function updateData() {
     try {
         if (!table) return;
 
+        const tableHolder = document.getElementsByClassName("tabulator-tableholder")[0];
+        if (!tableHolder) return;
+        const scrollPosX = tableHolder.scrollLeft;
+        const scrollPosY = tableHolder.scrollTop;
+
         const rawData = getMonitorDataForTabulator();
         const transformedData = transformMonitorDataForTabulator(rawData);
         const columns = createMonitorColumns(rawData);
@@ -303,6 +308,8 @@ async function updateData() {
                     });
                 }
             }
+            tableHolder.scrollLeft = scrollPosX;
+            tableHolder.scrollTop = scrollPosY;
         } else {
             table.on("tableBuilt", function () {
                 table.setData(transformedData);
@@ -363,6 +370,7 @@ window.actually_manage = function actually_manage() {
         window.bootstrap?.Modal.getOrCreateInstance(I("manage-modal")).hide();
         window.invoke_from_monitor(action).then((data) => {
             if (data) window.new_info_online(data);
+            loadExtraData();
             uproot.alert("The action has completed.");
         });
     } else {
@@ -381,6 +389,7 @@ window.actually_insert = function actually_insert() {
     }
     window.bootstrap?.Modal.getOrCreateInstance(I("insert-modal")).hide();
     window.invoke_from_monitor("insert_fields", { fields, reload }).then(() => {
+        loadExtraData();
         uproot.alert("The action has completed.");
     });
 };

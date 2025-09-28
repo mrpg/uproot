@@ -299,6 +299,45 @@ function latest(obj, conditions = {}) {
     return result;
 }
 
+function writeAllAppNames() {
+    // TODO: Work on this for full release
+    /* fullDataset is a dictionary in JavaScript with player names as the keys. For each key, the value is a dictionary that has a key callded “app.” That key is either an array with 5 entries or a nested array of multiple inner arrays. All inner arrays have 5 entries. We generate a list of all unique values of the 4th entry of all innermost arrays. */
+    const allAppNames = [...new Set(
+        Object.values(fullDataset).flatMap(({ app }) => {
+            if (!Array.isArray(app)) return [];
+            // If it's an array of arrays, take index 3 from each inner array
+            if (app.some(Array.isArray)) {
+            return app
+                .filter(Array.isArray)
+                .map(a => a[3])
+                .filter(v => v !== undefined);
+            }
+            // Otherwise it's a single 5-item array
+            return app[3] !== undefined ? [String(app[3])] : [];
+        })
+    )];
+    I("all-app-names").innerHTML =
+        `<li><span class="dropdown-item fst-italic" onclick="removeFilter()" role="button">${_("Show current state")}</li>` +
+        `<li><hr class="dropdown-divider"></li>`;
+    for (let i = 0; i < allAppNames.length; i++) {
+        const name = allAppNames[i];
+        I("all-app-names").innerHTML +=
+            name == "None" ? `` :
+            `<li><span class="dropdown-item font-monospace" onclick="removeFilter(); filterThenRefreshData('app', '${name}')" role="button">${name}</li>`;
+    }
+}
+
+function removeFilter() {
+    FILTER = {};
+    refreshData();
+    I("round-filter").value = "";
+}
+
+function filterThenRefreshData(key, value) {
+    FILTER = { [key]: value };
+    refreshData();
+}
+
 async function updateData() {
     try {
         const firstLoad = lastUpdate == 0;
@@ -334,6 +373,8 @@ async function updateData() {
             table.setData([]);
         }
     }
+
+    writeAllAppNames();
 }
 
 async function refreshData() {
