@@ -252,11 +252,13 @@ def add_raw_entry(
         entry_dict = dict(entry) if not isinstance(entry, dict) else entry
 
     # Validate entry structure
-    if not pyall(isinstance(k, str) and k.isidentifier() for k in entry_dict.keys()):
+    if not pyall(
+        isinstance(k, str) and k.isidentifier() for k in entry_dict.keys()  # KEEP AS IS
+    ):
         invalid_keys = [
             k
             for k in entry_dict.keys()
-            if not (isinstance(k, str) and k.isidentifier())
+            if not (isinstance(k, str) and k.isidentifier())  # KEEP AS IS
         ]
         raise ValueError(
             f"Entry keys must be valid Python identifiers. Invalid keys: {invalid_keys}"

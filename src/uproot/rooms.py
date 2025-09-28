@@ -25,6 +25,7 @@ State 1:
 
 from typing import Any, Optional, TypeAlias
 
+from uproot.constraints import TOKEN_CHARS, return_or_raise, valid_token
 from uproot.types import Sessionname
 
 RoomType: TypeAlias = dict[str, Any]
@@ -38,8 +39,8 @@ def room(
     start: bool = False,
     sname: Optional[Sessionname] = None,
 ) -> RoomType:
-    if not name.isidentifier():
-        raise ValueError("Room name must be a valid identifier")
+    if not valid_token(name):
+        raise ValueError("Room name is invalid")
 
     if labels is not None:
         for label in labels:
@@ -62,15 +63,33 @@ def freejoin(room: RoomType) -> bool:
 
 def labels_file(filename: str) -> set[str]:
     with open(filename) as f:
-        return {line.strip() for line in f.readlines()}
+        return {
+            return_or_raise(
+                line.strip(), valid_token, msg="Label has invalid characters"
+            )
+            for line in f.readlines()
+        }
 
 
 def constrain_label(label: Any) -> str:
     if not isinstance(label, str):
         return ""
     else:
-        # TODO: constrain further?
-        return label[:128]
+        if valid_token(label[:128]):
+            return label[:128]
+        else:
+            newlabel = ""
+
+            for ch in label:
+                if ch in TOKEN_CHARS:
+                    newlabel += ch
+                else:
+                    newlabel += "_"
+
+                if len(newlabel) >= 128:
+                    break
+
+            return newlabel
 
 
 def validate(room: RoomType, label: str) -> bool:

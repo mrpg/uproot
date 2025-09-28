@@ -27,8 +27,7 @@ New room
     <label for="name" class="form-label">{% translate %}Room name{% endtranslate %}</label>
     <small class="d-block form-text pt-2 text-muted">
         {% translate %}
-        The room name must be a valid Python identifier.
-        For instance, it must not start with a digit, it must not contain spaces, and it must not contain hyphens.
+        The room name must only use the following characters: <code>A-Za-z0-9-._</code>
         {% endtranslate %}
     </small>
 </div>
@@ -76,8 +75,7 @@ New room
         <label for="labels">Labels</label>
         <small class="d-block form-text pt-2 text-muted">
             {% translate %}
-            Insert one label per line of text. Each label must be no longer than 128 characters.
-            Labels restrict room access to players with matching labels.
+            Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.
             {% endtranslate %}
         </small>
     </div>
@@ -112,7 +110,7 @@ New room
         let nameValid = true, labelsValid = true, snameValid = true;
 
         // Validate room name
-        nameValid = uproot.isPythonIdentifier(I("name").value);
+        nameValid = uproot.isValidToken(I("name").value);
         nameValid2 = !uproot.vars.rooms_available.includes(I("name").value);
 
         // Validate labels if used

@@ -18,7 +18,7 @@ import uproot.deployment as d
 import uproot.jobs as j
 import uproot.rooms as ur
 import uproot.types as t
-from uproot.constraints import ensure
+from uproot.constraints import ensure, valid_token
 from uproot.pages import path2page, render
 from uproot.storage import Admin, Player, Session
 
@@ -32,7 +32,7 @@ async def roommain(
     label: Optional[str] = None,
     bad: Optional[bool] = False,
 ) -> Response:
-    ensure(roomname.isidentifier(), ValueError, "Room name must be a valid identifier")
+    ensure(valid_token(roomname), ValueError, "Room name invalid")
 
     new_session = False
 
@@ -152,7 +152,7 @@ async def ws(
     label = ur.constrain_label(label)
 
     with Admin() as admin:
-        if not (roomname.isidentifier() and roomname in admin.rooms):
+        if not (valid_token(roomname) and roomname in admin.rooms):
             return
 
         room = admin.rooms[roomname]

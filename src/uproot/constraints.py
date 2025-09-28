@@ -6,20 +6,37 @@ This file intends to provide (1) a simple replacement for raw `assert`s and (2) 
 """
 
 import string
-from typing import Optional
+from typing import Any, Callable, Optional
 
 TOKEN_CHARS = set(string.ascii_letters + string.digits + "-._")
 
 
 def valid_token(x: str) -> bool:
     if not isinstance(x, str):
-        return False
+        return False  # type: ignore[unreachable]
 
     for ch in x:
         if ch not in TOKEN_CHARS:
             return False
 
     return True
+
+
+def return_or_raise(
+    value: Any,
+    predicate: Callable[[Any], bool],
+    exctype: type[Exception] = ValueError,
+    msg: Optional[str] = None,
+) -> Any:
+    if predicate(value):
+        return value
+    else:
+        if msg:
+            msg = "Constraint violation: " + msg
+        else:
+            msg = "Constraint violation"
+
+        raise exctype(msg)
 
 
 def ensure(

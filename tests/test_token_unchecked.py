@@ -3,6 +3,7 @@ from string import ascii_letters, ascii_lowercase, digits
 
 import pytest
 
+from uproot.constraints import valid_token
 from uproot.types import token_unchecked
 
 ALPHANUMERIC = ascii_letters + digits
@@ -70,10 +71,10 @@ def test_edge_case_large_length():
 def test_generates_valid_python_identifier():
     for _ in range(50):
         token = token_unchecked(8)
-        assert token.isidentifier(), f"'{token}' is not a valid Python identifier"
+        assert valid_token(token), f"'{token}' is not a valid uproot token"
 
 
 def test_various_lengths_are_valid_identifiers():
     for length in [1, 5, 10, 25, 100]:
         token = token_unchecked(length)
-        assert token.isidentifier(), f"Length {length} token '{token}' is not valid"
+        assert valid_token(token), f"Length {length} token '{token}' is not valid"

@@ -18,8 +18,7 @@
         <label for="sname">Session name</label>
         <small class="d-block form-text pt-2 text-muted">
             {% translate %}
-            The session name must be a valid Python identifier.
-            For instance, it must not start with a digit, it must not contain spaces, and it must not cotain hyphens.
+            The session name must only use the following characters: <code>A-Za-z0-9-._</code>
             {% endtranslate %}
         </small>
     </div>
@@ -36,9 +35,7 @@
         <label for="unames">Player names</label>
         <small class="d-block form-text pt-2 text-muted">
             {% translate %}
-            Insert one player name per line of text. The number of player names must match the number of players.
-            Each player name must be a valid Python identifier.
-            For instance, it must not start with a digit, it must not contain spaces, and it must not cotain hyphens.
+            Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>
             {% endtranslate %}
         </small>
     </div>
@@ -55,13 +52,13 @@
         let snameValid = true, unamesValid = true;
 
         if (!I("automatic_sname").checked) {
-            snameValid = uproot.isPythonIdentifier(I("sname").value);
+            snameValid = uproot.isValidToken(I("sname").value);
         }
 
         if (!I("automatic_unames").checked) {
             const unames = I("unames").value.split("\n").map((a) => a.trim());
             const wanted = parseInt(I("nplayers").value);
-            unamesValid = unames.every(uproot.isPythonIdentifier);
+            unamesValid = unames.every(uproot.isValidToken);
 
             if (unames.length != wanted) {
                 return uproot.error(_("You cannot create a session with #n1# players but #n2# player names.").replace("#n1#", wanted).replace("#n2#", unames.length));

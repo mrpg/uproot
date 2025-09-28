@@ -180,9 +180,9 @@ class PostgreSQL(DBDriver):
         import psycopg_pool
 
         ensure(
-            tblextra == "" or tblextra.isidentifier(),
+            tblextra == "" or tblextra.isidentifier(),  # KEEP AS IS
             ValueError,
-            "tblextra must be empty or valid identifier",
+            "tblextra must be empty or valid Python identifier",
         )
 
         self.pool = psycopg_pool.ConnectionPool(
@@ -441,9 +441,9 @@ class Sqlite3(DBDriver):
 
     def __init__(self, database: str, tblextra: str = "") -> None:
         ensure(
-            tblextra == "" or tblextra.isidentifier(),
+            tblextra == "" or tblextra.isidentifier(),  # KEEP AS IS
             ValueError,
-            "tblextra must be empty or valid identifier",
+            "tblextra must be empty or valid Python identifier",
         )
         self.database = database
         self.tblextra = tblextra

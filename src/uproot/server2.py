@@ -784,7 +784,11 @@ async def session_digest(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    ensure(appname.isidentifier(), TypeError, "Invalid app")
+    ensure(
+        appname.isidentifier(),  # KEEP AS IS
+        TypeError,
+        "Invalid app",
+    )
 
     with Session(sname) as session:
         ensure(

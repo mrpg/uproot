@@ -162,7 +162,7 @@ def db_request(
     # print(f"!!! db_request({caller}, {repr(action)}, {repr(key)}, ...)")
 
     ensure(
-        key == "" or key.isidentifier(),
+        key == "" or key.isidentifier(),  # KEEP AS IS
         ValueError,
         "Key must be empty or a valid identifier",
     )

@@ -8,7 +8,7 @@ from typing import Any, Callable, Iterator, Optional, Sequence, cast
 from typing_extensions import Literal
 
 from uproot.cache import db_request, safe_deepcopy
-from uproot.constraints import ensure
+from uproot.constraints import ensure, valid_token
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import (
     GroupIdentifier,
@@ -95,9 +95,9 @@ class Storage:
         virtual: Optional[dict[str, Callable[["Storage"], Any]]] = None,
     ):
         ensure(
-            all(type(t) is str and t.isidentifier() for t in namespace),
+            all(type(t) is str and valid_token(t) for t in namespace),
             ValueError,
-            f"{repr(namespace)} has invalid identifiers",
+            f"{repr(namespace)} is an invalid namespace",
         )
         ensure(namespace[0] in VALID_TRAIL0, ValueError, "Invalid namespace start")
 
@@ -128,7 +128,9 @@ class Storage:
 
     def __setattr__(self, name: str, value: Any) -> None:
         ensure(
-            name.isidentifier(), ValueError, "Attribute name must be a valid identifier"
+            name.isidentifier(),  # KEEP AS IS
+            ValueError,
+            "Attribute name must be a valid identifier",
         )
 
         if name == "name" or (name.startswith("__") and name.endswith("__")):
