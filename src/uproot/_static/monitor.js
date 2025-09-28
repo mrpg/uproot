@@ -370,12 +370,12 @@ window.actually_manage = function actually_manage() {
         window.bootstrap?.Modal.getOrCreateInstance(I("manage-modal")).hide();
         window.invoke_from_monitor(action).then((data) => {
             if (data) window.new_info_online(data);
+            loadExtraData();
             uproot.alert("The action has completed.");
         });
     } else {
         uproot.error("No action was selected.");
     }
-    loadExtraData();
 };
 
 window.actually_insert = function actually_insert() {
@@ -389,9 +389,9 @@ window.actually_insert = function actually_insert() {
     }
     window.bootstrap?.Modal.getOrCreateInstance(I("insert-modal")).hide();
     window.invoke_from_monitor("insert_fields", { fields, reload }).then(() => {
+        loadExtraData();
         uproot.alert("The action has completed.");
     });
-    loadExtraData();
 };
 
 window.actually_adminmessage_send = function actually_adminmessage_send() {
