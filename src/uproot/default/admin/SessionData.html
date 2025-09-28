@@ -14,93 +14,96 @@ Session
 {% block main3 %}
 
 <form method="get" action="get/" target="_blank">
-    <h3 class="mb-3">
-        {% translate %}
-        Select format
-        {% endtranslate %}
-    </h3>
-
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="format" id="option1" value="ultralong">
-        <label class="form-check-label" for="option1">{% translate %}Ultra Long{% endtranslate %}</label>
-        <div class="form-text">
-            {% translate %}
-            Raw event log where every single change to any field becomes its own row.
-            {% endtranslate %}
-        </div>
-    </div>
-
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="format" id="option2" value="sparse">
-        <label class="form-check-label" for="option2">{% translate %}Sparse{% endtranslate %}</label>
-        <div class="form-text">
-            {% translate %}
-            Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.
-            {% endtranslate %}
-        </div>
-    </div>
-
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="format" id="option3" value="latest" checked>
-        <label class="form-check-label" for="option3">{% translate %}Latest{% endtranslate %}</label>
-        <div class="form-text">
-            {% translate %}
-            One row per player showing their final state: just the last/current value of every field.
-            {% endtranslate %}
-        </div>
-    </div>
-
-    <div class="form-check">
-        <input class="form-check-input" type="radio" name="format" id="option4" value="latest">
-        <label class="form-check-label" for="option4">{% translate %}Latest &times; Field(s){% endtranslate %}</label>
-        <div class="form-text">
-            {% translate %}
-            One row per player per specified grouping (like per round): shows what each participant's state was at the end of each round, condition, or other grouping you specify.
-            {% endtranslate %}
-        </div>
-
-        <div id="customInputs" class="my-4" style="display: none;">
-            <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput">
-                <i class="bi bi-plus"></i> {% translate %}Add grouping variable{% endtranslate %}
-            </button>
-
-            <div id="inputContainer">
-                <div class="input-group mb-2">
-                    <input type="text" class="form-control" name="gvar" placeholder="{% translate %}e.g., round{% endtranslate %}">
-                    <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
+    <div class="row">
+        <!-- Column 1 -->
+        <div class="col-12 col-xl-4 mb-4">
+            <h4 class="mb-3">
+                {% translate %}Format{% endtranslate %}
+            </h4>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" name="format" id="option1" value="ultralong">
+                <label class="form-check-label" for="option1">{% translate %}Ultra Long{% endtranslate %}</label>
+                <div class="form-text mt-2 text-body-tertiary">
+                    {% translate %}
+                    Raw event log where every single change to any field becomes its own row.
+                    {% endtranslate %}
+                </div>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" name="format" id="option2" value="sparse">
+                <label class="form-check-label" for="option2">{% translate %}Sparse{% endtranslate %}</label>
+                <div class="form-text mt-2 text-body-tertiary">
+                    {% translate %}
+                    Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.
+                    {% endtranslate %}
+                </div>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" name="format" id="option3" value="latest" checked>
+                <label class="form-check-label" for="option3">{% translate %}Latest{% endtranslate %}</label>
+                <div class="form-text mt-2 text-body-tertiary">
+                    {% translate %}
+                    One row per player showing their final state: just the last/current value of every field.
+                    {% endtranslate %}
+                </div>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="format" id="option4" value="latest">
+                <label class="form-check-label" for="option4">{% translate %}Latest &times; Field(s){% endtranslate %}</label>
+                <div class="form-text mt-2 text-body-tertiary">
+                    {% translate %}
+                    One row per player per specified grouping (like per round): shows what each participant's state was at the end of each round, condition, or other grouping you specify.
+                    {% endtranslate %}
+                </div>
+                <div id="customInputs" class="my-4" style="display: none;">
+                    <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput">
+                        <i class="bi bi-plus"></i> {% translate %}Add grouping variable{% endtranslate %}
+                    </button>
+                    <div id="inputContainer">
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" name="gvar" placeholder="{% translate %}e.g., round{% endtranslate %}">
+                            <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="my-4">
-        <h3 class="mb-3">{% translate %}File type{% endtranslate %}</h3>
-        <div class="btn-group" role="group" aria-label="{% translate %}File type selection{% endtranslate %}">
-            <input type="radio" class="btn-check" name="filetype" id="filetype-json" value="json" checked autocomplete="off">
-            <label class="btn btn-outline-uproot btn-lg" for="filetype-json">JSON</label>
-
-            <input type="radio" class="btn-check" name="filetype" id="filetype-csv" value="csv" autocomplete="off">
-            <label class="btn btn-outline-uproot btn-lg" for="filetype-csv">CSV</label>
+        <!-- Column 2 -->
+        <div class="col-12 col-xl-4 mb-4">
+            <h4 class="mb-3">
+                {% translate %}Filters{% endtranslate %}
+            </h4>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="apply-filters" name="filters" value="1" checked>
+                <label class="form-check-label" for="apply-filters">
+                    {% translate %}Apply reasonable filters{% endtranslate %}
+                </label>
+                <div class="form-text mt-2 text-body-tertiary">
+                    {% translate %}
+                    Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.
+                    {% endtranslate %}
+                </div>
+            </div>
         </div>
-        <div class="form-text">
-            {% translate %}
-            JSON is recommended for analysis; CSV is better for spreadsheet applications.
-            {% endtranslate %}
+        <!-- Column 3 -->
+        <div class="col-12 col-xl-4 mb-4">
+            <h4 class="mb-3">
+                {% translate %}File type{% endtranslate %}
+            </h4>
+            <div class="btn-group btn-group-sm" role="group" aria-label="{% translate %}File type selection{% endtranslate %}">
+                <input type="radio" class="btn-check" name="filetype" id="filetype-json" value="json" checked autocomplete="off">
+                <label class="btn btn-outline-uproot" for="filetype-json">JSON</label>
+
+                <input type="radio" class="btn-check" name="filetype" id="filetype-csv" value="csv" autocomplete="off">
+                <label class="btn btn-outline-uproot" for="filetype-csv">CSV</label>
+            </div>
+            <div class="form-text mt-3 text-body-tertiary">
+                {% translate %}
+                JSON is recommended for analysis; CSV is better for spreadsheet applications.
+                {% endtranslate %}
+            </div>
         </div>
     </div>
-
-    <div class="form-check my-4">
-        <input class="form-check-input" type="checkbox" id="apply-filters" name="filters" value="1" checked>
-        <label class="form-check-label" for="apply-filters">
-            {% translate %}Apply reasonable filters{% endtranslate %}
-        </label>
-        <div class="form-text">
-            {% translate %}
-            Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.
-            {% endtranslate %}
-        </div>
-    </div>
-
     <button type="submit" class="btn btn-uproot">{% translate %}Submit{% endtranslate %}</button>
 </form>
 

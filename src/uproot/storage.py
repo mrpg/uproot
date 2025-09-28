@@ -48,19 +48,6 @@ def all_good(key: tuple[str, str]) -> bool:
     return True
 
 
-def fields_from_session(
-    sname: Sessionname, since_epoch: float = 0
-) -> dict[tuple[tuple[str, str, str], str], Value]:
-    return cast(
-        dict[tuple[tuple[str, str, str], str], Value],
-        db_request(
-            None,
-            "fields_from_session",
-            extra=(sname, since_epoch),
-        ),
-    )
-
-
 class within:
     __slots__ = (
         "__storage__",

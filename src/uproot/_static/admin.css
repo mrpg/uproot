@@ -179,7 +179,7 @@ footer a {
     position: sticky;
     z-index: 97;
 }
-/* Positions to stick at for first column */
+/* Position to stick at for first column */
 .table-sticky tr > td:nth-of-type(1),
 .table-sticky tr > th:nth-of-type(1) {
     left: 0em;
@@ -198,7 +198,7 @@ footer a {
     width: 100%;
 }
 .table-sticky-outer {
-    height: 90vh;
+    height: 82.5vh;
     width: 100%;
     overflow: visible;
     position: relative;

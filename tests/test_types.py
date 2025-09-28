@@ -91,7 +91,7 @@ class TestIdentifierClasses:
         assert pid.sname == "session"
         assert pid.uname == "user"
         assert list(pid) == ["session", "user"]
-        assert str(pid) == "session/user"
+        assert str(pid) == "user"
 
     @patch("uproot.storage.Player")
     def test_player_identifier_call(self, mock_player):
@@ -106,7 +106,7 @@ class TestIdentifierClasses:
         assert gid.sname == "session"
         assert gid.gname == "group"
         assert list(gid) == ["session", "group"]
-        assert str(gid) == "session/group"
+        assert str(gid) == "group"
 
     @patch("uproot.storage.Group")
     def test_group_identifier_call(self, mock_group):
@@ -121,7 +121,7 @@ class TestIdentifierClasses:
         assert mid.sname == "session"
         assert mid.mname == "model"
         assert list(mid) == ["session", "model"]
-        assert str(mid) == "session/model"
+        assert str(mid) == "model"
 
     @patch("uproot.storage.Model")
     def test_model_identifier_call(self, mock_model):

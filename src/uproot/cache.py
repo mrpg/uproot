@@ -292,25 +292,6 @@ def db_request(
                             result[(namespace, mkey)] = latest
                 rval = result
 
-        case "fields_from_session", "", None if isinstance(extra, tuple):
-            sname: str
-            since: float
-            sname, since = cast(tuple[str, float], extra)
-            with LOCK:
-                session_result: dict[tuple[tuple[str, str, str], str], Any] = {}
-                session_players = get_namespace(("player", sname))
-                if session_players and isinstance(session_players, dict):
-                    for player_name, player_fields in session_players.items():
-                        if isinstance(player_fields, dict):
-                            ns = ("player", sname, player_name)
-                            for field_name, values in player_fields.items():
-                                field = cast(str, field_name)
-                                if values and hasattr(values, "__iter__") and values:
-                                    latest = values[-1]
-                                    if latest.time > since:
-                                        session_result[(ns, field)] = latest
-                rval = session_result
-
         case "get_within_context", _, None if isinstance(extra, dict):
             ctx = extra
             with LOCK:
