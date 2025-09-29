@@ -3,11 +3,11 @@
 
 from collections import defaultdict
 
-from uproot.types import PlayerIdentifier, Pulse, Sessionname, Value
+from uproot.types import BoundedPulse, PlayerIdentifier, Sessionname, Value
 
-ATTENDANCE: defaultdict[Sessionname, Pulse] = defaultdict(Pulse)
-FIELDCHANGE: defaultdict[Sessionname, Pulse] = defaultdict(Pulse)
-ROOMS: defaultdict[str, Pulse] = defaultdict(Pulse)
+ATTENDANCE: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
+FIELDCHANGE: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
+ROOMS: defaultdict[str, BoundedPulse] = defaultdict(BoundedPulse)
 
 
 def set_attendance(pid: PlayerIdentifier) -> None:

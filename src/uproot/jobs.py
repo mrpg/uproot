@@ -17,6 +17,7 @@ from uproot.types import (
     PlayerIdentifier,
     Sessionname,
     Username,
+    Value,
     maybe_await,
     optional_call,
 )
@@ -41,11 +42,12 @@ async def subscribe_to_attendance(
 
 async def subscribe_to_fieldchange(
     sname: Sessionname,
-) -> Username:
-    return cast(
-        Username,
-        await e.FIELDCHANGE[sname].wait(),
-    )
+    fields: Optional[list[str]] = None,
+) -> tuple[tuple[str, ...], str, Value]:
+    received = await e.FIELDCHANGE[sname].wait()
+
+    if fields is None or received[1] in fields:
+        return cast(tuple[tuple[str, ...], str, Value], received)
 
 
 async def subscribe_to_room(roomname: str) -> bool:

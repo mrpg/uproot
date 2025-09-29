@@ -212,11 +212,13 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             "endpoint": "invoke",
                             "payload": {
                                 "mname": "subscribe_to_fieldchange",
-                                "args": [sname],
+                                "args": [sname, fields],
                             },
-                        } if isinstance(sname, str):
+                        } if isinstance(sname, str) and isinstance(
+                            fields, (list, type(None))
+                        ):
                             newfname = "subscribe_to_fieldchange"
-                            args[newfname] = dict(sname=sname)
+                            args[newfname] = dict(sname=sname, fields=fields)
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_fieldchange(**args[newfname])
@@ -293,17 +295,18 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                         )
                     )
                 elif fname == "subscribe_to_fieldchange":
-                    await websocket.send_bytes(
-                        orjson.dumps(
-                            dict(
-                                kind="event",
-                                payload=dict(
-                                    event="FieldChanged",
-                                    detail=result,
-                                ),
+                    if result is not None:
+                        await websocket.send_bytes(
+                            orjson.dumps(
+                                dict(
+                                    kind="event",
+                                    payload=dict(
+                                        event="FieldChanged",
+                                        detail=result,
+                                    ),
+                                )
                             )
                         )
-                    )
                 elif fname == "timer":
                     pass  # placeholder for the future
                 else:

@@ -8,6 +8,17 @@ uproot.onStart(() => {
 uproot.onStart(() => {
     loadExtraData();
     uproot.invoke("subscribe_to_attendance", uproot.vars.sname);
+    uproot.invoke("subscribe_to_fieldchange", uproot.vars.sname, extraFields);
+});
+
+uproot.onCustomEvent("FieldChanged", (event) => {
+    const data = {};
+    const [pid, field, value] = event.detail;
+
+    data[pid[2]] = {};
+    data[pid[2]][field] = value.data;
+
+    reshapeAndUpdateExtraData(data);
 });
 
 function loadExtraData() {
@@ -19,18 +30,21 @@ function reshapeAndUpdateExtraData(data) {
     let startedCount = 0;
 
     for (const [key, value] of Object.entries(data)) {
-        // Special handling for .uproot_group
-        value.group = (value._uproot_group) ? value._uproot_group.gname : null;
-        delete value["_uproot_group"];
+        if (value._uproot_group !== undefined) {
+            value.group = (value._uproot_group !== null) ? value._uproot_group.gname : null;
+            delete value._uproot_group;
+        }
 
-        // Special handling for .started
-        startedCount += value["started"];
-        delete value["started"];
+        if (value.started !== undefined) {
+            startedCount += value.started;
+            delete value.started;
+        }
 
         newData[key] = value;
     }
 
     I("started-count").textContent = startedCount;
+    console.log(newData);
     updateExtraData(newData);
 }
 
@@ -345,7 +359,12 @@ window.updateExtraData = function updateExtraData(extraDataObj) {
     if (!uproot) return;
     if (!uproot.vars.extraData) uproot.vars.extraData = {};
 
-    Object.assign(uproot.vars.extraData, extraDataObj);
+    for (const [player, fields] of Object.entries(extraDataObj)) {
+        if (!uproot.vars.extraData[player]) {
+            uproot.vars.extraData[player] = {};
+        }
+        Object.assign(uproot.vars.extraData[player], fields);
+    }
 
     updateData();
 };
