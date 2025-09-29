@@ -216,7 +216,7 @@
     <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>
 
     <div class="d-grid gap-2">
-        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flip_active()">
+        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flipActive()">
             <i class="bi bi-toggle-{% if session.active %}on{% else %}off{% endif %}"></i>&nbsp;
             {% if session.active %}
             {% translate %}
@@ -235,7 +235,7 @@
                onclick="event.stopPropagation()"></i>
         </button>
 
-        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flip_testing()">
+        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flipTesting()">
             <i class="bi bi-bandaid"></i>&nbsp;
             {% if session.testing %}
             {% translate %}
@@ -419,7 +419,7 @@
                     Close
                     {% endtranslate %}
                 </button>
-                <button type="button" class="btn btn-danger" onclick="actually_manage()">
+                <button type="button" class="btn btn-danger" onclick="actuallyManage()">
                     {% translate %}
                     Save changes
                     {% endtranslate %}
@@ -480,7 +480,7 @@
                     Close
                     {% endtranslate %}
                 </button>
-                <button type="button" class="btn btn-danger" onclick="actually_insert()">
+                <button type="button" class="btn btn-danger" onclick="actuallyInsert()">
                     {% translate %}
                     Insert fields
                     {% endtranslate %}
@@ -520,7 +520,7 @@
                     Close
                     {% endtranslate %}
                 </button>
-                <button type="button" class="btn btn-danger" onclick="actually_adminmessage_send()">
+                <button type="button" class="btn btn-danger" onclick="actuallyAdminmessageSend()">
                     {% translate %}
                     Send message
                     {% endtranslate %}
@@ -579,14 +579,13 @@
 {% block late %}
 
 <script>
-    // TODO: use camelCase
     function disassociate() {
         uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(uproot.reload);
     }
-    function flip_active() {
+    function flipActive() {
         uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
     }
-    function flip_testing() {
+    function flipTesting() {
         uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
     }
     function setDescription() {

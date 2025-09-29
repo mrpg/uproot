@@ -334,7 +334,7 @@ function ppath(pageOrder, showPage) {
 }
 
 // Monitor-specific functions
-window.new_info_online = function new_info_online(data) {
+window.newInfoOnline = function newInfoOnline(data) {
     if (!uproot) return;
     uproot.vars.online = data.online || {};
     uproot.vars.info = data.info || {};
@@ -355,7 +355,7 @@ function getSelectedPlayers() {
     return table.getSelectedRows().map(row => row.getData().player).filter(Boolean);
 }
 
-window.invoke_from_monitor = function invoke_from_monitor(fname, ...args) {
+window.invokeFromMonitor = function invokeFromMonitor(fname, ...args) {
     return uproot.invoke(
         fname,
         uproot.vars.sname,
@@ -364,12 +364,12 @@ window.invoke_from_monitor = function invoke_from_monitor(fname, ...args) {
     );
 };
 
-window.actually_manage = function actually_manage() {
+window.actuallyManage = function actuallyManage() {
     const action = uproot.selectedValue("manage");
     if (action) {
         window.bootstrap?.Modal.getOrCreateInstance(I("manage-modal")).hide();
-        window.invoke_from_monitor(action).then((data) => {
-            if (data) window.new_info_online(data);
+        window.invokeFromMonitor(action).then((data) => {
+            if (data) window.newInfoOnline(data);
             loadExtraData();
             uproot.alert("The action has completed.");
         });
@@ -378,7 +378,7 @@ window.actually_manage = function actually_manage() {
     }
 };
 
-window.actually_insert = function actually_insert() {
+window.actuallyInsert = function actuallyInsert() {
     const json = I("json-input")?.value ?? "";
     const reload = !!I("reload2")?.checked;
     let fields;
@@ -388,16 +388,16 @@ window.actually_insert = function actually_insert() {
         return uproot.error("Invalid JSON.");
     }
     window.bootstrap?.Modal.getOrCreateInstance(I("insert-modal")).hide();
-    window.invoke_from_monitor("insert_fields", { fields, reload }).then(() => {
+    window.invokeFromMonitor("insert_fields", { fields, reload }).then(() => {
         loadExtraData();
         uproot.alert("The action has completed.");
     });
 };
 
-window.actually_adminmessage_send = function actually_adminmessage_send() {
+window.actuallyAdminmessageSend = function actuallyAdminmessageSend() {
     const msg = I("adminmsg")?.value ?? "";
     window.bootstrap?.Modal.getOrCreateInstance(I("adminmessage_send-modal")).hide();
-    window.invoke_from_monitor("adminmessage", msg).then(() => {
+    window.invokeFromMonitor("adminmessage", msg).then(() => {
         uproot.alert("The action has completed.");
     });
 };
