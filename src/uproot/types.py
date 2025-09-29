@@ -741,19 +741,38 @@ def vertical(matrix: Iterable[Any]) -> Iterator[list[Any]]:
     return map(list, zip(*matrix))
 
 
-class Pulse(asyncio.Event):
-    "An asyncio.Event that immediately unsets. May carry associated data."
+class BoundedPulse:
+    """
+    A bounded queue-like event system that preserves data when no one is listening.
+    Keeps the most recent 1024 events and automatically discards older ones.
+    """
+
+    def __init__(self, maxsize: int = 1024) -> None:
+        self._queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=maxsize)
+        self._maxsize = maxsize
 
     def set(self, data: Any = None) -> None:
-        self._data = data
-
-        super().set()
-        super().clear()
+        try:
+            self._queue.put_nowait(data)
+        except asyncio.QueueFull:
+            # Remove oldest item to make room for new one
+            try:
+                self._queue.get_nowait()
+                self._queue.put_nowait(data)
+            except asyncio.QueueEmpty:
+                # Race condition - queue became empty, try again
+                self._queue.put_nowait(data)
 
     async def wait(self) -> Any:
-        await super().wait()
-
-        return self._data
+        return await self._queue.get()
 
     def is_set(self) -> bool:
-        return False
+        return not self._queue.empty()
+
+    def qsize(self) -> int:
+        """Return approximate number of pending events."""
+        return self._queue.qsize()
+
+
+# Keep Pulse as alias for backward compatibility
+Pulse = BoundedPulse

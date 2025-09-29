@@ -8,6 +8,17 @@ uproot.onStart(() => {
 uproot.onStart(() => {
     loadExtraData();
     uproot.invoke("subscribe_to_attendance", uproot.vars.sname);
+    uproot.invoke("subscribe_to_fieldchange", uproot.vars.sname, extraFields);
+});
+
+uproot.onCustomEvent("FieldChanged", (event) => {
+    const data = {};
+    const [pid, field, value] = event.detail;
+
+    data[pid[2]] = {};
+    data[pid[2]][field] = value.data;
+
+    reshapeAndUpdateExtraData(data);
 });
 
 function loadExtraData() {
