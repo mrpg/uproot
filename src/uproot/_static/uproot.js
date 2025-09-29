@@ -501,52 +501,66 @@ window.uproot = {
                 return modal;
             });
 
-            let promptModal = bootstrap.Modal.getOrCreateInstance(this.I("prompt-modal"), { "backdrop": "static" });
+            let alertModal = bootstrap.Modal.getOrCreateInstance(this.I("alert-modal"), { "backdrop": "static" });
 
-            this.I("prompt-modal-body").innerHTML = html; // SAFE (users need to be careful!)
-            this.I("prompt-modal-input").value = "";
-            this.I("prompt-modal-input").focus();
+            // Create the prompt content with input field
+            const inputId = "uproot-prompt-input-" + this.uuid();
+            this.I("alert-modal-body").innerHTML = `${html}<input type="text" id="${inputId}" class="form-control mt-3" autocomplete="off">`; // SAFE (users need to be careful!)
+
+            const inputElement = this.I(inputId);
+
+            // Modify the existing button to be a non-outlined OK button
+            const existingButton = this.I("alert-modal").querySelector('.modal-footer button');
+            if (existingButton) {
+                existingButton.className = "btn btn-primary";
+                existingButton.textContent = "OK";
+                existingButton.removeAttribute('data-bs-dismiss');
+            }
 
             const handleResponse = (value) => {
-                promptModal.hide();
+                alertModal.hide();
                 resolve(value);
             };
 
-            const handleOk = () => {
-                const value = this.I("prompt-modal-input").value;
+            const handleOkClick = () => {
+                const value = inputElement.value;
                 handleResponse(value);
-            };
-
-            const handleCancel = () => {
-                handleResponse(null);
             };
 
             const handleKeydown = (e) => {
                 if (e.key === "Enter") {
                     e.preventDefault();
-                    handleOk();
+                    const value = inputElement.value;
+                    handleResponse(value);
                 }
                 else if (e.key === "Escape") {
                     e.preventDefault();
-                    handleCancel();
+                    handleResponse(null);
                 }
             };
 
-            // Clean up any existing event listeners
-            this.I("prompt-modal-ok").removeEventListener("click", handleOk);
-            this.I("prompt-modal-cancel").removeEventListener("click", handleCancel);
-            this.I("prompt-modal-input").removeEventListener("keydown", handleKeydown);
-
             // Add event listeners
-            this.I("prompt-modal-ok").addEventListener("click", handleOk, { once: true });
-            this.I("prompt-modal-cancel").addEventListener("click", handleCancel, { once: true });
-            this.I("prompt-modal-input").addEventListener("keydown", handleKeydown);
+            inputElement.addEventListener("keydown", handleKeydown);
+            if (existingButton) {
+                existingButton.addEventListener("click", handleOkClick);
+            }
 
-            promptModal.show();
+            alertModal.show();
 
-            this.I("prompt-modal").addEventListener("hidden.bs.modal", () => {
-                // Clean up event listeners
-                this.I("prompt-modal-input").removeEventListener("keydown", handleKeydown);
+            // Focus the input after modal is shown
+            this.I("alert-modal").addEventListener("shown.bs.modal", () => {
+                inputElement.focus();
+            }, { once: true });
+
+            this.I("alert-modal").addEventListener("hidden.bs.modal", () => {
+                // Clean up event listeners and restore original button
+                inputElement.removeEventListener("keydown", handleKeydown);
+                if (existingButton) {
+                    existingButton.removeEventListener("click", handleOkClick);
+                    existingButton.className = "btn btn-outline-danger";
+                    existingButton.textContent = "Close";
+                    existingButton.setAttribute('data-bs-dismiss', 'modal');
+                }
                 shownModals.forEach(modal => modal.show());
             }, { once: true });
         });
