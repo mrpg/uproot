@@ -664,6 +664,13 @@ async def flip_testing(sname: t.Sessionname) -> None:
         session.testing = not session.testing
 
 
+async def update_description(sname: t.Sessionname, newdesc: str) -> None:
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        session.description = newdesc if newdesc else None
+
+
 def verify_auth_token(user: str, token: str) -> Optional[str]:
     """Verify an authentication token.
 

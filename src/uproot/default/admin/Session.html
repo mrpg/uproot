@@ -163,10 +163,10 @@
             <div class="card-body pb-2">
                 <h6 class="fw-semibold mb-0 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
                 {% if session.description is none %}
-                <p><button type="button" class="btn btn-sm btn-uproot" onclick="uproot.prompt('').then(update_description)">{% translate %}Add{% endtranslate %}</button></p>
+                <p><button type="button" class="btn btn-sm btn-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button></p>
                 {% else %}
                 <p>{{ session.description }}
-                    <button type="button" class="btn btn-sm btn-uproot" onclick='uproot.prompt({{ session.description | tojson }}).then(update_description)'>{% translate %}Change{% endtranslate %}</button>
+                    <button type="button" class="btn btn-sm btn-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
                 </p>
                 {% endif %}
 
@@ -579,6 +579,7 @@
 {% block late %}
 
 <script>
+    // TODO: use camelCase
     function disassociate() {
         uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(uproot.reload);
     }
@@ -587,6 +588,11 @@
     }
     function flip_testing() {
         uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
+    }
+    function setDescription() {
+        uproot.prompt(_("Enter new description:"), {{ session.description | tojson }})
+            .then((newdesc) => uproot.invoke("update_description", uproot.vars.sname, newdesc))
+            .then(uproot.reload);
     }
 
     uproot.onStart(() => {
