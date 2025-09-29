@@ -324,7 +324,8 @@ window.uproot = {
                     if (!this.isInitialized) {
                         this.isInitialized = true;
                         window.dispatchEvent(new Event("UprootReady"));
-                    } else {
+                    }
+                    else {
                         window.dispatchEvent(new Event("UprootReconnect"));
                     }
                 });
@@ -489,6 +490,81 @@ window.uproot = {
         this.I("alert-modal").addEventListener("hidden.bs.modal", () => {
             shownModals.forEach(modal => modal.show());
         }, { once: true });
+    },
+
+    prompt(html, value = "") {
+        return new Promise((resolve) => {
+            const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
+                const modal = bootstrap.Modal.getOrCreateInstance(el);
+                modal.hide();
+
+                return modal;
+            });
+
+            let alertModal = bootstrap.Modal.getOrCreateInstance(this.I("alert-modal"), { "backdrop": "static" });
+
+            // Create the prompt content with input field
+            const inputId = "uproot-prompt-input-" + this.uuid();
+            this.I("alert-modal-body").innerHTML = `${html}<input type="text" id="${inputId}" class="form-control mt-3" autocomplete="off">`; // SAFE (users need to be careful!)
+
+            const inputElement = this.I(inputId);
+
+            // Modify the existing button to be a non-outlined OK button
+            const existingButton = this.I("alert-modal").querySelector('.modal-footer button');
+            if (existingButton) {
+                existingButton.className = "btn btn-uproot";
+                existingButton.textContent = _("OK");
+                existingButton.removeAttribute('data-bs-dismiss');
+            }
+
+            const handleResponse = (value) => {
+                alertModal.hide();
+                resolve(value);
+            };
+
+            const handleOkClick = () => {
+                const value = inputElement.value;
+                handleResponse(value);
+            };
+
+            const handleKeydown = (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    const value = inputElement.value;
+                    handleResponse(value);
+                }
+                else if (e.key === "Escape") {
+                    e.preventDefault();
+                    handleResponse(null);
+                }
+            };
+
+            // Add event listeners
+            inputElement.addEventListener("keydown", handleKeydown);
+            if (existingButton) {
+                existingButton.addEventListener("click", handleOkClick);
+            }
+
+            I(inputId).value = value;
+            alertModal.show();
+
+            // Focus the input after modal is shown
+            this.I("alert-modal").addEventListener("shown.bs.modal", () => {
+                inputElement.focus();
+            }, { once: true });
+
+            this.I("alert-modal").addEventListener("hidden.bs.modal", () => {
+                // Clean up event listeners and restore original button
+                inputElement.removeEventListener("keydown", handleKeydown);
+                if (existingButton) {
+                    existingButton.removeEventListener("click", handleOkClick);
+                    existingButton.className = "btn btn-outline-uproot";
+                    existingButton.textContent = _("Close");
+                    existingButton.setAttribute('data-bs-dismiss', 'modal');
+                }
+                shownModals.forEach(modal => modal.show());
+            }, { once: true });
+        });
     },
 
     sum(arr) {
@@ -822,6 +898,10 @@ window._ = (s) => {
 
 window.alert = (message) => {
     window.uproot.alert(uproot.escape(message));
+};
+
+window.prompt = (message) => {
+    return window.uproot.prompt(uproot.escape(message));
 };
 
 window.I = (id_) => document.getElementById(id_);

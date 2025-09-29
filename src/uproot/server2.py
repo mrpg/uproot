@@ -720,16 +720,8 @@ async def sessionmain(
         return HTMLResponse(
             await render(
                 "Session.html",
-                dict(
-                    sname=sname,
-                    description=session.description,
-                    room=session.room,
-                    secret=session._uproot_secret,
-                )
-                | await a.info_online(sname),
-                dict(
-                    session=session,
-                ),
+                dict(sname=sname) | await a.info_online(sname),
+                dict(session=session),
             )
         )
 
@@ -964,4 +956,5 @@ FUNS = dict(
     put_to_end=a.put_to_end,
     reload=a.reload,
     revert_by_one=a.revert_by_one,
+    update_description=a.update_description,
 )
