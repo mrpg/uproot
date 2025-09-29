@@ -657,6 +657,13 @@ async def flip_active(sname: t.Sessionname) -> None:
         session.active = not session.active
 
 
+async def flip_testing(sname: t.Sessionname) -> None:
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        session.testing = not session.testing
+
+
 def verify_auth_token(user: str, token: str) -> Optional[str]:
     """Verify an authentication token.
 

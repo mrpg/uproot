@@ -198,30 +198,55 @@
                         <a class="btn btn-sm btn-uproot" href="#">{% translate %}Add players{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
                     </p>
                 </div>
-                <div class="col">
-                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>
 
-                    <p class="mb-2 mt-3">
-                        <button type="button" class="btn btn-outline-uproot btn-sm" onclick="flip_active()">
-                            {% if active %}
-                            {% translate %}Mark as inactive{% endtranslate %}
-                            {% else %}
-                            {% translate %}Mark as active{% endtranslate %}
-                            {% endif %}
-                        </button>
-                    </p>
-                    <p class="form-text text-body-tertiary">
-                        {% if active %}
-                        {% translate %}
-                        This has purely cosmetical consequences: It moves this session to the “Inactive sessions” section on the “Sessions” page.
-                        {% endtranslate %}
-                        {% else %}
-                        {% translate %}
-                        This has purely cosmetical consequences: It moves this session to the “Active sessions” section on the “Sessions” page.
-                        {% endtranslate %}
-                        {% endif %}
-                    </p>
-                </div>
+
+
+<div class="col">
+    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>
+
+    <div class="d-grid gap-2">
+        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flip_active()">
+            <i class="bi bi-toggle-{% if session.active %}on{% else %}off{% endif %}"></i>&nbsp;
+            {% if session.active %}
+            {% translate %}
+            Mark as inactive
+            {% endtranslate %}
+            {% else %}
+            {% translate %}
+            Mark as active
+            {% endtranslate %}
+            {% endif %}
+
+            <i class="bi bi-question-circle position-absolute end-0 me-2"
+               data-bs-toggle="popover"
+               data-bs-trigger="hover"
+               data-bs-content="{% if session.active %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Inactive sessions' section on the 'Sessions' page.{% endtranslate %}{% else %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Active sessions' section on the 'Sessions' page.{% endtranslate %}{% endif %}"
+               onclick="event.stopPropagation()"></i>
+        </button>
+
+        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flip_testing()">
+            <i class="bi bi-bandaid"></i>&nbsp;
+            {% if session.testing %}
+            {% translate %}
+            Disable testing
+            {% endtranslate %}
+            {% else %}
+            {% translate %}
+            Enable testing
+            {% endtranslate %}
+            {% endif %}
+
+            <i class="bi bi-question-circle position-absolute end-0 me-2"
+               data-bs-toggle="popover"
+               data-bs-trigger="hover"
+               data-bs-content="{% if session.testing %}{% translate %}This will hide this session’s testing elements for all except admins.{% endtranslate %}{% else %}{% translate %}This will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
+               onclick="event.stopPropagation()"></i>
+        </button>
+    </div>
+</div>
+
+
+
             </div>
         </div>
     </div>
@@ -551,6 +576,14 @@
     function flip_active() {
         uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
     }
+    function flip_testing() {
+        uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
+    }
+
+    uproot.onStart(() => {
+        var popovers = [].slice.call(document.querySelectorAll("[data-bs-toggle='popover']"))
+        popovers.map(function(el) { return new bootstrap.Popover(el) })
+    });
 </script>
 
 <script src="{{ internalstatic('viewdata.js') }}"></script>

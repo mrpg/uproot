@@ -725,9 +725,11 @@ async def sessionmain(
                     description=session.description,
                     room=session.room,
                     secret=session._uproot_secret,
-                    active=session.active,
                 )
                 | await a.info_online(sname),
+                dict(
+                    session=session,
+                ),
             )
         )
 
@@ -956,6 +958,7 @@ FUNS = dict(
     everything_from_session_display=a.everything_from_session_display,
     fields_from_all=a.fields_from_all,
     flip_active=a.flip_active,
+    flip_testing=a.flip_testing,
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,
     put_to_end=a.put_to_end,
