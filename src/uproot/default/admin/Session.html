@@ -162,11 +162,11 @@
         <div class="card h-100">
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
-                {% if room is none %}
+                {% if session.room is none %}
                 <p>{% translate %}This session is not associated with a room{% endtranslate %}.</p>
                 {% else %}
                 <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
-                <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ room }}/">{{ room }}</a></p>
+                <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
                 <p class="mb-2 mt-3">
                     <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
                 </p>
@@ -179,7 +179,7 @@
             <div class="card-body pb-2 row row-cols-1 row-cols-lg-3">
                 <div class="col">
                     <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Description{% endtranslate %}</h5>
-                    <p>{{ description }}</p>
+                    <p>{{ session.description }}</p>
                     <p>
                         <a class="btn btn-sm btn-uproot" href="#">{% translate %}Change{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
                     </p>
@@ -254,17 +254,15 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Player URLs{% endtranslate %}</h5>
-                {% if not secret is none %}
                 <p class="mb-2">{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>
                     <li>
                         <a class="link-subtle player-url"
-                            href="../../../s/{{ sname }}/{{ secret }}/" target="_blank">
-                            {{ root }}/s/{{ sname }}/{{ secret}}/
+                            href="../../../s/{{ sname }}/{{ session._uproot_secret }}/" target="_blank">
+                            {{ root }}/s/{{ sname }}/{{ session._uproot_secret}}/
                         </a>
                     </li>
                 </ul>
-                {% endif %}
                 {% if len(info) > 0 %}
                 <p class="mb-1">
                     <button class="btn btn-sm btn-outline-uproot" data-bs-target="#urlModal" data-bs-toggle="modal" type="button">
