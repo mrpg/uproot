@@ -324,7 +324,8 @@ window.uproot = {
                     if (!this.isInitialized) {
                         this.isInitialized = true;
                         window.dispatchEvent(new Event("UprootReady"));
-                    } else {
+                    }
+                    else {
                         window.dispatchEvent(new Event("UprootReconnect"));
                     }
                 });
@@ -489,6 +490,66 @@ window.uproot = {
         this.I("alert-modal").addEventListener("hidden.bs.modal", () => {
             shownModals.forEach(modal => modal.show());
         }, { once: true });
+    },
+
+    prompt(html) {
+        return new Promise((resolve) => {
+            const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
+                const modal = bootstrap.Modal.getOrCreateInstance(el);
+                modal.hide();
+
+                return modal;
+            });
+
+            let promptModal = bootstrap.Modal.getOrCreateInstance(this.I("prompt-modal"), { "backdrop": "static" });
+
+            this.I("prompt-modal-body").innerHTML = html; // SAFE (users need to be careful!)
+            this.I("prompt-modal-input").value = "";
+            this.I("prompt-modal-input").focus();
+
+            const handleResponse = (value) => {
+                promptModal.hide();
+                resolve(value);
+            };
+
+            const handleOk = () => {
+                const value = this.I("prompt-modal-input").value;
+                handleResponse(value);
+            };
+
+            const handleCancel = () => {
+                handleResponse(null);
+            };
+
+            const handleKeydown = (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleOk();
+                }
+                else if (e.key === "Escape") {
+                    e.preventDefault();
+                    handleCancel();
+                }
+            };
+
+            // Clean up any existing event listeners
+            this.I("prompt-modal-ok").removeEventListener("click", handleOk);
+            this.I("prompt-modal-cancel").removeEventListener("click", handleCancel);
+            this.I("prompt-modal-input").removeEventListener("keydown", handleKeydown);
+
+            // Add event listeners
+            this.I("prompt-modal-ok").addEventListener("click", handleOk, { once: true });
+            this.I("prompt-modal-cancel").addEventListener("click", handleCancel, { once: true });
+            this.I("prompt-modal-input").addEventListener("keydown", handleKeydown);
+
+            promptModal.show();
+
+            this.I("prompt-modal").addEventListener("hidden.bs.modal", () => {
+                // Clean up event listeners
+                this.I("prompt-modal-input").removeEventListener("keydown", handleKeydown);
+                shownModals.forEach(modal => modal.show());
+            }, { once: true });
+        });
     },
 
     sum(arr) {
@@ -822,6 +883,10 @@ window._ = (s) => {
 
 window.alert = (message) => {
     window.uproot.alert(uproot.escape(message));
+};
+
+window.prompt = (message) => {
+    return window.uproot.prompt(uproot.escape(message));
 };
 
 window.I = (id_) => document.getElementById(id_);
