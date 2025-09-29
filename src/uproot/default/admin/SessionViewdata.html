@@ -115,19 +115,26 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-between mt-3" id="buttons-filter">
-    <div class="btn-group dropup" id="buttongroup-normal-table">
-        <button class="btn btn-outline-uproot" type="button">
-            {% translate %}Filter by app{% endtranslate %}
-        </button>
+<div class="d-flex justify-content-between mt-3" id="filter-data-to-display">
+    <div class="btn-group dropup" id="filter-by-app">
+        <span class="border border-uproot px-3 py-2 rounded-start text-uproot">
+            {% translate %}
+            Filter by app
+            {% endtranslate %}<span class="font-monospace" id="current-app-filter"></span>
+        </span>
         <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
         <ul class="dropdown-menu" id="all-app-names">
         </ul>
     </div>
-    <div class="border border-uproot input-group rounded w-25">
-        <span class="input-group-text">{% translate %}Filter by round{% endtranslate %}</span>
-        <input class="form-control" id="round-filter" type="number">
-        <button class="btn btn-outline-uproot" onclick="filterThenRefreshData('round', I('round-filter').value)" type="button">{% translate %}Apply{% endtranslate %}</button>
+    <div class="border border-uproot input-group rounded" id="filter-by-round" style="width: 15rem;">
+        <span class="text-uproot px-3 py-2 ">{% translate %}Filter by round{% endtranslate %}</span>
+        <input
+            class="form-control border-0 border-start border-uproot rounded-end text-center" id="round-filter"
+            min="0"
+            onchange="filterThenRefreshData('round', this.value)"
+            oninput="filterThenRefreshData('round', this.value)"
+            type="number"
+        >
     </div>
     <button class="btn btn-outline-uproot" onclick="removeFilter()" type="button">{% translate %}Show current state{% endtranslate %}</button>
 </div>
