@@ -492,7 +492,7 @@ window.uproot = {
         }, { once: true });
     },
 
-    prompt(html) {
+    prompt(html, value = "") {
         return new Promise((resolve) => {
             const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
                 const modal = bootstrap.Modal.getOrCreateInstance(el);
@@ -512,8 +512,8 @@ window.uproot = {
             // Modify the existing button to be a non-outlined OK button
             const existingButton = this.I("alert-modal").querySelector('.modal-footer button');
             if (existingButton) {
-                existingButton.className = "btn btn-primary";
-                existingButton.textContent = "OK";
+                existingButton.className = "btn btn-uproot";
+                existingButton.textContent = _("OK");
                 existingButton.removeAttribute('data-bs-dismiss');
             }
 
@@ -545,6 +545,7 @@ window.uproot = {
                 existingButton.addEventListener("click", handleOkClick);
             }
 
+            I(inputId).value = value;
             alertModal.show();
 
             // Focus the input after modal is shown
@@ -557,8 +558,8 @@ window.uproot = {
                 inputElement.removeEventListener("keydown", handleKeydown);
                 if (existingButton) {
                     existingButton.removeEventListener("click", handleOkClick);
-                    existingButton.className = "btn btn-outline-danger";
-                    existingButton.textContent = "Close";
+                    existingButton.className = "btn btn-outline-uproot";
+                    existingButton.textContent = _("Close");
                     existingButton.setAttribute('data-bs-dismiss', 'modal');
                 }
                 shownModals.forEach(modal => modal.show());
