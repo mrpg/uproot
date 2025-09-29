@@ -3,7 +3,7 @@
 const ignoredFields = ["session", "key"];
 const priorityFields = ["id", "label", "_uproot_group", "member_id", "page_order", "show_page", "started", "round"];
 
-let FILTER; // TODO: grouping var, actually
+let FILTER = {};  // TODO: grouping var, actually
 let lastData, lastUpdate = 0;
 let table;
 let currentContainer = "tableOuter";
@@ -317,13 +317,13 @@ function writeAllAppNames() {
         })
     )];
     I("all-app-names").innerHTML =
-        `<li><span class="dropdown-item fst-italic" onclick="removeFilter()" role="button">${_("Show current state")}</li>` +
+        `<li><span class="dropdown-item fst-italic" onclick="filterThenRefreshData('app', ''); I('current-app-filter').textContent = ''" role="button">${_("Any app")}</li>` +
         `<li><hr class="dropdown-divider"></li>`;
     for (let i = 0; i < allAppNames.length; i++) {
         const name = allAppNames[i];
         I("all-app-names").innerHTML +=
             name == "None" ? `` :
-            `<li><span class="dropdown-item font-monospace" onclick="removeFilter(); filterThenRefreshData('app', '${name}')" role="button">${name}</li>`;
+            `<li><span class="dropdown-item font-monospace" onclick="filterThenRefreshData('app', '${name}'); I('current-app-filter').textContent = ' | ${name}'" role="button">${name}</li>`;
     }
 }
 
@@ -331,11 +331,18 @@ function removeFilter() {
     FILTER = {};
     refreshData();
     I("round-filter").value = "";
+    I('current-app-filter').textContent = "";
 }
 
 function filterThenRefreshData(key, value) {
-    FILTER = { [key]: value };
+    if (value == "" & FILTER != {}) {  // Remove the key
+        const { [key]: _, ...rest } = FILTER;
+        FILTER = rest;
+    } else {  // Add or update
+        FILTER = { ...FILTER, [key]: value };
+    }
     refreshData();
+    console.log(FILTER);
 }
 
 async function updateData() {
