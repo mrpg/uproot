@@ -161,16 +161,22 @@
     <div class="col-12 col-lg-3 mb-4">
         <div class="card h-100">
             <div class="card-body pb-2">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
-                {% if session.room is none %}
-                <p>{% translate %}This session is not associated with a room{% endtranslate %}.</p>
+                <h6 class="fw-semibold mb-0 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
+                {% if session.description is none %}
+                <p><button type="button" class="btn btn-sm btn-uproot" onclick="uproot.prompt('').then(update_description)">{% translate %}Add{% endtranslate %}</button></p>
                 {% else %}
-                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
-                <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
-                <p class="mb-2 mt-3">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                <p>{{ session.description }}
+                    <button type="button" class="btn btn-sm btn-uproot" onclick='uproot.prompt({{ session.description | tojson }}).then(update_description)'>{% translate %}Change{% endtranslate %}</button>
                 </p>
                 {% endif %}
+
+                <h6 class="fw-semibold mb-0 mt-0 pb-0">{% translate %}Config{% endtranslate %}</h6>
+                <p><span class="font-monospace">{{ session.config }}</span>
+                    <a class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
+                </p>
+
+                <h6 class="fw-semibold mb-0 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
+                <p>{{ " → ".join(session.apps) }}</p>
             </div>
         </div>
     </div>
@@ -178,17 +184,22 @@
         <div class="card h-100">
             <div class="card-body pb-2 row row-cols-1 row-cols-lg-3">
                 <div class="col">
-                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Description{% endtranslate %}</h5>
-                    <p>{{ session.description }}</p>
-                    <p>
-                        <a class="btn btn-sm btn-uproot" href="#">{% translate %}Change{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
+                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
+                    {% if session.room is none %}
+                    <p>{% translate %}This session is not associated with a room{% endtranslate %}.</p>
+                    {% else %}
+                    <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
+                    <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
+                    <p class="mb-2 mt-3">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
                     </p>
+                    {% endif %}
                 </div>
                 <div class="col">
                     <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
                     <p class="d-table-row">
                         <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
-                        <span class="d-table-cell">{{ len(info) }}</span>
+                        <span class="d-table-cell">{{ len(session.players) }}</span>
                     </p>
                     <p class="d-table-row">
                         <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
