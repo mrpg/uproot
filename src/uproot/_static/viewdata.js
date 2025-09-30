@@ -3,7 +3,7 @@
 const ignoredFields = ["session", "key"];
 const priorityFields = ["id", "label", "_uproot_group", "member_id", "page_order", "show_page", "started", "round"];
 
-let FILTER = {};  // TODO: grouping var, actually
+let FILTER = {};
 let lastData, lastUpdate = 0;
 let table;
 let currentContainer = "tableOuter";
@@ -300,38 +300,79 @@ function latest(obj, conditions = {}) {
 }
 
 function writeAllAppNames() {
-    // TODO: Work on this for full release
-    /* fullDataset is a dictionary in JavaScript with player names as the keys. For each key, the value is a dictionary that has a key callded “app.” That key is either an array with 5 entries or a nested array of multiple inner arrays. All inner arrays have 5 entries. We generate a list of all unique values of the 4th entry of all innermost arrays. */
-    const allAppNames = [...new Set(
-        Object.values(fullDataset).flatMap(({ app }) => {
-            if (!Array.isArray(app)) return [];
-            // If it's an array of arrays, take index 3 from each inner array
-            if (app.some(Array.isArray)) {
+    const extractAppNames = (app) => {
+        if (!Array.isArray(app)) return [];
+
+        if (app.some(Array.isArray)) {
             return app
                 .filter(Array.isArray)
-                .map(a => a[3])
-                .filter(v => v !== undefined);
-            }
-            // Otherwise it's a single 5-item array
-            return app[3] !== undefined ? [String(app[3])] : [];
-        })
+                .map(arr => arr[3])
+                .filter(value => value !== undefined);
+        }
+
+        return app[3] !== undefined ? [String(app[3])] : [];
+    };
+
+    const allAppNames = [...new Set(
+        Object.values(fullDataset)
+            .flatMap(({ app }) => extractAppNames(app))
     )];
-    I("all-app-names").innerHTML =
-        `<li><span class="dropdown-item fst-italic" onclick="filterThenRefreshData('app', ''); I('current-app-filter').textContent = ''" role="button">${_("Any app")}</li>` +
-        `<li><hr class="dropdown-divider"></li>`;
-    for (let i = 0; i < allAppNames.length; i++) {
-        const name = allAppNames[i];
-        I("all-app-names").innerHTML +=
-            name == "None" ? `` :
-            `<li><span class="dropdown-item font-monospace" onclick="filterThenRefreshData('app', '${name}'); I('current-app-filter').textContent = ' | ${name}'" role="button">${name}</li>`;
-    }
+
+    const createDropdownItem = (name, isDefault = false) => {
+        const li = document.createElement("li");
+        const span = document.createElement("span");
+
+        if (isDefault) {
+            span.className = "dropdown-item fst-italic";
+            span.setAttribute("role", "button");
+            span.textContent = _("Any app");
+            span.onclick = () => {
+                filterThenRefreshData("app", "");
+                I("current-app-filter").textContent = "";
+            };
+        } else if (name === "None") {
+            return null;
+        } else {
+            span.className = "dropdown-item font-monospace";
+            span.setAttribute("role", "button");
+            span.textContent = name;
+            span.onclick = () => {
+                filterThenRefreshData("app", name);
+                I("current-app-filter").textContent = ` | ${name}`;
+            };
+        }
+
+        li.appendChild(span);
+        return li;
+    };
+
+    const createDivider = () => {
+        const li = document.createElement("li");
+        const hr = document.createElement("hr");
+        hr.className = "dropdown-divider";
+        li.appendChild(hr);
+        return li;
+    };
+
+    const container = I("all-app-names");
+    container.innerHTML = "";
+
+    const defaultItem = createDropdownItem(null, true);
+    if (defaultItem) container.appendChild(defaultItem);
+
+    container.appendChild(createDivider());
+
+    allAppNames
+        .map(name => createDropdownItem(name))
+        .filter(item => item !== null)
+        .forEach(item => container.appendChild(item));
 }
 
 function removeFilter() {
     FILTER = {};
     refreshData();
     I("round-filter").value = "";
-    I('current-app-filter').textContent = "";
+    I("current-app-filter").textContent = "";
 }
 
 function filterThenRefreshData(key, value) {
