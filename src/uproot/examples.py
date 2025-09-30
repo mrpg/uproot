@@ -277,7 +277,7 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
         rf.write(GITIGNORE)
 
     with open(path / "requirements.txt", "w", encoding="utf-8") as rf:
-        rf.write(f"uproot-science=={u.__version__}\n")
+        rf.write(f"uproot-science>={u.__version__}, <{u.__version_info__[0] + 1}.0.0\n")
 
     shutil.copy(LICENSE_PATH, path / "uproot_license.txt")
 
