@@ -12,7 +12,6 @@ import builtins
 import importlib.metadata
 import os
 import sys
-from itertools import zip_longest
 from pathlib import Path
 from random import shuffle
 from time import perf_counter as now
@@ -594,9 +593,12 @@ async def new_session_in_room(
         assignees_list = []
 
     data: list[Any] = []
-    nplayers = max(nplayers, len(assignees_list))
 
-    for _, label in zip_longest(range(nplayers), assignees_list):
+    if nplayers > len(assignees_list):
+        for _ in range(nplayers - len(assignees_list)):
+            assignees_list.append(None)
+
+    for _, label in zip(range(nplayers), assignees_list):
         if label is None:
             data.append({})
         else:
@@ -637,7 +639,7 @@ async def new_session_in_room(
 
     c.finalize_session(sid)
 
-    e.set_room(roomname)
+    e.set_room(roomname)  # TODO: ensure reload
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 

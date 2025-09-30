@@ -90,10 +90,10 @@ async def roommain(
 
         capacity = 0
 
-        if room["labels"] is not None:
-            capacity = len(room["labels"])
-        elif room["capacity"] is not None:
+        if room["capacity"] is not None:
             capacity = room["capacity"]
+        elif room["labels"] is not None:
+            capacity = len(room["labels"])
 
         if room["sname"] is None:
             # TODO: move this elsewhere entirely
@@ -115,13 +115,13 @@ async def roommain(
                         )
 
     # Try to add new player
-    # TODO: Or use free slot!
 
     with session:
         if new_session:
             session.room = roomname
 
         if ur.freejoin(room) or len(session.players) < capacity:
+            # TODO: Or use free slot!
             pid = c.create_player(session)
 
             player = pid()
