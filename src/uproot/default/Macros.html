@@ -60,7 +60,7 @@
 
 
 {% macro field(field) %}
-    <div class="form-group uproot-form-group {{ field.class_wrapper }}">
+    <div class="form-group uproot-form-group {{ field.class_wrapper | default('', true) }}">
         <div class="{{ error_class(field) }}">
         {% if field.type == "BooleanField" %}
             <div class="form-check">
