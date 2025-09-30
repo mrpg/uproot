@@ -131,7 +131,7 @@ async def show_page(
                 pass
             else:
                 proceed = True
-        elif player.started and len(player.page_order) == player.show_page:
+        elif len(player.page_order) == player.show_page:
             pass
         else:
             raise HTTPException(status_code=501)
