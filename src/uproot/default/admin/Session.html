@@ -158,113 +158,76 @@
 {% block main %}
 
 <div class="row">
-    <div class="col-12 col-lg-3 mb-4">
+    <div class="col-12 col-xl-3 col-lg-6 mb-4">
         <div class="card h-100">
             <div class="card-body pb-2">
-                <h6 class="fw-semibold mb-0 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
-                {% if session.description is none %}
-                <p><button type="button" class="btn btn-sm btn-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button></p>
-                {% else %}
-                <p>{{ session.description }}
-                    <button type="button" class="btn btn-sm btn-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
-                </p>
-                {% endif %}
-
-                <h6 class="fw-semibold mb-0 mt-0 pb-0">{% translate %}Config{% endtranslate %}</h6>
-                <p><span class="font-monospace">{{ session.config }}</span>
-                    <a class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
-                </p>
-
-                <h6 class="fw-semibold mb-0 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
-                <p>{{ " → ".join(session.apps) }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body pb-2 row row-cols-1 row-cols-lg-3">
-                <div class="col">
-                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
-                    {% if session.room is none %}
-                    <p>{% translate %}This session is not associated with a room{% endtranslate %}.</p>
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Essential information{% endtranslate %}</h5>
+                <div class="d-flex justify-content-between mb-3">
+                    {% if session.description is none %}
+                    <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button>
+                    </div>
                     {% else %}
-                    <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
-                    <p><a class="fs-4 font-monospace link-subtle" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
-                    <p class="mb-2 mt-3">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
-                    </p>
+                    <div>
+                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
+                        <p class="mb-2">{{ session.description }}</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
+                    </div>
                     {% endif %}
                 </div>
-                <div class="col">
-                    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
-                    <p class="d-table-row">
-                        <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
-                        <span class="d-table-cell">{{ len(session.players) }}</span>
-                    </p>
-                    <p class="d-table-row">
-                        <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
-                        <span class="d-table-cell text-end" id="started-count">?</span>
-                    </p>
-                    <p class="mt-3">
-                        <a class="btn btn-sm btn-uproot" href="#">{% translate %}Add players{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
-                    </p>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Config{% endtranslate %}</h6>
+                        <p class="font-monospace mb-2">{{ session.config }}</p>
+                    </div>
+                    <div>
+                        <a class="btn btn-sm btn-uproot h-auto" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
+                    </div>
                 </div>
-
-
-
-<div class="col">
-    <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>
-
-    <div class="d-grid gap-2">
-        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flipActive()">
-            <i class="bi bi-toggle-{% if session.active %}on{% else %}off{% endif %}"></i>&nbsp;
-            {% if session.active %}
-            {% translate %}
-            Mark as inactive
-            {% endtranslate %}
-            {% else %}
-            {% translate %}
-            Mark as active
-            {% endtranslate %}
-            {% endif %}
-
-            <i class="bi bi-question-circle position-absolute end-0 me-2"
-               data-bs-toggle="popover"
-               data-bs-trigger="hover"
-               data-bs-content="{% if session.active %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Inactive sessions' section on the 'Sessions' page.{% endtranslate %}{% else %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Active sessions' section on the 'Sessions' page.{% endtranslate %}{% endif %}"
-               onclick="event.stopPropagation()"></i>
-        </button>
-
-        <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start" onclick="flipTesting()">
-            <i class="bi bi-bandaid"></i>&nbsp;
-            {% if session.testing %}
-            {% translate %}
-            Disable testing
-            {% endtranslate %}
-            {% else %}
-            {% translate %}
-            Enable testing
-            {% endtranslate %}
-            {% endif %}
-
-            <i class="bi bi-question-circle position-absolute end-0 me-2"
-               data-bs-toggle="popover"
-               data-bs-trigger="hover"
-               data-bs-content="{% if session.testing %}{% translate %}This will hide this session’s testing elements for all except admins.{% endtranslate %}{% else %}{% translate %}This will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
-               onclick="event.stopPropagation()"></i>
-        </button>
-    </div>
-</div>
-
-
-
+                <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
+                <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
             </div>
         </div>
     </div>
-    <div class="col-12 col-lg-3 mb-4">
+    <div class="col-12 col-xl-3 col-lg-6 mb-4">
         <div class="card h-100">
-            <div class="card-body">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Player URLs{% endtranslate %}</h5>
+            <div class="card-body pb-2">
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
+                {% if session.room is none %}
+                <p class="mb-2">{% translate %}This session is not associated with a room{% endtranslate %}.</p>
+                {% else %}
+                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
+                <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
+                <p class="mb-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-3 col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body pb-2">
+                <h5 class="border-bottom fw-semibold mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
+                <div class="d-flex justify-content-between mb-3 mt-3">
+                    <div>
+                        <p class="d-table-row">
+                            <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
+                            <span class="d-table-cell text-end">{{ len(session.players) }}</span>
+                        </p>
+                        <p class="d-table-row">
+                            <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
+                            <span class="d-table-cell text-end" id="started-count">?</span>
+                        </p>
+                    </div>
+                    <div>
+                        <a class="btn btn-sm btn-uproot" href="#">{% translate %}Add players{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
+                    </div>
+                </div>
+                <h6 class="fw-semibold mb-2">{% translate %}Player URLs{% endtranslate %}</h6>
                 <p class="mb-2">{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>
                     <li>
@@ -281,6 +244,49 @@
                     </button>
                 </p>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-3 col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-uproot btn-sm mb-1 position-relative text-start w-75" onclick="flipTesting()">
+                        <i class="bi bi-bandaid"></i>&nbsp;
+                        {% if session.testing %}
+                        {% translate %}
+                        Disable testing
+                        {% endtranslate %}
+                        {% else %}
+                        {% translate %}
+                        Enable testing
+                        {% endtranslate %}
+                        {% endif %}
+                        <i class="bi bi-question-circle position-absolute end-0 me-2"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover"
+                        data-bs-content="{% if session.testing %}{% translate %}This will hide this session’s testing elements for all except admins.{% endtranslate %}{% else %}{% translate %}This will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
+                        onclick="event.stopPropagation()"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-uproot btn-sm position-relative text-start w-75" onclick="flipActive()">
+                        <i class="bi bi-toggle-{% if session.active %}on{% else %}off{% endif %}"></i>&nbsp;
+                        {% if session.active %}
+                        {% translate %}
+                        Mark as inactive
+                        {% endtranslate %}
+                        {% else %}
+                        {% translate %}
+                        Mark as active
+                        {% endtranslate %}
+                        {% endif %}
+                        <i class="bi bi-question-circle position-absolute end-0 me-2"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover"
+                        data-bs-content="{% if session.active %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Inactive sessions' section on the 'Sessions' page.{% endtranslate %}{% else %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Active sessions' section on the 'Sessions' page.{% endtranslate %}{% endif %}"
+                        onclick="event.stopPropagation()"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
