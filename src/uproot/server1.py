@@ -43,6 +43,7 @@ import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
 from uproot.constraints import ensure, valid_token
+from uproot.core import find_free_slot
 from uproot.pages import (
     path2page,
     render,
@@ -405,32 +406,30 @@ async def sessionwide(
         if not secret == session._uproot_secret:
             raise HTTPException(status_code=401)
 
-        free_uname = None
+        free_slot = find_free_slot(session)
 
-        for pid in session.players:
-            with pid() as player:
-                if not player.get("started", True):
-                    _, free_uname = pid
-                    break
+        if free_slot is not None:
+            _, free_uname = free_slot
 
-    if free_uname is None:
-        # Session is full, so to speak
-        return HTMLResponse(
-            await render(
-                request.app,
-                request,
-                None,
-                path2page("RoomFull.html"),
-                metadata=dict(called_from="session"),
-            ),
-            status_code=423,
-        )
-    else:
-        # Redirect to player
-        with Player(sname, free_uname) as p:
-            p.started = True  # This prevents race conditions
+            # Redirect to player
+            with Player(sname, free_uname) as p:
+                p.started = True  # This prevents race conditions
 
-        return RedirectResponse(f"{d.ROOT}/p/{sname}/{free_uname}/", status_code=303)
+            return RedirectResponse(
+                f"{d.ROOT}/p/{sname}/{free_uname}/", status_code=303
+            )
+        else:
+            # Session is full, so to speak
+            return HTMLResponse(
+                await render(
+                    request.app,
+                    request,
+                    None,
+                    path2page("RoomFull.html"),
+                    metadata=dict(called_from="session"),
+                ),
+                status_code=423,
+            )
 
 
 @router.get("/p/{sname}/{uname}/")

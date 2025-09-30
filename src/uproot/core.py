@@ -262,6 +262,15 @@ def create_players(
     return rval
 
 
+def find_free_slot(session: s.Storage) -> Optional[t.PlayerIdentifier]:
+    for pid in session.players:
+        with pid() as player:
+            if not player.get("started", True):
+                return pid
+
+    return None
+
+
 def expand(pages: list[t.PageLike]) -> list[type[t.Page]]:
     result = []
 
