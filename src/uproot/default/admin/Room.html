@@ -28,9 +28,9 @@ Room
 {% if room.sname is none %}
 
 
-<h3 class="mb-3">{% translate %}Player URL{% endtranslate %}</h3>
+<h3 class="mb-3">{% translate %}Room URL{% endtranslate %}</h3>
 
-<p>{% translate %}The player URL for entering this room is{% endtranslate %}</p>
+<p>{% translate %}Players can use the following URL for entering this room:{% endtranslate %}</p>
 <ul>
     <li>
         <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
@@ -72,20 +72,37 @@ Room
 
 <button type="button" class="btn btn-uproot mt-4" onclick="createSession()">Create session</button>
 
-<h3 class="mb-3 mt-4">{% translate %}Traces{% endtranslate %}</h3>
+<h3 class="mb-3 mt-4">{% translate %}Labels{% endtranslate %}</h3>
 
-<h4 class="mb-3">{% translate %}Recently seen{% endtranslate %}</h4>
+<p class="text-muted">
+    {% translate %}
+    Ascertaining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”
+    {% endtranslate %}
 
-<p><i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></p>
+    {% translate %}
+    Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.
+    {% endtranslate %}
+</p>
 
-<div id="recently-seen"></div>
+<div class="row" style="min-height: 200px">
+    <div class="col-md-6">
+        <h4 class="mb-1">{% translate %}Recently seen{% endtranslate %}, <i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></h4>
+        <div id="recently-seen" class="mb-4"></div>
+    </div>
 
-<h4 class="mb-3">{% translate %}Not recently seen{% endtranslate %}</h4>
-<div id="not-recently-seen"></div>  {# TODO #}
+    <div class="col-md-6"
+    {% if not room.labels %}
+    hidden
+    {% endif %}
+    >
+        <h4 class="mb-1">{% translate %}Not recently seen{% endtranslate %}</h4>
+        <div id="not-recently-seen"></div>
+    </div>
+</div>
 
 <script>
     const expectedLabels = uproot.vars.room.labels || [];
-    const recent = 30;  // TODO: Holger, take the wheel!
+    const recent = 20;
 
     let seen = uproot.vars.online;
     let currentRecentLabels = [];
@@ -141,7 +158,7 @@ Room
         } else {
             recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
                 const label = element.getAttribute('data-label');
-                const time = new Date(seen[label]).toLocaleTimeString();
+                const time = new Date(1000 * seen[label]).toLocaleTimeString();
                 const tooltip = window.bootstrap?.Tooltip?.getInstance(element);
                 if (tooltip) {
                     tooltip.setContent({ '.tooltip-inner': time });
