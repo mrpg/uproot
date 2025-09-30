@@ -75,20 +75,24 @@ class MultiviewManager {
         return { cols, rows: Math.ceil(count / cols) };
     }
 
-    createIframes(urls) {
+    createIframes(ids, labels, urls) {
+        console.log(labels)
         this.clearAll();
+        I("no-players-selected").textContent = "";
         if (!urls.length) return;
 
         const { cols, rows } = this.calculateGrid(urls.length);
         const containerWidth = window.innerWidth / cols;
         const containerHeight = window.innerHeight / rows;
 
-        urls.forEach((url, index) => {
-            const row = Math.floor(index / cols);
-            const col = index % cols;
+        for (let i = 0; i < urls.length; i++) {
+            const row = Math.floor(i / cols);
+            const col = i % cols;
 
             const container = this.createContainer(
-                url,
+                ids[i],
+                labels[i] == "" ? "<span class='text-body-tertiary'>N/A</span>": labels[i],
+                urls[i],
                 col * containerWidth,
                 row * containerHeight,
                 containerWidth,
@@ -96,10 +100,10 @@ class MultiviewManager {
             );
 
             this.containers.set(container.id, container);
-        });
+        };
     }
 
-    createContainer(url, x, y, width, height) {
+    createContainer(id, label, url, x, y, width, height) {
         const container = document.createElement('div');
         container.className = 'iframe-container';
         container.id = 'container-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
@@ -115,7 +119,8 @@ class MultiviewManager {
 
         const titleSpan = document.createElement('span');
         titleSpan.className = 'iframe-title';
-        titleSpan.textContent = this.getDisplayName(url);
+        titleSpan.innerHTML =
+            `<b>ID <span class="font-monospace">${id}</span></b> <span class="fw-light"><span class="text-body-tertiary">&nbsp;|&nbsp;</span> Label <span class="font-monospace">${label}</span> <span class="text-body-tertiary">&nbsp;|&nbsp;</span> URL ${this.getDisplayName(url)}</span>`;
 
         const reloadButton = document.createElement('button');
         reloadButton.className = 'reload-button';
@@ -419,8 +424,8 @@ class MultiviewManager {
 
 const multiviewManager = new MultiviewManager();
 
-function createIframes(urls) {
-    multiviewManager.createIframes(urls);
+function createIframes(ids, labels, urls) {
+    multiviewManager.createIframes(ids, labels, urls);
 }
 
 function clearAll() {
