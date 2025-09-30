@@ -161,6 +161,22 @@
     <div class="col-12 col-xl-3 col-lg-6 mb-4">
         <div class="card h-100">
             <div class="card-body pb-2">
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
+                {% if session.room is none %}
+                <p class="mb-2">{% translate %}This session is not associated with a room{% endtranslate %}.</p>
+                {% else %}
+                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
+                <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
+                <p class="mb-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-3 col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Essential information{% endtranslate %}</h5>
                 <div class="d-flex justify-content-between mb-3">
                     {% if session.description is none %}
@@ -189,22 +205,6 @@
                 </div>
                 <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
                 <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-xl-3 col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body pb-2">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
-                {% if session.room is none %}
-                <p class="mb-2">{% translate %}This session is not associated with a room{% endtranslate %}.</p>
-                {% else %}
-                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
-                <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
-                <p class="mb-2">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
-                </p>
-                {% endif %}
             </div>
         </div>
     </div>

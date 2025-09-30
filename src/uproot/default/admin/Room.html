@@ -27,17 +27,15 @@ Room
 
 {% if room.sname is none %}
 
+<h3 class="mb-3">{% translate %}Player URL{% endtranslate %}</h3>
 
-<h3 class="mb-3">{% translate %}Room URL{% endtranslate %}</h3>
-
-<p>{% translate %}Players can use the following URL for entering this room:{% endtranslate %}</p>
+<p>{% translate %}Players can use the following URL for entering this room{% endtranslate %}:</p>
 <ul>
     <li>
         <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
             href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
     </li>
 </ul>
-
 
 <h3 class="mb-3 mt-4">{% translate %}New session{% endtranslate %}</h3>
 
@@ -210,7 +208,7 @@ Room
 
 </script>
 
-{% else %}
+{% else %}  {# room.sname is not none #}
 
 <div class="row">
     <div class="col-12 col-lg-6 mb-4">
@@ -222,7 +220,7 @@ Room
             </div>
             <div class="card-body">
                 <p class="mb-2">
-                    {% translate %}This room is associated with a session{% endtranslate %}:
+                    {% translate %}This room is associated with the following session{% endtranslate %}:
                 </p>
                 <p class="fs-4">
                     <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
@@ -236,16 +234,67 @@ Room
     <div class="col-12 col-lg-6 mb-4">
         <div class="border-uproot-light card h-100">
             <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Associated config{% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if room.config %}
+                <p class="mb-2">
+                    {% translate %}This room is associated with the following config{% endtranslate %}:
+                </p>
+                <p class="font-monospace fs-4">
+                    {{ room.config }}
+                </p>
+                <h6 class="fw-semibold">Apps</h6>
+                <p class="font-monospace mb-1">
+                    {{ configs.configs[room.config] }}
+                </p>
+                {% else %}
+                {% translate %}This room is not associated with a particular config{% endtranslate %}.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
                 <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">{% translate %}Player URL{% endtranslate %}</h4>
             </div>
             <div class="card-body">
-                <p>{% translate %}The player URL for entering this room is{% endtranslate %}</p>
+                <p>{% translate %}Players can use the following URL for entering this room{% endtranslate %}:</p>
                 <ul>
                     <li>
                         <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
                             href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
                     </li>
                 </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Associated labels{% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if room.labels %}
+                <p class="mb-2">
+                    {% translate %}This room is associated with the following labels{% endtranslate %}:
+                </p>
+                <p class="font-monospace">
+                    {% for label in room.labels %}
+                    {{ label }}{% if not loop.last %}<span class="text-body-tertiary"> |</span>{% endif %}
+                    {% endfor %}
+                </p>
+                {% else %}
+                {% translate %}This room is not associated with any labels{% endtranslate %}.
+                {% endif %}
+
             </div>
         </div>
     </div>
