@@ -120,16 +120,34 @@ async def roommain(
         if new_session:
             session.room = roomname
 
-        if ur.freejoin(room) or len(session.players) < capacity:
-            # TODO: Or use free slot!
-            pid = c.create_player(session)
+        free_slot = c.find_free_slot(session)
 
-            player = pid()
-            player.label = label
+        if (
+            ur.freejoin(room)
+            or len(session.players) < capacity
+            or free_slot is not None
+        ):
+            sname = room["sname"]
 
-            return RedirectResponse(
-                f"{d.ROOT}/p/{pid.sname}/{pid.uname}/", status_code=303
-            )
+            if free_slot is not None:
+                _, free_uname = free_slot
+
+                # Redirect to player
+                with Player(sname, free_uname) as player:
+                    player.started = True
+                    player.label = label
+
+                redirect_to = f"{d.ROOT}/p/{sname}/{free_uname}/"
+            else:
+                pid = c.create_player(session)
+
+                with pid() as player:
+                    player.started = True
+                    player.label = label
+
+                redirect_to = f"{d.ROOT}/p/{sname}/{pid.uname}/"
+
+            return RedirectResponse(redirect_to, status_code=303)
         else:
             return HTMLResponse(
                 await render(
