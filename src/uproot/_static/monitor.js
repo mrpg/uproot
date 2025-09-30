@@ -374,6 +374,13 @@ function getSelectedPlayers() {
     return table.getSelectedRows().map(row => row.getData().player).filter(Boolean);
 }
 
+
+function openMultiview() {
+    const playerIDs = getSelectedPlayers();
+    window.open(`./multiview/?players=${playerIDs}`, "_blank");
+}
+
+
 window.invokeFromMonitor = function invokeFromMonitor(fname, ...args) {
     return uproot.invoke(
         fname,

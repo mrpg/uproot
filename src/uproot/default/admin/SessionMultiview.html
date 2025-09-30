@@ -25,14 +25,24 @@ Multi View
 {% endblock head %}
 
 
+{% block main %}
+
+<p class="fs-3">
+    {% translate %}
+    No players selected in the player monitor to be displayed via multiview.
+    {% endtranslate %}
+</p>
+
+{% endblock main %}
+
 {% block late %}
 
 <script src="{{ internalstatic('multiview.js') }}"></script>
 <script>
-uproot.onStart(() => {
-    const urls = Object.keys(uproot.vars.info).map((uname) => `${uproot.vars.root}/p/${uproot.vars.sname}/${uname}/`);
-    createIframes(urls);
-});
+    uproot.onStart(() => {
+        const urls = uproot.vars.players.map(pID => `${uproot.vars.root}/p/${uproot.vars.sname}/${pID}/`);
+        createIframes(urls);
+    });
 </script>
 
 {% endblock late %}
