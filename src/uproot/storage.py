@@ -3,7 +3,7 @@
 
 from inspect import currentframe
 from types import TracebackType
-from typing import Any, Callable, Iterator, Optional, Sequence, cast
+from typing import Any, Callable, Iterator, Optional, cast
 
 from typing_extensions import Literal
 
@@ -29,19 +29,6 @@ DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
     along=lambda p: (lambda field: within.along(p, field)),
     within=lambda p: (lambda **context: within(p, **context)),
 )
-
-
-def field_from_namespaces(
-    namespaces: Sequence[tuple[str, ...]], field: str
-) -> dict[tuple[tuple[str, ...], str], Value]:
-    return cast(
-        dict[tuple[tuple[str, ...], str], Value],
-        db_request(
-            None,
-            "get_many",
-            extra=(namespaces, field),
-        ),
-    )
 
 
 def all_good(key: tuple[str, str]) -> bool:

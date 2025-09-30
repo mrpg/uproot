@@ -56,7 +56,6 @@ from uproot.storage import (
     Player,
     Session,
     Storage,
-    field_from_namespaces,
 )
 from uproot.types import maybe_await, optional_call, optional_call_once
 
@@ -400,34 +399,20 @@ async def sessionwide(
 ) -> Response:
     # Verify sname and secret
     a.session_exists(sname)
+    session = Session(sname)
 
-    with Session(sname) as session:
+    with session:
         if not secret == session._uproot_secret:
             raise HTTPException(status_code=401)
 
-        pids = session.players
+        free_uname = None
 
-    namespaces = [
-        ("player", sname, uname) for sname, uname in pids
-    ]  # This has players in order
-    all_started = field_from_namespaces(namespaces, "started")
+        for pid in session.players:
+            with pid() as player:
+                if not player.get("started", True):
+                    _, free_uname = pid
+                    break
 
-    free_uname = None
-
-    for namespace in namespaces:
-        key = (namespace, "started")
-
-        if key not in all_started or all_started[key].unavailable:
-            # Should not be possible, but skip if it happens
-            pass
-        elif all_started[key].data:
-            # This player has started, so also skip
-            pass
-        else:
-            free_uname = namespace[2]
-            break
-
-    # Redirect to player
     if free_uname is None:
         # Session is full, so to speak
         return HTMLResponse(
@@ -441,6 +426,7 @@ async def sessionwide(
             status_code=423,
         )
     else:
+        # Redirect to player
         with Player(sname, free_uname) as p:
             p.started = True  # This prevents race conditions
 

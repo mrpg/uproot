@@ -208,25 +208,6 @@ def test_along_iteration():
         assert len(contexts) == len(states)
 
 
-def test_field_from_namespaces():
-    sid, pid = setup()
-
-    # Create multiple players with same field
-    pid().score = 100
-
-    with sid() as session:
-        pid2 = c.create_player(session)
-        pid2().score = 200
-
-    namespaces = [pid().__namespace__, pid2().__namespace__]
-    scores = s.field_from_namespaces(namespaces, "score")
-
-    assert type(scores) is dict
-    assert len(scores) == 2
-    assert 100 in [v.data for v in scores.values()]
-    assert 200 in [v.data for v in scores.values()]
-
-
 def test_list_assignment_then_append():
     """Test that assignment followed by in-place append is properly detected."""
     sid, pid = setup()

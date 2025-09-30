@@ -273,25 +273,6 @@ def db_request(
                 current = get_namespace(namespace)
                 rval = current if current and isinstance(current, dict) else {}
 
-        case "get_many", "", None if isinstance(extra, tuple):
-            mnamespaces: Sequence[tuple[str, ...]]
-            mnamespaces, mkey = cast(tuple[Sequence[tuple[str, ...]], str], extra)
-            with LOCK:
-                result = {}
-                for namespace in mnamespaces:
-                    current = get_namespace(namespace)
-                    if (
-                        current
-                        and isinstance(current, dict)
-                        and mkey in current
-                        and hasattr(current[mkey], "__iter__")
-                        and current[mkey]
-                    ):
-                        latest = current[mkey][-1]
-                        if not latest.unavailable:
-                            result[(namespace, mkey)] = latest
-                rval = result
-
         case "get_within_context", _, None if isinstance(extra, dict):
             # This code should stay algorithmically close to latest() in viewdata.js.
 
