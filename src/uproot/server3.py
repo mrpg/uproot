@@ -152,7 +152,7 @@ async def ws(
     label = ur.constrain_label(label)
 
     with Admin() as admin:
-        if not (valid_token(roomname) and roomname in admin.rooms):
+        if not valid_token(roomname) or roomname not in admin.rooms:
             return
 
         room = admin.rooms[roomname]
