@@ -374,6 +374,20 @@ function getSelectedPlayers() {
     return table.getSelectedRows().map(row => row.getData().player).filter(Boolean);
 }
 
+function getInfoOfSelectedPlayers() {
+    if (!table || !table.initialized) return [];
+    const playerInfo = table.getSelectedRows().map(
+        row => [row.getData().id, row.getData().label, row.getData().player]
+    ).filter(Boolean).sort((a, b) => a[0] - b[0]);
+    console.log(playerInfo);
+    return playerInfo;
+}
+
+function openMultiview() {
+    const playerInfo = getInfoOfSelectedPlayers();
+    window.open(`./multiview/?players=${playerInfo}`, "_blank");
+}
+
 window.invokeFromMonitor = function invokeFromMonitor(fname, ...args) {
     return uproot.invoke(
         fname,

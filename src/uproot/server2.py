@@ -828,14 +828,18 @@ async def session_viewdata(
 async def session_multiview(
     request: Request,
     sname: t.Sessionname,
+    players: str | None = Query(None, description="Comma-separated player IDs"),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
 
+    # Parse the comma-separated string into a list if present
+    player_list = players.split(",") if players else []
+
     return HTMLResponse(
         await render(
             "SessionMultiview.html",
-            dict(sname=sname) | await a.info_online(sname),
+            dict(sname=sname, players=player_list) | await a.info_online(sname),
         )
     )
 
