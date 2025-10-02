@@ -375,9 +375,15 @@ function getSelectedPlayers(col = "player") {
 }
 
 function openMultiview() {
-    const ids = getSelectedPlayers("id").map(i => i.toString()).join(",");
-
-    window.open(`./multiview/#${ids}`, "_blank");
+    const ids = getSelectedPlayers("id").sort().map(i => i.toString()).join(",");
+    const max_iframes = 30;
+    if (getSelectedPlayers("id").length < 1) {
+        alert(_("No player selected. Select at least one player to be displayed in multiview."))
+    } else if (getSelectedPlayers("id").length < max_iframes) {
+        window.open(`./multiview/#${ids}`, "_blank");
+    } else {
+        alert(_(`Too many players (${getSelectedPlayers("id").length}) selected. The maximum number of players that can be displayed in multiview is ${max_iframes}.`))
+    }
 }
 
 window.invokeFromMonitor = function invokeFromMonitor(fname, ...args) {

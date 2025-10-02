@@ -45,7 +45,7 @@ Multi View
         I("no-players-selected").hidden = false;
     }
     else {
-        const playerIds = hash.split(",").map(Number).sort();
+        const playerIds = hash.split(",").map(Number);  // playerIds should be pre-sorted
 
         uproot.onStart(() => {
             const playerLabels = playerIds.map(i => uproot.vars.labels[i]);
