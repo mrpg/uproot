@@ -43,8 +43,7 @@ function reshapeAndUpdateExtraData(data) {
         newData[key] = value;
     }
 
-    I("started-count").textContent = startedCount;
-    console.log(newData);
+    I("started-count").textContent = startedCount; // TODO: Buggy
     updateExtraData(newData);
 }
 
@@ -369,23 +368,15 @@ window.updateExtraData = function updateExtraData(extraDataObj) {
     updateData();
 };
 
-function getSelectedPlayers() {
+function getSelectedPlayers(col = "player") {
     if (!table || !table.initialized) return [];
-    return table.getSelectedRows().map(row => row.getData().player).filter(Boolean);
-}
-
-function getInfoOfSelectedPlayers() {
-    if (!table || !table.initialized) return [];
-    const playerInfo = table.getSelectedRows().map(
-        row => [row.getData().id, row.getData().label, row.getData().player]
-    ).filter(Boolean).sort((a, b) => a[0] - b[0]);
-    console.log(playerInfo);
-    return playerInfo;
+    return table.getSelectedRows().map(row => row.getData()[col]);
 }
 
 function openMultiview() {
-    const playerInfo = getInfoOfSelectedPlayers();
-    window.open(`./multiview/?players=${playerInfo}`, "_blank");
+    const ids = getSelectedPlayers("id").map(i => i.toString()).join(",");
+
+    window.open(`./multiview/#${ids}`, "_blank");
 }
 
 window.invokeFromMonitor = function invokeFromMonitor(fname, ...args) {
@@ -407,7 +398,7 @@ window.actuallyManage = function actuallyManage() {
             uproot.alert("The action has completed.");
         });
     } else {
-        uproot.error("No action was selected.");
+        uproot.error("No action selected.");
     }
 };
 
@@ -442,7 +433,7 @@ window.mmodal = function mmodal(moname) {
         document.querySelectorAll(".pcount").forEach((el) => { el.innerText = String(selected.length); });
         modal?.show();
     } else {
-        uproot.error("No subjects were selected.");
+        uproot.error("No players selected.");
     }
 };
 

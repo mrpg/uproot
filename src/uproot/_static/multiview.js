@@ -76,9 +76,6 @@ class MultiviewManager {
     }
 
     createIframes(ids, labels, urls) {
-        console.log(labels)
-        this.clearAll();
-        I("no-players-selected").textContent = "";
         if (!urls.length) return;
 
         const { cols, rows } = this.calculateGrid(urls.length);
@@ -91,7 +88,7 @@ class MultiviewManager {
 
             const container = this.createContainer(
                 ids[i],
-                labels[i] == "" ? "<span class='text-body-tertiary'>N/A</span>": labels[i],
+                labels[i] == "" ? "<span class='text-body-tertiary'>N/A</span>": uproot.escape(labels[i]),
                 urls[i],
                 col * containerWidth,
                 row * containerHeight,

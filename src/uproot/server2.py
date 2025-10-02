@@ -51,7 +51,7 @@ import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
 from uproot.constraints import ensure
-from uproot.pages import static_factory, to_filter
+from uproot.pages import static_factory, to_filter, tojson_filter
 from uproot.storage import Admin, Session
 
 # General settings
@@ -86,6 +86,7 @@ ENV = Environment(
     enable_async=True,
 )
 ENV.filters["to"] = to_filter
+ENV.filters["tojson"] = tojson_filter
 
 
 async def render(
@@ -828,20 +829,31 @@ async def session_viewdata(
 async def session_multiview(
     request: Request,
     sname: t.Sessionname,
-    players: str | None = Query(None, description="Comma-separated player IDs"),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
 
-    # Parse the comma-separated string into a list if present
-    player_list = players.split(",") if players else []
+    with Session(sname) as session:
+        labels = []
+        unames = []
 
-    return HTMLResponse(
-        await render(
-            "SessionMultiview.html",
-            dict(sname=sname, players=player_list) | await a.info_online(sname),
+        for i, pid in enumerate(session.players):
+            player = pid()
+            ensure(player.id == i)
+
+            unames.append(player.name)
+            labels.append(player.label)
+
+        return HTMLResponse(
+            await render(
+                "SessionMultiview.html",
+                dict(
+                    sname=sname,
+                    labels=labels,
+                    unames=unames,
+                ),
+            )
         )
-    )
 
 
 # Server status

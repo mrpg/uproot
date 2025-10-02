@@ -27,9 +27,9 @@ Multi View
 
 {% block main %}
 
-<p class="fs-3" id="no-players-selected">
+<p class="fs-3" id="no-players-selected" hidden>
     {% translate %}
-    No players selected in the player monitor to be displayed via multiview.
+    No players selected.
     {% endtranslate %}
 </p>
 
@@ -39,18 +39,21 @@ Multi View
 
 <script src="{{ internalstatic('multiview.js') }}"></script>
 <script>
-    uproot.onStart(() => {
-        const playerIDs = [];
-        const playerLabels = [];
-        const playerNames = [];
-        uproot.vars.players.forEach((val, i) => {
-            if (i % 3 === 0) playerIDs.push(val);
-            else if (i % 3 === 1) playerLabels.push(val);
-            else playerNames.push(val);
+    let hash;
+
+    if ((hash = window.location.hash.substring(1)).length == 0) {
+        I("no-players-selected").hidden = false;
+    }
+    else {
+        const playerIds = hash.split(",").map(Number).sort();
+
+        uproot.onStart(() => {
+            const playerLabels = playerIds.map(i => uproot.vars.labels[i]);
+            const playerUrls = playerIds.map(i => `${uproot.vars.root}/p/${uproot.vars.sname}/${uproot.vars.unames[i]}/`);
+
+            createIframes(playerIds, playerLabels, playerUrls);
         });
-        const playerURLs = playerNames.map(pName => `${uproot.vars.root}/p/${uproot.vars.sname}/${pName}/`);
-        createIframes(playerIDs, playerLabels, playerURLs);
-    });
+    }
 </script>
 
 {% endblock late %}
