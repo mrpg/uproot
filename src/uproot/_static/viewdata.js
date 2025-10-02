@@ -371,7 +371,7 @@ function writeAllAppNames() {
 function removeFilter() {
     FILTER = {};
     refreshData();
-    I("round-filter").value = "";
+    I("filter-by-round-input").value = "";
     I("current-app-filter").textContent = "";
 }
 

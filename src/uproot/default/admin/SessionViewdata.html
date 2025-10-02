@@ -90,7 +90,7 @@
         height: 1.5vh !important;
     }
     .h-fullscreen-table {
-        height: 92.5vh;
+        height: 88.5vh;
     }
     .start-fullscreen {
         left: 0.65vw;
@@ -100,6 +100,17 @@
     }
     .modal .modal-body textarea {
         font-family: var(--bs-font-monospace);
+    }
+    .btn-sm-alike, .btn-group-sm-alike {
+        padding-bottom: 0.25rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        padding-top: 0.25rem;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+    .fs-like-btn-sm {
+        font-size: 0.875rem;
     }
 </style>
 
@@ -115,28 +126,66 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-between mt-3" id="filter-data-to-display">
-    <div class="btn-group dropup" id="filter-by-app">
-        <span class="border border-uproot px-3 py-2 rounded-start text-uproot">
-            {% translate %}
-            Filter by app
-            {% endtranslate %}<span class="font-monospace" id="current-app-filter"></span>
-        </span>
-        <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-        <ul class="dropdown-menu" id="all-app-names">
-        </ul>
+<div id="filter-data-to-display">
+    <div class="d-flex justify-content-between mt-3">
+        <div>
+            <div class="btn-group dropup p-0">
+                <span class="border border-uproot px-3 py-2 rounded-start text-uproot">
+                    {% translate %}Filter by app{% endtranslate %}<span class="font-monospace" id="current-app-filter"></span>
+                </span>
+                <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu" id="all-app-names"></ul>
+            </div>
+        </div>
+        <div>
+            <div class="border border-uproot input-group rounded" style="width: 15rem;">
+                <span class="text-uproot px-3 py-2">{% translate %}Filter by round{% endtranslate %}</span>
+                <input
+                    class="form-control border-0 border-start border-uproot rounded-end text-center" id="filter-by-round-input"
+                    min="0"
+                    onchange="filterThenRefreshData('round', this.value)"
+                    oninput="filterThenRefreshData('round', this.value)"
+                    type="number"
+                >
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-outline-uproot py-2" onclick="removeFilter()" type="button">
+                {% translate %}Show current state{% endtranslate %}
+            </button>
+        </div>
     </div>
-    <div class="border border-uproot input-group rounded" id="filter-by-round" style="width: 15rem;">
-        <span class="text-uproot px-3 py-2 ">{% translate %}Filter by round{% endtranslate %}</span>
-        <input
-            class="form-control border-0 border-start border-uproot rounded-end text-center" id="round-filter"
-            min="0"
-            onchange="filterThenRefreshData('round', this.value)"
-            oninput="filterThenRefreshData('round', this.value)"
-            type="number"
-        >
+</div>
+
+<div id="filter-data-to-display-sm" hidden>
+    <div class="container d-flex justify-content-between mt-3 pb-3">
+        <div>
+            <div class="btn-group btn-group-sm btn-sm-alike dropup p-0">
+                <span class="border border-uproot px-3 py-2 rounded-start text-uproot">
+                    {% translate %}Filter by app{% endtranslate %}<span class="font-monospace" id="current-app-filter"></span>
+                </span>
+                <button type="button" class="btn btn-outline-uproot bnt-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu" id="all-app-names"></ul>
+            </div>
+        </div>
+        <div>
+            <div class="border border-uproot fs-like-btn-sm input-group input-group-sm rounded" id="filter-by-round" style="width: 14rem;">
+                <span class="text-uproot px-3 py-2">{% translate %}Filter by round{% endtranslate %}</span>
+                <input
+                    class="form-control form-control-sm border-0 border-start border-uproot rounded-end text-center" id="filter-by-round-input"
+                    min="0"
+                    onchange="filterThenRefreshData('round', this.value)"
+                    oninput="filterThenRefreshData('round', this.value)"
+                    type="number"
+                >
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-outline-uproot btn-sm py-2" onclick="removeFilter()" type="button">
+                {% translate %}Show current state{% endtranslate %}
+            </button>
+        </div>
     </div>
-    <button class="btn btn-outline-uproot" onclick="removeFilter()" type="button">{% translate %}Show current state{% endtranslate %}</button>
 </div>
 
 {% endblock main %}
@@ -148,30 +197,37 @@
 <script>
     uproot.onStart(() => initializeTable());
 
+    var filterButtonsTemp = "";
     function fullScreenTable() {
-        I("uproot-footer").classList.add("d-none");
-        I("uproot-navbar").classList.add("d-none");
-        I("tableContainer").setAttribute("class", "position-absolute h-fullscreen-table start-fullscreen w-fullscreen");
+        filterButtonsTemp = I("filter-data-to-display").innerHTML;
         I("buttongroup-normal-table").classList.add("d-none");
         I("buttons-normal-table").classList.add("d-none");
         I("buttons-fullscreen-table").classList.remove("d-none");
+        I("filter-data-to-display").innerHTML = I("filter-data-to-display-sm").innerHTML;
+        I("filter-data-to-display").classList.add("fixed-bottom");
+        I("tableContainer").setAttribute("class", "position-absolute h-fullscreen-table start-fullscreen w-fullscreen");
         I("title-container").classList.add("mb-1");
         I("title-container").classList.add("mt-3");
         I("title-container").classList.remove("my-4");
+        I("uproot-footer").classList.add("d-none");
+        I("uproot-navbar").classList.add("d-none");
         I("uproot-title").classList.add("h4");
         I("uproot-title").classList.add("pt-1");
+        writeAllAppNames();
     }
 
     function normalTable() {
-        I("uproot-footer").classList.remove("d-none");
-        I("uproot-navbar").classList.remove("d-none");
-        I("tableContainer").setAttribute("class", "mt-0 table-sticky-outer");
         I("buttons-fullscreen-table").classList.add("d-none");
         I("buttongroup-normal-table").classList.remove("d-none");
         I("buttons-normal-table").classList.remove("d-none");
+        I("filter-data-to-display").innerHTML = filterButtonsTemp;
+        I("filter-data-to-display").classList.remove("fixed-bottom");
+        I("tableContainer").setAttribute("class", "mt-0 table-sticky-outer");
         I("title-container").classList.remove("mb-1");
         I("title-container").classList.remove("mt-3");
         I("title-container").classList.add("my-4");
+        I("uproot-footer").classList.remove("d-none");
+        I("uproot-navbar").classList.remove("d-none");
         I("uproot-title").classList.remove("h4");
         I("uproot-title").classList.remove("pt-1");
     }
