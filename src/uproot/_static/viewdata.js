@@ -205,9 +205,6 @@ function createTable(containerId) {
     container.appendChild(tableEl);
 
     table = new Tabulator("#data-table", {
-        height: containerId === "tableModalInner" ? "100%" : "400px",
-        layout: "fitColumns",
-        placeholder: _("No data available"),
         columns: [{ // Start with just player column
             title: "player",
             field: "player",
@@ -216,6 +213,10 @@ function createTable(containerId) {
             headerFilter: "input"
         }],
         data: [],
+        height: containerId === "tableModalInner" ? "100%" : "400px",
+        layout: "fitColumns",
+        placeholder: _("No data available"),
+        rowHeight: 41,  // must be provided in pixels
     });
 }
 

@@ -71,11 +71,12 @@ function createTable(containerId) {
     const columns = createMonitorColumns(initialData);
 
     table = new Tabulator("#data-table", {
+        columns: columns,
+        data: transformMonitorDataForTabulator(initialData),
         height: "100%",
         layout: "fitColumns",
         placeholder: "No players available",
-        columns: columns,
-        data: transformMonitorDataForTabulator(initialData),
+        rowHeight: 44,  // must be provided in pixels
     });
 
     table.on("cellClick", (e, cell) => {
