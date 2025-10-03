@@ -8,12 +8,12 @@ if labels is not None: labels will be checked in any case. Labels may only be
 used once.
 
 State 0:
-    start=False, the room is closed. Prospective players have to wait. If
+    open=False, the room is closed. Prospective players have to wait. If
     labels is not None, they have to enter their label. The same happens
-    if start=True, but there is no config associated with the room.
+    if open=True, but there is no config associated with the room.
 
 State 1:
-    start=True, the room is open. Prospective players don't wait.
+    open=True, the room is open. Prospective players don't wait.
 
     If no session is associated with the room, one is created and associated.
 
@@ -36,7 +36,7 @@ def room(
     config: Optional[str] = None,
     labels: Optional[list[str]] = None,
     capacity: Optional[int] = None,
-    start: bool = False,
+    open: bool = False,
     sname: Optional[Sessionname] = None,
 ) -> RoomType:
     if not valid_token(name):
@@ -52,7 +52,7 @@ def room(
         config=config,
         labels=labels,
         capacity=capacity,
-        start=start,
+        open=open,
         sname=sname,
     )
 

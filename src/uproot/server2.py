@@ -511,7 +511,7 @@ async def new_room2(
     capacity: Optional[int] = Form(1),
     use_session: Optional[bool] = Form(False),
     sname: Optional[str] = Form(""),
-    start: Optional[bool] = Form(False),
+    open: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     if sname:
@@ -530,7 +530,7 @@ async def new_room2(
                 else [] if use_labels else None
             ),
             capacity=(capacity if use_capacity else None),
-            start=bool(start),
+            open=bool(open),
             sname=(sname if use_session and sname and sname.strip() else None),
         )
 
@@ -619,7 +619,7 @@ async def new_session_in_room(
         )
 
         admin.rooms[roomname]["sname"] = sid.sname
-        admin.rooms[roomname]["start"] = True
+        admin.rooms[roomname]["open"] = True
 
         if nogrow:
             admin.rooms[roomname]["capacity"] = nplayers

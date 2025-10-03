@@ -80,7 +80,7 @@ upd.DEFAULT_ROOMS.append(
     room(
         "test",
         config="study01",
-        start=True,
+        open=True,
     )
 )
 

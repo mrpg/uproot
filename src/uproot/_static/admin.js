@@ -48,8 +48,8 @@ function renderRooms(rooms, containerId) {
         //rightCol.className = "text-end";
         const statusBadge = document.createElement("div");
         statusBadge.className =
-            room.start ? "badge bg-success border border-success my-1" : "badge border border-danger my-1 text-danger";
-        statusBadge.textContent = room.start ? _("Started") : _("Inactive");
+            room.open ? "badge bg-success border border-success my-1" : "badge border border-danger my-1 text-danger";
+        statusBadge.textContent = room.open ? _("Started") : _("Inactive");
         rightCol.appendChild(statusBadge);
 
         headerContent.appendChild(rightCol);
@@ -182,7 +182,7 @@ function renderRooms(rooms, containerId) {
 
         const capacityBadge = document.createElement("div");
         if (room.capacity != null) {
-            if (room.start) {
+            if (room.open) {
                 // If full, show as success; if more than 90% full, show as warning; otherwise show as danger
                 capacityBadge.className =
                     n_players < 0.9 * room.capacity ? "badge bg-danger border border-danger mb-2" :
@@ -192,7 +192,7 @@ function renderRooms(rooms, containerId) {
             }
             capacityBadge.textContent = `${_("Capacity")}: ${room.capacity}`;
         } else {
-            if (room.start) {
+            if (room.open) {
                 capacityBadge.className = "badge bg-success border border-success mb-2";
                 capacityBadge.textContent = _("Capacity") + ": ∞";
             } else {

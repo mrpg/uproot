@@ -75,7 +75,7 @@ async def roommain(
 
         # Room not open - show waiting page
 
-        if room["sname"] is None and (room["config"] is None or not room["start"]):
+        if room["sname"] is None and (room["config"] is None or not room["open"]):
             return HTMLResponse(
                 await render(
                     request.app,
