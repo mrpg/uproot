@@ -71,11 +71,12 @@ function createTable(containerId) {
     const columns = createMonitorColumns(initialData);
 
     table = new Tabulator("#data-table", {
+        columns: columns,
+        data: transformMonitorDataForTabulator(initialData),
         height: "100%",
         layout: "fitColumns",
         placeholder: "No players available",
-        columns: columns,
-        data: transformMonitorDataForTabulator(initialData),
+        rowHeight: 44,  // must be provided in pixels
     });
 
     table.on("cellClick", (e, cell) => {
@@ -374,9 +375,18 @@ function getSelectedPlayers(col = "player") {
 }
 
 function openMultiview() {
-    const ids = getSelectedPlayers("id").map(i => i.toString()).join(",");
+    const ids = getSelectedPlayers("id").sort().map(i => i.toString()).join(",");
+    const max_iframes = 36;
 
-    window.open(`./multiview/#${ids}`, "_blank");
+    if (getSelectedPlayers("id").length < 1) {
+        uproot.error(_("No players selected."))
+    }
+    else if ((n = getSelectedPlayers("id").length) <= max_iframes) {
+        window.open(`./multiview/#${ids}`, "_blank");
+    }
+    else {
+        uproot.error(_("Too many players selected (#n#). The maximum number of players that can be displayed in multiview is #m#.").replace("#n#", n).replace("#m#", max_iframes));
+    }
 }
 
 window.invokeFromMonitor = function invokeFromMonitor(fname, ...args) {
