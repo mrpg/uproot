@@ -51,10 +51,8 @@ async def subscribe_to_fieldchange(
 
 
 async def subscribe_to_room(roomname: str) -> bool:
-    return cast(
-        bool,
-        await e.ROOMS[roomname].wait(),
-    )
+    await e.ROOMS[roomname].wait()
+    return True
 
 
 async def timer(interval: float) -> None:

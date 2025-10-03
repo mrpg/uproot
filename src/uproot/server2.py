@@ -640,7 +640,7 @@ async def new_session_in_room(
 
     c.finalize_session(sid)
 
-    e.set_room(roomname)  # TODO: ensure reload
+    e.set_room(roomname)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 
