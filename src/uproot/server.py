@@ -46,6 +46,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     d.LOGGER.info(f"This is uproot {u.__version__} (https://uproot.science/)")
     d.LOGGER.info(f"Server is running at http://{d.HOST}:{d.PORT}{d.ROOT}/")
 
+    try:
+        import setproctitle
+
+        setproctitle.setproctitle(f"[uproot server @ {d.HOST}:{d.PORT}]")
+    except Exception:
+        pass
+
     if (la := len(d.ADMINS)) == 1:
         d.LOGGER.info("There is 1 admin")
     else:
