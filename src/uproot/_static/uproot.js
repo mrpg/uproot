@@ -99,26 +99,27 @@ class RobustWebSocket {
 }
 
 window.uproot = {
-    ws: null,
-    root: null,
-    sname: null,
-    uname: null,
-    key: null,
-    serverThere: null,
-    form: null,
     dirty: false,
+    form: null,
     futStore: {},
-    vars: {},
-    receive: null,
-    terms: {},
-    testing: false,
-    timeoutUntil: null,
-    timeout1: null,
-    timeout2: null,
-    verbose: false,
+    I: (id_) => document.getElementById(id_),
     isInitialized: false,
     keepAliveInterval: null,
-    I: (id_) => document.getElementById(id_),
+    key: null,
+    missing: new Set(),
+    receive: null,
+    root: null,
+    serverThere: null,
+    sname: null,
+    terms: {},
+    testing: false,
+    timeout1: null,
+    timeout2: null,
+    timeoutUntil: null,
+    uname: null,
+    vars: {},
+    verbose: false,
+    ws: null,
 
     aer1945() {
         document.location = "https://www.econlib.org/library/Essays/hykKnw.html";
@@ -888,6 +889,8 @@ window._ = (s) => {
         return window.uproot.terms[s];
     }
     else {
+        window.uproot.missing.add(s);
+
         if (this.verbose) {
             console.log(`Missing translation into of: '${s}'`);
         }
