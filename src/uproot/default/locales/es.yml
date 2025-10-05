@@ -61,7 +61,7 @@
 ? 'Reload page'
 : 'Recargar página'
 
-? 'You have selected <b><span class="pcount"></span> subject(s)</b>.'
+? 'You have selected <b><span class="pcount"></span> player(s)</b>.'
 : 'Ha seleccionado <b><span class="pcount"></span> sujeto(s)</b>.'
 
 ? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
@@ -96,3 +96,384 @@
 
 ? 'View session details'
 : 'Ver detalles de la sesión'
+
+? 'Actions'
+: 'Acciones'
+
+? 'Active logins'
+: 'Inicios de sesión activos'
+
+? 'Active sessions'
+: 'Sesiones activas'
+
+? 'Add'
+: 'Añadir'
+
+? 'Add players'
+: 'Añadir jugadores'
+
+? 'Admin area'
+: 'Área de administración'
+
+? 'Any app'
+: 'Cualquier app'
+
+? 'Apps'
+: 'Apps'
+
+? 'Ascertaining which labels are ‘online’ is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were ‘recently seen.’'
+: 'Determinar qué etiquetas están "en línea" no es una ciencia exacta. En su lugar, uproot utiliza varias heurísticas y algoritmos para hacer una estimación aproximada de qué etiquetas fueron "vistas recientemente".'
+
+? 'Associated config'
+: 'Configuración asociada'
+
+? 'Associated labels'
+: 'Etiquetas asociadas'
+
+? 'Associated room'
+: 'Sala asociada'
+
+? 'Capacity'
+: 'Capacidad'
+
+? 'Change'
+: 'Cambiar'
+
+? 'Change at'
+: 'Cambiar en'
+
+? 'Chat with Research Coordinator'
+: 'Chat con Coordinador de Investigación'
+
+? 'Check for important annoucements'
+: 'Verificar anuncios importantes'
+
+? 'Config'
+: 'Configuración'
+
+? 'Config or app'
+: 'Configuración o app'
+
+? 'Configs'
+: 'Configuraciones'
+
+? 'Currently closed rooms'
+: 'Salas actualmente cerradas'
+
+? 'Currently open rooms'
+: 'Salas actualmente abiertas'
+
+? 'Data'
+: 'Datos'
+
+? 'Database'
+: 'Base de datos'
+
+? 'Database driver'
+: 'Controlador de base de datos'
+
+? 'Database size'
+: 'Tamaño de base de datos'
+
+? 'Description'
+: 'Descripción'
+
+? 'Disable testing'
+: 'Deshabilitar pruebas'
+
+? 'Dissociate room and session'
+: 'Desasociar sala y sesión'
+
+? 'Download'
+: 'Descargar'
+
+? 'Download data'
+: 'Descargar datos'
+
+? 'Download database dump'
+: 'Descargar volcado de base de datos'
+
+? 'Enable testing'
+: 'Habilitar pruebas'
+
+? 'Essential information'
+: 'Información esencial'
+
+? 'Existing session'
+: 'Sesión existente'
+
+? 'Field'
+: 'Campo'
+
+? 'Filter by app'
+: 'Filtrar por app'
+
+? 'Filter by round'
+: 'Filtrar por ronda'
+
+? 'For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.'
+: 'Con fines de documentación y replicación, cada sesión almacena automáticamente qué paquetes estaban instalados cuando fue creada. Ver <code>session.packages</code>.'
+
+? 'Full-screen table'
+: 'Tabla a pantalla completa'
+
+? 'Full-width table'
+: 'Tabla de ancho completo'
+
+? 'Hide information for uproot developers'
+: 'Ocultar información para desarrolladores de uproot'
+
+? 'If the next page is not shown, it will be skipped.'
+: 'Si la siguiente página no se muestra, será omitida.'
+
+? 'If the previous page was not shown, this will return to the current page.'
+: 'Si la página anterior no se mostró, esto regresará a la página actual.'
+
+? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
+: 'Si esta casilla no está marcada, la capacidad de la sala no será cambiada. Esto significa que los nuevos participantes pueden hacer crecer la sesión.'
+
+? 'Individual player URLs'
+: 'URLs individuales de jugadores'
+
+? 'Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'Inserte un nombre de jugador por línea de texto. El número de nombres de jugadores debe coincidir con el número de jugadores. Cada nombre de jugador solo debe usar los siguientes caracteres: <code>A-Za-z0-9-._</code>'
+
+? 'Installed packages'
+: 'Paquetes instalados'
+
+? 'It may be re-imported using <code>uproot restore</code>.'
+: 'Puede ser re-importado usando <code>uproot restore</code>.'
+
+? 'Join mode'
+: 'Modo de unión'
+
+? 'Labels'
+: 'Etiquetas'
+
+? 'Logged in at (UTC)'
+: 'Conectado en (UTC)'
+
+? 'Logout'
+: 'Cerrar sesión'
+
+? 'Log out all'
+: 'Cerrar todas las sesiones'
+
+? 'Manage players'
+: 'Gestionar jugadores'
+
+? 'Mark as active'
+: 'Marcar como activa'
+
+? 'Mark as inactive'
+: 'Marcar como inactiva'
+
+? 'Monitor'
+: 'Monitor'
+
+? 'Multiview'
+: 'Vista múltiple'
+
+? 'N/A'
+: 'N/A'
+
+? 'New'
+: 'Nueva'
+
+? 'New room'
+: 'Nueva sala'
+
+? 'New session'
+: 'Nueva sesión'
+
+? 'No active authentication sessions found.'
+: 'No se encontraron sesiones de autenticación activas.'
+
+? 'No data available'
+: 'No hay datos disponibles'
+
+? 'None'
+: 'Ninguna'
+
+? 'Normal table'
+: 'Tabla normal'
+
+? 'Normal-width table'
+: 'Tabla de ancho normal'
+
+? 'Not recently seen'
+: 'No visto recientemente'
+
+? 'Number of players'
+: 'Número de jugadores'
+
+? 'Open'
+: 'Abrir'
+
+? 'Open Chat with Research Coordinator'
+: 'Abrir Chat con Coordinador de Investigación'
+
+? 'Package'
+: 'Paquete'
+
+? 'Player monitor'
+: 'Monitor de jugadores'
+
+? 'player(s)'
+: 'jugador(es)'
+
+? 'Players'
+: 'Jugadores'
+
+? 'Players can use the following URL for entering this room'
+: 'Los jugadores pueden usar la siguiente URL para entrar a esta sala'
+
+? 'Player URL'
+: 'URL del jugador'
+
+? 'Player URLs'
+: 'URLs de jugadores'
+
+? 'Python version'
+: 'Versión de Python'
+
+? 'Recently seen'
+: 'Visto recientemente'
+
+? 'Refresh'
+: 'Actualizar'
+
+? 'Reload players’ pages'
+: 'Recargar páginas de jugadores'
+
+? 'restricted'
+: 'restringido'
+
+? 'Room'
+: 'Sala'
+
+? 'Rooms'
+: 'Salas'
+
+? 'Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.'
+: 'Las salas sin etiquetas predefinidas asignan automáticamente etiquetas aleatorias o usan etiquetas aceptables proporcionadas a través de <code>?label=mylabel42</code> en la URL de la sala.'
+
+? 'Save changes'
+: 'Guardar cambios'
+
+? 'Server status'
+: 'Estado del servidor'
+
+? 'Session'
+: 'Sesión'
+
+? 'Sessions'
+: 'Sesiones'
+
+? 'Show current state'
+: 'Mostrar estado actual'
+
+? 'Show individual URLs'
+: 'Mostrar URLs individuales'
+
+? 'Show information for uproot developers'
+: 'Mostrar información para desarrolladores de uproot'
+
+? 'Show testing elements'
+: 'Mostrar elementos de prueba'
+
+? 'Started'
+: 'Iniciada'
+
+? 'Study'
+: 'Estudio'
+
+? 'Testing elements are shown only to logged-in admins or in testing sessions (not enabled by default, configurable in session settings).'
+: 'Los elementos de prueba se muestran solo a administradores conectados o en sesiones de prueba (no habilitado por defecto, configurable en configuración de sesión).'
+
+? 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'El nombre de la sesión solo debe usar los siguientes caracteres: <code>A-Za-z0-9-._</code>'
+
+? 'The sessionwide URL is'
+: 'La URL de toda la sesión es'
+
+? 'This creates a complete machine-readable record of all data.'
+: 'Esto crea un registro completo legible por máquina de todos los datos.'
+
+? 'This has purely cosmetical consequences: It moves this session to the ‘Active sessions’ section on the ‘Sessions’ page.'
+: 'Esto tiene consecuencias puramente estéticas: Mueve esta sesión a la sección "Sesiones activas" en la página "Sesiones".'
+
+? 'This has purely cosmetical consequences: It moves this session to the ‘Inactive sessions’ section on the ‘Sessions’ page.'
+: 'Esto tiene consecuencias puramente estéticas: Mueve esta sesión a la sección "Sesiones inactivas" en la página "Sesiones".'
+
+? 'This opens a new browser tab displaying the current pages of the selected players.'
+: 'Esto abre una nueva pestaña del navegador mostrando las páginas actuales de los jugadores seleccionados.'
+
+? 'This room is associated with the following config'
+: 'Esta sala está asociada con la siguiente configuración'
+
+? 'This room is associated with the following labels'
+: 'Esta sala está asociada con las siguientes etiquetas'
+
+? 'This room is associated with the following session'
+: 'Esta sala está asociada con la siguiente sesión'
+
+? 'This room is not associated with any labels'
+: 'Esta sala no está asociada con ninguna etiqueta'
+
+? 'This room is not associated with a particular config'
+: 'Esta sala no está asociada con una configuración particular'
+
+? 'This room’s capacity is infinite.'
+: 'La capacidad de esta sala es infinita.'
+
+? 'This room’s capacity is {{ room.capacity }}.'
+: 'La capacidad de esta sala es {{ room.capacity }}.'
+
+? 'This session is associated with a room.'
+: 'Esta sesión está asociada con una sala.'
+
+? 'This session is not associated with a room.'
+: 'Esta sesión no está asociada con una sala.'
+
+? 'This terminates the study for the selected player(s).'
+: 'Esto termina el estudio para el/los sujeto(s) seleccionado(s).'
+
+? 'This will hide this session’s testing elements for all except admins.'
+: 'Esto ocultará los elementos de prueba de esta sesión para todos excepto administradores.'
+
+? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
+: 'Esto ejecutará todos los manejadores de abandono registrados con <code>watch_for_dropout()</code>.'
+
+? 'This will show this session’s testing elements for everyone.'
+: 'Esto mostrará los elementos de prueba de esta sesión para todos.'
+
+? 'Total'
+: 'Total'
+
+? 'URLs copied to clipboard'
+: 'URLs copiadas al portapapeles'
+
+? 'User'
+: 'Usuario'
+
+? 'Value'
+: 'Valor'
+
+? 'version'
+: 'versión'
+
+? 'Version'
+: 'Versión'
+
+? 'Version information'
+: 'Información de versión'
+
+? 'View data'
+: 'Ver datos'
+
+? 'You are currently running'
+: 'Actualmente está ejecutando'
+
+? 'You have selected'
+: 'Ha seleccionado'

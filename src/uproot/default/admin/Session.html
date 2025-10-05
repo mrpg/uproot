@@ -168,9 +168,9 @@
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
                 {% if session.room is none %}
-                <p class="mb-2">{% translate %}This session is not associated with a room{% endtranslate %}.</p>
+                <p class="mb-2">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
                 {% else %}
-                <p class="mb-2">{% translate %}This session is associated with a room{% endtranslate %}:</p>
+                <p class="mb-2">{% translate %}This session is associated with a room.{% endtranslate %}</p>
                 <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
                 <p class="mb-2">
                     <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
@@ -288,7 +288,7 @@
                         <i class="bi bi-question-circle position-absolute end-0 me-2"
                         data-bs-toggle="popover"
                         data-bs-trigger="hover"
-                        data-bs-content="{% if session.active %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Inactive sessions' section on the 'Sessions' page.{% endtranslate %}{% else %}{% translate %}This has purely cosmetical consequences: It moves this session to the 'Active sessions' section on the 'Sessions' page.{% endtranslate %}{% endif %}"
+                        data-bs-content="{% if session.active %}{% translate %}This has purely cosmetical consequences: It moves this session to the ‘Inactive sessions’ section on the ‘Sessions’ page.{% endtranslate %}{% else %}{% translate %}This has purely cosmetical consequences: It moves this session to the ‘Active sessions’ section on the ‘Sessions’ page.{% endtranslate %}{% endif %}"
                         onclick="event.stopPropagation()"></i>
                     </button>
                 </div>
@@ -409,7 +409,7 @@
                         </label><br>
                         <span class="form-text text-muted">
                             {% translate %}
-                            This terminates the study for the selected subject(s).
+                            This terminates the study for the selected player(s).
                             {% endtranslate %}
                         </span>
                     </div>
@@ -460,7 +460,7 @@
             <div class="modal-body">
                 <p>
                     {% translate %}
-                    You have selected <b><span class="pcount"></span> subject(s)</b>.
+                    You have selected <b><span class="pcount"></span> player(s)</b>.
                     {% endtranslate %}
                 </p>
 
@@ -521,7 +521,7 @@
             <div class="modal-body">
                 <p>
                     {% translate %}
-                    You have selected <b><span class="pcount"></span> subject(s)</b>.
+                    You have selected <b><span class="pcount"></span> player(s)</b>.
                     {% endtranslate %}
                 </p>
 

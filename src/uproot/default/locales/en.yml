@@ -61,8 +61,8 @@
 ? 'Reload page'
 : 'Reload page'
 
-? 'You have selected <b><span class="pcount"></span> subject(s)</b>.'
-: 'You have selected <b><span class="pcount"></span> subject(s)</b>.'
+? 'You have selected <b><span class="pcount"></span> player(s)</b>.'
+: 'You have selected <b><span class="pcount"></span> player(s)</b>.'
 
 ? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
 : 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
@@ -96,3 +96,384 @@
 
 ? 'View session details'
 : 'View session details'
+
+? 'Actions'
+: 'Actions'
+
+? 'Active logins'
+: 'Active logins'
+
+? 'Active sessions'
+: 'Active sessions'
+
+? 'Add'
+: 'Add'
+
+? 'Add players'
+: 'Add players'
+
+? 'Admin area'
+: 'Admin area'
+
+? 'Any app'
+: 'Any app'
+
+? 'Apps'
+: 'Apps'
+
+? 'Ascertaining which labels are ‘online’ is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were ‘recently seen.’'
+: 'Ascertaining which labels are ‘online’ is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were ‘recently seen.’'
+
+? 'Associated config'
+: 'Associated config'
+
+? 'Associated labels'
+: 'Associated labels'
+
+? 'Associated room'
+: 'Associated room'
+
+? 'Capacity'
+: 'Capacity'
+
+? 'Change'
+: 'Change'
+
+? 'Change at'
+: 'Change at'
+
+? 'Chat with Research Coordinator'
+: 'Chat with Research Coordinator'
+
+? 'Check for important annoucements'
+: 'Check for important annoucements'
+
+? 'Config'
+: 'Config'
+
+? 'Config or app'
+: 'Config or app'
+
+? 'Configs'
+: 'Configs'
+
+? 'Currently closed rooms'
+: 'Currently closed rooms'
+
+? 'Currently open rooms'
+: 'Currently open rooms'
+
+? 'Data'
+: 'Data'
+
+? 'Database'
+: 'Database'
+
+? 'Database driver'
+: 'Database driver'
+
+? 'Database size'
+: 'Database size'
+
+? 'Description'
+: 'Description'
+
+? 'Disable testing'
+: 'Disable testing'
+
+? 'Dissociate room and session'
+: 'Dissociate room and session'
+
+? 'Download'
+: 'Download'
+
+? 'Download data'
+: 'Download data'
+
+? 'Download database dump'
+: 'Download database dump'
+
+? 'Enable testing'
+: 'Enable testing'
+
+? 'Essential information'
+: 'Essential information'
+
+? 'Existing session'
+: 'Existing session'
+
+? 'Field'
+: 'Field'
+
+? 'Filter by app'
+: 'Filter by app'
+
+? 'Filter by round'
+: 'Filter by round'
+
+? 'For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.'
+: 'For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.'
+
+? 'Full-screen table'
+: 'Full-screen table'
+
+? 'Full-width table'
+: 'Full-width table'
+
+? 'Hide information for uproot developers'
+: 'Hide information for uproot developers'
+
+? 'If the next page is not shown, it will be skipped.'
+: 'If the next page is not shown, it will be skipped.'
+
+? 'If the previous page was not shown, this will return to the current page.'
+: 'If the previous page was not shown, this will return to the current page.'
+
+? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
+: 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
+
+? 'Individual player URLs'
+: 'Individual player URLs'
+
+? 'Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>'
+
+? 'Installed packages'
+: 'Installed packages'
+
+? 'It may be re-imported using <code>uproot restore</code>.'
+: 'It may be re-imported using <code>uproot restore</code>.'
+
+? 'Join mode'
+: 'Join mode'
+
+? 'Labels'
+: 'Labels'
+
+? 'Logged in at (UTC)'
+: 'Logged in at (UTC)'
+
+? 'Logout'
+: 'Logout'
+
+? 'Log out all'
+: 'Log out all'
+
+? 'Manage players'
+: 'Manage players'
+
+? 'Mark as active'
+: 'Mark as active'
+
+? 'Mark as inactive'
+: 'Mark as inactive'
+
+? 'Monitor'
+: 'Monitor'
+
+? 'Multiview'
+: 'Multiview'
+
+? 'N/A'
+: 'N/A'
+
+? 'New'
+: 'New'
+
+? 'New room'
+: 'New room'
+
+? 'New session'
+: 'New session'
+
+? 'No active authentication sessions found.'
+: 'No active authentication sessions found.'
+
+? 'No data available'
+: 'No data available'
+
+? 'None'
+: 'None'
+
+? 'Normal table'
+: 'Normal table'
+
+? 'Normal-width table'
+: 'Normal-width table'
+
+? 'Not recently seen'
+: 'Not recently seen'
+
+? 'Number of players'
+: 'Number of players'
+
+? 'Open'
+: 'Open'
+
+? 'Open Chat with Research Coordinator'
+: 'Open Chat with Research Coordinator'
+
+? 'Package'
+: 'Package'
+
+? 'Player monitor'
+: 'Player monitor'
+
+? 'player(s)'
+: 'player(s)'
+
+? 'Players'
+: 'Players'
+
+? 'Players can use the following URL for entering this room'
+: 'Players can use the following URL for entering this room'
+
+? 'Player URL'
+: 'Player URL'
+
+? 'Player URLs'
+: 'Player URLs'
+
+? 'Python version'
+: 'Python version'
+
+? 'Recently seen'
+: 'Recently seen'
+
+? 'Refresh'
+: 'Refresh'
+
+? 'Reload players’ pages'
+: 'Reload players’ pages'
+
+? 'restricted'
+: 'restricted'
+
+? 'Room'
+: 'Room'
+
+? 'Rooms'
+: 'Rooms'
+
+? 'Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.'
+: 'Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.'
+
+? 'Save changes'
+: 'Save changes'
+
+? 'Server status'
+: 'Server status'
+
+? 'Session'
+: 'Session'
+
+? 'Sessions'
+: 'Sessions'
+
+? 'Show current state'
+: 'Show current state'
+
+? 'Show individual URLs'
+: 'Show individual URLs'
+
+? 'Show information for uproot developers'
+: 'Show information for uproot developers'
+
+? 'Show testing elements'
+: 'Show testing elements'
+
+? 'Started'
+: 'Started'
+
+? 'Study'
+: 'Study'
+
+? 'Testing elements are shown only to logged-in admins or in testing sessions (not enabled by default, configurable in session settings).'
+: 'Testing elements are shown only to logged-in admins or in testing sessions (not enabled by default, configurable in session settings).'
+
+? 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
+
+? 'The sessionwide URL is'
+: 'The sessionwide URL is'
+
+? 'This creates a complete machine-readable record of all data.'
+: 'This creates a complete machine-readable record of all data.'
+
+? 'This has purely cosmetical consequences: It moves this session to the ‘Active sessions’ section on the ‘Sessions’ page.'
+: 'This has purely cosmetical consequences: It moves this session to the ‘Active sessions’ section on the ‘Sessions’ page.'
+
+? 'This has purely cosmetical consequences: It moves this session to the ‘Inactive sessions’ section on the ‘Sessions’ page.'
+: 'This has purely cosmetical consequences: It moves this session to the ‘Inactive sessions’ section on the ‘Sessions’ page.'
+
+? 'This opens a new browser tab displaying the current pages of the selected players.'
+: 'This opens a new browser tab displaying the current pages of the selected players.'
+
+? 'This room is associated with the following config'
+: 'This room is associated with the following config'
+
+? 'This room is associated with the following labels'
+: 'This room is associated with the following labels'
+
+? 'This room is associated with the following session'
+: 'This room is associated with the following session'
+
+? 'This room is not associated with any labels'
+: 'This room is not associated with any labels'
+
+? 'This room is not associated with a particular config'
+: 'This room is not associated with a particular config'
+
+? 'This room’s capacity is infinite.'
+: 'This room’s capacity is infinite.'
+
+? 'This room’s capacity is {{ room.capacity }}.'
+: 'This room’s capacity is {{ room.capacity }}.'
+
+? 'This session is associated with a room.'
+: 'This session is associated with a room.'
+
+? 'This session is not associated with a room.'
+: 'This session is not associated with a room.'
+
+? 'This terminates the study for the selected player(s).'
+: 'This terminates the study for the selected player(s).'
+
+? 'This will hide this session’s testing elements for all except admins.'
+: 'This will hide this session’s testing elements for all except admins.'
+
+? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
+: 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
+
+? 'This will show this session’s testing elements for everyone.'
+: 'This will show this session’s testing elements for everyone.'
+
+? 'Total'
+: 'Total'
+
+? 'URLs copied to clipboard'
+: 'URLs copied to clipboard'
+
+? 'User'
+: 'User'
+
+? 'Value'
+: 'Value'
+
+? 'version'
+: 'version'
+
+? 'Version'
+: 'Version'
+
+? 'Version information'
+: 'Version information'
+
+? 'View data'
+: 'View data'
+
+? 'You are currently running'
+: 'You are currently running'
+
+? 'You have selected'
+: 'You have selected'
