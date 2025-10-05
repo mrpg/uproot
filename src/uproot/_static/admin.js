@@ -49,7 +49,7 @@ function renderRooms(rooms, containerId) {
         const statusBadge = document.createElement("div");
         statusBadge.className =
             room.open ? "badge bg-success border border-success my-1" : "badge border border-danger my-1 text-danger";
-        statusBadge.textContent = room.open ? _("Open") : _("Closed");
+        statusBadge.textContent = room.open ? _("room is Open") : _("Closed");
         rightCol.appendChild(statusBadge);
 
         headerContent.appendChild(rightCol);

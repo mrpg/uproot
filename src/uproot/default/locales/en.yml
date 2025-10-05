@@ -307,7 +307,7 @@
 ? 'Number of players'
 : 'Number of players'
 
-? 'Open'
+? 'room is Open'
 : 'Open'
 
 ? 'Open Chat with Research Coordinator'
