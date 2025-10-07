@@ -13,7 +13,6 @@ import importlib.metadata
 import os
 import sys
 from pathlib import Path
-from random import shuffle
 from time import perf_counter as now
 from typing import Any, Optional, cast
 
@@ -583,13 +582,12 @@ async def new_session_in_room(
     a.room_exists(roomname)
 
     if assignees:
-        assignees_list = orjson.loads(assignees)
+        assignees_list = sorted(orjson.loads(assignees))
         ensure(
             all(isinstance(ass, str) for ass in assignees_list),
             ValueError,
             "All assignees must be strings",
         )
-        shuffle(assignees_list)
     else:
         assignees_list = []
 
