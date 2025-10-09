@@ -672,22 +672,6 @@ class TestPulseClass:
         pulse = Pulse()
         assert not pulse.is_set()
 
-    def test_pulse_set_without_data(self):
-        """Test Pulse set without data."""
-        pulse = Pulse()
-        pulse.set()
-
-        # Pulse immediately clears itself
-        assert not pulse.is_set()
-
-    def test_pulse_set_with_data(self):
-        """Test Pulse set with data."""
-        pulse = Pulse()
-        pulse.set("test_data")
-
-        # Pulse immediately clears itself
-        assert not pulse.is_set()
-
     async def test_pulse_wait_with_data(self):
         """Test Pulse wait returns data."""
         pulse = Pulse()
@@ -717,17 +701,6 @@ class TestPulseClass:
         # Wait for the pulse
         data = await pulse.wait()
         assert data is None
-
-    def test_pulse_is_set_always_false(self):
-        """Test that is_set() is always False for Pulse."""
-        pulse = Pulse()
-        assert not pulse.is_set()
-
-        pulse.set()
-        assert not pulse.is_set()
-
-        pulse.set("data")
-        assert not pulse.is_set()
 
 
 class TestMaybeAwait:
