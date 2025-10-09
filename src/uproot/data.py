@@ -122,6 +122,7 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: Optional[list[str]] = None
 ) -> Iterator[dict[str, Any]]:
+    # WITHIN-ADJACENT
     # This function should stay algorithmically close to latest() in viewdata.js.
 
     if group_by_fields is None:

@@ -244,6 +244,8 @@ function mergeDiffIntoDataset(diffData) {
 }
 
 function latest(obj, conditions = {}) {
+    // WITHIN-ADJACENT
+
     const result = {};
 
     for (const [uname, fields] of Object.entries(obj)) {
@@ -316,7 +318,7 @@ function writeAllAppNames() {
 
     const allAppNames = [...new Set(
         Object.values(fullDataset)
-            .flatMap(({ app }) => extractAppNames(app))
+        .flatMap(({ app }) => extractAppNames(app))
     )];
 
     const createDropdownItem = (name, isDefault = false) => {

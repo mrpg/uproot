@@ -274,6 +274,7 @@ def db_request(
                 rval = current if current and isinstance(current, dict) else {}
 
         case "get_within_context", _, None if isinstance(extra, dict):
+            # WITHIN-ADJACENT
             # This code should stay algorithmically close to latest() in viewdata.js.
 
             ctx = extra
