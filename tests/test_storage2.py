@@ -5,6 +5,15 @@ import uproot.storage as s
 import uproot.types as t
 
 
+def expect_attribute_error(within_obj, field_name):
+    """Helper to assert that accessing a field raises AttributeError."""
+    try:
+        getattr(within_obj, field_name)
+        assert False, f"Expected AttributeError for field '{field_name}'"
+    except AttributeError:
+        pass  # Expected
+
+
 def setup():
     d.DATABASE.reset()
     u.CONFIGS["test"] = []
@@ -181,9 +190,9 @@ def test_within_context_conditions_not_met():
     with pid() as player:
         # Context condition y=2 is never satisfied (y is actually 1)
         within_ctx = player.within(y=2)
-        # When context conditions aren't met, field access returns None
-        assert within_ctx.x is None
-        assert within_ctx.y is None
+        # When context conditions aren't met, field access raises AttributeError
+        expect_attribute_error(within_ctx, "x")
+        expect_attribute_error(within_ctx, "y")
 
 
 def test_along_iteration():
@@ -297,8 +306,8 @@ def test_within_context_mismatch():
         # Context that doesn't match any historical values (score=200 never existed)
         within_ctx = player.within(score=200)
         # When context conditions are never satisfied, all field access returns None
-        assert within_ctx.score is None
-        assert within_ctx.level is None
+        expect_attribute_error(within_ctx, "score")
+        expect_attribute_error(within_ctx, "level")
 
 
 def test_within_empty_context():
@@ -323,7 +332,7 @@ def test_within_none_value_context():
     with pid() as player:
         # Context matching None value
         within_ctx = player.within(score=None)
-        assert within_ctx.score is None
+        expect_attribute_error(within_ctx, "score")
         assert within_ctx.level == 5
 
 
@@ -338,8 +347,8 @@ def test_within_context_with_nonexistent_field():
         within_ctx = player.within(nonexistent_field="value")
 
         # When context field doesn't exist, all field access returns None
-        assert within_ctx.real_field is None
-        assert within_ctx.nonexistent_field is None
+        expect_attribute_error(within_ctx, "real_field")
+        expect_attribute_error(within_ctx, "nonexistent_field")
 
 
 def test_within_complex_data_types():
@@ -363,8 +372,10 @@ def test_within_complex_data_types():
         # Test with complex dict as context field
         within_ctx2 = player.within(metadata={"level": 2, "difficulty": "hard"})
         assert within_ctx2.metadata == {"level": 2, "difficulty": "hard"}
-        assert within_ctx2.scores == [10, 20, 30, 40]
-        assert within_ctx2.player_title == "champion"
+        expect_attribute_error(within_ctx2, "scores")  # scores was set before metadata
+        assert (
+            within_ctx2.player_title == "champion"
+        )  # player_title was set after metadata
 
 
 def test_within_historical_values_works():
@@ -434,7 +445,7 @@ def test_within_type_sensitivity():
 
         # Different type should not match
         within_ctx2 = player.within(number_field="42")
-        assert within_ctx2.number_field is None
+        expect_attribute_error(within_ctx2, "number_field")
 
 
 def test_within_boolean_context():
@@ -457,8 +468,10 @@ def test_within_boolean_context():
         # Boolean context with False value
         within_ctx2 = player.within(disabled=False)
         assert within_ctx2.disabled is False
-        assert within_ctx2.enabled is True
-        assert within_ctx2.player_tag == "veteran"
+        expect_attribute_error(
+            within_ctx2, "enabled"
+        )  # enabled was set before disabled
+        assert within_ctx2.player_tag == "veteran"  # player_tag was set after disabled
 
 
 def test_within_chaining_and_along_integration():
@@ -601,7 +614,7 @@ def test_within_boundary_conditions():
     with pid() as player:
         # Test context with None
         within_ctx1 = player.within(none_field=None)
-        assert within_ctx1.none_field is None
+        expect_attribute_error(within_ctx1, "none_field")
         assert within_ctx1.regular_field == "normal"
 
         # Test context with zero
@@ -637,23 +650,31 @@ def test_within_realistic_gaming_scenario():
         # Test context queries with different field types
         within_ctx1 = player.within(level=5)
         assert within_ctx1.level == 5
-        assert within_ctx1.player_name == "TestPlayer"
-        assert within_ctx1.location == "dungeon_level_3"
-        assert within_ctx1.hp == 80
+        expect_attribute_error(
+            within_ctx1, "player_name"
+        )  # player_name was set before level
+        assert within_ctx1.location == "dungeon_level_3"  # location was set after level
+        assert within_ctx1.hp == 80  # hp was set after level
 
         # Test with complex data type as context
         within_ctx2 = player.within(equipment={"weapon": "sword", "armor": "chainmail"})
         assert within_ctx2.equipment == {"weapon": "sword", "armor": "chainmail"}
-        assert within_ctx2.level == 5
-        assert within_ctx2.hp == 80
-        assert within_ctx2.player_name == "TestPlayer"
+        expect_attribute_error(within_ctx2, "level")  # level was set before equipment
+        expect_attribute_error(within_ctx2, "hp")  # hp was set before equipment
+        expect_attribute_error(
+            within_ctx2, "player_name"
+        )  # player_name was set before equipment
 
         # Test with list as context
         within_ctx3 = player.within(status_effects=["poison", "blessed"])
         assert within_ctx3.status_effects == ["poison", "blessed"]
-        assert within_ctx3.hp == 80
-        assert within_ctx3.player_name == "TestPlayer"
-        assert within_ctx3.location == "dungeon_level_3"
+        expect_attribute_error(within_ctx3, "hp")  # hp was set before status_effects
+        expect_attribute_error(
+            within_ctx3, "player_name"
+        )  # player_name was set before status_effects
+        expect_attribute_error(
+            within_ctx3, "location"
+        )  # location was set before status_effects
 
 
 def test_within_advanced_historical_scenarios():
@@ -707,7 +728,7 @@ def test_within_advanced_historical_scenarios():
 
 
 def test_within_carryover_values():
-    """Test that within correctly handles carry-over values from earlier times."""
+    """Test that within correctly handles temporal ordering constraint."""
     sid, pid = setup()
 
     # Scenario: field1 set before context conditions are met
@@ -716,9 +737,16 @@ def test_within_carryover_values():
     pid().ctx2 = 2  # t=2: ctx2 is set to 2 (context now satisfied)
 
     with pid() as player:
-        # The context ctx1=1, ctx2=2 is satisfied, and field1=42 should carry over
+        # With temporal ordering constraint, field1 was set before context fields
         within_ctx = player.within(ctx1=1, ctx2=2)
-        assert within_ctx.field1 == 42  # Carry-over value from t=0
+
+        # Direct access should raise AttributeError
+        expect_attribute_error(within_ctx, "field1")
+
+        # But .get() should return default gracefully
+        assert within_ctx.get("field1", "DEFAULT") == "DEFAULT"
+
+        # Context fields should still be accessible
         assert within_ctx.ctx1 == 1  # Context value from t=1
         assert within_ctx.ctx2 == 2  # Context value from t=2
 
@@ -742,9 +770,11 @@ def test_within_multiple_context_windows():
     pid().ctx1 = 1  # Context satisfied again: field1=100
 
     with pid() as player:
-        # Should find the latest value (100) from the most recent context window
+        # With temporal constraint, field1=100 was set before ctx1 was restored
         within_ctx = player.within(ctx1=1, ctx2=2)
-        assert within_ctx.field1 == 100  # Latest value when context was satisfied
+        expect_attribute_error(
+            within_ctx, "field1"
+        )  # field1 was set before the final ctx1 restoration
         assert within_ctx.ctx1 == 1
         assert within_ctx.ctx2 == 2
 
@@ -760,9 +790,11 @@ def test_within_context_never_satisfied():
     with pid() as player:
         # Context ctx1=1, ctx2=2 is never satisfied
         within_ctx = player.within(ctx1=1, ctx2=2)
-        assert within_ctx.field1 is None  # No value found in non-existent context
-        assert within_ctx.ctx1 is None
-        assert within_ctx.ctx2 is None
+        expect_attribute_error(
+            within_ctx, "field1"
+        )  # No value found in non-existent context
+        expect_attribute_error(within_ctx, "ctx1")
+        expect_attribute_error(within_ctx, "ctx2")
 
 
 def test_within_complex_temporal_scenarios():
@@ -809,7 +841,7 @@ def test_within_string_representations():
         assert within_ctx.test_field == "value"
 
         # Access non-existent field
-        assert within_ctx.nonexistent is None
+        expect_attribute_error(within_ctx, "nonexistent")
 
 
 def test_within_multiple_context_fields_temporal_logic():
@@ -861,8 +893,8 @@ def test_within_context_field_does_not_exist():
         within_ctx = player.within(never_set_field="any_value")
 
         # When context field doesn't exist, all field access returns None
-        assert within_ctx.existing_field is None
-        assert within_ctx.never_set_field is None
+        expect_attribute_error(within_ctx, "existing_field")
+        expect_attribute_error(within_ctx, "never_set_field")
 
 
 def test_within_empty_context_equivalence():

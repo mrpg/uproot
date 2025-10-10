@@ -316,10 +316,11 @@ def db_request(
                 latest_valid_state = None
 
                 for change in changes:
-                    # Update current state
+                    # Update current state with timestamp info
                     current_state[change["field"]] = {
                         "unavailable": change["unavailable"],
                         "data": change["data"],
+                        "time": change["time"],
                     }
 
                     # Check if all conditions are met
@@ -335,7 +336,24 @@ def db_request(
                                 all_conditions_met = False
                                 break
 
-                    if all_conditions_met:
+                    # Check temporal ordering constraint: for non-context fields,
+                    # context fields must be set before or at the same time as the target field
+                    temporal_constraint_met = True
+                    if (
+                        all_conditions_met
+                        and key in current_state
+                        and ctx
+                        and key not in ctx
+                    ):
+                        target_time = current_state[key]["time"]
+                        for cond_field in ctx.keys():
+                            if cond_field in current_state:
+                                context_time = current_state[cond_field]["time"]
+                                if context_time > target_time:
+                                    temporal_constraint_met = False
+                                    break
+
+                    if all_conditions_met and temporal_constraint_met:
                         if (
                             key in current_state
                             and not current_state[key]["unavailable"]

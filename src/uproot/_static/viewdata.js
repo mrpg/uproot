@@ -295,7 +295,29 @@ function latest(obj, conditions = {}) {
         }
 
         if (latestValidState) {
-            result[uname] = latestValidState;
+            // Apply temporal constraint: only include fields that meet the constraint with respect to conditions
+            const filteredState = {};
+            for (const [field, payload] of Object.entries(latestValidState)) {
+                // Include field if it's a condition field or if all condition fields were set before or at the same time
+                let includeField = true;
+                if (Object.keys(conditions).length > 0 && !conditions.hasOwnProperty(field)) {
+                    const fieldTime = payload[0]; // timestamp is at index 0
+                    for (const [condField] of Object.entries(conditions)) {
+                        if (latestValidState[condField]) {
+                            const condTime = latestValidState[condField][0];
+                            if (condTime > fieldTime) {
+                                includeField = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (includeField) {
+                    filteredState[field] = payload;
+                }
+            }
+            result[uname] = filteredState;
         }
     }
 
