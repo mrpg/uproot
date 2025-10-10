@@ -21,8 +21,8 @@ from uproot.types import (
     StorageBunch,
     Value,
     context,
+    ensure_awaitable,
     internal_live,
-    maybe_await,
     noop,
     optional_call_once,
     timed,
@@ -704,22 +704,22 @@ class TestPulseClass:
 
 
 class TestMaybeAwait:
-    """Test the maybe_await function."""
+    """Test the ensure_awaitable function."""
 
-    async def test_maybe_await_with_coroutine(self):
-        """Test maybe_await with coroutine function."""
+    async def test_ensure_awaitable_with_coroutine(self):
+        """Test ensure_awaitable with coroutine function."""
 
         async def async_func(x, y=1):
             return x + y
 
-        result = await maybe_await(async_func, 5, y=3)
+        result = await ensure_awaitable(async_func, 5, y=3)
         assert result == 8
 
-    async def test_maybe_await_with_regular_function(self):
-        """Test maybe_await with regular function."""
+    async def test_ensure_awaitable_with_regular_function(self):
+        """Test ensure_awaitable with regular function."""
 
         def sync_func(x, y=1):
             return x * y
 
-        result = await maybe_await(sync_func, 5, y=3)
+        result = await ensure_awaitable(sync_func, 5, y=3)
         assert result == 15

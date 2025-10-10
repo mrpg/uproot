@@ -138,7 +138,7 @@ def ensure_local_logger() -> Any:
         LOGGER = d.LOGGER
 
 
-async def maybe_await(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+async def ensure_awaitable(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     result = func(*args, **kwargs)
 
     if inspect.iscoroutine(result):
@@ -456,7 +456,7 @@ class Page(metaclass=FrozenPage):
     async def set_timeout(page: type["Page"], player: "Storage") -> Optional[float]:
         to_sec = cast(
             Optional[float],
-            await maybe_await(
+            await ensure_awaitable(
                 optional_call, page, "timeout", default_return=None, player=player
             ),
         )
@@ -700,7 +700,7 @@ class SynchronizingWait(InternalPage):
             group = player.group
 
             with group:
-                await maybe_await(
+                await ensure_awaitable(
                     optional_call_once,
                     page,
                     "all_here",
@@ -712,7 +712,7 @@ class SynchronizingWait(InternalPage):
             session = player.session
 
             with session:
-                await maybe_await(
+                await ensure_awaitable(
                     optional_call_once,
                     page,
                     "all_here",

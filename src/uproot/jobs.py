@@ -18,7 +18,7 @@ from uproot.types import (
     Sessionname,
     Username,
     Value,
-    maybe_await,
+    ensure_awaitable,
     optional_call,
 )
 
@@ -80,7 +80,7 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
 
                     if player.show_page != len(player.page_order):
                         try:
-                            await maybe_await(
+                            await ensure_awaitable(
                                 optional_call, u.APPS[fmodule], fname, player=player
                             )
                         except Exception as e:

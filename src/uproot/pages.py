@@ -26,7 +26,7 @@ from uproot.storage import Storage
 from uproot.types import (
     InternalPage,
     Page,
-    maybe_await,
+    ensure_awaitable,
     optional_call,
     sha256,
 )
@@ -94,7 +94,7 @@ def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
 
 
 async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
-    fields = await maybe_await(
+    fields = await ensure_awaitable(
         optional_call, page, "fields", default_return=None, player=player
     )
 
@@ -180,7 +180,7 @@ async def render(
         form = None
 
     app = u.APPS[page.__module__] if page.__module__ in u.APPS else None
-    language = await maybe_await(
+    language = await ensure_awaitable(
         optional_call,
         app,  # TODO: or previous app
         "language",
@@ -204,7 +204,7 @@ async def render(
     jsvars = (
         cast(
             dict[str, Any],
-            await maybe_await(
+            await ensure_awaitable(
                 optional_call, page, "jsvars", default_return=dict(), player=player
             ),
         )
@@ -215,7 +215,7 @@ async def render(
         context = (
             cast(
                 dict[str, Any],
-                await maybe_await(
+                await ensure_awaitable(
                     optional_call, page, "context", default_return=dict(), player=player
                 ),
             )
@@ -383,7 +383,7 @@ async def validate(
 
         errors_from_page = cast(
             str | list[str],
-            await maybe_await(
+            await ensure_awaitable(
                 optional_call,
                 page,
                 "validate",

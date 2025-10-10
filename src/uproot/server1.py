@@ -58,7 +58,7 @@ from uproot.storage import (
     Session,
     Storage,
 )
-from uproot.types import maybe_await, optional_call, optional_call_once
+from uproot.types import ensure_awaitable, optional_call, optional_call_once
 
 PROCESSED_FUTURES: deque[str] = deque(maxlen=8 * 1024)
 router = APIRouter(prefix=d.ROOT)
@@ -116,7 +116,7 @@ async def show_page(
     metadata = dict()
 
     if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
-        await maybe_await(
+        await ensure_awaitable(
             optional_call, page, "timeout_reached", default_return=True, player=player
         )
         proceed = True
@@ -125,7 +125,7 @@ async def show_page(
         if player.show_page == -1:
             pass
         elif player.started and len(player.page_order) > player.show_page > -1:
-            if await maybe_await(
+            if await ensure_awaitable(
                 optional_call, page, "show", default_return=True, player=player
             ):
                 pass
@@ -188,7 +188,7 @@ async def show_page(
 
                 for stealth in cast(
                     Iterable[str],
-                    await maybe_await(
+                    await ensure_awaitable(
                         optional_call,
                         page,
                         "stealth_fields",
@@ -210,7 +210,7 @@ async def show_page(
                                 setattr(player, fname, field.data)
 
                         if stealth_fields:
-                            await maybe_await(
+                            await ensure_awaitable(
                                 optional_call,
                                 page,
                                 "handle_stealth_fields",
@@ -227,13 +227,13 @@ async def show_page(
     if proceed:
         proceed = cast(
             bool,
-            await maybe_await(
+            await ensure_awaitable(
                 optional_call, page, "may_proceed", default_return=True, player=player
             ),
         )
 
     if proceed and player.show_page < len(player.page_order):
-        await maybe_await(
+        await ensure_awaitable(
             optional_call_once,
             page,
             "after_once",
@@ -241,7 +241,7 @@ async def show_page(
             show_page=player.show_page,
             player=player,
         )
-        await maybe_await(
+        await ensure_awaitable(
             optional_call_once,
             page,
             "after_always_once",
@@ -258,7 +258,7 @@ async def show_page(
                 page = path2page(show2path(player.page_order, candidate))
                 player.show_page = candidate
 
-                await maybe_await(
+                await ensure_awaitable(
                     optional_call,
                     page,
                     "early",
@@ -266,7 +266,7 @@ async def show_page(
                     request=request,
                 )
 
-                await maybe_await(
+                await ensure_awaitable(
                     optional_call_once,
                     page,
                     "before_always_once",
@@ -275,13 +275,13 @@ async def show_page(
                     player=player,
                 )
 
-                if await maybe_await(
+                if await ensure_awaitable(
                     optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
                     break
                 else:
-                    await maybe_await(
+                    await ensure_awaitable(
                         optional_call_once,
                         page,
                         "after_always_once",
@@ -299,7 +299,7 @@ async def show_page(
                 page = path2page(show2path(player.page_order, candidate))
                 player.show_page = candidate
 
-                await maybe_await(
+                await ensure_awaitable(
                     optional_call,
                     page,
                     "early",
@@ -307,7 +307,7 @@ async def show_page(
                     request=request,
                 )
 
-                await maybe_await(
+                await ensure_awaitable(
                     optional_call_once,
                     page,
                     "before_always_once",
@@ -316,13 +316,13 @@ async def show_page(
                     player=player,
                 )
 
-                if await maybe_await(
+                if await ensure_awaitable(
                     optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
                     break
                 else:
-                    await maybe_await(
+                    await ensure_awaitable(
                         optional_call_once,
                         page,
                         "after_always_once",
@@ -334,7 +334,7 @@ async def show_page(
                 candidate -= 1
 
     if (
-        to := await maybe_await(optional_call, page, "set_timeout", player=player)
+        to := await ensure_awaitable(optional_call, page, "set_timeout", player=player)
     ) is not None:
         metadata["remaining_seconds"] = to
 
@@ -342,7 +342,7 @@ async def show_page(
 
     u.set_online(pid)
 
-    await maybe_await(
+    await ensure_awaitable(
         optional_call_once,
         page,
         "before_once",
@@ -586,7 +586,7 @@ async def ws(
                                             f"{live_method} must be decorated with @live"
                                         )
                                     else:
-                                        invoke_response = await maybe_await(
+                                        invoke_response = await ensure_awaitable(
                                             live_method,
                                             player,
                                             *margs,
@@ -773,7 +773,7 @@ async def app_queries(
 
     with Session(sname) as session:
         return ORJSONResponse(
-            await maybe_await(
+            await ensure_awaitable(
                 u.APPS[appname].api,
                 request=request,
                 session=session,
