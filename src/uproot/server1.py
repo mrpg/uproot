@@ -762,7 +762,7 @@ async def app_queries(
     appname: str,
     sname: t.Sessionname,
     bauth: None = Depends(a.require_bearer_token),
-) -> ORJSONResponse:
+) -> Response:
     if appname not in u.APPS:
         raise HTTPException(status_code=400, detail="Invalid app")
 
@@ -772,10 +772,13 @@ async def app_queries(
     a.session_exists(sname)
 
     with Session(sname) as session:
-        return ORJSONResponse(
-            await ensure_awaitable(
-                u.APPS[appname].api,
-                request=request,
-                session=session,
-            )
+        result = await ensure_awaitable(
+            u.APPS[appname].api,
+            request=request,
+            session=session,
         )
+
+        if type(result) is Response:
+            return result
+        else:
+            return ORJSONResponse(result)
