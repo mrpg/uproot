@@ -782,3 +782,31 @@ async def app_queries(
             return result
         else:
             return ORJSONResponse(result)
+
+
+@router.get("/api2/{appname}/{sname}/")
+@router.post("/api2/{appname}/{sname}/")
+async def app_queries2(
+    request: Request,
+    appname: str,
+    sname: t.Sessionname,
+) -> Response:
+    if appname not in u.APPS:
+        raise HTTPException(status_code=400, detail="Invalid app")
+
+    if not hasattr(u.APPS[appname], "api2"):
+        raise HTTPException(status_code=400, detail="App has no api2()")
+
+    a.session_exists(sname)
+
+    with Session(sname) as session:
+        result = await ensure_awaitable(
+            u.APPS[appname].api2,
+            request=request,
+            session=session,
+        )
+
+        if type(result) is Response:
+            return result
+        else:
+            return ORJSONResponse(result)
