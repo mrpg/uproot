@@ -9,7 +9,7 @@
 We are working on producing the first alpha version (0.0.1), and invite you to join us.
 
 > [!IMPORTANT]
-> This repository contains a pre-alpha version. Breaking changes are made with reckless abandon. **Do not use in production.**
+> This repository contains a pre-alpha version. Breaking changes are made with reckless abandon.
 >
 
 ## Getting started

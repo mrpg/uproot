@@ -1,6 +1,6 @@
 {
     "recommendedVersion": "0.0.1",
-    "generalAnnouncement": "You are running a pre-alpha version of uproot. Do not use in production.",
+    "generalAnnouncement": "You are running a pre-alpha version of uproot.",
     "announcements": {
         "0.0.1": "Ecce, præceptor œconomiæ! Thank you for being an early adopter."
     }
