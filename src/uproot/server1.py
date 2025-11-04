@@ -233,22 +233,24 @@ async def show_page(
         )
 
     if proceed and player.show_page < len(player.page_order):
-        await ensure_awaitable(
-            optional_call_once,
-            page,
-            "after_once",
-            storage=player,
-            show_page=player.show_page,
-            player=player,
-        )
-        await ensure_awaitable(
-            optional_call_once,
-            page,
-            "after_always_once",
-            storage=player,
-            show_page=player.show_page,
-            player=player,
-        )
+        # Only call after_once and after_always_once for forward navigation
+        if direction == 1:
+            await ensure_awaitable(
+                optional_call_once,
+                page,
+                "after_once",
+                storage=player,
+                show_page=player.show_page,
+                player=player,
+            )
+            await ensure_awaitable(
+                optional_call_once,
+                page,
+                "after_always_once",
+                storage=player,
+                show_page=player.show_page,
+                player=player,
+            )
 
         if direction == 1:
             # Forward navigation
@@ -292,44 +294,19 @@ async def show_page(
 
                 candidate += 1
         else:
-            # Backward navigation
+            # Backward navigation - neutral, no lifecycle methods
             candidate = player.show_page - 1
 
             while candidate >= 0:
                 page = path2page(show2path(player.page_order, candidate))
                 player.show_page = candidate
 
-                await ensure_awaitable(
-                    optional_call,
-                    page,
-                    "early",
-                    player=player,
-                    request=request,
-                )
-
-                await ensure_awaitable(
-                    optional_call_once,
-                    page,
-                    "before_always_once",
-                    storage=player,
-                    show_page=candidate,
-                    player=player,
-                )
-
+                # Only check if page should be shown, no other lifecycle methods
                 if await ensure_awaitable(
                     optional_call, page, "show", default_return=True, player=player
                 ):
                     # Ladies and gentlemen, we got him!
                     break
-                else:
-                    await ensure_awaitable(
-                        optional_call_once,
-                        page,
-                        "after_always_once",
-                        storage=player,
-                        show_page=candidate,
-                        player=player,
-                    )
 
                 candidate -= 1
 
@@ -342,14 +319,16 @@ async def show_page(
 
     u.set_online(pid)
 
-    await ensure_awaitable(
-        optional_call_once,
-        page,
-        "before_once",
-        storage=player,
-        show_page=player.show_page,
-        player=player,
-    )
+    # Only call before_once for forward navigation (backward is neutral)
+    if direction == 1:
+        await ensure_awaitable(
+            optional_call_once,
+            page,
+            "before_once",
+            storage=player,
+            show_page=player.show_page,
+            player=player,
+        )
 
     return await render(
         request.app,
