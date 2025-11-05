@@ -73,7 +73,7 @@ dev = [
     "ruff==0.14.2",
 ]
 docs = [
-    "mkdocs-material==9.6.21"
+    "mkdocs-material==9.6.22"
 ]
 iban = [
     "schwifty==2025.9.0"
