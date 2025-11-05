@@ -431,8 +431,27 @@ def tojson_filter(x: Any) -> str:
     return Markup(orjson.dumps(x).decode("utf-8"))
 
 
-ENV.filters["to"] = to_filter
-ENV.filters["tojson"] = tojson_filter
-ENV.filters["unixtime2datetime"] = unixtime2datetime_filter
+def fmtnum_filter(
+    value: float,
+    pre: str = "",
+    post: str = "",
+    places: int = 2,
+    use_nbsp: bool = True,
+) -> str:
+    formatted = f"{pre}{value:.{places}f}{post}"
+
+    if value < 0:
+        formatted = "\u2212" + formatted.replace("-", "")
+
+    if use_nbsp:
+        formatted = formatted.replace(" ", "\xa0")
+
+    return formatted
+
+
+ENV.filters["fmtnum"] = fmtnum_filter
 ENV.filters["repr"] = repr
+ENV.filters["tojson"] = tojson_filter
+ENV.filters["to"] = to_filter
 ENV.filters["type"] = type_filter
+ENV.filters["unixtime2datetime"] = unixtime2datetime_filter
