@@ -1,8 +1,17 @@
 {% set _uproot_path = show2path(player.page_order, player.show_page) %}
 
+<style>
+    .bg-hover-uproot:hover {
+        background-color: var(--bs-uproot) !important;
+    }
+    .text-hover-uproot:hover {
+        color: white !important;
+    }
+</style>
+
 <div id="uproot-testing-button-wrapper" class="fw-light text-end">
-    <p class="small mb-1 text-uproot"><i>{{ _uproot_path }}</i></p>
-    <button type="button" class="btn btn-outline-uproot btn-sm fw-light" onclick="uproot.testingButton(this)">
+    <p class="small mb-1 text-uproot"><i class="badge bg-uproot-light text-uproot">{{ _uproot_path }}</i></p>
+    <button type="button" class="badge bg-hover-uproot bg-white btn btn-outline-uproot btn-sm fw-light text-hover-uproot text-uproot text-wrap" onclick="uproot.testingButton(this)">
         {% translate %}
         Show testing elements
         {% endtranslate %}
