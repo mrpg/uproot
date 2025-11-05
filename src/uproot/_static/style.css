@@ -281,11 +281,6 @@ div.without-anchoring-overlay {
 #uproot-testing-button-wrapper button {
     max-width: 96px;
 }
-@media (max-width: 576px) {
-    #uproot-testing-button-wrapper button {
-        display: none;
-    }
-}
 
 .message-hover:hover {
     background-color: rgba(13, 110, 253, 0.05) !important;
