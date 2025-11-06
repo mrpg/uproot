@@ -45,7 +45,7 @@
             </div>
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" name="format" id="option3" value="latest" checked>
-                <label class="form-check-label" for="option3">{% translate %}Latest{% endtranslate %} <span class="badge rounded-pill bg-uproot">Beta</span></label>
+                <label class="form-check-label" for="option3">{% translate %}Latest{% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
                 <div class="form-text mt-2 text-body-tertiary">
                     {% translate %}
                     One row per player showing their final state: just the last/current value of every field.
@@ -54,7 +54,7 @@
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="format" id="option4" value="latest">
-                <label class="form-check-label" for="option4">{% translate %}Latest &times; Field(s){% endtranslate %} <span class="badge rounded-pill bg-uproot">Beta</span></label>
+                <label class="form-check-label" for="option4">{% translate %}Latest &times; Field(s){% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
                 <div class="form-text mt-2 text-body-tertiary">
                     {% translate %}
                     One row per player per specified grouping (like per round): shows what each participant's state was at the end of each round, condition, or other grouping you specify.
@@ -66,7 +66,10 @@
                     </button>
                     <div id="inputContainer">
                         <div class="input-group mb-2">
-                            <input type="text" class="form-control" name="gvar" placeholder="{% translate %}e.g., round{% endtranslate %}">
+                            <div class="form-floating">
+                                <input type="text" class="font-monospace form-control" name="gvar" placeholder="{% translate %}e.g.,{% endtranslate %} round">
+                                <label for="gvar">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace">round</span>)</label>
+                            </div>
                             <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
                         </div>
                     </div>
@@ -95,17 +98,19 @@
             <h4 class="mb-3">
                 {% translate %}File type{% endtranslate %}
             </h4>
-            <div class="btn-group btn-group-sm" role="group" aria-label="{% translate %}File type selection{% endtranslate %}">
-                <input type="radio" class="btn-check" name="filetype" id="filetype-json" value="json" checked autocomplete="off">
-                <label class="btn btn-outline-uproot" for="filetype-json">JSON</label>
-
-                <input type="radio" class="btn-check" name="filetype" id="filetype-csv" value="csv" autocomplete="off">
-                <label class="btn btn-outline-uproot" for="filetype-csv">CSV</label>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" id="filetype-json" name="filetype" value="json" checked>
+                <label class="form-check-label" for="option1">JSON</label>
+                <div class="form-text mt-2 text-body-tertiary">
+                    {% translate %}JSON is recommended for analysis.{% endtranslate %}
+                </div>
             </div>
-            <div class="form-text mt-3 text-body-tertiary">
-                {% translate %}
-                JSON is recommended for analysis; CSV is better for spreadsheet applications.
-                {% endtranslate %}
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv">
+                <label class="form-check-label" for="option1">CSV</label>
+                <div class="form-text mt-2 text-body-tertiary">
+                    {% translate %}CSV is usually the better choice for spreadsheet applications.{% endtranslate %}
+                </div>
             </div>
         </div>
     </div>
@@ -140,7 +145,10 @@
         const inputGroup = document.createElement("div");
         inputGroup.className = "input-group mb-2";
         inputGroup.innerHTML = /* SAFE */ `
-            <input type="text" class="form-control" name="gvar">
+            <div class="form-floating">
+                <input type="text" class="font-monospace form-control" name="gvar" placeholder="grouping variable">
+                <label for="gvar">{% translate %}Grouping variable{% endtranslate %}</label>
+            </div>
             <button type="button" class="btn btn-outline-danger remove-input">${_("Remove")}</button>
         `;
         inputContainer.appendChild(inputGroup);
