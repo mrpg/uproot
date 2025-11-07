@@ -1,12 +1,18 @@
 /* Sans-serif font: Inter, https://github.com/rsms/inter/ */
 @import url("vendor/Inter-3.19/InterWeb/inter.css");
+/* Serif font: IBM Plex Serif, https://github.com/ibm/plex/ */
+@import url("vendor/ibm-plex-serif/css/ibm-plex-serif-all.min.css");
+/* Math font: IBM Plex Math, https://github.com/ibm/plex/ */
+@import url("vendor/ibm-plex-math/css/ibm-plex-math-all.min.css");
+
+/* Font settings for Inter to improve disambiguation of glyphs */
 @font-feature-values "Inter" {
     @character-variant {
-        inter-l-with-tail: 5;  /* alias "l-with-tail" points to OpenType feature cv05 */
-        inter-double-s: 7;  /* German double-s */
+        inter-l-with-tail: 5;  /* Alias "l-with-tail" points to OpenType feature cv05 (character variant 5) */
+        inter-double-s: 7;  /* German double-s that is more dissimilar from Greek beta (cv07) */
     }
     @styleset {
-        inter-open-digits: 1;  /* alias "open-digits" points to OpenType feature ss01 */
+        inter-open-digits: 1;  /* Alias "open-digits" points to OpenType feature ss01 (style set 1) */
     }
 }
 :root {
@@ -15,12 +21,6 @@
         character-variant(inter-l-with-tail, inter-double-s)
         styleset(inter-open-digits);
 }
-
-/* Serif font: IBM Plex Serif, https://github.com/ibm/plex/ */
-@import url("vendor/ibm-plex-serif/css/ibm-plex-serif-all.min.css");
-
-/* Math font: IBM Plex Math, https://github.com/ibm/plex/ */
-@import url("vendor/ibm-plex-math/css/ibm-plex-math-all.min.css");
 
 /* Monospaced font: Cascadia Mono, https://github.com/microsoft/cascadia-code/ */
 @font-face {
