@@ -117,10 +117,8 @@ h1, h2, h3, h4, h5, h6 {
     display: block;
 }
 
-
 .form-check-input:checked {
     background-color: var(--bs-uproot);
-    border-color: var(--bs-uproot);
 }
 
 span.a-value {

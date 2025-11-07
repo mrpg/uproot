@@ -4,8 +4,8 @@
     </div>
     <div class="col-12 col-lg-3 col-xl-2 mb-2">
         <div class="form-floating">
-            <input type="number" class="form-control" id="nplayers" name="nplayers"
-                placeholder="{% translate %}Number of players{% endtranslate %}" min="0" value="1">
+            <input class="form-control" id="nplayers" min="0" name="nplayers"
+                placeholder="0" required type="number" value="">
             {# TODO: value = "{{ demo-size }}" #}
             <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
         </div>
@@ -55,6 +55,11 @@
 
     function createSession() {
         let snameValid = true, unamesValid = true;
+
+        if (I("nplayers").value.trim() == "" || parseInt(I("nplayers").value) < 0) {
+            uproot.error(_("The number of players you entered is invalid."));
+            return;
+        }
 
         if (!I("automatic_sname").checked) {
             snameValid = uproot.isValidToken(I("sname").value);
