@@ -1,10 +1,15 @@
-<div class="form-floating" id="config-select"></div>
-
-<div class="form-floating mt-3">
-    <input type="number" class="form-control" id="nplayers" name="nplayers"
-        placeholder="{% translate %}Number of players{% endtranslate %}" min="0" value="1">
-    {# TODO: value = "{{ demo-size }}" #}
-    <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
+<div class="row">
+    <div class="col-12 col-lg-9 col-xl-10 mb-2">
+        <div class="form-floating" id="config-select"></div>
+    </div>
+    <div class="col-12 col-lg-3 col-xl-2 mb-2">
+        <div class="form-floating">
+            <input type="number" class="form-control" id="nplayers" name="nplayers"
+                placeholder="{% translate %}Number of players{% endtranslate %}" min="0" value="1">
+            {# TODO: value = "{{ demo-size }}" #}
+            <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
+        </div>
+    </div>
 </div>
 
 <div x-data="{automatic: true}">
