@@ -1,24 +1,37 @@
-<div id="uproot-testing-button-wrapper">
-    <button type="button" class="btn btn-outline-uproot btn-sm" onclick="uproot.testingButton(this)">
+{% set _uproot_path = show2path(player.page_order, player.show_page) %}
+
+<style>
+    .bg-hover-uproot:hover {
+        background-color: var(--bs-uproot) !important;
+    }
+    .text-hover-white:hover {
+        color: white !important;
+    }
+</style>
+
+<div id="uproot-testing-button-wrapper" class="fw-light text-end">
+    <p class="small mb-1"><span class="badge bg-uproot-light text-uproot">{{ _uproot_path }}</span></p>
+    <button type="button" class="badge bg-hover-uproot bg-white btn btn-outline-uproot btn-sm fw-light text-hover-white text-uproot text-wrap" onclick="uproot.testingButton(this)">
         {% translate %}
         Show testing elements
         {% endtranslate %}
     </button>
 </div>
-{% set _uproot_path = show2path(player.page_order, player.show_page) %}
+
 <div class="alert mb-4 mt-3 bg-uproot uproot-testing-only text-white" role="alert">
-    This is <i>{{ _uproot_path }}</i>.
-    Go straight to
-    <span class="d-inline-block">
-        <select name="uproot-skip" onchange="uproot.skipFromTesting()" class="form-select form-select-sm bg-light">
-        {% for i, page in enumerate(player.page_order) %}
-            <option value="{{ i }}" {% if i == player.show_page %}selected{% endif %}>{{ page }}</option>
-        {% endfor %}
-        </select>
-    </span><br>
-    <span class="small">
+    <p class="mb-2">
+        Go straight to
+        <span class="d-inline-block">
+            <select name="uproot-skip" onchange="uproot.skipFromTesting()" class="form-select form-select-sm bg-light">
+            {% for i, page in enumerate(player.page_order) %}
+                <option value="{{ i }}" {% if i == player.show_page %}selected{% endif %}>{{ page }}</option>
+            {% endfor %}
+            </select>
+        </span>
+    </p>
+    <p class="fw-light mb-0 pt-1 small">
         {% translate %}
         Testing elements are shown only to logged-in admins or in testing sessions (not enabled by default, configurable in session settings).
         {% endtranslate %}
-    </span>
+    </p>
 </div>
