@@ -61,9 +61,6 @@
                     {% endtranslate %}
                 </div>
                 <div id="customInputs" class="my-4" style="display: none;">
-                    <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput">
-                        <i class="bi bi-plus"></i> {% translate %}Add grouping variable{% endtranslate %}
-                    </button>
                     <div id="inputContainer">
                         <div class="input-group mb-2">
                             <div class="form-floating">
@@ -73,6 +70,9 @@
                             <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
                         </div>
                     </div>
+                    <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput">
+                        <i class="bi bi-plus-lg"></i> {% translate %}Add grouping variable{% endtranslate %}
+                    </button>
                 </div>
             </div>
         </div>
@@ -114,7 +114,7 @@
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-uproot">{% translate %}Submit{% endtranslate %}</button>
+    <button type="submit" class="btn btn-uproot">{% translate %}Download{% endtranslate %}</button>
 </form>
 
 {% endblock main3 %}

@@ -270,6 +270,7 @@ div.without-anchoring-overlay {
 
 .uproot-testing-only {
     display: none;
+    font-size: smaller;
 }
 
 #uproot-testing-button-wrapper {
