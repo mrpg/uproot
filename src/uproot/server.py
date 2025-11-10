@@ -178,6 +178,31 @@ def post_app_import(app: Any) -> Any:
     app.StartApp = StartApp
     app.page_order.insert(0, app.StartApp)
 
+    # Validate that Wait pages don't use after_* methods (except after_grouping)
+    for page in c.expand(app.page_order):
+        # Check if this page derives from a class with "Wait" in its name
+        is_wait_page = any("Wait" in base.__name__ for base in page.__mro__)
+
+        if is_wait_page:
+            forbidden_methods = [
+                attr
+                for attr in dir(page)
+                if attr.startswith("after_")
+                and attr != "after_grouping"
+                and hasattr(page, attr)
+                and callable(getattr(page, attr))
+                and not attr.startswith("_")
+            ]
+
+            ensure(
+                len(forbidden_methods) == 0,
+                TypeError,
+                f"Page '{page.__name__}' inherits from a Wait page and has forbidden after_* methods: "
+                f"{', '.join(forbidden_methods)}. Wait pages should use 'all_here' for "
+                f"group-wide initialization instead of 'after_once' or 'after_always_once'. "
+                f"(app {appname})",
+            )
+
 
 @validate_call(config=dict(arbitrary_types_allowed=True))
 def load_config(
