@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import base64
+from collections import namedtuple
 from decimal import Decimal as cu
 from types import EllipsisType
 from typing import Annotated, Any, Awaitable, Callable, Iterable, cast
@@ -23,6 +24,7 @@ __all__ = [
     "_",
     "Bracket",
     "chat",
+    "combine",
     "cu",
     "data_uri",
     "GroupCreatingWait",
@@ -263,6 +265,26 @@ def data_uri(data: bytes) -> str:
         mime_type = "application/octet-stream"
 
     return f"data:{mime_type};base64," + base64.b64encode(data).decode("ascii")
+
+
+def combine(named_tuples):
+    if not named_tuples:
+        return namedtuple("Empty", [])()
+
+    fields = named_tuples[0]._fields
+    keys = [getattr(nt, fields[0]) for nt in named_tuples]
+
+    if len(fields) == 2:
+        ResultTuple = namedtuple("Result", keys)
+        values = [getattr(nt, fields[1]) for nt in named_tuples]
+        return ResultTuple(*values)
+    else:
+        ValueTuple = namedtuple("Value", fields[1:])
+        ResultTuple = namedtuple("Result", keys)
+        values = [
+            ValueTuple(*[getattr(nt, f) for f in fields[1:]]) for nt in named_tuples
+        ]
+        return ResultTuple(*values)
 
 
 class Random(t.SmoothOperator):
