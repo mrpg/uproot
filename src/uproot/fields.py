@@ -41,6 +41,10 @@ class BooleanField(wtforms.fields.BooleanField):
     ) -> None:
         self.class_wrapper = class_wrapper
 
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
+
         super().__init__(
             label=label,
             validators=validators,
@@ -71,6 +75,10 @@ class DateField(wtforms.fields.DateField):
             v = [wtforms.validators.Optional()]
 
         self.class_wrapper = class_wrapper
+
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
 
         super().__init__(
             label=label,
@@ -110,6 +118,10 @@ class DecimalField(wtforms.fields.DecimalField):
             ]
 
         self.class_wrapper = class_wrapper
+
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
 
         super().__init__(
             label=label,
@@ -154,6 +166,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
             render_kw = {}
         if step is not None:
             render_kw["step"] = step
+        render_kw["autocomplete"] = "off"
 
         self.anchoring = anchoring
         self.class_wrapper = class_wrapper
@@ -199,6 +212,10 @@ class EmailField(wtforms.fields.EmailField):
         self.class_wrapper = class_wrapper
         self.label_floating = label_floating
 
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
+
         super().__init__(
             label=label,
             validators=v,
@@ -229,6 +246,10 @@ class FileField(wtforms.fields.FileField):
             v = [wtforms.validators.Optional()]
 
         self.class_wrapper = class_wrapper
+
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
 
         super().__init__(
             label=label,
@@ -268,6 +289,10 @@ class IntegerField(wtforms.fields.IntegerField):
             ]
 
         self.class_wrapper = class_wrapper
+
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
 
         super().__init__(
             label=label,
@@ -315,6 +340,10 @@ class LikertField(wtforms.fields.RadioField):
         self.max = max
         self.min = min
 
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
+
         super().__init__(
             label=label,
             choices=choices,
@@ -360,6 +389,7 @@ class RadioField(wtforms.fields.RadioField):
                 render_kw["class"] += " form-check-inline"
             else:
                 render_kw["class"] = "form-check-inline"
+        render_kw["autocomplete"] = "off"
 
         self.class_wrapper = class_wrapper
 
@@ -400,6 +430,10 @@ class SelectField(wtforms.fields.SelectField):
 
         self.class_wrapper = class_wrapper
 
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
+
         super().__init__(
             choices=choices,
             label=label,
@@ -435,6 +469,10 @@ class StringField(wtforms.fields.StringField):
         self.class_wrapper = class_wrapper
         self.label_floating = label_floating
 
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
+
         super().__init__(
             label=label,
             validators=v,
@@ -467,6 +505,10 @@ class TextAreaField(wtforms.fields.TextAreaField):
 
         self.class_wrapper = class_wrapper
         self.label_floating = label_floating
+
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
 
         super().__init__(
             label=label,
@@ -521,6 +563,10 @@ class IBANField(wtforms.fields.StringField):
 
         self.class_wrapper = class_wrapper
         self.label_floating = label_floating
+
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
 
         super().__init__(
             label=label,
