@@ -30,7 +30,7 @@ from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
 from uproot.storage import Admin, Storage
-from uproot.types import InternalPage, Page
+from uproot.types import InternalPage, Page, ensure_awaitable, optional_call
 
 
 @asynccontextmanager
@@ -90,6 +90,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
                 cast(Callable[..., Coroutine[None, None, Never]], gj)(app)
             )
         )
+
+    for uapp in u.APPS.modules:
+        uapp = u.APPS[uapp]
+
+        await ensure_awaitable(optional_call, uapp, "restart")  # Thanks, Mia!
 
     await d.lifespan_start(app, tasks)
 
