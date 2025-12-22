@@ -27,6 +27,85 @@
     {% if noautostart is not defined %}
     uproot.onStart(() => {
         uproot.init();
+
+        {% if noconnectionlostmodal is not defined %}
+        // Connection timeout monitoring
+        let connectionModal = null;
+        let timeoutTimer = null;
+        let isPageUnloading = false;
+
+        // Track when user is leaving the page
+        window.addEventListener("beforeunload", () => {
+            isPageUnloading = true;
+        });
+
+        const ensureConnectionModal = () => {
+            if (!connectionModal) {
+                connectionModal = bootstrap.Modal.getOrCreateInstance(
+                    I("connection-timeout-modal"),
+                    { backdrop: "static", keyboard: false }
+                );
+            }
+            return connectionModal;
+        };
+
+        const showConnectionLostModal = () => {
+            const modal = ensureConnectionModal();
+
+            // Show/hide reload button based on dirty state
+            const reloadBtn = I("connection-modal-reload-btn");
+
+            if (reloadBtn) {
+                reloadBtn.hidden = uproot.dirty;
+            }
+
+            modal.show();
+            modal._backdrop._element.style.backgroundColor = "red";
+        };
+
+        const hideConnectionLostModal = () => {
+            if (connectionModal) {
+                connectionModal.hide();
+                connectionModal = null;
+            }
+        };
+
+        // Wrap hello() to monitor connection health
+        const originalHello = uproot.hello.bind(uproot);
+
+        uproot.hello = function() {
+            const sentAt = Date.now();
+
+            // Clear any previous timeout
+            clearTimeout(timeoutTimer);
+
+            // Check for response within timeout window
+            timeoutTimer = setTimeout(() => {
+                if (!uproot.serverThere || uproot.serverThere < sentAt) {
+                    showConnectionLostModal();
+                }
+            }, 250);
+
+            return originalHello();
+        };
+
+        // Hide modal on any server response
+        const originalFromServer = uproot.fromServer.bind(uproot);
+
+        uproot.fromServer = function(event, ws) {
+            hideConnectionLostModal();
+            return originalFromServer(event, ws);
+        };
+
+        // Show modal on WebSocket disconnect/error (but not when leaving page)
+        uproot.onDisconnect(() => {
+            if (!isPageUnloading) {
+                showConnectionLostModal();
+            }
+        });
+        {% endif %}
+
+        // Start WebSocket after wrapping functions
         uproot.wsstart();
     });
     {% endif %}
@@ -109,6 +188,34 @@
         </div>
     </div>
 </div>
+
+{% if noconnectionlostmodal is not defined %}
+<div class="modal fade" id="connection-timeout-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {% translate %}
+                    Connection Lost
+                    {% endtranslate %}
+                </h5>
+            </div>
+            <div class="modal-body">
+                {% translate %}
+                Connection with server lost. Please check your internet connection.
+                {% endtranslate %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="connection-modal-reload-btn" class="btn btn-outline-danger" onclick="uproot.reload()">
+                    {% translate %}
+                    Reload
+                    {% endtranslate %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <div id="uproot-buddy" hidden>
     <img
