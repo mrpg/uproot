@@ -222,6 +222,20 @@ async def ws(
                 if fname == "from_websocket":
                     u.set_online(pid)
 
+                    await websocket.send_bytes(
+                        orjson.dumps(
+                            dict(
+                                kind="event",
+                                payload=dict(
+                                    event="RoomLabelProvided",
+                                    detail=dict(
+                                        label=local_context,
+                                    ),
+                                ),
+                            )
+                        )
+                    )
+
                     # Handle hello endpoint for heartbeat
                     if isinstance(result, dict) and result.get("endpoint") == "hello":
                         # Respond to hello to maintain heartbeat

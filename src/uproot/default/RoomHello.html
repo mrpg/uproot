@@ -72,14 +72,23 @@ Please wait
 </form>
 
 <script>
+    const labelInURL = uproot.getParam("label") !== null;
+    const label = uproot.getParam("label") || "";
+
     uproot.wsurl = () => {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const host = window.location.host;
         const ui = uproot.vars._uproot_internal;
-        const label = uproot.getParam("label") || "";
 
         return `${protocol}//${host}${ui.root}/roomws/${ui.roomname}/?label=${label}`;
     };
+
+    function setLabelAndSubmit(event) {
+        const label = event.detail.label;
+
+        I("label").value = label;
+        I("label-form").submit();
+    }
 
     if (typeof stopHere === "undefined" || !stopHere) {
         uproot.onStart(() => {
@@ -87,12 +96,13 @@ Please wait
             uproot.wsstart();
         });
 
-        uproot.onCustomEvent("RoomStarted", (event) => {
-            const label = event.detail.label;
-
-            I("label").value = label;
-            I("label-form").submit();
+        uproot.onCustomEvent("RoomLabelProvided", (event) => {
+            if (!labelInURL || label != event.detail.label) {
+                setLabelAndSubmit(event);
+            }
         });
+
+        uproot.onCustomEvent("RoomStarted", setLabelAndSubmit);
     }
 </script>
 
