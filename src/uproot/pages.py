@@ -28,7 +28,6 @@ from uproot.types import (
     Page,
     ensure_awaitable,
     optional_call,
-    sha256,
 )
 
 if TYPE_CHECKING:
@@ -403,10 +402,10 @@ async def validate(
 
 
 def verify_csrf(page: type[Page], player: Storage, formdata: "FormData") -> bool:
-    base = f"{player._uproot_session}+{player.name}+{player._uproot_key}"
-
-    return "_uproot_csrf" in formdata and formdata["_uproot_csrf"] == sha256(
-        base.encode("utf-8")
+    return (
+        "_uproot_csrf" in formdata
+        and formdata["_uproot_csrf"]
+        == f"{player._uproot_session}+{player.name}+{player._uproot_key}"
     )
 
 

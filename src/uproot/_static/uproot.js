@@ -342,18 +342,8 @@ window.uproot = {
         });
     },
 
-    async sha256(text) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(text);
-        const hash = await crypto.subtle.digest("SHA-256", data);
-        return Array.from(new Uint8Array(hash))
-            .map(b => b.toString(16).padStart(2, "0"))
-            .join("");
-    },
-
-    async csrf() {
-        const base = `${this.sname}+${this.uname}+${this.key}`;
-        return await this.sha256(base);
+    csrf() {
+        return `${this.sname}+${this.uname}+${this.key}`;
     },
 
     init() {
@@ -364,10 +354,7 @@ window.uproot = {
         this.form = document.forms[0];
 
         this.I("_uproot_from").value = uproot.vars._uproot_internal.thisis;
-
-        this.csrf().then((csrf_) => {
-            this.I("_uproot_csrf").value = csrf_;
-        });
+        this.I("_uproot_csrf").value = this.csrf();
     },
 
     testingButton(btn) {
@@ -388,7 +375,11 @@ window.uproot = {
     },
 
     uuid() {
-        return crypto.randomUUID();
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+            const r = Math.random() * 16 | 0;
+            const v = c === "x" ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
     },
 
     reload() {
