@@ -83,6 +83,7 @@ Please wait
 
     if (typeof stopHere === "undefined" || !stopHere) {
         uproot.onStart(() => {
+            uproot.enableConnectionLostModal();
             uproot.wsstart();
         });
 

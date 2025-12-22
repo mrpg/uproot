@@ -736,6 +736,82 @@ window.uproot = {
         });
     },
 
+    enableConnectionLostModal() {
+        let connectionModal = null;
+        let timeoutTimer = null;
+        let isPageUnloading = false;
+
+        // Track when user is leaving the page
+        window.addEventListener("beforeunload", () => {
+            isPageUnloading = true;
+        });
+
+        const ensureConnectionModal = () => {
+            if (!connectionModal) {
+                connectionModal = bootstrap.Modal.getOrCreateInstance(
+                    I("connection-timeout-modal"),
+                    { backdrop: "static", keyboard: false }
+                );
+            }
+            return connectionModal;
+        };
+
+        const showConnectionLostModal = () => {
+            const modal = ensureConnectionModal();
+
+            // Show/hide reload button based on dirty state
+            const reloadBtn = I("connection-modal-reload-btn");
+
+            if (reloadBtn) {
+                reloadBtn.hidden = this.dirty;
+            }
+
+            modal.show();
+            modal._backdrop._element.style.backgroundColor = "red";
+        };
+
+        const hideConnectionLostModal = () => {
+            if (connectionModal) {
+                connectionModal.hide();
+                connectionModal = null;
+            }
+        };
+
+        // Wrap hello() to monitor connection health
+        const originalHello = this.hello.bind(this);
+
+        this.hello = function() {
+            const sentAt = Date.now();
+
+            // Clear any previous timeout
+            clearTimeout(timeoutTimer);
+
+            // Check for response within timeout window
+            timeoutTimer = setTimeout(() => {
+                if (!uproot.serverThere || uproot.serverThere < sentAt) {
+                    showConnectionLostModal();
+                }
+            }, 1500);
+
+            return originalHello();
+        };
+
+        // Hide modal on any server response
+        const originalFromServer = this.fromServer.bind(this);
+
+        this.fromServer = function(event, ws) {
+            hideConnectionLostModal();
+            return originalFromServer(event, ws);
+        };
+
+        // Show modal on WebSocket disconnect/error (but not when leaving page)
+        this.onDisconnect(() => {
+            if (!isPageUnloading) {
+                showConnectionLostModal();
+            }
+        });
+    },
+
     chat: {
         messageStore: {},
         ignoreChatted: true,

@@ -217,10 +217,26 @@ async def ws(
             fname, factory = tasks.pop(finished)
 
             try:
-                _ = await finished
+                result = await finished
 
                 if fname == "from_websocket":
                     u.set_online(pid)
+
+                    # Handle hello endpoint for heartbeat
+                    if isinstance(result, dict) and result.get("endpoint") == "hello":
+                        # Respond to hello to maintain heartbeat
+                        await websocket.send_bytes(
+                            orjson.dumps(
+                                dict(
+                                    kind="invoke",
+                                    payload=dict(
+                                        future=result.get("future"),
+                                        error=False,
+                                        data=None,
+                                    ),
+                                )
+                            )
+                        )
                     # Otherwise ignore messages (for now)
                 elif fname == "subscribe_to_room":
                     await websocket.send_bytes(
