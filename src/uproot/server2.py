@@ -724,7 +724,7 @@ async def sessionmain(
         return HTMLResponse(
             await render(
                 "Session.html",
-                dict(sname=sname) | await a.info_online(sname),
+                dict(sname=sname, room=session.room) | await a.info_online(sname),
                 dict(session=session),
             )
         )
