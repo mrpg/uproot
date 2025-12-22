@@ -61,6 +61,7 @@ from uproot.storage import (
 from uproot.types import ensure_awaitable, optional_call, optional_call_once
 
 PROCESSED_FUTURES: deque[str] = deque(maxlen=8 * 1024)
+PROCESSED_FUTURES_LOCK = asyncio.Lock()
 router = APIRouter(prefix=d.ROOT)
 
 
@@ -453,6 +454,7 @@ async def ws(
     )
 
     tasks = dict()
+    background_tasks: set[asyncio.Task[Any]] = set()
     args: dict[str, dict[str, Any]] = dict(
         from_queue=dict(
             pid=pid,
@@ -464,6 +466,138 @@ async def ws(
             interval=30.0,
         ),
     )
+
+    async def process_websocket_message(result: dict[str, Any]) -> None:
+        u.set_online(pid)
+
+        async with PROCESSED_FUTURES_LOCK:
+            if "future" in result and result["future"] in PROCESSED_FUTURES:
+                return
+            elif "future" in result:
+                PROCESSED_FUTURES.append(result["future"])
+
+        invoke_respond = True
+        invoke_response: Any = None
+        invoke_exception = False
+
+        with player:
+            match result:
+                case {"endpoint": "hello"}:
+                    pass
+                case {"endpoint": "time"}:
+                    invoke_response = time()
+                case {"endpoint": "jserrors", "payload": msg} if isinstance(msg, str):
+                    d.LOGGER.error(
+                        f"JavaScript error [{d.ROOT}/p/{sname}/{uname}/]: {msg[:256]}"
+                    )
+                case {
+                    "endpoint": "skip",
+                    "payload": new_show_page,
+                } if isinstance(
+                    new_show_page, int
+                ) and (is_admin or player.session.testing):
+                    player.show_page = new_show_page
+                case {
+                    "endpoint": "invoke",
+                    "payload": {
+                        "mname": mname,
+                        "args": margs,
+                        "kwargs": mkwargs,
+                    },
+                } if (
+                    isinstance(mname, str)
+                    and isinstance(margs, list)
+                    and isinstance(mkwargs, dict)
+                ):
+                    ppath = show2path(player.page_order, player.show_page)
+                    page = path2page(ppath)
+
+                    try:
+                        live_method = getattr(page, mname)
+
+                        if not hasattr(live_method, "__live__"):
+                            raise TypeError(
+                                f"{live_method} must be decorated with @live"
+                            )
+                        else:
+                            invoke_response = await ensure_awaitable(
+                                live_method,
+                                player,
+                                *margs,
+                                **mkwargs,
+                            )
+                    except Exception as _e:
+                        traceback.print_exc()
+                        invoke_exception = True
+
+                case {"endpoint": "chat_add", "payload": payload} if (
+                    len(payload) == 2
+                    and isinstance(payload[0], str)
+                    and isinstance(payload[1], str)
+                    and valid_token(payload[0])
+                ):
+                    mname, msgtext = payload
+
+                    mid = t.ModelIdentifier(sname, mname)
+
+                    if chat.exists(mid) and pid in (pp := chat.players(mid)):
+                        msg = chat.add_message(mid, pid, msgtext)
+
+                        for p in pp:
+                            q.enqueue(
+                                tuple(p),
+                                dict(
+                                    source="chat",
+                                    data=chat.show_msg(
+                                        mid,
+                                        msg,
+                                        p,
+                                    ),
+                                    event="_uproot_Chatted",
+                                ),
+                            )
+
+                        invoke_respond = False
+                    else:
+                        d.LOGGER.warning(
+                            f"Ignored chat message starting with '{msgtext[:32]}' for "
+                            f"non-existing chat starting with '{mname[:32]}' (or no auth)"
+                        )
+                case {
+                    "endpoint": "chat_get",
+                    "payload": mname,
+                } if isinstance(
+                    mname, str
+                ) and valid_token(mname):
+                    mid = t.ModelIdentifier(sname, mname)
+
+                    if chat.exists(mid) and pid in (pp := chat.players(mid)):
+                        invoke_response = [
+                            chat.show_msg(mid, msg, pid) for msg in chat.messages(mid)
+                        ]
+                    else:
+                        d.LOGGER.warning(
+                            f"Ignored chat request for non-existing chat "
+                            f"starting with '{mname[:32]}' (or no auth, {pp})"
+                        )
+                case _:
+                    d.LOGGER.warning(
+                        f"Ignored websocket message starting with '{repr(result)[:64]}' (is_admin: {is_admin})"
+                    )
+
+        if invoke_respond:
+            await websocket.send_bytes(
+                orjson.dumps(
+                    dict(
+                        kind="invoke",
+                        payload=dict(
+                            data=invoke_response,
+                            future=result["future"],
+                            error=invoke_exception,
+                        ),
+                    )
+                )
+            )
 
     for jj in j.PLAYER_JOBS:
         tasks[asyncio.create_task(cast(Any, jj)(**args[jj.__name__]))] = (
@@ -480,6 +614,10 @@ async def ws(
             fname, factory = tasks.pop(finished)
             try:
                 result = await finished
+
+                if fname == "from_websocket":
+                    new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+                    tasks[new_task] = (fname, factory)
 
                 if fname == "from_queue":
                     u_, entry = result
@@ -512,140 +650,9 @@ async def ws(
                                 )
                             )
                 elif fname == "from_websocket":
-                    u.set_online(pid)
-
-                    if "future" in result and result["future"] in PROCESSED_FUTURES:
-                        continue
-                    elif "future" in result:
-                        PROCESSED_FUTURES.append(result["future"])
-
-                    invoke_respond = True
-                    invoke_response: Any = None
-                    invoke_exception = False
-
-                    with player:
-                        match result:
-                            case {"endpoint": "hello"}:
-                                pass
-                            case {"endpoint": "time"}:
-                                invoke_response = time()
-                            case {"endpoint": "jserrors", "payload": msg} if isinstance(
-                                msg, str
-                            ):
-                                d.LOGGER.error(
-                                    f"JavaScript error [{d.ROOT}/p/{sname}/{uname}/]: {msg[:256]}"
-                                )
-                            case {
-                                "endpoint": "skip",
-                                "payload": new_show_page,
-                            } if isinstance(new_show_page, int) and (
-                                is_admin or player.session.testing
-                            ):
-                                player.show_page = new_show_page
-                            case {
-                                "endpoint": "invoke",
-                                "payload": {
-                                    "mname": mname,
-                                    "args": margs,
-                                    "kwargs": mkwargs,
-                                },
-                            } if (
-                                isinstance(mname, str)
-                                and isinstance(margs, list)
-                                and isinstance(mkwargs, dict)
-                            ):
-                                ppath = show2path(player.page_order, player.show_page)
-                                page = path2page(ppath)
-
-                                try:
-                                    live_method = getattr(page, mname)
-
-                                    if not hasattr(live_method, "__live__"):
-                                        raise TypeError(
-                                            f"{live_method} must be decorated with @live"
-                                        )
-                                    else:
-                                        invoke_response = await ensure_awaitable(
-                                            live_method,
-                                            player,
-                                            *margs,
-                                            **mkwargs,
-                                        )
-                                except Exception as _e:
-                                    traceback.print_exc()
-                                    invoke_exception = True
-
-                            case {"endpoint": "chat_add", "payload": payload} if (
-                                len(payload) == 2
-                                and isinstance(payload[0], str)
-                                and isinstance(payload[1], str)
-                                and valid_token(payload[0])
-                            ):
-                                mname, msgtext = payload  # thanks, mypy…
-
-                                mid = t.ModelIdentifier(sname, mname)
-
-                                if chat.exists(mid) and pid in (
-                                    pp := chat.players(mid)
-                                ):
-                                    msg = chat.add_message(mid, pid, msgtext)
-
-                                    for p in pp:
-                                        q.enqueue(
-                                            tuple(p),
-                                            dict(
-                                                source="chat",
-                                                data=chat.show_msg(
-                                                    mid,
-                                                    msg,
-                                                    p,
-                                                ),
-                                                event="_uproot_Chatted",
-                                            ),
-                                        )
-
-                                    invoke_respond = False
-                                else:
-                                    d.LOGGER.warning(
-                                        f"Ignored chat message starting with '{msgtext[:32]}' for "
-                                        f"non-existing chat starting with '{mname[:32]}' (or no auth)"
-                                    )
-                            case {
-                                "endpoint": "chat_get",
-                                "payload": mname,
-                            } if isinstance(mname, str) and valid_token(mname):
-                                mid = t.ModelIdentifier(sname, mname)
-
-                                if chat.exists(mid) and pid in (
-                                    pp := chat.players(mid)
-                                ):
-                                    invoke_response = [
-                                        chat.show_msg(mid, msg, pid)
-                                        for msg in chat.messages(mid)
-                                    ]
-                                else:
-                                    d.LOGGER.warning(
-                                        f"Ignored chat request for non-existing chat "
-                                        f"starting with '{mname[:32]}' (or no auth, {pp})"
-                                    )
-                            case _:
-                                d.LOGGER.warning(
-                                    f"Ignored websocket message starting with '{repr(result)[:64]}' (is_admin: {is_admin})"
-                                )
-
-                    if invoke_respond:
-                        await websocket.send_bytes(
-                            orjson.dumps(
-                                dict(
-                                    kind="invoke",
-                                    payload=dict(
-                                        data=invoke_response,
-                                        future=result["future"],
-                                        error=invoke_exception,
-                                    ),
-                                )
-                            )
-                        )
+                    bg_task = asyncio.create_task(process_websocket_message(result))
+                    background_tasks.add(bg_task)
+                    bg_task.add_done_callback(background_tasks.discard)
                 elif fname == "timer":
                     pass  # placeholder for the future
                 else:
@@ -653,16 +660,20 @@ async def ws(
             except WebSocketDisconnect:
                 for task in tasks:
                     task.cancel()
+                for task in background_tasks:
+                    task.cancel()
 
-                await asyncio.gather(*tasks.keys(), return_exceptions=True)
+                await asyncio.gather(
+                    *tasks.keys(), *background_tasks, return_exceptions=True
+                )
 
                 return
             except Exception as exc:
                 raise exc
 
-            # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-            tasks[new_task] = (fname, factory)
+            if fname != "from_websocket":
+                new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+                tasks[new_task] = (fname, factory)
 
 
 @router.get("/static/{realm}/{location:path}")
