@@ -7,12 +7,18 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-import uproot as u
-import uproot.examples as ex
-
 
 def forward(args: list[str], command: Optional[str] = None) -> None:
-    cmd = [sys.executable, str(Path(".") / "main.py")]
+    main_path = Path(".") / "main.py"
+
+    if not main_path.is_file():
+        print("Error: 'main.py' not found in current directory.", file=sys.stderr)
+        print("Are you in an uproot project directory?", file=sys.stderr)
+        print("Create a new project with:", file=sys.stderr)
+        print("\tuproot setup <project-name>", file=sys.stderr)
+        sys.exit(1)
+
+    cmd = [sys.executable, str(main_path)]
 
     if command:
         cmd.append(command)
@@ -21,9 +27,35 @@ def forward(args: list[str], command: Optional[str] = None) -> None:
     sys.exit(subprocess.call(cmd))
 
 
+def show_help() -> None:
+    print("Usage: uproot [OPTIONS] COMMAND [ARGS]...")
+    print()
+    print("Options:")
+    print("  --version    Show version information")
+    print("  --copyright  Show copyright information")
+    print("  --help       Show this message")
+    print()
+    print("Commands:")
+    print("  setup        Create a new uproot project")
+    print()
+    print("Project commands (require main.py in current directory):")
+    print("  run          Run this uproot project")
+    print("  reset        Reset database")
+    print("  dump         Dump database to file")
+    print("  restore      Restore database from file")
+    print("  new          Create new app")
+    print("  examples     Download examples")
+    print("  deployment   View deployment")
+    print()
+    print("For more help on a specific command, run:")
+    print("\tuproot <command> --help")
+
+
 def setup_command(
     path: str, force: bool = False, no_example: bool = False, minimal: bool = False
 ) -> None:
+    import uproot.examples as ex
+
     path_ = Path(path)
 
     if (path_ / "main.py").is_file() and not force:
@@ -77,8 +109,8 @@ def main() -> None:
 
     subparsers = parser.add_subparsers(dest="command")
 
-    setup_parser = subparsers.add_parser("setup", add_help=False)
-    setup_parser.add_argument("path")
+    setup_parser = subparsers.add_parser("setup", help="Create a new uproot project")
+    setup_parser.add_argument("path", help="Path to the new project directory")
     setup_parser.add_argument("--force", action="store_true", help="Skip checks.")
     setup_parser.add_argument(
         "--minimal", action="store_true", help="Create a minimal example app."
@@ -93,9 +125,11 @@ def main() -> None:
     args, unknown = parser.parse_known_args()
 
     if args.version:
+        import uproot as u
+
         print(f"uproot-science {u.__version__}")
     elif args.help:
-        forward(sys.argv[1:])
+        show_help()
     elif args.command == "setup":
         setup_command(args.path, args.force, args.no_example, args.minimal)
     elif args.command in cmds:
