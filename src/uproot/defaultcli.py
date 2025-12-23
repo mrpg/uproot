@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import argparse
-import subprocess
 import sys
 from pathlib import Path
 from typing import Optional
@@ -18,13 +17,18 @@ def forward(args: list[str], command: Optional[str] = None) -> None:
         print("\tuproot setup <project-name>", file=sys.stderr)
         sys.exit(1)
 
-    cmd = [sys.executable, str(main_path)]
+    sys.path.insert(0, str(Path(".").resolve()))
 
+    sys.argv = ["uproot"]
     if command:
-        cmd.append(command)
+        sys.argv.append(command)
+    sys.argv.extend(args)
 
-    cmd.extend(args)
-    sys.exit(subprocess.call(cmd))
+    import main as _  # noqa: F401
+
+    from uproot.cli import cli
+
+    cli()
 
 
 def show_help() -> None:
