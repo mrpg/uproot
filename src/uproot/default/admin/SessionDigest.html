@@ -1,0 +1,31 @@
+{% extends "Admin.html" %}
+
+{% block titlearea %}
+
+<div class="align-center d-flex justify-content-between my-4" id="title-container">
+    <h2 id="uproot-title" class="fw-semibold">
+        {% translate %}
+        Session
+        {% endtranslate %}
+        <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
+        <span class="fw-light text-secondary">&gt; {% translate %}Digest{% endtranslate %}</span>
+    </h2>
+</div>
+
+{% endblock titlearea %}
+
+
+{% block main3 %}
+
+{# TODO #}
+{% for appname, html_ in subhtml.items() %}
+
+<h3>{{ appname }}</h3>
+
+<div class="mb-5">
+{{ html_ }}
+</div>
+
+{% endfor %}
+
+{% endblock main3 %}

@@ -12,7 +12,6 @@ import builtins
 import importlib.metadata
 import os
 import sys
-from pathlib import Path
 from time import perf_counter as now
 from typing import Any, Optional, cast
 
@@ -52,6 +51,7 @@ import uproot.types as t
 from uproot.constraints import ensure
 from uproot.pages import static_factory, to_filter, tojson_filter
 from uproot.storage import Admin, Session
+from uproot.types import ensure_awaitable
 
 # General settings
 
@@ -725,7 +725,7 @@ async def sessionmain(
             await render(
                 "Session.html",
                 dict(sname=sname, room=session.room) | await a.info_online(sname),
-                dict(session=session),
+                dict(session=session, has_digest=bool(a.get_digest(sname))),
             )
         )
 
@@ -739,6 +739,46 @@ async def session_data(
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(await render("SessionData.html", dict(sname=sname)))
+
+
+# Particular session: digest
+@router.get("/session/{sname}/digest/")
+async def session_digest(
+    request: Request,
+    sname: t.Sessionname,
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    from markupsafe import Markup
+
+    a.session_exists(sname)
+
+    available = a.get_digest(sname)
+    ensure(bool(available), ValueError, "No digest available")
+
+    html = dict()
+
+    with Session(sname) as session:
+        for appname in available:
+            _ = await ensure_awaitable(
+                u.APPS[appname].digest,
+                session=session,
+            )  # TODO
+
+            # TODO: Something like this:
+            # from pathlib import Path
+            # digest_template = Path(".") / appname / "AdminDigest.html"
+            # ensure(
+            #    digest_template.exists(),
+            #    RuntimeError,
+            #    f"App {appname} has no AdminDigest.html",
+            # )
+            # Plus rendering with __panic__ set
+
+            html[appname] = Markup("<b>TODO.</b>")
+
+    return HTMLResponse(
+        await render("SessionDigest.html", dict(sname=sname, subhtml=html))
+    )
 
 
 # Particular session: get data
@@ -775,40 +815,6 @@ async def session_data_download(
         )
     else:
         raise NotImplementedError
-
-
-# Particular session: digests
-@router.get("/session/{sname}/digest/{appname}/")
-async def session_digest(
-    request: Request,
-    sname: t.Sessionname,
-    appname: str,
-    auth: dict[str, Any] = Depends(auth_required),
-) -> Response:
-    a.session_exists(sname)
-    ensure(
-        appname.isidentifier(),  # KEEP AS IS
-        TypeError,
-        "Invalid app",
-    )
-
-    with Session(sname) as session:
-        ensure(
-            appname in session.apps,
-            ValueError,
-            f"App {appname} not used in session",
-        )
-
-    digest_template = Path(".") / appname / "AdminDigest.html"
-    ensure(
-        digest_template.exists(),
-        RuntimeError,
-        f"App {appname} has no AdminDigest.html",
-    )
-
-    raise NotImplementedError  # TODO
-
-    # return HTMLResponse(await render("SessionDigest.html", dict(sname=sname, appname=appname)))
 
 
 # Particular session: view data

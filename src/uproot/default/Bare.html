@@ -1,3 +1,13 @@
+{% if __panic__ is defined %}
+
+<div class="alert alert-danger" role="alert">
+    {% translate %}
+    <i>Digest.html</i> must not extend <i>Base.html</i> or <i>Bare.html</i>. It must <i>only</i> have a <i>main</i> block.
+    {% endtranslate %}
+</div>
+
+{% else %}
+
 {% extends "Boilerplate.html" %}
 
 {% block TOPLEVELhead %}
@@ -249,3 +259,4 @@
 </script>
 
 {% endblock %}
+{% endif %}

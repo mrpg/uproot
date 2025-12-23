@@ -452,6 +452,13 @@ def get_active_auth_sessions() -> dict[str, dict[str, Any]]:
     return sessions
 
 
+def get_digest(sname: t.Sessionname) -> bool:
+    with s.Session(sname) as session:
+        apps = session.apps
+
+    return [appname for appname in apps if hasattr(u.APPS[appname], "digest")]
+
+
 async def info_online(
     sname: t.Sessionname,
 ) -> dict[t.Username, Any]:
