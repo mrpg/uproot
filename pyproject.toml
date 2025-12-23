@@ -61,7 +61,7 @@ ensure_newline_before_comments = true
 [project.optional-dependencies]
 pg = [
     "psycopg==3.3.2",
-    "psycopg-pool==3.2.6",
+    "psycopg-pool==3.3.0",
 ]
 dev = [
     "black==25.12.0",
