@@ -343,7 +343,7 @@ async def login_get(
 async def login_post(
     request: Request,
     user: str = Form(),
-    pw: str = Form(),
+    pw: str = Form(""),
     token: str = Form(""),
     host: str = Header(""),
     x_forwarded_proto: str = Header(""),
