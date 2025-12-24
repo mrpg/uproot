@@ -165,6 +165,14 @@ def post_app_import(app: Any) -> Any:
         )
         app.page_order.insert(0, app.LandingPage)
 
+    # AdminDigest is used by SessionDigest in the admin area
+    ensure(
+        not hasattr(app, "AdminDigest")
+        or getattr(app.AdminDigest, "__injected__", False),
+        TypeError,
+        f"'AdminDigest' is a reserved Page name (app {appname})",
+    )
+
     # Demarcate beginning of new app and set player.app
     ensure(
         not hasattr(app, "StartApp") or getattr(app.StartApp, "__injected__", False),

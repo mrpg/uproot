@@ -452,7 +452,7 @@ def get_active_auth_sessions() -> dict[str, dict[str, Any]]:
     return sessions
 
 
-def get_digest(sname: t.Sessionname) -> bool:
+def get_digest(sname: t.Sessionname) -> list[str]:
     with s.Session(sname) as session:
         apps = session.apps
 

@@ -8,7 +8,6 @@ This file implements admin routes.
 # TODO: CSRF protection?
 
 import asyncio
-import builtins
 import importlib.metadata
 import os
 import sys
@@ -49,6 +48,8 @@ import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
 from uproot.constraints import ensure
+from uproot.pages import BUILTINS
+from uproot.pages import ENV as PENV
 from uproot.pages import static_factory, to_filter, tojson_filter
 from uproot.storage import Admin, Session
 from uproot.types import ensure_awaitable
@@ -60,11 +61,6 @@ router = APIRouter(prefix=f"{d.ROOT}/admin")
 
 LAST_FAILED_LOGIN = 0.0
 LOGIN_URL = f"{d.ROOT}/admin/login/"
-BUILTINS = {
-    fname: getattr(builtins, fname)
-    for fname in dir(builtins)
-    if callable(getattr(builtins, fname))
-}
 ENV = Environment(
     loader=i18n.TranslateLoader(
         ChoiceLoader(
@@ -748,6 +744,8 @@ async def session_digest(
     sname: t.Sessionname,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
+    from pathlib import Path
+
     from markupsafe import Markup
 
     a.session_exists(sname)
@@ -759,22 +757,40 @@ async def session_digest(
 
     with Session(sname) as session:
         for appname in available:
-            _ = await ensure_awaitable(
-                u.APPS[appname].digest,
+            app = u.APPS[appname]
+            rval = await ensure_awaitable(
+                app.digest,
                 session=session,
-            )  # TODO
+            )
 
-            # TODO: Something like this:
-            # from pathlib import Path
-            # digest_template = Path(".") / appname / "AdminDigest.html"
-            # ensure(
-            #    digest_template.exists(),
-            #    RuntimeError,
-            #    f"App {appname} has no AdminDigest.html",
-            # )
-            # Plus rendering with __panic__ set
+            if not isinstance(rval, dict):
+                data = dict(data=rval)
+            else:
+                data = rval
 
-            html[appname] = Markup("<b>TODO.</b>")
+            digest_template = Path(".") / appname / "AdminDigest.html"
+            ensure(
+                digest_template.exists(),
+                RuntimeError,
+                f"App {appname} has no AdminDigest.html",
+            )
+
+            context = (
+                data
+                | BUILTINS
+                | dict(
+                    __panic__=True,
+                    session=session,
+                    internalstatic=static_factory(),
+                    projectstatic=static_factory("_project"),
+                    appstatic=static_factory(appname),
+                    C=getattr(app, "C", {}),
+                )
+            )
+
+            html[appname] = Markup(
+                await PENV.get_template(str(digest_template)).render_async(**context)
+            )
 
     return HTMLResponse(
         await render("SessionDigest.html", dict(sname=sname, subhtml=html))
