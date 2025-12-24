@@ -48,6 +48,20 @@ uproot = ["default/**/*", "_static/**/*"]
 [tool.black]
 target-version = ['py311']
 include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | build
+  | dist
+  | tests
+)/
+'''
+
+[tool.ruff]
+src = ["src"]
+exclude = ["build", "dist", ".venv", "venv", ".git", "__pycache__", "tests"]
 
 [tool.isort]
 profile = "black"
@@ -57,6 +71,8 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
+src_paths = ["src"]
+skip = ["tests", "build", "dist", ".venv", "venv"]
 
 [project.optional-dependencies]
 pg = [
@@ -64,13 +80,20 @@ pg = [
     "psycopg-pool==3.3.0",
 ]
 dev = [
+    "bandit==1.8.1",
     "black==25.12.0",
+    "deptry==0.24.0",
     "isort==7.0.0",
     "mypy==1.19.1",
+    "pip-audit==2.9.0",
+    "pip-tools==7.4.1",
+    "pre-commit==4.0.1",
     "pytest==9.0.1",
     "pytest-asyncio==1.3.0",
     "pytest-cov==7.0.0",
+    "radon==6.0.1",
     "ruff==0.14.2",
+    "semgrep==1.104.0",
 ]
 docs = [
     "mkdocs-material==9.7.0"
@@ -92,6 +115,7 @@ no_implicit_optional = true
 disallow_any_generics = true
 check_untyped_defs = true
 strict_equality = true
+exclude = ["tests", "build", "dist"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -100,3 +124,46 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--cov=uproot --cov-report=term-missing"
 asyncio_mode = "auto"
+
+[tool.bandit]
+exclude_dirs = ["tests", "build", ".venv", "venv"]
+skips = []
+
+[tool.deptry]
+extend_exclude = ["tests", "build"]
+
+[tool.deptry.per_rule_ignores]
+DEP002 = [
+    "setuptools",
+    "wheel",
+    # Dev tools not imported in code
+    "bandit",
+    "black",
+    "deptry",
+    "isort",
+    "mypy",
+    "pip-audit",
+    "pip-tools",
+    "pre-commit",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "radon",
+    "ruff",
+    "semgrep",
+    # Runtime dependencies not directly imported
+    "python-multipart",  # Required by FastAPI for form data
+    "websockets",  # Required for WebSocket support
+    # Optional/docs dependencies
+    "psycopg",
+    "mkdocs-material",
+]
+DEP003 = [
+    "uproot",  # Internal package imports
+    "markupsafe",  # Jinja2 transitive dependency
+    "typing_extensions",  # Pydantic transitive dependency
+    "starlette",  # FastAPI transitive dependency
+]
+DEP001 = [
+    "main",  # Not a package, used for __name__ == '__main__'
+]

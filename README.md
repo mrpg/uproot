@@ -120,17 +120,63 @@ source env/bin/activate
 
 We follow these development practices to maintain code quality:
 
+### Code Quality Tools
 - **Code formatting**: [Black](https://black.readthedocs.io/) for consistent code formatting
 - **Import sorting**: [isort](https://pycqa.github.io/isort/) with Black profile compatibility
 - **Type checking**: [mypy](https://mypy.readthedocs.io/) with strict typing enabled
 - **Linting**: [Ruff](https://docs.astral.sh/ruff/) for fast Python linting
-- **Testing**: [pytest](https://pytest.org/) with coverage reporting via pytest-cov
+- **Complexity analysis**: [Radon](https://radon.readthedocs.io/) for measuring code complexity and maintainability
+- **Dependency management**: [pip-tools](https://pip-tools.readthedocs.io/) for reproducible dependency pinning
+
+### Security Tools
+- **Security scanning**: [Bandit](https://bandit.readthedocs.io/) for detecting security vulnerabilities
+- **Dependency auditing**: [pip-audit](https://pypi.org/project/pip-audit/) for scanning dependencies for known CVEs
+- **Advanced analysis**: [Semgrep](https://semgrep.dev/) for pattern-based security and correctness checking
+- **Dependency checking**: [Deptry](https://deptry.com/) for finding unused and missing dependencies
+
+### Testing
+- **Testing framework**: [pytest](https://pytest.org/) with coverage reporting via pytest-cov
 - **Async testing**: pytest-asyncio for testing asynchronous code
 - **Code coverage**: Coverage reports show missing lines for comprehensive testing
+
+### Automation
+- **Pre-commit hooks**: Automated checks before each commit
+- **CI/CD**: GitHub Actions workflow running all checks on pull requests
+- **Make commands**: Convenient `make` targets for common tasks
+
+### Quick Start for Development
+
+1. **Install development dependencies**:
+   ```bash
+   make install
+   ```
+
+2. **Run all checks**:
+   ```bash
+   make all
+   ```
+
+3. **Available commands**:
+   ```bash
+   make help              # Show all available commands
+   make format            # Auto-format code
+   make lint              # Run linting checks
+   make type-check        # Run mypy
+   make security          # Run security scans
+   make quality           # Run code quality checks
+   make test              # Run tests with coverage
+   make requirements      # Compile requirements.txt
+   ```
+
+4. **Pre-commit hooks**: Automatically installed with `make install`. Manually run with:
+   ```bash
+   pre-commit run --all-files
+   ```
+
+### Standards
 - **Python version**: Minimum Python 3.11 required
 - **Database support**: Optional PostgreSQL support via psycopg
 - **Versioning**: [Semantic versioning](https://semver.org/) (MAJOR.MINOR.PATCH)
-- **Development workflow**: Install with `[dev]` extras for all development tools
 
 All development dependencies are included in the `[dev]` optional dependency group.
 

@@ -189,17 +189,23 @@ def from_cookie(uauth: str) -> dict[str, str]:
 
         # Verify token is in active set and not expired
         if uauth not in active_tokens:
-            return dict(user="", token="")
+            return dict(
+                user="", token=""
+            )  # nosec B106 - Empty strings for auth failure, not actual credentials
 
         # Verify token signature and expiration (24 hours)
         data = serializer.loads(uauth, max_age=86400)
 
         if not isinstance(data, dict) or "user" not in data:
-            return dict(user="", token="")
+            return dict(
+                user="", token=""
+            )  # nosec B106 - Empty strings for auth failure, not actual credentials
 
         return dict(user=data["user"], token=uauth)
     except (BadSignature, SignatureExpired, Exception):
-        return dict(user="", token="")
+        return dict(
+            user="", token=""
+        )  # nosec B106 - Empty strings for auth failure, not actual credentials
 
 
 def everything_from_session(
