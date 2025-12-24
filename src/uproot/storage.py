@@ -23,12 +23,6 @@ from uproot.types import (
 )
 
 VALID_TRAIL0: tuple[str, ...] = ("admin", "session", "player", "group", "model")
-DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
-    session=lambda p: p._uproot_session(),
-    group=lambda p: p._uproot_group(),
-    along=lambda p: (lambda field: within.along(p, field)),
-    within=lambda p: (lambda **context: within(p, **context)),
-)
 
 
 def all_good(key: tuple[str, str]) -> bool:
@@ -312,3 +306,48 @@ def Player(sname: Sessionname, uname: Username) -> Storage:
 
 def Model(sname: Sessionname, mname: str) -> Storage:
     return Storage("model", str(sname), mname)
+
+
+def virtual_group(
+    storage: Storage,
+) -> Storage | Callable[[str | GroupIdentifier], Storage]:
+    if storage.__namespace__[0] == "player":
+        return cast(Storage, storage._uproot_group())
+    elif storage.__namespace__[0] == "session":
+
+        def grabber(glike: str | GroupIdentifier) -> Storage:
+            if isinstance(glike, str):
+                return Group(storage.name, glike)
+            elif isinstance(glike, GroupIdentifier) and glike.sname == storage.name:
+                return glike()
+            else:
+                raise TypeError
+
+        return grabber
+    else:
+        raise AttributeError
+
+
+def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Storage]:
+    if storage.__namespace__[0] == "session":
+
+        def grabber(plike: str | PlayerIdentifier) -> Storage:
+            if isinstance(plike, str):
+                return Player(storage.name, plike)
+            elif isinstance(plike, PlayerIdentifier) and plike.sname == storage.name:
+                return plike()
+            else:
+                raise TypeError
+
+        return grabber
+    else:
+        raise AttributeError
+
+
+DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
+    session=lambda p: p._uproot_session(),
+    group=virtual_group,
+    player=virtual_player,
+    along=lambda p: (lambda field: within.along(p, field)),
+    within=lambda p: (lambda **context: within(p, **context)),
+)
