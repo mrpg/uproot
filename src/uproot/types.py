@@ -326,8 +326,10 @@ def token_unchecked(outlen: int) -> str:
     """This function generates a random Python identifier."""
     ensure(outlen > 0, ValueError, "Output length must be positive")
 
-    return random.choice(ascii_lowercase) + "".join(
-        random.choices(ALPHANUMERIC, k=outlen - 1)
+    return random.choice(
+        ascii_lowercase
+    ) + "".join(  # nosec B311 - Random for identifier generation, not security
+        random.choices(ALPHANUMERIC, k=outlen - 1)  # nosec B311
     )
 
 

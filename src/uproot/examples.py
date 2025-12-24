@@ -268,7 +268,7 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
     try:
         os.chmod(mainpath, os.stat(mainpath).st_mode | stat.S_IEXEC)
-    except Exception:
+    except Exception:  # nosec B110 - Best effort chmod, not critical if it fails
         pass
 
     staticdir.mkdir(exist_ok=False)

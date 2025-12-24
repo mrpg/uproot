@@ -1,4 +1,5 @@
 build/
+.claude
 .coverage
 .coverage.*
 dist/
@@ -22,7 +23,13 @@ __pycache__/
 *.pyo
 .pytest_cache/
 .python-version
+radon-report.json
+requirements-dev.txt
+requirements.txt
 .ropeproject/
+.ruff_cache/
+*.sarif
+.semgrep/
 *.sqlite3*
 *.swo
 *.swp

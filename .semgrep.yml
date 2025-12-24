@@ -1,0 +1,17 @@
+rules:
+  # Use semgrep's built-in rulesets
+  # You can customize this file to add your own rules
+
+  # This configuration uses semgrep's auto config in CI
+  # which includes:
+  # - p/security-audit (security issues)
+  # - p/python (Python best practices)
+  # - p/owasp-top-ten (OWASP vulnerabilities)
+
+  # Custom rules can be added here
+  # Example:
+  # - id: no-print-statements
+  #   pattern: print(...)
+  #   message: Avoid using print() in production code
+  #   languages: [python]
+  #   severity: WARNING

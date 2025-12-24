@@ -717,7 +717,7 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     stat = os.stat(target_path)
 
     etag_base = f"{stat.st_mtime}-{stat.st_size}-{stat.st_ino}"
-    etag = f'"{hashlib.md5(etag_base.encode()).hexdigest()}"'
+    etag = f'"{hashlib.md5(etag_base.encode()).hexdigest()}"'  # nosec B324 - MD5 for ETag generation, not cryptographic use
 
     last_modified = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
     last_modified_str = formatdate(stat.st_mtime, usegmt=True)

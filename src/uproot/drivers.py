@@ -3,6 +3,10 @@
 
 """
 This file exposes an internal API that end users MUST NOT rely upon. Rely upon storage.py instead.
+
+Note: SQL queries in this file use f-strings for table names (self.tblextra) which are
+controlled class attributes, not user input. All user-provided data uses parameterized
+queries (%s or ?) to prevent SQL injection. The f-strings are safe in this context.
 """
 
 import sqlite3
@@ -206,7 +210,7 @@ class PostgreSQL(DBDriver):
 
         try:
             cur.executemany(
-                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",  # nosec B608
                 self._batch_inserts,
             )
             self._batch_inserts.clear()
@@ -244,14 +248,14 @@ class PostgreSQL(DBDriver):
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(
                     "SELECT 1 "
-                    f"WHERE EXISTS(SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'uproot{self.tblextra}_values')"
+                    f"WHERE EXISTS(SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'uproot{self.tblextra}_values')"  # nosec B608
                 )
 
     def size(self) -> Optional[int]:
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(
-                    f"SELECT COALESCE(pg_total_relation_size('uproot{self.tblextra}_values'::regclass), 0)"
+                    f"SELECT COALESCE(pg_total_relation_size('uproot{self.tblextra}_values'::regclass), 0)"  # nosec B608
                 )
                 result = cur.fetchone()
                 return cast(int, result[0]) if result else None
@@ -290,7 +294,7 @@ class PostgreSQL(DBDriver):
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(
-                    f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values"
+                    f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values"  # nosec B608
                 )
                 for namespace, field, value, created_at, context in cur:
                     yield msgpack.packb(
@@ -355,18 +359,18 @@ class PostgreSQL(DBDriver):
                     # Handle upserts for players field
                     for values in upsert_batch:
                         cur.execute(
-                            f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",
+                            f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",  # nosec B608
                             values[:5],
                         )
                         if cur.rowcount == 0:
                             cur.execute(
-                                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",  # nosec B608
                                 values[5:],
                             )
 
                 if batch:
                     cur.executemany(
-                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",  # nosec B608
                         batch,
                     )
 
@@ -383,12 +387,12 @@ class PostgreSQL(DBDriver):
                 with self.pool.connection() as conn:
                     with conn.transaction(), conn.cursor() as cur:
                         cur.execute(
-                            f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",
+                            f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",  # nosec B608
                             (encode(data), self.now, context, namespace, field),
                         )
                         if cur.rowcount == 0:
                             cur.execute(
-                                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",
+                                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",  # nosec B608
                                 (namespace, field, encode(data), self.now, context),
                             )
             else:
@@ -425,7 +429,7 @@ class PostgreSQL(DBDriver):
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(
-                    f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",
+                    f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",  # nosec B608
                 )
                 for namespace, field, value, created_at, context in cur:
                     yield namespace, field, t.Value(
@@ -482,7 +486,7 @@ class Sqlite3(DBDriver):
 
         try:
             conn.executemany(
-                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
                 self._batch_inserts,
             )
             conn.commit()
@@ -515,7 +519,7 @@ class Sqlite3(DBDriver):
     def test_tables(self) -> None:
         conn = self._get_connection()
         cursor = conn.execute(
-            f"SELECT name FROM sqlite_master WHERE type='table' AND name='uproot{self.tblextra}_values'"
+            f"SELECT name FROM sqlite_master WHERE type='table' AND name='uproot{self.tblextra}_values'"  # nosec B608
         )
         ensure(cursor.fetchone() is not None, RuntimeError, "Table does not exist")
 
@@ -562,7 +566,7 @@ class Sqlite3(DBDriver):
 
             conn = self._get_connection()
             cursor = conn.execute(
-                f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values"
+                f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values"  # nosec B608
             )
             for namespace, field, value, created_at, context in cursor:
                 yield msgpack.packb(
@@ -624,18 +628,18 @@ class Sqlite3(DBDriver):
                 # Handle upserts for players field
                 for values in upsert_batch:
                     cursor = conn.execute(
-                        f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",
+                        f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",  # nosec B608
                         values[:5],
                     )
                     if cursor.rowcount == 0:
                         conn.execute(
-                            f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                            f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
                             values[5:],
                         )
 
             if batch:
                 conn.executemany(
-                    f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                    f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
                     batch,
                 )
 
@@ -651,12 +655,12 @@ class Sqlite3(DBDriver):
 
                 conn = self._get_connection()
                 cursor = conn.execute(
-                    f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",
+                    f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",  # nosec B608
                     (encode(data), self.now, context, namespace, field),
                 )
                 if cursor.rowcount == 0:
                     conn.execute(
-                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",
+                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
                         (namespace, field, encode(data), self.now, context),
                     )
                 conn.commit()
@@ -687,7 +691,7 @@ class Sqlite3(DBDriver):
 
             conn = self._get_connection()
             cursor = conn.execute(
-                f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",
+                f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",  # nosec B608
             )
 
             for namespace, field, value, created_at, context in cursor:
