@@ -336,36 +336,50 @@ def db_request(
                                 all_conditions_met = False
                                 break
 
-                    # Check temporal ordering constraint: for non-context fields,
-                    # context fields must be set before or at the same time as the target field
-                    temporal_constraint_met = True
-                    if (
-                        all_conditions_met
-                        and key in current_state
-                        and ctx
-                        and key not in ctx
-                    ):
-                        target_time = current_state[key]["time"]
-                        for cond_field in ctx.keys():
-                            if cond_field in current_state:
-                                context_time = current_state[cond_field]["time"]
-                                if context_time > target_time:
-                                    temporal_constraint_met = False
-                                    break
+                    # Update latest valid state whenever conditions are met
+                    # (matches viewdata.js approach: always update on condition match)
+                    if all_conditions_met:
+                        latest_valid_state = copy.deepcopy(current_state)
 
-                    if all_conditions_met and temporal_constraint_met:
-                        if (
-                            key in current_state
-                            and not current_state[key]["unavailable"]
-                        ):
-                            latest_valid_state = current_state[key]["data"]
-
+                # After loop: check if we found any valid state
                 if latest_valid_state is None:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
                     )
 
-                rval = latest_valid_state
+                # Check if requested key exists and is available
+                if (
+                    key not in latest_valid_state
+                    or latest_valid_state[key]["unavailable"]
+                ):
+                    raise AttributeError(
+                        f"No value found for {key} within the specified context in namespace {namespace}"
+                    )
+
+                # Apply temporal ordering constraint: for non-context fields,
+                # context fields must be set before or at the same time as the target field
+                # (this matches viewdata.js: filter after finding latest state)
+                if ctx and key not in ctx:
+                    target_time = latest_valid_state[key]["time"]
+                    for cond_field in ctx.keys():
+                        if cond_field in latest_valid_state:
+                            context_time = latest_valid_state[cond_field]["time"]
+                            if context_time > target_time:
+                                raise AttributeError(
+                                    f"No value found for {key} within the specified context in namespace {namespace}"
+                                )
+
+                # Get the final data value
+                result_data = latest_valid_state[key]["data"]
+
+                # If the value is None, treat it as not found (raise AttributeError)
+                # This is consistent with the semantics that None means "no value"
+                if result_data is None:
+                    raise AttributeError(
+                        f"No value found for {key} within the specified context in namespace {namespace}"
+                    )
+
+                rval = result_data
 
         # ERROR
         case _, _, _:

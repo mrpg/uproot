@@ -797,8 +797,98 @@ def test_within_context_never_satisfied():
         expect_attribute_error(within_ctx, "ctx2")
 
 
+def test_within_context_changes_back_single_field():
+    """Test that within only returns data from the LATEST context window when context changes back.
+
+    This is the critical test that distinguishes between:
+    - Early filtering: returns data from ANY matching context window
+    - Late filtering: returns data only from the LATEST matching context window
+
+    We use the late filtering approach for "within" semantics.
+    """
+    sid, pid = setup()
+
+    # First context window: ctx1=1
+    pid().ctx1 = 1  # t=0
+    pid().field1 = 42  # t=1: field1 recorded during first ctx1=1 period
+
+    # Context changes
+    pid().ctx1 = 2  # t=2: context no longer ctx1=1
+
+    # Second context window: ctx1=1 (changes back)
+    pid().ctx1 = 1  # t=3: context returns to ctx1=1
+
+    with pid() as player:
+        # Query for ctx1=1 should only consider the LATEST ctx1=1 window (at t=3)
+        # field1=42 was set during the first ctx1=1 window (at t=1)
+        # At t=3, ctx1 was set at t=3, field1 was set at t=1
+        # Since ctx1 time (3) > field1 time (1), field1 should be excluded
+        within_ctx = player.within(ctx1=1)
+        expect_attribute_error(
+            within_ctx, "field1"
+        )  # field1 from first window should not be visible
+        assert within_ctx.ctx1 == 1  # But ctx1 itself should be accessible
+
+
+def test_within_context_changes_back_with_new_data():
+    """Test that data set in the LATEST context window IS visible."""
+    sid, pid = setup()
+
+    # First context window
+    pid().ctx1 = 1  # t=0
+    pid().field1 = 42  # t=1: old data from first window
+
+    # Context changes
+    pid().ctx1 = 2  # t=2
+
+    # Second context window with new data
+    pid().ctx1 = 1  # t=3: context returns to ctx1=1
+    pid().field1 = 100  # t=4: NEW data set during second ctx1=1 window
+
+    with pid() as player:
+        within_ctx = player.within(ctx1=1)
+        # field1=100 was set at t=4, ctx1 was set at t=3
+        # Since ctx1 time (3) < field1 time (4), field1 should be included
+        assert within_ctx.field1 == 100  # Latest data is visible
+        assert within_ctx.ctx1 == 1
+
+
+def test_within_context_changes_back_multiple_fields():
+    """Test temporal constraint with multiple context fields that change back."""
+    sid, pid = setup()
+
+    # First context window
+    pid().ctx1 = 1  # t=0
+    pid().ctx2 = 2  # t=1
+    pid().field1 = 42  # t=2: data from first window
+    pid().field2 = 100  # t=3: more data from first window
+
+    # Break context
+    pid().ctx1 = 5  # t=4
+
+    # Restore context
+    pid().ctx1 = 1  # t=5: ctx1 back to 1 (ctx2 still 2)
+    pid().field3 = 200  # t=6: new data in restored context
+
+    with pid() as player:
+        within_ctx = player.within(ctx1=1, ctx2=2)
+
+        # field1 and field2 were set before the latest ctx1 restoration
+        # ctx1 latest time is t=5, field1 time is t=2, field2 time is t=3
+        expect_attribute_error(within_ctx, "field1")  # Old data excluded
+        expect_attribute_error(within_ctx, "field2")  # Old data excluded
+
+        # field3 was set after the latest ctx1 restoration
+        # ctx1 time is t=5, field3 time is t=6
+        assert within_ctx.field3 == 200  # New data included
+
+        # Context fields themselves are always accessible
+        assert within_ctx.ctx1 == 1
+        assert within_ctx.ctx2 == 2
+
+
 def test_within_complex_temporal_scenarios():
-    """Test within with complex temporal sequences and carry-over values."""
+    """Test within with complex temporal sequences and temporal constraint enforcement."""
     sid, pid = setup()
 
     # Complex scenario with multiple field changes and context windows
@@ -815,8 +905,9 @@ def test_within_complex_temporal_scenarios():
     pid().state = "B"  # Break context
     pid().counter = 3
 
-    pid().state = "A"  # Restore context
-    pid().counter = 4  # Context: state=A, mode=1, counter=4, base_value="updated"
+    pid().state = "A"  # Restore context (state set at this point)
+    pid().counter = 4  # Context: state=A, mode=1, counter=4
+    pid().base_value = "final"  # Set AFTER context restoration
 
     with pid() as player:
         # Find state when state=A and mode=1 were both true
@@ -826,7 +917,9 @@ def test_within_complex_temporal_scenarios():
         assert within_ctx.state == "A"
         assert within_ctx.mode == 1
         assert within_ctx.counter == 4  # Latest counter when context was satisfied
-        assert within_ctx.base_value == "updated"  # Carried over from earlier
+        assert (
+            within_ctx.base_value == "final"
+        )  # Only values set AFTER latest context restoration are visible
 
 
 def test_within_string_representations():
@@ -845,7 +938,7 @@ def test_within_string_representations():
 
 
 def test_within_multiple_context_fields_temporal_logic():
-    """Test multiple context fields with complex temporal sequences."""
+    """Test multiple context fields with complex temporal sequences and temporal constraint."""
     sid, pid = setup()
 
     # Create a temporal sequence where context conditions are satisfied at different times
@@ -857,28 +950,38 @@ def test_within_multiple_context_fields_temporal_logic():
     pid().field_a = "value_a2"
     pid().target = "target2"
 
-    # Restore field_a and change field_b, creating a new context window
-    pid().field_a = "value_a1"
+    # Restore field_a - this creates a NEW context window for field_a="value_a1", field_b="value_b1"
+    pid().field_a = "value_a1"  # Context restored here (latest establishment point)
+    # target was last set BEFORE this restoration, so it won't be visible with temporal constraint
+
+    with pid() as player:
+        # Context field_a="value_a1", field_b="value_b1" is restored at the point where field_a is set back
+        # Since target was set BEFORE field_a was restored, target is NOT visible (temporal constraint)
+        within_ctx1 = player.within(field_a="value_a1", field_b="value_b1")
+        assert within_ctx1.field_a == "value_a1"
+        assert within_ctx1.field_b == "value_b1"
+        # target was set before the latest field_a restoration, so it's excluded by temporal constraint
+        expect_attribute_error(within_ctx1, "target")
+
+    # Now test with data set AFTER context restoration
+    pid().target = "target4"  # Set after field_a restoration
+
+    with pid() as player:
+        within_ctx2 = player.within(field_a="value_a1", field_b="value_b1")
+        assert (
+            within_ctx2.target == "target4"
+        )  # Now visible because set after context restoration
+
+    # Change field_b, creating a different context
     pid().field_b = "value_b2"
     pid().target = "target3"
 
     with pid() as player:
-        # Context field_a="value_a1", field_b="value_b1" was satisfied in first window
-        # The algorithm returns the latest satisfied interval, so it should find values
-        # that were valid during that context period
-        within_ctx1 = player.within(field_a="value_a1", field_b="value_b1")
-        assert within_ctx1.field_a == "value_a1"
-        assert within_ctx1.field_b == "value_b1"
-        # The target should be from when both field_a and field_b matched these values
-        # Due to the implementation finding the latest satisfied interval and latest values,
-        # it may return "target2" which was the latest target before the context changed
-        assert within_ctx1.target in ["target1", "target2"]  # Either is reasonable
-
         # Context field_a="value_a1", field_b="value_b2" is satisfied currently
-        within_ctx2 = player.within(field_a="value_a1", field_b="value_b2")
-        assert within_ctx2.field_a == "value_a1"
-        assert within_ctx2.field_b == "value_b2"
-        assert within_ctx2.target == "target3"  # Target from current context window
+        within_ctx3 = player.within(field_a="value_a1", field_b="value_b2")
+        assert within_ctx3.field_a == "value_a1"
+        assert within_ctx3.field_b == "value_b2"
+        assert within_ctx3.target == "target3"  # Target from current context window
 
 
 def test_within_context_field_does_not_exist():
@@ -914,6 +1017,92 @@ def test_within_empty_context_equivalence():
         # Should be equivalent to direct access
         assert within_ctx.field1 == player.field1
         assert within_ctx.field2 == player.field2
+
+
+def test_along_with_temporal_constraints():
+    """Test that .along() correctly applies temporal constraints in each context window."""
+    sid, pid = setup()
+
+    # Create a sequence where context field changes multiple times
+    # and we have data associated with each context value
+    pid().level = 1
+    pid().score = 100  # score set when level=1
+
+    pid().level = 2
+    pid().score = 200  # score set when level=2
+
+    pid().level = 1  # level changes back to 1
+    pid().hp = 50  # hp set when level=1 (second time)
+
+    pid().level = 3
+    pid().score = 300  # score set when level=3
+
+    with pid() as player:
+        # Iterate through level history using .along()
+        level_contexts = {}
+        for level_value, within_ctx in player.along("level"):
+            level_contexts[level_value] = within_ctx
+
+        # Check level=1 context
+        # The .along() will create within(level=1), which should use the LATEST level=1 window
+        # At the latest level=1 window, score was 200 (set before level changed back to 1)
+        # So score should NOT be visible due to temporal constraint
+        assert level_contexts[1].level == 1
+        expect_attribute_error(
+            level_contexts[1], "score"
+        )  # score=200 was set before latest level=1
+        assert level_contexts[1].hp == 50  # hp was set during latest level=1 window
+
+        # Check level=2 context
+        assert level_contexts[2].level == 2
+        assert level_contexts[2].score == 200  # score was set when level=2
+
+        # Check level=3 context
+        assert level_contexts[3].level == 3
+        assert level_contexts[3].score == 300  # score was set when level=3
+
+
+def test_along_with_multiple_context_changes():
+    """Test .along() behavior when the along field changes back and forth."""
+    sid, pid = setup()
+
+    # Create alternating pattern: A -> B -> A -> B
+    pid().state = "A"
+    pid().data1 = "a1"
+
+    pid().state = "B"
+    pid().data2 = "b1"
+
+    pid().state = "A"
+    pid().data3 = "a2"
+
+    pid().state = "B"
+    pid().data4 = "b2"
+
+    with pid() as player:
+        state_contexts = {}
+        for state_value, within_ctx in player.along("state"):
+            # Store the latest context for each state value
+            # (along will visit each historical value, but we only keep the last one)
+            state_contexts[state_value] = within_ctx
+
+        # For state="A": along creates within(state="A")
+        # This uses the LATEST state="A" window (from the 3rd occurrence)
+        # data1 was set when state="A" first time, should NOT be visible (temporal constraint)
+        # data3 was set when state="A" second time, SHOULD be visible
+        assert state_contexts["A"].state == "A"
+        expect_attribute_error(
+            state_contexts["A"], "data1"
+        )  # From first A window, excluded
+        assert state_contexts["A"].data3 == "a2"  # From latest A window, included
+
+        # For state="B": along creates within(state="B")
+        # This uses the LATEST state="B" window (from the 4th occurrence)
+        assert state_contexts["B"].state == "B"
+        expect_attribute_error(
+            state_contexts["B"], "data2"
+        )  # From first B window, excluded
+        assert state_contexts["B"].data4 == "b2"  # From latest B window, included
 
 
 def test_storage_repr():
