@@ -40,6 +40,14 @@ class within:
         self.__context_fields__ = context
 
     def __getattr__(self, name: str) -> Any:
+        return db_request(
+            self.__storage__,
+            "get_within_context",
+            name,
+            extra=self.__context_fields__,
+        )
+
+    def get(self, name: str, default: Any = None) -> Any:
         try:
             return db_request(
                 self.__storage__,
@@ -48,7 +56,7 @@ class within:
                 extra=self.__context_fields__,
             )
         except AttributeError:
-            return None
+            return default
 
     @classmethod
     def along(cls, storage: "Storage", field: str) -> Iterator[tuple[Any, "within"]]:
