@@ -244,8 +244,25 @@ class StorageBunch:
 
         return StorageBunch(result)
 
-    def find_one(self, fieldref: FieldReferent, value: Any = True) -> "Storage":
-        matches = self.filter(fieldref == value)
+    def find_one(
+        self,
+        fieldref: FieldReferent | None = None,
+        value: Any = True,
+        **kwargs: Any,
+    ) -> "Storage":
+        if fieldref is not None:
+            matches = self.filter(fieldref == value)
+        elif kwargs:
+            comparisons = []
+
+            for key, val in kwargs.items():
+                field_ref = FieldReferent([key])
+                comparisons.append(field_ref == val)
+
+            matches = self.filter(*comparisons)
+        else:
+            raise ValueError("Either fieldref or kwargs must be provided")
+
         ensure(len(matches) == 1)
 
         return matches[0]

@@ -382,6 +382,119 @@ class TestStorageBunch:
 
         assert result == ["processed_ns1_2", "processed_ns2_2"]
 
+    def test_find_one_with_field_referent(self):
+        """Test find_one with FieldReferent (original behavior)."""
+        from uproot.queries import FieldReferent
+
+        storage1 = self.create_mock_storage("ns1")
+        storage1.member_id = 1
+        storage1.role = "admin"
+        storage2 = self.create_mock_storage("ns2")
+        storage2.member_id = 2
+        storage2.role = "user"
+        storage3 = self.create_mock_storage("ns3")
+        storage3.member_id = 3
+        storage3.role = "user"
+
+        bunch = StorageBunch([storage1, storage2, storage3])
+        _ = FieldReferent()
+
+        # Test finding by member_id
+        result = bunch.find_one(_.member_id, 1)
+        assert result is storage1
+        assert result.member_id == 1
+
+        # Test finding by role
+        result = bunch.find_one(_.role, "admin")
+        assert result is storage1
+        assert result.role == "admin"
+
+    def test_find_one_with_kwargs_single(self):
+        """Test find_one with single kwarg."""
+        storage1 = self.create_mock_storage("ns1")
+        storage1.member_id = 1
+        storage1.role = "admin"
+        storage2 = self.create_mock_storage("ns2")
+        storage2.member_id = 2
+        storage2.role = "user"
+        storage3 = self.create_mock_storage("ns3")
+        storage3.member_id = 3
+        storage3.role = "user"
+
+        bunch = StorageBunch([storage1, storage2, storage3])
+
+        # Test finding by member_id using kwarg
+        result = bunch.find_one(member_id=1)
+        assert result is storage1
+        assert result.member_id == 1
+
+        # Test finding by role using kwarg
+        result = bunch.find_one(role="admin")
+        assert result is storage1
+        assert result.role == "admin"
+
+    def test_find_one_with_kwargs_multiple(self):
+        """Test find_one with multiple kwargs."""
+        storage1 = self.create_mock_storage("ns1")
+        storage1.member_id = 1
+        storage1.role = "admin"
+        storage1.status = "active"
+        storage2 = self.create_mock_storage("ns2")
+        storage2.member_id = 2
+        storage2.role = "user"
+        storage2.status = "active"
+        storage3 = self.create_mock_storage("ns3")
+        storage3.member_id = 3
+        storage3.role = "admin"
+        storage3.status = "inactive"
+
+        bunch = StorageBunch([storage1, storage2, storage3])
+
+        # Test finding with multiple criteria
+        result = bunch.find_one(role="admin", status="active")
+        assert result is storage1
+        assert result.role == "admin"
+        assert result.status == "active"
+
+        # Test finding with different multiple criteria
+        result = bunch.find_one(member_id=2, status="active")
+        assert result is storage2
+
+    def test_find_one_no_args_raises_error(self):
+        """Test find_one without args or kwargs raises ValueError."""
+        storage1 = self.create_mock_storage("ns1")
+        storage1.member_id = 1
+        bunch = StorageBunch([storage1])
+
+        with pytest.raises(
+            ValueError, match="Either fieldref or kwargs must be provided"
+        ):
+            bunch.find_one()
+
+    def test_find_one_no_matches_raises_error(self):
+        """Test find_one with no matches raises error."""
+        storage1 = self.create_mock_storage("ns1")
+        storage1.member_id = 1
+        storage2 = self.create_mock_storage("ns2")
+        storage2.member_id = 2
+
+        bunch = StorageBunch([storage1, storage2])
+
+        with pytest.raises(Exception):  # ensure() raises an exception
+            bunch.find_one(member_id=999)
+
+    def test_find_one_multiple_matches_raises_error(self):
+        """Test find_one with multiple matches raises error."""
+        storage1 = self.create_mock_storage("ns1")
+        storage1.role = "user"
+        storage2 = self.create_mock_storage("ns2")
+        storage2.role = "user"
+
+        bunch = StorageBunch([storage1, storage2])
+
+        with pytest.raises(Exception):  # ensure() raises an exception
+            bunch.find_one(role="user")
+
 
 class TestTokenFunctions:
     """Test token generation functions."""
