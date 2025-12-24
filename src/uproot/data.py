@@ -146,7 +146,7 @@ def latest(
 
         # Build state evolution and track all seen combinations
         current_state: dict[str, dict[str, Any]] = {}
-        seen_combinations: dict[tuple, dict[str, Any]] = {}
+        seen_combinations: dict[tuple[Any, ...], dict[str, Any]] = {}
 
         for change in changes:
             field = change["!field"]

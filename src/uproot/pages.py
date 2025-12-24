@@ -232,7 +232,10 @@ async def render(
                 C=getattr(app, "C", {}),
                 _uproot_errors=custom_errors,
                 _uproot_js=jsvars,
-                _uproot_testing=(is_admin or (sname is not None and session.testing)),
+                _uproot_testing=(
+                    is_admin
+                    or (sname is not None and getattr(session, "testing", False))
+                ),
             )
             | function_context(page)
             | internal

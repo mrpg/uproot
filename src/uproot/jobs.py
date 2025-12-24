@@ -44,10 +44,11 @@ async def subscribe_to_fieldchange(
     sname: Sessionname,
     fields: Optional[list[str]] = None,
 ) -> tuple[tuple[str, ...], str, Value]:
-    received = await e.FIELDCHANGE[sname].wait()
+    while True:
+        received = await e.FIELDCHANGE[sname].wait()
 
-    if fields is None or received[1] in fields:
-        return cast(tuple[tuple[str, ...], str, Value], received)
+        if fields is None or received[1] in fields:
+            return cast(tuple[tuple[str, ...], str, Value], received)
 
 
 async def subscribe_to_room(roomname: str) -> bool:

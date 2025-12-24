@@ -7,7 +7,7 @@
 
 import importlib.metadata
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, cast
 
 import uproot as u
 import uproot.storage as s
@@ -266,7 +266,7 @@ def find_free_slot(session: s.Storage) -> Optional[t.PlayerIdentifier]:
     for pid in session.players:
         with pid() as player:
             if not player.get("started", True):
-                return pid
+                return cast(t.PlayerIdentifier, pid)
 
     return None
 

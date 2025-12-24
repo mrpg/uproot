@@ -356,15 +356,15 @@ async def login_post(
     if token and user == "admin" and d.LOGIN_TOKEN is not None:
         if token == d.LOGIN_TOKEN:
             a.ensure_globals()
-            token = a.create_auth_token(user, a.ADMINS[user])
+            auth_token = a.create_auth_token(user, a.ADMINS[user])
 
-            if token is not None:
+            if auth_token is not None:
                 response = RedirectResponse(
                     f"{d.ROOT}/admin/dashboard/", status_code=303
                 )
                 set_auth_cookie(
                     response,
-                    token,
+                    auth_token,
                     x_forwarded_proto.lower() == "https"
                     or not (
                         host.startswith("localhost") or host.startswith("127.0.0.")
@@ -373,12 +373,12 @@ async def login_post(
                 return response
 
     # Attempt to create authentication token with regular credentials
-    token = a.create_auth_token(user, pw)
-    if token is not None:
+    auth_token = a.create_auth_token(user, pw)
+    if auth_token is not None:
         response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
         set_auth_cookie(
             response,
-            token,
+            auth_token,
             x_forwarded_proto.lower() == "https"
             or not (
                 host.startswith("localhost") or host.startswith("127.0.0.")
