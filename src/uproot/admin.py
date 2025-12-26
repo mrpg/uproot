@@ -4,6 +4,7 @@
 import asyncio
 import secrets
 from datetime import datetime
+from types import EllipsisType
 from typing import (
     Annotated,
     Any,
@@ -28,7 +29,7 @@ import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 
-ADMINS: dict[str, str] = dict()
+ADMINS: dict[str, str | EllipsisType] = dict()
 ADMINS_HASH: Optional[str] = None
 ADMINS_SECRET_KEY: Optional[str] = None
 DisplayValue: TypeAlias = tuple[
@@ -346,24 +347,15 @@ async def generate_json(
         await asyncio.sleep(0)
 
 
-def create_auth_token(user: str, pw: str) -> Optional[str]:
-    """Create a new authentication token for a user.
+def _create_token_for_user(user: str) -> str:
+    """Internal helper to create and store an authentication token.
 
     Args:
-        user: Username
-        pw: Password
+        user: Username (must be valid)
 
     Returns:
-        Signed token string if credentials are valid, None otherwise
+        Signed token string
     """
-    ensure_globals()
-
-    # Verify credentials first
-    if user not in ADMINS or ADMINS[user] != pw:
-        d.LOGGER.debug(f"Invalid credentials: {user} {pw}")
-        d.LOGGER.debug(f"Valid credentials would have been: {ADMINS}")
-        return None
-
     # Create token data
     token_data = {
         "user": user,
@@ -381,6 +373,50 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
     _store_active_tokens(active_tokens)
 
     return token
+
+
+def create_auth_token(user: str, pw: str) -> Optional[str]:
+    """Create a new authentication token for a user.
+
+    Args:
+        user: Username
+        pw: Password
+
+    Returns:
+        Signed token string if credentials are valid, None otherwise
+    """
+    ensure_globals()
+
+    # Verify credentials first
+    if user not in ADMINS or ADMINS[user] is ... or ADMINS[user] != pw:
+        d.LOGGER.debug(f"Invalid credentials: {user} {pw}")
+        d.LOGGER.debug(f"Valid credentials would have been: {ADMINS}")
+        return None
+
+    return _create_token_for_user(user)
+
+
+def create_auth_token_for_user(user: str) -> Optional[str]:
+    """Create an authentication token for a user without password verification.
+
+    This function should only be called after the user has been authenticated
+    through another mechanism (e.g., LOGIN_TOKEN). It bypasses password checking
+    and works even when the user's password is set to ellipsis (...).
+
+    Args:
+        user: Username
+
+    Returns:
+        Signed token string if user exists, None otherwise
+    """
+    ensure_globals()
+
+    # Only verify user exists
+    if user not in ADMINS:
+        d.LOGGER.debug(f"User does not exist: {user}")
+        return None
+
+    return _create_token_for_user(user)
 
 
 def revoke_auth_token(token: str) -> bool:

@@ -4,6 +4,7 @@
 import logging
 import os
 import secrets
+from types import EllipsisType
 from typing import TYPE_CHECKING, Any, Optional
 
 import uproot.drivers
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 
 logging.basicConfig(level=logging.INFO)
 
-ADMINS: dict[str, str] = dict()
+ADMINS: dict[str, str | EllipsisType] = dict()
 API_KEYS: set[str] = set()
 DATABASE: uproot.drivers.DBDriver = uproot.drivers.Memory()
 DBENV: str = os.getenv("UPROOT_DATABASE", "sqlite3")

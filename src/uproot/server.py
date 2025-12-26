@@ -71,7 +71,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         print(file=stderr)
 
         print("  Username:  ", "admin", file=stderr)
-        print("  Password:  ", d.ADMINS["admin"], file=stderr)
+
+        if d.ADMINS["admin"] is ...:
+            pass
+        else:
+            print("  Password:  ", d.ADMINS["admin"], file=stderr)
+
         print(
             "  Auto login:",
             f"http://{d.HOST}:{d.PORT}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",

@@ -356,7 +356,7 @@ async def login_post(
     if token and user == "admin" and d.LOGIN_TOKEN is not None:
         if token == d.LOGIN_TOKEN:
             a.ensure_globals()
-            auth_token = a.create_auth_token(user, a.ADMINS[user])
+            auth_token = a.create_auth_token_for_user(user)
 
             if auth_token is not None:
                 response = RedirectResponse(
