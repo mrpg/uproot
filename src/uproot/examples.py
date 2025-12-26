@@ -10,7 +10,6 @@ from datetime import date
 from pathlib import Path
 
 import uproot as u
-import uproot.types as t
 from uproot.constraints import ensure
 
 LICENSE_PATH = Path(__file__).parent / "_static" / "uproot_license.txt"
@@ -72,7 +71,7 @@ load_config(uproot_server, config="study01", apps=["#EXAMPLE#"])
 
 # Create admin
 
-upd.ADMINS["admin"] = "#PASSWORD#"  # Example password
+upd.ADMINS["admin"] = ...  # Leave as-is to enable auto login
 
 # Create room if it does not exist
 
@@ -258,8 +257,7 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
     with open(mainpath, "w", encoding="utf-8") as mf:
         template = (
-            PROJECT_TEMPLATE.replace("#PASSWORD#", t.token_unchecked(18))
-            .replace("#VERSION#", u.__version__)
+            PROJECT_TEMPLATE.replace("#VERSION#", u.__version__)
             .replace("#TODAY#", date.today().strftime("%Y-%m-%d"))
             .replace("#EXAMPLE#", "my_app" if minimal else "prisoners_dilemma")
         )
