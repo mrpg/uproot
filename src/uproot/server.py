@@ -43,8 +43,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         j.synchronize_rooms(app, admin)
         j.restore(app, admin)
 
+    if d.ORIGIN is None:
+        d.ORIGIN = f"http://{d.HOST}:{d.PORT}"
+
     d.LOGGER.info(f"This is uproot {u.__version__} (https://uproot.science/)")
-    d.LOGGER.info(f"Server is running at http://{d.HOST}:{d.PORT}{d.ROOT}/")
+    d.LOGGER.info(f"Server is running at {d.ORIGIN}{d.ROOT}/")
 
     try:
         import setproctitle
@@ -79,7 +82,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
         print(
             "  Auto login:",
-            f"http://{d.HOST}:{d.PORT}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
+            f"{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
             file=stderr,
         )
 

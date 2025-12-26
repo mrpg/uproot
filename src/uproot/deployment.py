@@ -24,6 +24,7 @@ HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: Optional[str] = None
 LOGGER: Any = logging.getLogger("uproot")
+ORIGIN: Optional[str] = None
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = dict()
