@@ -84,9 +84,9 @@ upd.DEFAULT_ROOMS.append(
     )
 )
 
-# Set default language
+# Other settings
 
-upd.LANGUAGE = "en"  # Available languages: "de", "en", "es"
+upd.LANGUAGE = "en"
 
 # Run uproot (leave this as-is)
 
