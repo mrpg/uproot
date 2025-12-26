@@ -39,6 +39,7 @@ DisplayValue: TypeAlias = tuple[
     Annotated[str, "displaystr"],
     Annotated[str, "context"],
 ]
+MIN_PASSWORD_LENGTH: int = 6
 
 
 async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> None:
@@ -386,6 +387,14 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
         Signed token string if credentials are valid, None otherwise
     """
     ensure_globals()
+
+    # Check minimum password length if using actual passwords
+    if isinstance(ADMINS[user], str) and len(ADMINS[user]) < MIN_PASSWORD_LENGTH:
+        d.LOGGER.error(
+            f"Password for admin '{user}' is shorter than "
+            f"the minimum length ({MIN_PASSWORD_LENGTH})"
+        )
+        return None
 
     # Verify credentials first
     if user not in ADMINS or ADMINS[user] is ... or ADMINS[user] != pw:

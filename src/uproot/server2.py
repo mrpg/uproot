@@ -359,6 +359,8 @@ async def login_post(
             auth_token = a.create_auth_token_for_user(user)
 
             if auth_token is not None:
+                d.LOGGER.info("Admin authenticated using auto login")
+
                 response = RedirectResponse(
                     f"{d.ROOT}/admin/dashboard/", status_code=303
                 )
