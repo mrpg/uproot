@@ -61,27 +61,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     else:
         d.LOGGER.info(f"There are {la} admins")
 
-    if len(d.ADMINS) == 1 and "admin" in d.ADMINS:
+    if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
         d.ensure_login_token()
 
         print(file=stderr)
         print(
-            "The following credentials are shown because you're using the default\n"
-            "administrator ('admin'). If you add more administrators, or change\n"
-            "admin's username through 'main.py', this message will no longer appear.",
+            "You can securely log in through the URL below because you are using the\n"
+            "default administrator ('admin') with an empty password (...). If you add\n"
+            "more administrators, change admin's username or set a password, this\n"
+            "message will no longer appear.",
             file=stderr,
         )
         print(file=stderr)
 
-        print("  Username:  ", "admin", file=stderr)
-
-        if d.ADMINS["admin"] is ...:
-            pass
-        else:
-            print("  Password:  ", d.ADMINS["admin"], file=stderr)
-
         print(
-            "  Auto login:",
+            "Auto login:\n\t",
             f"{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
             file=stderr,
         )
