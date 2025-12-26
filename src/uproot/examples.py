@@ -60,8 +60,8 @@ PROJECT_TEMPLATE = """
 # - uproot: LGPL v3+, see ./uproot_license.txt
 import uproot.deployment as upd
 from uproot.cli import cli
-from uproot.server import load_config, uproot_server
 from uproot.rooms import room
+from uproot.server import load_config, uproot_server
 
 upd.project_metadata(created="#TODAY#", uproot="#VERSION#")
 
@@ -105,7 +105,6 @@ MINIMAL_INIT_PY = """
 
 from uproot.fields import *
 from uproot.smithereens import *
-
 
 DESCRIPTION = ""
 LANDING_PAGE = False
