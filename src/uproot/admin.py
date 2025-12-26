@@ -389,7 +389,10 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
     ensure_globals()
 
     # Check minimum password length if using actual passwords
-    if isinstance(ADMINS[user], str) and len(ADMINS[user]) < MIN_PASSWORD_LENGTH:
+    if (
+        isinstance(ADMINS[user], str)
+        and len(cast(str, ADMINS[user])) < MIN_PASSWORD_LENGTH
+    ):
         d.LOGGER.error(
             f"Password for admin '{user}' is shorter than "
             f"the minimum length ({MIN_PASSWORD_LENGTH})"
