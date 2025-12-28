@@ -274,11 +274,6 @@ APP_JSON = """{
     }
   ],
   "env": {
-    "UPROOT_DATABASE": {
-      "description": "Database driver to use. Must be 'postgresql' for Heroku.",
-      "value": "postgresql",
-      "required": true
-    },
     "UPROOT_ORIGIN": {
       "description": "The public URL of your app (e.g., https://your-app-name.herokuapp.com). Auto-detected if you enable 'heroku labs:enable runtime-dyno-metadata'. Override for custom domains.",
       "required": false

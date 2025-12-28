@@ -18,7 +18,18 @@ logging.basicConfig(level=logging.INFO)
 ADMINS: dict[str, str | EllipsisType] = dict()
 API_KEYS: set[str] = set()
 DATABASE: uproot.drivers.DBDriver = uproot.drivers.Memory()
-DBENV: str = os.getenv("UPROOT_DATABASE", "sqlite3")
+
+# Auto-detect PostgreSQL on Heroku (DATABASE_URL is set by Heroku Postgres addon)
+DBENV: str
+if not os.getenv("UPROOT_DATABASE"):
+    database_url = os.getenv("DATABASE_URL", "")
+    if database_url.startswith(("postgres://", "postgresql://")):
+        DBENV = "postgresql"
+    else:
+        DBENV = "sqlite3"
+else:
+    DBENV = os.getenv("UPROOT_DATABASE", "sqlite3")
+
 DEFAULT_ROOMS: list["RoomType"] = list()
 HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
@@ -51,7 +62,9 @@ elif DBENV == "memory":
     pass
     LOGGER.warning("Using 'memory' database driver. Data will not persist.")
 elif DBENV == "postgresql":
-    DATABASE = uproot.drivers.PostgreSQL(os.getenv("UPROOT_POSTGRESQL", ""), TBLEXTRA)
+    # Use DATABASE_URL (Heroku standard) if UPROOT_POSTGRESQL is not set
+    pg_url = os.getenv("UPROOT_POSTGRESQL", "") or os.getenv("DATABASE_URL", "")
+    DATABASE = uproot.drivers.PostgreSQL(pg_url, TBLEXTRA)
 else:
     raise NotImplementedError(f"Invalid UPROOT_DATABASE environment variable: {DBENV}")
 
