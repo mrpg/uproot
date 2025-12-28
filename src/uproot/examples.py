@@ -39,7 +39,6 @@ __pycache__
 __pycache__/
 *.pyo
 .pytest_cache/
-.python-version
 .ropeproject/
 *.sqlite3*
 *.swo
@@ -252,7 +251,7 @@ Results
 
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
-RUNTIME_TXT = "python-3.13.5\n"
+PYTHON_VERSION = "3.13.5\n"
 
 APP_JSON = """{
   "name": "Uproot Project",
@@ -276,9 +275,9 @@ APP_JSON = """{
   ],
   "env": {
     "UPROOT_DATABASE": {
-      "description": "Database driver to use (sqlite3, postgresql, memory). Use postgresql for Heroku.",
+      "description": "Database driver to use. Must be 'postgresql' for Heroku.",
       "value": "postgresql",
-      "required": false
+      "required": true
     }
   }
 }
@@ -319,8 +318,8 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
     with open(path / "Procfile", "w", encoding="utf-8") as pf:
         pf.write(PROCFILE)
 
-    with open(path / "runtime.txt", "w", encoding="utf-8") as rt:
-        rt.write(RUNTIME_TXT)
+    with open(path / ".python-version", "w", encoding="utf-8") as pv:
+        pv.write(PYTHON_VERSION)
 
     with open(path / "app.json", "w", encoding="utf-8") as aj:
         aj.write(APP_JSON)
