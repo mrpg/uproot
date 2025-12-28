@@ -6,7 +6,7 @@
 import os
 import shutil
 import stat
-import subprocess
+import subprocess  # nosec B404  # git init command is safe
 from datetime import date
 from pathlib import Path
 
@@ -329,7 +329,7 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
         git_dir = path / ".git"
         if not git_dir.exists():
             try:
-                subprocess.run(
+                subprocess.run(  # nosec B603 B607  # Hardcoded git command, no user input
                     ["git", "init"],
                     cwd=path,
                     check=True,
