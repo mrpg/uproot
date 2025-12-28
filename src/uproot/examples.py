@@ -250,6 +250,40 @@ Results
 {% endblock main %}
 """.lstrip()
 
+PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
+
+RUNTIME_TXT = "python-3.13.5\n"
+
+APP_JSON = """{
+  "name": "Uproot Project",
+  "description": "An uproot-based web application for behavioral science experiments",
+  "keywords": ["python", "uproot", "experimental-economics", "behavioral-science"],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0"
+    }
+  ],
+  "env": {
+    "UPROOT_DATABASE": {
+      "description": "Database driver to use (sqlite3, postgresql, memory). Use postgresql for Heroku.",
+      "value": "postgresql",
+      "required": false
+    }
+  }
+}
+""".lstrip()
+
 
 def setup_empty_project(path: Path, minimal: bool) -> None:
     mainpath = path / "main.py"
@@ -274,9 +308,22 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
         rf.write(GITIGNORE)
 
     with open(path / "requirements.txt", "w", encoding="utf-8") as rf:
-        rf.write(f"uproot-science>={u.__version__}, <{u.__version_info__[0] + 1}.0.0\n")
+        rf.write(
+            f"# For PostgreSQL support, instead use: uproot-science[pg]>={u.__version__}\n"
+            f"uproot-science>={u.__version__}, <{u.__version_info__[0] + 1}.0.0\n"
+        )
 
     shutil.copy(LICENSE_PATH, path / "uproot_license.txt")
+
+    # Heroku deployment files
+    with open(path / "Procfile", "w", encoding="utf-8") as pf:
+        pf.write(PROCFILE)
+
+    with open(path / "runtime.txt", "w", encoding="utf-8") as rt:
+        rt.write(RUNTIME_TXT)
+
+    with open(path / "app.json", "w", encoding="utf-8") as aj:
+        aj.write(APP_JSON)
 
 
 def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
