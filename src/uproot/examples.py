@@ -251,7 +251,7 @@ Results
 
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
-PYTHON_VERSION = "3.13.5\n"
+PYTHON_VERSION = "3.13\n"
 
 APP_JSON = """{
   "name": "Uproot Project",
