@@ -6,6 +6,7 @@
 import os
 import shutil
 import stat
+import subprocess
 from datetime import date
 from pathlib import Path
 
@@ -322,6 +323,20 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
     with open(path / "app.json", "w", encoding="utf-8") as aj:
         aj.write(APP_JSON)
+
+    # Initialize git repository if git is available
+    if shutil.which("git") is not None:
+        git_dir = path / ".git"
+        if not git_dir.exists():
+            try:
+                subprocess.run(
+                    ["git", "init"],
+                    cwd=path,
+                    check=True,
+                    capture_output=True,
+                )
+            except subprocess.CalledProcessError:
+                pass  # Silently ignore if git init fails
 
 
 def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
