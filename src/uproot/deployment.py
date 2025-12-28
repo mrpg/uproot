@@ -25,6 +25,13 @@ LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: Optional[str] = None
 LOGGER: Any = logging.getLogger("uproot")
 ORIGIN: Optional[str] = os.getenv("UPROOT_ORIGIN")
+
+# Auto-detect Heroku app URL if not explicitly set
+if ORIGIN is None:
+    if heroku_domain := os.getenv("HEROKU_APP_DEFAULT_DOMAIN_NAME"):
+        # Dyno metadata provides the exact domain (requires `heroku labs:enable runtime-dyno-metadata`)
+        ORIGIN = f"https://{heroku_domain}"
+
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = dict()
