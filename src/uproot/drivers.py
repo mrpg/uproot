@@ -250,6 +250,8 @@ class PostgreSQL(DBDriver):
                     "SELECT 1 "
                     f"WHERE EXISTS(SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'uproot{self.tblextra}_values')"  # nosec B608
                 )
+                result = cur.fetchone()
+                ensure(result and result[0] == 1, RuntimeError, "Table does not exist")
 
     def size(self) -> Optional[int]:
         with self.pool.connection() as conn:
