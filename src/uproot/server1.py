@@ -678,9 +678,36 @@ async def ws(
 
 @router.get("/static/{realm}/{location:path}")
 async def anystatic(request: Request, realm: str, location: str) -> Response:
+    """
+    Serve static files from controlled _static directories.
+
+    Security Model:
+    - Files can only be served from _static directories within the project
+    - Path traversal attacks (../) are prevented through multiple layers
+    - Symbolic links within _static are allowed and will be followed
+    - Direct path manipulation to escape _static boundaries is blocked
+
+    Args:
+        realm: Namespace for static files (_uproot, _project, or app name)
+        location: Relative path to file within the realm's _static directory
+    """
+
+    # SECURITY LAYER 1: Validate realm parameter
+    # realm.isidentifier() ensures realm can ONLY contain:
+    # - Letters (a-z, A-Z)
+    # - Digits (0-9, but not as first character)
+    # - Underscores (_)
+    # This prevents injection of path separators (/, \) or traversal sequences (..)
+    # Examples blocked: "../etc", "../../passwd", "app/../etc"
     if not realm.isidentifier():  # KEEP AS IS
         raise HTTPException(status_code=404)
 
+    # SECURITY LAYER 2: Construct base_path from controlled locations only
+    # All base paths point to _static directories within controlled areas:
+    # - _uproot: Package's own static files (bundled with installation)
+    # - _project: Project root's static files (current working directory)
+    # - Other: App-specific static files under {cwd}/{realm}/_static
+    # No user input can influence these base paths except via validated realm
     if realm == "_uproot":
         base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_static")
     elif realm == "_project":
@@ -688,18 +715,48 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     else:
         base_path = os.path.join(os.getcwd(), realm, "_static")
 
+    # SECURITY LAYER 3: Normalize paths to resolve . and .. components
+    # os.path.abspath() resolves relative path components but does NOT follow symlinks
+    # (unlike os.path.realpath() which would follow symlinks)
+    # This allows symbolic links within _static to work (intentional design)
+    # while still preventing ../../../etc/passwd style attacks
     base_path = os.path.abspath(base_path)
     target_path = os.path.abspath(os.path.join(base_path, location))
 
+    # SECURITY LAYER 4: Verify target_path is within base_path boundary
+    # This is the critical path traversal prevention check.
+    # Examples of what this blocks:
+    # - location="../../../etc/passwd" -> target_path="/etc/passwd" (doesn't start with base_path)
+    # - location="/etc/passwd" -> target_path="/etc/passwd" (os.path.join discards base_path for absolute paths)
+    #
+    # Why base_path + os.sep instead of just base_path?
+    # - Prevents prefix attacks: if base_path="/app/_static" and we only checked startswith("/app/_static")
+    #   then "/app/_static_evil/file" would incorrectly pass
+    # - The trailing separator ensures we're checking for a directory boundary
+    #
+    # Why symbolic links still work:
+    # - If _static/mylink -> /external/data exists
+    # - target_path would be {base_path}/mylink/file (NOT /external/data/file)
+    # - This passes the check because we used abspath() not realpath()
+    # - FileResponse will follow the symlink when actually serving the file
     if not target_path.startswith(base_path + os.sep):
         raise HTTPException(status_code=404)
 
+    # SECURITY LAYER 5: Verify each path component exists (defense in depth)
+    # This provides:
+    # 1. Additional validation that the path is legitimate
+    # 2. Early detection of non-existent files (before stat/file operations)
+    # 3. Helpful developer feedback for case-sensitivity issues
+    # This layer is not strictly required for security (Layer 4 handles that)
+    # but provides defense in depth and better error messages
     path_parts = Path(location).parts
     current_path = Path(base_path)
 
     for part in path_parts:
         actual_names = os.listdir(current_path)
         if part not in actual_names:
+            # Check for case mismatches (helpful for cross-platform development)
+            # e.g., requesting "Image.PNG" when file is actually "image.png"
             matches = [n for n in actual_names if n.lower() == part.lower()]
             if matches:
                 d.LOGGER.error(
@@ -711,8 +768,21 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
 
         current_path = current_path / part
 
+    # SECURITY LAYER 6: Prevent directory listing
+    # Static file serving should only serve files, not directories
+    # This prevents enumeration of directory contents
     if os.path.isdir(target_path):
         raise HTTPException(status_code=404)
+
+    # At this point, target_path has been validated through 6 security layers:
+    # 1. realm contains no path separators or traversal sequences
+    # 2. base_path points to a controlled _static directory
+    # 3. Path components (. and ..) have been normalized
+    # 4. target_path is confirmed to be within base_path boundary
+    # 5. Each path component has been verified to exist
+    # 6. target_path is confirmed to be a file, not a directory
+    #
+    # It is now safe to serve this file.
 
     stat = os.stat(target_path)
 
