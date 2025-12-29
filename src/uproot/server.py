@@ -32,7 +32,7 @@ from uproot.server3 import router as router3
 from uproot.storage import Admin, Storage
 from uproot.types import InternalPage, Page, ensure_awaitable, optional_call
 
-MIN_PASSWORD_LENGTH: int = 6
+MIN_PASSWORD_LENGTH: int = 5
 
 
 @asynccontextmanager
