@@ -32,6 +32,8 @@ from uproot.server3 import router as router3
 from uproot.storage import Admin, Storage
 from uproot.types import InternalPage, Page, ensure_awaitable, optional_call
 
+MIN_PASSWORD_LENGTH: int = 6
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
@@ -60,6 +62,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         d.LOGGER.info("There is 1 admin")
     else:
         d.LOGGER.info(f"There are {la} admins")
+
+    for user, pw in d.ADMINS.items():
+        if isinstance(pw, str) and len(pw) < MIN_PASSWORD_LENGTH:
+            d.LOGGER.error(
+                f"Password for admin '{user}' is shorter than "
+                f"the minimum length ({MIN_PASSWORD_LENGTH})"
+            )
 
     if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
         d.ensure_login_token()
