@@ -10,6 +10,7 @@ from typing import (
     Callable,
     Coroutine,
     Never,
+    Optional,
     cast,
 )
 
@@ -238,7 +239,9 @@ def load_config(
     server: FastAPI,
     config: str,
     apps: list[str],
-    multiple_of: int = 1,
+    *,
+    multiple_of: int = 1,  # TODO: Rename
+    settings: Optional[dict[str, Any]] = None,
 ) -> None:
     ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
 
@@ -249,6 +252,7 @@ def load_config(
     u.CONFIGS_PPATHS[config] = list()
     u.CONFIGS_EXTRA[config] = dict(
         multiple_of=multiple_of,
+        settings=settings or {},
     )
 
     for appname in apps:

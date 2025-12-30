@@ -381,9 +381,19 @@ function renderConfigsApps(data, containerId) {
     const container = I(containerId);
 
     const select = document.createElement("select");
+    const label = document.createElement("label");
+
     select.className = "form-select";
     select.id = "configs-apps-select";
     select.name = "config";
+
+    select.addEventListener("change", (e) => {
+        const value = e.target.value;
+
+        if (typeof configSelected !== "undefined") {
+            configSelected(value);
+        }
+    });
 
     ["configs", "apps"].forEach(groupKey => {
         if (!data[groupKey]) return;
@@ -412,8 +422,12 @@ function renderConfigsApps(data, containerId) {
     });
 
     container.appendChild(select);
-    container.innerHTML +=  // SAFE
-        "<label for='configs-apps-select'>" + _("Config or app") + "</label>";
+
+    label.htmlFor = "configs-apps-select";
+    label.textContent = _("Config or app");
+    container.appendChild(label);
+
+    return select;
 }
 
 function renderConfigsAppsCards(data, containerId, groupKey) {

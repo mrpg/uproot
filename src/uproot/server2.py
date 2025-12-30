@@ -557,6 +557,7 @@ async def roommain(
                     roomname=roomname,
                     room=admin.rooms[roomname],
                     configs=a.configs(),
+                    configs_extra=u.CONFIGS_EXTRA,
                 )
                 | await a.info_online(f"^{roomname}"),
             )
@@ -570,8 +571,10 @@ async def new_session_in_room(
     config: str = Form(),
     assignees: str = Form(),
     nplayers: int = Form(),
+    automatic_settings: Optional[bool] = Form(False),
     automatic_sname: Optional[bool] = Form(False),
     automatic_unames: Optional[bool] = Form(False),
+    settings: Optional[str] = Form("{}"),
     sname: Optional[str] = Form(""),
     unames: Optional[str] = Form(""),
     nogrow: Optional[bool] = Form(False),
@@ -612,6 +615,11 @@ async def new_session_in_room(
             admin,
             config,
             sname=(None if automatic_sname else sname),
+            settings=(
+                u.CONFIGS_EXTRA[config]["settings"]
+                if automatic_settings
+                else orjson.loads(cast(str, settings))
+            ),
         )
 
         admin.rooms[roomname]["sname"] = sid.sname
@@ -670,7 +678,15 @@ async def new_session(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    return HTMLResponse(await render("SessionsNew.html", dict(configs=a.configs())))
+    return HTMLResponse(
+        await render(
+            "SessionsNew.html",
+            dict(
+                configs=a.configs(),
+                configs_extra=u.CONFIGS_EXTRA,
+            ),
+        )
+    )
 
 
 @router.post("/sessions/new/")
@@ -678,8 +694,10 @@ async def new_session2(
     request: Request,
     config: str = Form(),
     nplayers: int = Form(),
+    automatic_settings: Optional[bool] = Form(False),
     automatic_sname: Optional[bool] = Form(False),
     automatic_unames: Optional[bool] = Form(False),
+    settings: Optional[str] = Form("{}"),
     sname: Optional[str] = Form(""),
     unames: Optional[str] = Form(""),
     auth: dict[str, Any] = Depends(auth_required),
@@ -689,6 +707,11 @@ async def new_session2(
             admin,
             config,
             sname=(None if automatic_sname else sname),
+            settings=(
+                u.CONFIGS_EXTRA[config]["settings"]
+                if automatic_settings
+                else orjson.loads(cast(str, settings))
+            ),
         )
 
     with sid() as session:

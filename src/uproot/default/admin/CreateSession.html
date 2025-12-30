@@ -6,9 +6,26 @@
         <div class="form-floating">
             <input class="form-control" id="nplayers" min="0" name="nplayers"
                 placeholder="0" required type="number" value="">
-            {# TODO: value = "{{ demo-size }}" #}
+            {# TODO (and multiple_of): value = "{{ demo-size }}" #}
             <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
         </div>
+    </div>
+</div>
+
+<div x-data="{automatic: true}">
+    <div class="form-check mt-3">
+        <input class="form-check-input" type="checkbox" id="automatic_settings" name="automatic_settings" value="1"
+            @click="automatic = !automatic" checked>
+        <label for="automatic_settings">Keep default settings</label>
+    </div>
+    <div class="form-floating mt-3" x-show="!automatic">
+        <textarea class="form-control h-auto font-monospace" id="settings" rows="10" name="settings" placeholder="Settings"></textarea>
+        <label for="settings">Settings</label>
+        <small class="d-block form-text pt-2 text-muted">
+            {% translate %}
+            Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.
+            {% endtranslate %}
+        </small>
     </div>
 </div>
 
@@ -36,7 +53,7 @@
         <label for="automatic_unames">Set player names automatically</label>
     </div>
     <div class="form-floating mt-3" x-show="!automatic">
-        <textarea class="form-control h-auto" id="unames" rows="10" name="unames" placeholder="Player names"></textarea>
+        <textarea class="form-control h-auto font-monospace" id="unames" rows="10" name="unames" placeholder="Player names"></textarea>
         <label for="unames">Player names</label>
         <small class="d-block form-text pt-2 text-muted">
             {% translate %}
@@ -48,17 +65,36 @@
 
 <script>
     uproot.onStart(() => {
-        renderConfigsApps(uproot.vars.configs, "config-select");
+        select = renderConfigsApps(uproot.vars.configs, "config-select");
         const option = document.querySelector(`option[value='${defaultConfig}']`);
-        if (option) { option.selected = true; }
+
+        if (option) {
+            option.selected = true;
+        }
+
+        select.dispatchEvent(new Event("change", { bubbles: true }));
     });
+
+    function configSelected(config) {
+        // TODO: Handle multiple_of here
+
+        if (!Object.hasOwn(uproot.vars.configs_extra, config) ||
+            !Object.hasOwn(uproot.vars.configs_extra[config], "settings") ||
+            Object.keys(uproot.vars.configs_extra[config].settings).length == 0) {
+            I("settings").value = "{\n  // Example:\n  // \"parameter\": -42,\n  // \"speed\": \"high\",\n}";
+        }
+        else {
+            const settings = uproot.vars.configs_extra[config].settings;
+
+            I("settings").value = JSON.stringify(settings, null, 2);
+        }
+    }
 
     function createSession() {
         let snameValid = true, unamesValid = true;
 
         if (I("nplayers").value.trim() == "" || parseInt(I("nplayers").value) < 0) {
-            uproot.error(_("The number of players you entered is invalid."));
-            return;
+            return uproot.error(_("The number of players you entered is invalid."));
         }
 
         if (!I("automatic_sname").checked) {
@@ -72,6 +108,15 @@
 
             if (unames.length != wanted) {
                 return uproot.error(_("You cannot create a session with #n1# players but #n2# player names.").replace("#n1#", wanted).replace("#n2#", unames.length));
+            }
+        }
+
+        if (!I("automatic_settings").checked) {
+            try {
+                I("settings").value = uproot.looseJSONtoJSON(I("settings").value);
+            }
+            catch (error) {
+                return uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
             }
         }
 

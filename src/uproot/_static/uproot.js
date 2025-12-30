@@ -580,6 +580,12 @@ window.uproot = {
         return span.innerHTML; // SAFE
     },
 
+    looseJSONtoJSON(input) {
+        // eval is fine here; this is admin-only
+        const obj = eval("(" + input + ")");
+        return JSON.stringify(obj);
+    },
+
     ensureBuddy() {
         this.I("uproot-buddy").hidden = false;
     },

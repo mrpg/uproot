@@ -97,7 +97,11 @@ async def roommain(
 
         if room["sname"] is None:
             # TODO: move this elsewhere entirely
-            sid = c.create_session(admin, room["config"])
+            sid = c.create_session(
+                admin,
+                room["config"],
+                settings=u.CONFIGS_EXTRA[room["config"]]["settings"],
+            )
             room["sname"] = sid.sname
             c.finalize_session(sid)  # This seems fine?!
             new_session = True

@@ -35,6 +35,7 @@ def create_session(
     *,
     sname: Optional[t.Sessionname] = None,
     check_unique: bool = True,
+    settings: Any = None,
 ) -> t.SessionIdentifier:
     if sname is None:
         sname = t.token(admin.sessions)
@@ -59,6 +60,7 @@ def create_session(
             for dist in importlib.metadata.distributions()
         }
         session.room = None
+        session.settings = settings
         session.testing = False
         session._uproot_secret = t.token_unchecked(8)
         session._uproot_session = ~session
