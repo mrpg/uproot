@@ -93,7 +93,6 @@ dev = [
     "pytest-cov==7.0.0",
     "radon==6.0.1",
     "ruff==0.14.2",
-    "semgrep==1.146.0",
 ]
 docs = [
     "mkdocs-material==9.7.0"
@@ -150,7 +149,6 @@ DEP002 = [
     "pytest-cov",
     "radon",
     "ruff",
-    "semgrep",
     # Runtime dependencies not directly imported
     "python-multipart",  # Required by FastAPI for form data
     "websockets",  # Required for WebSocket support

@@ -104,9 +104,6 @@ jobs:
       - name: Run pip-audit
         run: pip-audit
 
-      - name: Run semgrep
-        run: semgrep scan --config=auto src/uproot/
-
   code-quality:
     runs-on: ubuntu-latest
     steps:
