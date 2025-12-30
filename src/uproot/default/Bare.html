@@ -236,6 +236,16 @@
         // deanchor sliders
 
         uproot.slidersWithoutAnchoring();
+
+        // disable Enter for form submission
+
+        document.querySelectorAll("form").forEach((form) => {
+            form.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+                    e.preventDefault();
+                }
+            });
+        });
     });
 
     uproot.onReady(() => {
