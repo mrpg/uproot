@@ -202,6 +202,19 @@
                     </div>
                     {% endif %}
                 </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Settings{% endtranslate %}</h6>
+                        {% if session.settings %}
+                        <p class="mb-2">{% translate %}Custom settings{% endtranslate %}</p>
+                        {% else %}
+                        <p class="mb-2 text-muted">{% translate %}No settings{% endtranslate %}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change{% endtranslate %}</button>
+                    </div>
+                </div>
                 {% if session.config %}
                 <div class="d-flex justify-content-between mb-3">
                     <div>
@@ -213,8 +226,12 @@
                     </div>
                 </div>
                 {% endif %}
-                <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
-                <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
+                        <p class="font-monospace mb-2">{{ " → ".join(session.apps) }}</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -593,6 +610,45 @@
     </div>
 </div>
 
+<!-- Modal for settings -->
+
+<div class="modal fade" id="settings-modal" tabindex="-1" aria-labelledby="settings-modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="settings-modalLabel">
+                    {% translate %}
+                    Change settings
+                    {% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
+                </div>
+                <small class="d-block form-text text-muted">
+                    {% translate %}
+                    Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.
+                    {% endtranslate %}
+                </small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+                <button type="button" class="btn btn-danger" onclick="saveSettings()">
+                    {% translate %}
+                    Save settings
+                    {% endtranslate %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock main %}
 
 
@@ -612,6 +668,15 @@
         uproot.prompt(_("Enter new description:"), {{ session.description | tojson }})
             .then((newdesc) => uproot.invoke("update_description", uproot.vars.sname, newdesc))
             .then(uproot.reload);
+    }
+    function saveSettings() {
+        try {
+            const settings = JSON.parse(uproot.looseJSONtoJSON(I("settings-input").value));
+            uproot.invoke("update_settings", uproot.vars.sname, settings).then(uproot.reload);
+        }
+        catch (error) {
+            uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
+        }
     }
 
     uproot.onStart(() => {

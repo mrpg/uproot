@@ -720,6 +720,13 @@ async def update_description(sname: t.Sessionname, newdesc: str) -> None:
         session.description = newdesc if newdesc else None
 
 
+async def update_settings(sname: t.Sessionname, **newsettings: Any) -> None:
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        session.settings = newsettings
+
+
 def verify_auth_token(user: str, token: str) -> Optional[str]:
     """Verify an authentication token.
 

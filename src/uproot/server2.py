@@ -1023,4 +1023,5 @@ FUNS = dict(
     reload=a.reload,
     revert_by_one=a.revert_by_one,
     update_description=a.update_description,
+    update_settings=a.update_settings,
 )

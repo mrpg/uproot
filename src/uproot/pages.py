@@ -429,8 +429,9 @@ def type_filter(x: Any) -> str:
     return str(type(x))
 
 
-def tojson_filter(x: Any) -> str:
-    return Markup(orjson.dumps(x).decode("utf-8"))
+def tojson_filter(x: Any, indent: Optional[int] = None) -> str:
+    option = orjson.OPT_INDENT_2 if indent else 0
+    return Markup(orjson.dumps(x, option=option).decode("utf-8"))
 
 
 def fmtnum_filter(
