@@ -85,7 +85,7 @@ dev = [
     "deptry==0.24.0",
     "isort==7.0.0",
     "mypy==1.19.1",
-    "pip-audit==2.9.0",
+    "pip-audit==2.10.0",
     "pip-tools==7.4.1",
     "pre-commit==4.0.1",
     "pytest==9.0.1",
