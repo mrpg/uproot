@@ -202,6 +202,7 @@
                     </div>
                     {% endif %}
                 </div>
+                {% if session.config %}
                 <div class="d-flex justify-content-between mb-3">
                     <div>
                         <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Config{% endtranslate %}</h6>
@@ -211,6 +212,7 @@
                         <a class="btn btn-sm btn-uproot h-auto" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
                     </div>
                 </div>
+                {% endif %}
                 <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
                 <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
             </div>
