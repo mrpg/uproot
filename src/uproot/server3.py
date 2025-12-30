@@ -100,7 +100,7 @@ async def roommain(
             sid = c.create_session(
                 admin,
                 room["config"],
-                settings=u.CONFIGS_EXTRA[room["config"]]["settings"],
+                settings=u.CONFIGS_EXTRA.get(room["config"], {}).get("settings", {}),
             )
             room["sname"] = sid.sname
             c.finalize_session(sid)  # This seems fine?!

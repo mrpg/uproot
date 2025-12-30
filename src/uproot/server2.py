@@ -616,7 +616,7 @@ async def new_session_in_room(
             config,
             sname=(None if automatic_sname else sname),
             settings=(
-                u.CONFIGS_EXTRA[config]["settings"]
+                u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
                 if automatic_settings
                 else orjson.loads(cast(str, settings))
             ),
@@ -708,7 +708,7 @@ async def new_session2(
             config,
             sname=(None if automatic_sname else sname),
             settings=(
-                u.CONFIGS_EXTRA[config]["settings"]
+                u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
                 if automatic_settings
                 else orjson.loads(cast(str, settings))
             ),
