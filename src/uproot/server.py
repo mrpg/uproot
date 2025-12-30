@@ -15,7 +15,7 @@ from typing import (
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse
 from pydantic import validate_call
 
 import uproot as u
@@ -142,6 +142,11 @@ uproot_server.include_router(router3)
 @uproot_server.get("/favicon.ico")
 async def favicon(request: Request) -> RedirectResponse:
     return RedirectResponse(f"{d.ROOT}/static/_uproot/favicon.ico", status_code=301)
+
+
+@uproot_server.get("/robots.txt")
+async def robots(request: Request) -> PlainTextResponse:
+    return PlainTextResponse(f"User-agent: *\nDisallow: {d.ROOT}/")
 
 
 def post_app_import(app: Any) -> Any:
