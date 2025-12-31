@@ -125,7 +125,7 @@ def test_csv_out_empty():
 
 
 def test_stable_encode_decode_date():
-    test_date = date(2025, 9, 17)
+    test_date = date(2013, 9, 17)
     encoded = encode(test_date)
     decoded = decode(encoded)
     assert decoded == test_date
@@ -149,7 +149,7 @@ def test_stable_encode_decode_time_no_microseconds():
 
 
 def test_stable_encode_decode_datetime():
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45, 123456)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -157,7 +157,7 @@ def test_stable_encode_decode_datetime():
 
 
 def test_stable_encode_decode_datetime_no_microseconds():
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -168,7 +168,7 @@ def test_stable_encode_decode_datetime_with_timezone():
     from datetime import timedelta, timezone
 
     test_datetime = datetime(
-        2025, 9, 17, 14, 30, 45, 123456, timezone(timedelta(hours=5, minutes=30))
+        2013, 9, 17, 14, 30, 45, 123456, timezone(timedelta(hours=5, minutes=30))
     )
     encoded = encode(test_datetime)
     decoded = decode(encoded)
@@ -179,7 +179,7 @@ def test_stable_encode_decode_datetime_with_timezone():
 
 def test_stable_encode_decode_datetime_naive():
     # Test that naive datetimes remain naive (no timezone info)
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -191,7 +191,7 @@ def test_stable_encode_decode_datetime_naive():
 def test_stable_encode_decode_datetime_utc():
     from datetime import timezone
 
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45, tzinfo=timezone.utc)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, tzinfo=timezone.utc)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -204,7 +204,7 @@ def test_stable_encode_decode_datetime_negative_offset():
 
     # Test negative timezone offset (e.g., US timezones)
     test_datetime = datetime(
-        2025, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=-8))
+        2013, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=-8))
     )
     encoded = encode(test_datetime)
     decoded = decode(encoded)
@@ -218,7 +218,7 @@ def test_stable_encode_decode_datetime_fractional_offset():
 
     # Test fractional timezone offset (e.g., India +05:30, Nepal +05:45)
     test_datetime = datetime(
-        2025, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=45))
+        2013, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=45))
     )
     encoded = encode(test_datetime)
     decoded = decode(encoded)
@@ -257,8 +257,8 @@ def test_stable_encode_decode_timezone_preservation():
     tz1 = timezone(timedelta(hours=3))
     tz2 = timezone(timedelta(hours=3), name="Custom+3")
 
-    dt1 = datetime(2025, 9, 17, 14, 30, 45, tzinfo=tz1)
-    dt2 = datetime(2025, 9, 17, 14, 30, 45, tzinfo=tz2)
+    dt1 = datetime(2013, 9, 17, 14, 30, 45, tzinfo=tz1)
+    dt2 = datetime(2013, 9, 17, 14, 30, 45, tzinfo=tz2)
 
     encoded1 = encode(dt1)
     encoded2 = encode(dt2)
@@ -317,12 +317,12 @@ def test_stable_encode_decode_datetime_edge_cases():
         datetime(1, 1, 1, 0, 0, 0),  # Minimum datetime
         datetime(9999, 12, 31, 23, 59, 59, 999999),  # Maximum datetime
         datetime(2000, 2, 29, 12, 0, 0),  # Leap year datetime
-        datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),  # UTC at epoch boundary
+        datetime(2013, 1, 1, 0, 0, 0, tzinfo=timezone.utc),  # UTC at epoch boundary
         datetime(
-            2025, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=14))
+            2013, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=14))
         ),  # Maximum positive offset
         datetime(
-            2025, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=-12))
+            2013, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=-12))
         ),  # Maximum negative offset
     ]
 
@@ -366,7 +366,7 @@ def test_stable_encode_decode_iso_format_normative():
     from orjson import loads
 
     # Test date ISO format
-    test_date = date(2025, 9, 17)
+    test_date = date(2013, 9, 17)
     encoded = encode(test_date)
     assert encoded[0] == 10  # Type ID
     iso_string = (
@@ -374,7 +374,7 @@ def test_stable_encode_decode_iso_format_normative():
         if isinstance(loads(encoded[1:]), bytes)
         else loads(encoded[1:])
     )
-    assert iso_string == "2025-09-17"
+    assert iso_string == "2013-09-17"
 
     # Test time ISO format
     test_time = time(14, 30, 45, 123456)
@@ -384,19 +384,19 @@ def test_stable_encode_decode_iso_format_normative():
     assert iso_string == "14:30:45.123456"
 
     # Test datetime ISO format
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45, 123456)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456)
     encoded = encode(test_datetime)
     assert encoded[0] == 12  # Type ID
     iso_string = loads(encoded[1:])
-    assert iso_string == "2025-09-17T14:30:45.123456"
+    assert iso_string == "2013-09-17T14:30:45.123456"
 
     # Test datetime with timezone ISO format
     from datetime import timedelta, timezone
 
     test_datetime_tz = datetime(
-        2025, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=30))
+        2013, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=30))
     )
     encoded = encode(test_datetime_tz)
     assert encoded[0] == 12  # Type ID
     iso_string = loads(encoded[1:])
-    assert iso_string == "2025-09-17T14:30:45+05:30"
+    assert iso_string == "2013-09-17T14:30:45+05:30"
