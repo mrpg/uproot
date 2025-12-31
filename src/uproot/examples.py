@@ -15,6 +15,19 @@ from uproot.constraints import ensure
 
 LICENSE_PATH = Path(__file__).parent / "_static" / "uproot_license.txt"
 
+LICENSE_0BSD = """\
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+"""
+
 GITIGNORE = """
 build/
 .coverage
@@ -55,6 +68,8 @@ venv/
 
 PROJECT_TEMPLATE = """
 #!/usr/bin/env python
+# SPDX-License-Identifier: 0BSD
+#
 # Third-party dependencies:
 # - uproot: LGPL v3+, see ./uproot_license.txt
 import uproot.deployment as upd
@@ -94,7 +109,7 @@ if __name__ == "__main__":
 """.lstrip()
 
 MINIMAL_INIT_PY = """
-# Copyright (c) 2025 [Insert Your Name Here] - MIT License
+# SPDX-License-Identifier: 0BSD
 #
 # Third-party dependencies:
 # - uproot: LGPL v3+, see ../uproot_license.txt
@@ -138,7 +153,7 @@ First page
 """.lstrip()
 
 PD_INIT_PY = """
-# Copyright (c) 2025 [Insert Your Name Here] - MIT License
+# SPDX-License-Identifier: 0BSD
 #
 # Third-party dependencies:
 # - uproot: LGPL v3+, see ../uproot_license.txt
@@ -313,6 +328,9 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
         )
 
     shutil.copy(LICENSE_PATH, path / "uproot_license.txt")
+
+    with open(path / "LICENSE", "w", encoding="utf-8") as lf:
+        lf.write(LICENSE_0BSD)
 
     # Heroku deployment files
     with open(path / "Procfile", "w", encoding="utf-8") as pf:
