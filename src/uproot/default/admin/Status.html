@@ -139,6 +139,23 @@ Server status
             </p>
             <h5 class="mb-3 mt-4">{% translate %}Python version{% endtranslate %}</h5>
             <p class="font-monospace">{{ versions.python }}</p>
+            <h5 class="mb-3 mt-4">{% translate %}Environment variables{% endtranslate %}</h5>
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th class="fw-semibold ps-0" scope="col">{% translate %}Variable{% endtranslate %}</th>
+                        <th class="col-4 fw-semibold" scope="col">{% translate %}Value{% endtranslate %}</th>
+                    </tr>
+                </thead>
+                <tbody class="font-monospace">
+                    {% for name, value in environ.items() %}
+                    <tr>
+                        <td class="ps-0">{{ name }}</td>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         <div class="col-12 col-lg-6">
             <h5 class="mb-3">{% translate %}Installed packages{% endtranslate %}</h5>
