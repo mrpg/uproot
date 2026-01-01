@@ -94,8 +94,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     tasks = []
 
-    u.APPS.start_watching()
-
     for gj in j.GLOBAL_JOBS:
         tasks.append(
             asyncio.create_task(
@@ -103,10 +101,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
             )
         )
 
-    for uapp in u.APPS.modules:
-        uapp = u.APPS[uapp]
+    if hasattr(u, "APPS"):
+        u.APPS.start_watching()
 
-        await ensure_awaitable(optional_call, uapp, "restart")  # Thanks, Mia!
+        for uapp in u.APPS.modules:
+            uapp = u.APPS[uapp]
+
+            await ensure_awaitable(optional_call, uapp, "restart")  # Thanks, Mia!
 
     await d.lifespan_start(app, tasks)
 
@@ -119,7 +120,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     for t_ in tasks:
         t_.cancel()
 
-    u.APPS.stop_watching()
+    if hasattr(u, "APPS"):
+        u.APPS.stop_watching()
 
     await asyncio.gather(*tasks)
 
