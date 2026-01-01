@@ -369,7 +369,9 @@ async def login_post(
                     auth_token,
                     x_forwarded_proto.lower() == "https"
                     or not (
-                        host.startswith("localhost") or host.startswith("127.0.0.")
+                        host.startswith("localhost")
+                        or host.startswith("127.0.0.")
+                        or ".onion" in host
                     ),  # Safari really sucks
                 )
                 return response
@@ -383,7 +385,9 @@ async def login_post(
             auth_token,
             x_forwarded_proto.lower() == "https"
             or not (
-                host.startswith("localhost") or host.startswith("127.0.0.")
+                host.startswith("localhost")
+                or host.startswith("127.0.0.")
+                or ".onion" in host
             ),  # Safari really sucks
         )
         return response
