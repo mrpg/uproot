@@ -943,7 +943,7 @@ async def status(
                         for dist in importlib.metadata.distributions()
                     }
                 ).items(),
-                environ=os.environ,
+                environ=SortedDict(os.environ),
             ),
         )
     )
