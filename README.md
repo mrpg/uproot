@@ -6,7 +6,7 @@
 
 *uproot* is 100% [Free/Libre Open Source Software](https://en.wikipedia.org/wiki/Free_and_open-source_software), and contains only unencumbered code. All libraries, styles and fonts are included and served locally (no CDNs).
 
-We are working on producing the first alpha version (0.0.1), and invite you to join us.
+We are working on producing the first alpha version (0.0.1), and invite you to join us. Example apps may be found [here](https://github.com/mrpg/uproot-examples).
 
 > [!IMPORTANT]
 > This repository contains a pre-alpha version. Breaking changes are made with reckless abandon.
@@ -40,81 +40,12 @@ We are working on producing the first alpha version (0.0.1), and invite you to j
 
 After running `uproot run`, we recommend you visit [the admin area](http://127.0.0.1:8000/admin/) with the provided credential.
 
-### Example apps
-
-Example apps may be found [here](https://github.com/mrpg/uproot-examples).
-
 ### Detailed Python and virtual environment setup
 
 If you're new to Python or don't have Python 3.11+ installed, follow these platform-specific guides:
 
-#### Windows
-
-1. **Install Python** (requires administrator privileges):
-   - Download Python 3.11+ from [python.org](https://www.python.org/downloads/)
-   - Run the installer as administrator
-   - Select the following advanced options:
-       - **Important**: During installation, check "Add Python to PATH" - this is crucial
-       - Choose "Install for all users"
-   - Verify installation by opening Command Prompt and running:
-     ```cmd
-     python --version
-     ```
-
-2. **Create and activate virtual environment**: Start PowerShell and run:
-   ```cmd
-   python -m venv env
-   ```
-   
-   **Before activating**: You may need to allow script execution by running PowerShell as administrator and executing:
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-   
-   Then activate the environment:
-   ```cmd
-   env\Scripts\activate
-   ```
-
-3. **Continue with the main installation guide above**
-
-#### macOS
-
-1. **Install Python**:
-   - **Option 1** - Using Homebrew (recommended):
-     ```bash
-     brew install python
-     ```
-   - **Option 2** - Download Python 3.11+ from [python.org](https://www.python.org/downloads/)
-   
-   - Verify installation:
-     ```bash
-     python3 --version
-     ```
-
-2. **Create and activate virtual environment**:
-   ```bash
-   python3 -m venv env
-   source env/bin/activate
-   ```
-
-3. **Continue with the main installation guide above**
-
-#### Linux
-
-Most Linux distributions include Python, but you may need to install the virtual environment module:
-
-```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install python3 python3-venv
-
-# Create and activate virtual environment
-python3 -m venv env
-source env/bin/activate
-```
-
-**Note**: Always activate your virtual environment (`env`) before installing or running *uproot*. You'll know it's active when you see `(env)` at the beginning of your command prompt.
+- [**Using uv**](INSTALLATION-UV.md) (recommended) - A modern, fast package manager that handles Python installation automatically
+- [Using pip](INSTALLATION-PIP.md) - Traditional setup with Python's built-in tools
 
 ## Development best practices
 
@@ -131,7 +62,6 @@ We follow these development practices to maintain code quality:
 ### Security Tools
 - **Security scanning**: [Bandit](https://bandit.readthedocs.io/) for detecting security vulnerabilities
 - **Dependency auditing**: [pip-audit](https://pypi.org/project/pip-audit/) for scanning dependencies for known CVEs
-- **Advanced analysis**: [Semgrep](https://semgrep.dev/) for pattern-based security and correctness checking
 - **Dependency checking**: [Deptry](https://deptry.com/) for finding unused and missing dependencies
 
 ### Testing
