@@ -298,6 +298,24 @@ APP_JSON = """{
 }
 """.lstrip()
 
+PYPROJECT_TOML = """\
+[project]
+name = "uproot-project"
+version = "0.1.0"
+description = "An uproot-based web application for behavioral science experiments"
+readme = "README.md"
+license = "0BSD"
+requires-python = ">=3.13"
+dependencies = [
+    "uproot-science @ git+https://github.com/mrpg/uproot.git@main",
+]
+
+[project.optional-dependencies]
+pg = [
+    "uproot-science[pg] @ git+https://github.com/mrpg/uproot.git@main",
+]
+"""
+
 
 def setup_empty_project(path: Path, minimal: bool) -> None:
     mainpath = path / "main.py"
@@ -321,11 +339,8 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
     with open(path / ".gitignore", "w", encoding="utf-8") as rf:
         rf.write(GITIGNORE)
 
-    with open(path / "requirements.txt", "w", encoding="utf-8") as rf:
-        rf.write(
-            f"# For PostgreSQL support, instead use: uproot-science[pg]>={u.__version__}\n"
-            f"uproot-science>={u.__version__}, <{u.__version_info__[0] + 1}.0.0\n"
-        )
+    with open(path / "pyproject.toml", "w", encoding="utf-8") as pf:
+        pf.write(PYPROJECT_TOML)
 
     shutil.copy(LICENSE_PATH, path / "uproot_license.txt")
 
