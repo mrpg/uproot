@@ -335,9 +335,7 @@ window.uproot = {
                 this.fromServer(event, ws);
             },
             onClose: (event, ws) => {
-                if (this.isInitialized) {
-                    window.dispatchEvent(new Event("UprootDisconnect"));
-                }
+                window.dispatchEvent(new Event("UprootDisconnect"));
             },
         });
     },
@@ -745,6 +743,7 @@ window.uproot = {
     enableConnectionLostModal() {
         let connectionModal = null;
         let timeoutTimer = null;
+        let startupTimer = null;
         let isPageUnloading = false;
 
         // Track when user is leaving the page
@@ -763,6 +762,8 @@ window.uproot = {
         };
 
         const showConnectionLostModal = () => {
+            if (isPageUnloading) return;
+
             const modal = ensureConnectionModal();
 
             // Show/hide reload button based on dirty state
@@ -777,11 +778,20 @@ window.uproot = {
         };
 
         const hideConnectionLostModal = () => {
+            clearTimeout(startupTimer);
             if (connectionModal) {
                 connectionModal.hide();
                 connectionModal = null;
             }
         };
+
+        // Startup failsafe: if isInitialized is still false after 10 seconds,
+        // something went wrong (init failed, wsstart failed, WS never connected, etc.)
+        startupTimer = setTimeout(() => {
+            if (!this.isInitialized) {
+                showConnectionLostModal();
+            }
+        }, 10000);
 
         // Wrap hello() to monitor connection health
         const originalHello = this.hello.bind(this);

@@ -36,12 +36,12 @@
 
     {% if noautostart is not defined %}
     uproot.onStart(() => {
-        uproot.init();
-
         {% if noconnectionlostmodal is not defined %}
-        // Enable Connection Lost modal monitoring
+        // Enable Connection Lost modal monitoring first (includes startup failsafe)
         uproot.enableConnectionLostModal();
         {% endif %}
+
+        uproot.init();
 
         // Start WebSocket after wrapping functions
         uproot.wsstart();
