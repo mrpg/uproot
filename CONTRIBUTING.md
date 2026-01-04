@@ -4,12 +4,10 @@ Thank you for your interest in contributing to uproot! This guide will help you 
 
 ## Development Setup
 
-1. **Clone the repository and set up your environment**:
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/mrpg/uproot.git
    cd uproot
-   python -m venv env
-   source env/bin/activate  # On Windows: env\Scripts\activate
    ```
 
 2. **Install development dependencies**:
@@ -20,6 +18,8 @@ Thank you for your interest in contributing to uproot! This guide will help you 
    This will:
    - Install the package in editable mode with all dev dependencies
    - Set up pre-commit hooks automatically
+
+   > Requires [uv](https://docs.astral.sh/uv/). See the [README](README.md) for installation instructions.
 
 ## Development Workflow
 

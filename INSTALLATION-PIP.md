@@ -1,69 +1,83 @@
-If you're new to Python or don't have Python 3.11+ installed, follow these platform-specific guides:
+# Installing uproot with pip
 
-#### Windows
+This guide uses Python's built-in tools. For a simpler setup, see the [main README](README.md) which uses uv.
 
-1. **Install Python** (requires administrator privileges):
-   - Download Python 3.11+ from [python.org](https://www.python.org/downloads/)
-   - Run the installer as administrator
-   - Select the following advanced options:
-       - **Important**: During installation, check "Add Python to PATH" - this is crucial
-       - Choose "Install for all users"
-   - Verify installation by opening Command Prompt and running:
-     ```cmd
-     python --version
-     ```
+## 1. Install Python 3.11+
 
-2. **Create and activate virtual environment**: Start PowerShell and run:
-   ```cmd
-   python -m venv env
-   ```
-   
-   **Before activating**: You may need to allow script execution by running PowerShell as administrator and executing:
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-   
-   Then activate the environment:
-   ```powershell
-   .\env\Scripts\Activate.ps1
-   ```
+<details open>
+<summary><strong>Windows</strong></summary>
 
-3. **Continue with the main installation guide above**
+1. Download Python 3.11+ from [python.org](https://www.python.org/downloads/)
+2. Run the installer as administrator
+3. **Important**: Check "Add Python to PATH" during installation
+4. Verify: `python --version`
+</details>
 
-#### macOS
+<details>
+<summary><strong>macOS</strong></summary>
 
-1. **Install Python**:
-   - **Option 1** - Using Homebrew (recommended):
-     ```bash
-     brew install python
-     ```
-   - **Option 2** - Download Python 3.11+ from [python.org](https://www.python.org/downloads/)
-   
-   - Verify installation:
-     ```bash
-     python3 --version
-     ```
+Using Homebrew (recommended):
+```bash
+brew install python
+```
 
-2. **Create and activate virtual environment**:
-   ```bash
-   python3 -m venv env
-   source env/bin/activate
-   ```
+Or download from [python.org](https://www.python.org/downloads/).
 
-3. **Continue with the main installation guide above**
+Verify: `python3 --version`
+</details>
 
-#### Linux
-
-Most Linux distributions include Python, but you may need to install the virtual environment module:
+<details>
+<summary><strong>Linux</strong></summary>
 
 ```bash
 # Ubuntu/Debian
 sudo apt update
 sudo apt install python3 python3-venv
+```
 
-# Create and activate virtual environment
+Verify: `python3 --version`
+</details>
+
+## 2. Create and activate a virtual environment
+
+**Windows (PowerShell):**
+```powershell
+python -m venv env
+.\env\Scripts\Activate.ps1
+```
+
+> If activation fails, run as administrator: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+**macOS/Linux:**
+```bash
 python3 -m venv env
 source env/bin/activate
 ```
 
-**Note**: Always activate your virtual environment (`env`) before installing or running *uproot*. You'll know it's active when you see `(env)` at the beginning of your command prompt.
+You'll see `(env)` in your prompt when active.
+
+## 3. Install uproot
+
+```console
+pip install -U 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main'
+```
+
+<details>
+<summary>Alternative if the above doesn't work</summary>
+
+```console
+pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
+```
+</details>
+
+## 4. Create and run a project
+
+```console
+uproot setup my_project
+cd my_project
+uproot run
+```
+
+Visit [the admin area](http://127.0.0.1:8000/admin/) with the provided credential.
+
+**Note**: Always activate your virtual environment before running uproot commands.

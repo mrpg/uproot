@@ -11,45 +11,43 @@
 
 ## Getting started
 
-### 1. Set up Python
+These instructions use [uv](https://docs.astral.sh/uv/), a fast Python package manager that handles Python installation automatically. See [alternative installation with pip](INSTALLATION-PIP.md) if you prefer traditional tools.
 
-You need Python 3.11+ within an activated virtual environment.
+### 1. Install uv
 
-**New to Python?** Follow one of these guides first:
-- [**Using uv**](INSTALLATION-UV.md) (recommended) - A modern, fast package manager that handles Python installation automatically
-- [Using pip](INSTALLATION-PIP.md) - Traditional setup with Python's built-in tools
-
-**Already have Python 3.11+ in a venv?** Continue below.
-
-### 2. Install *uproot*
-
-From within your activated virtual environment:
-
+**macOS/Linux:**
 ```console
-pip install -U 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main'
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 <details>
-<summary>Alternative installation methods</summary>
+<summary>Other installation methods</summary>
 
-If the above doesn't work, try:
-```console
-pip install -U 'uproot-science[dev] @ https://github.com/mrpg/uproot/archive/main.zip'
-```
+- **macOS with Homebrew**: `brew install uv`
+- **Windows with winget**: `winget install --id=astral-sh.uv -e`
 
-Or without dev dependencies:
-```console
-pip install -U https://github.com/mrpg/uproot/archive/main.zip
-```
+See [uv installation docs](https://docs.astral.sh/uv/getting-started/installation/) for more options.
 </details>
 
-### 3. Create a project
+### 2. Create a project
 
 ```console
-uproot setup my_project
+uv run --with 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main' uproot setup my_project
 ```
 
-The output shows you how to proceed. After running `uproot run`, visit [the admin area](http://127.0.0.1:8000/admin/) with the provided credential.
+### 3. Run *uproot*
+
+```console
+cd my_project
+uv run uproot run
+```
+
+Visit [the admin area](http://127.0.0.1:8000/admin/) with the provided credential.
 
 ## License
 
