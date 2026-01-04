@@ -2,9 +2,15 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import Optional
+
+
+def is_uv() -> bool:
+    """Detect if we're running under uv."""
+    return "UV_VIRTUAL_ENV" in os.environ or "UV" in os.environ
 
 
 def forward(args: list[str], command: Optional[str] = None) -> None:
@@ -75,15 +81,17 @@ def setup_command(
             else:
                 ex.new_prisoners_dilemma(path_)
 
+        run_prefix = "uv run " if is_uv() else ""
+
         print("📂 A new project has been created in '" + path + "'.")
         print("✅ 'main.py' and some other files have been written.")
         print("🚶 Go to the new project directory by running")
         print("\tcd " + path)
         print("📖 Get started by reading 'main.py'.")
         print("🚀 Then you may run this project using")
-        print("\tuproot run")
+        print("\t" + run_prefix + "uproot run")
         print("📰 The following command provides additional information:")
-        print("\tuproot --help")
+        print("\t" + run_prefix + "uproot --help")
         print("🤯 Help, docs & code can be found at https://uproot.science/")
 
 
