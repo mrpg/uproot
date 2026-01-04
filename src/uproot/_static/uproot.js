@@ -243,7 +243,7 @@ window.uproot = {
     },
 
     fromServer(event, ws) {
-        event.data.text().then(rawJson => {
+        const processMessage = (rawJson) => {
             const msg = Object.assign({ received: Date.now() }, JSON.parse(rawJson));
             const kind = msg.kind, payload = msg.payload;
             const currentPage = this.vars?._uproot_internal?.thisis || null;
@@ -294,7 +294,17 @@ window.uproot = {
                     this.queueDispatch(payload.u, payload.entry);
                 }
             }
-        });
+        };
+
+        // Handle both string and Blob message data
+        if (typeof event.data === "string") {
+            processMessage(event.data);
+        }
+        else {
+            event.data.text().then(processMessage).catch(() => {
+                // Blob may become unreadable under heavy load; silently ignore
+            });
+        }
     },
 
     isValidToken(x) {

@@ -287,6 +287,7 @@ async def ws(
             except Exception as exc:
                 raise exc
 
-            # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-            tasks[new_task] = (fname, factory)
+            # Re-add new instance of the same task (except one-shot tasks)
+            if fname != "subscribe_to_room":
+                new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+                tasks[new_task] = (fname, factory)
