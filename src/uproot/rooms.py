@@ -25,6 +25,7 @@ State 1:
 
 from typing import Any, Optional, TypeAlias
 
+import uproot.events as e
 from uproot.constraints import TOKEN_CHARS, return_or_raise, valid_token
 from uproot.types import Sessionname
 
@@ -99,3 +100,13 @@ def validate(room: RoomType, label: str) -> bool:
         return label != "" and label in room["labels"]
     else:
         return True
+
+
+def start(roomname: str) -> None:
+    """Signal that a room has started and clients can proceed."""
+    e.set_room(roomname)
+
+
+def reset(roomname: str) -> None:
+    """Reset a room's state so it can be reused."""
+    e.clear_room(roomname)

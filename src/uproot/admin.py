@@ -26,6 +26,7 @@ import uproot.cache as cache
 import uproot.data as data
 import uproot.deployment as d
 import uproot.queues as q
+import uproot.rooms as r
 import uproot.storage as s
 import uproot.types as t
 
@@ -671,6 +672,8 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
 
     with s.Session(sname) as session:
         session.room = None
+
+    r.reset(roomname)
 
 
 def rooms() -> SortedDict[str, dict]:

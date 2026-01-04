@@ -42,7 +42,6 @@ import uproot as u
 import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
-import uproot.events as e
 import uproot.i18n as i18n
 import uproot.jobs as j
 import uproot.rooms as r
@@ -648,7 +647,7 @@ async def new_session_in_room(
 
     c.finalize_session(sid)
 
-    e.set_room(roomname)
+    r.start(roomname)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 
