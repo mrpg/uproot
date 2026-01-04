@@ -47,7 +47,7 @@ cd my_project
 uv run uproot run
 ```
 
-Visit [the admin area](http://127.0.0.1:8000/admin/) with the provided credential.
+You may then log in to the admin area, or [run an example experiment](http://127.0.0.1:8000/room/test/).
 
 ## License
 
