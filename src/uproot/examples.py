@@ -66,6 +66,24 @@ venv/
 *.whl
 """.lstrip()
 
+README = """\
+# uproot project
+
+This directory contains an [uproot](https://uproot.science/) project for browser-based behavioral experiments.
+
+## Run locally
+
+```bash
+uv run uproot run  # or just "uproot run"
+```
+
+Then follow the instructions from the console.
+
+## Documentation
+
+See [https://uproot.science/](https://uproot.science/) to peruse the *uproot* documentation.
+""".lstrip()
+
 PROJECT_TEMPLATE = """
 #!/usr/bin/env python
 # SPDX-License-Identifier: 0BSD
@@ -269,35 +287,6 @@ PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
 PYTHON_VERSION = "3.13\n"
 
-APP_JSON = """{
-  "name": "Uproot Project",
-  "description": "An uproot-based web application for behavioral science experiments",
-  "keywords": ["python", "uproot", "experimental-economics", "behavioral-science"],
-  "buildpacks": [
-    {
-      "url": "heroku/python"
-    }
-  ],
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "basic"
-    }
-  },
-  "addons": [
-    {
-      "plan": "heroku-postgresql:essential-0"
-    }
-  ],
-  "env": {
-    "UPROOT_ORIGIN": {
-      "description": "The public URL of your app (e.g., https://your-app-name.herokuapp.com). Auto-detected if you enable 'heroku labs:enable runtime-dyno-metadata'. Override for custom domains.",
-      "required": false
-    }
-  }
-}
-""".lstrip()
-
 PYPROJECT_TOML = """\
 [project]
 name = "uproot-project"
@@ -339,6 +328,9 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
     with open(path / ".gitignore", "w", encoding="utf-8") as rf:
         rf.write(GITIGNORE)
 
+    with open(path / "README.md", "w", encoding="utf-8") as rf:
+        rf.write(README)
+
     with open(path / "pyproject.toml", "w", encoding="utf-8") as pf:
         pf.write(PYPROJECT_TOML)
 
@@ -347,15 +339,12 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
     with open(path / "LICENSE", "w", encoding="utf-8") as lf:
         lf.write(LICENSE_0BSD)
 
-    # Heroku deployment files
+    # Deployment files
     with open(path / "Procfile", "w", encoding="utf-8") as pf:
         pf.write(PROCFILE)
 
     with open(path / ".python-version", "w", encoding="utf-8") as pv:
         pv.write(PYTHON_VERSION)
-
-    with open(path / "app.json", "w", encoding="utf-8") as aj:
-        aj.write(APP_JSON)
 
     # Initialize git repository if git is available
     if shutil.which("git") is not None:
