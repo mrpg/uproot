@@ -816,7 +816,7 @@ async def session_digest(
                 )
             )
 
-            html[appname] = Markup(
+            html[appname] = Markup(  # nosec B704 - trusted template output
                 await PENV.get_template(str(digest_template)).render_async(**context)
             )
 

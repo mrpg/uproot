@@ -431,7 +431,11 @@ def type_filter(x: Any) -> str:
 
 def tojson_filter(x: Any, indent: Optional[int] = None) -> str:
     option = orjson.OPT_INDENT_2 if indent else 0
-    return Markup(orjson.dumps(x, option=option).decode("utf-8"))
+    json_str = orjson.dumps(x, option=option).decode("utf-8")
+    # Escape </ to prevent breaking out of <script> or <textarea> tags
+    # in HTML contexts. The \/ is valid JSON (RFC 8259) and decodes correctly.
+    json_str = json_str.replace("</", r"<\/")
+    return Markup(json_str)  # nosec B704 - XSS protection via </ escaping above
 
 
 def fmtnum_filter(
