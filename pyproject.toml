@@ -92,7 +92,7 @@ dev = [
     "pytest-asyncio==1.3.0",
     "pytest-cov==7.0.0",
     "radon==6.0.1",
-    "ruff==0.14.2",
+    "ruff==0.14.10",
 ]
 iban = [
     "schwifty==2025.9.0"
