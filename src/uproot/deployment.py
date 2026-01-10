@@ -32,6 +32,7 @@ else:
     DBENV = os.getenv("UPROOT_DATABASE", "sqlite3")
 
 DEFAULT_ROOMS: list["RoomType"] = list()
+HERE_TOLERANCE: float = 5.0
 HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: Optional[str] = None
