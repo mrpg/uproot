@@ -5,13 +5,23 @@ import base64
 from collections import namedtuple
 from decimal import Decimal as cu
 from types import EllipsisType
-from typing import Annotated, Any, Awaitable, Callable, Iterable, Sequence, cast
+from typing import (
+    Annotated,
+    Any,
+    Awaitable,
+    Callable,
+    Iterable,
+    Optional,
+    Sequence,
+    cast,
+)
 
 from markupsafe import Markup
 from pydantic import validate_call
 
 import uproot as u
 import uproot.chat
+import uproot.core as c
 import uproot.types as t
 from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
@@ -25,6 +35,8 @@ __all__ = [
     "Bracket",
     "chat",
     "combine",
+    "create_group",
+    "create_groups",
     "cu",
     "data_uri",
     "GroupCreatingWait",
@@ -68,6 +80,93 @@ safe = Markup
 SessionIdentifier = t.SessionIdentifier
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
+
+
+def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
+    """Convert an iterable of PlayerLike objects to PlayerIdentifiers."""
+    result: list[t.PlayerIdentifier] = []
+    for m in members:
+        if isinstance(m, t.PlayerIdentifier):
+            result.append(m)
+        elif isinstance(m, Storage):
+            result.append(cast(t.PlayerIdentifier, ~m))
+        else:
+            raise TypeError(
+                f"Member must be Storage or PlayerIdentifier, got {type(m).__name__}"
+            )
+    return result
+
+
+@flexible
+def create_group(
+    session: Storage,
+    members: Iterable[PlayerLike],
+    *,
+    gname: Optional[str] = None,
+    overwrite: bool = False,
+) -> t.GroupIdentifier:
+    """
+    Create a group of players in the given session.
+
+    This provides a simplified interface for creating groups programmatically
+    without using GroupCreatingWait.
+
+    Args:
+        session: The session (Storage or SessionIdentifier).
+        members: Players to group (Storage objects or PlayerIdentifiers).
+        gname: Optional group name (auto-generated if not provided).
+        overwrite: If True, allows reassigning players already in groups.
+
+    Returns:
+        GroupIdentifier for the newly created group.
+
+    Example:
+        # In a page's before() or after() method:
+        gid = create_group(player._uproot_session, [player, other_player])
+
+        # Or with player identifiers:
+        gid = create_group(session, [pid1, pid2, pid3])
+    """
+    member_pids = to_player_ids(members)
+
+    with session:
+        return c.create_group(session, member_pids, gname=gname, overwrite=overwrite)
+
+
+@flexible
+def create_groups(
+    session: Storage,
+    groups: Iterable[Iterable[PlayerLike]],
+    *,
+    overwrite: bool = False,
+) -> list[t.GroupIdentifier]:
+    """
+    Create multiple groups of players in the given session.
+
+    This is a convenience function for creating several groups at once,
+    accepting a list of member lists.
+
+    Args:
+        session: The session (Storage or SessionIdentifier).
+        groups: List of groups, where each group is a list of players.
+        overwrite: If True, allows reassigning players already in groups.
+
+    Returns:
+        List of GroupIdentifiers for the newly created groups.
+
+    Example:
+        # Create two groups of 3 players each:
+        gids = create_groups(session, [[p1, p2, p3], [p4, p5, p6]])
+
+        # Pair up players from a list:
+        pairs = [[players[i], players[i+1]] for i in range(0, len(players), 2)]
+        gids = create_groups(player._uproot_session, pairs)
+    """
+    with session:
+        return [
+            c.create_group(session, to_player_ids(members), overwrite=overwrite)
+            for members in groups
+        ]
 
 
 def live(method: Callable[..., Any]) -> Callable[..., Any]:
