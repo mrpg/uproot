@@ -1024,6 +1024,7 @@ FUNS = dict(
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,
     put_to_end=a.put_to_end,
+    redirect=a.redirect,
     reload=a.reload,
     revert_by_one=a.revert_by_one,
     update_description=a.update_description,

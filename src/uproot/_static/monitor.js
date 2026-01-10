@@ -436,6 +436,17 @@ window.actuallyAdminmessageSend = function actuallyAdminmessageSend() {
     });
 };
 
+window.actuallyRedirect = function actuallyRedirect() {
+    const url = I("redirect-url")?.value ?? "";
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        return uproot.error("URL must start with http:// or https://");
+    }
+    window.bootstrap?.Modal.getOrCreateInstance(I("redirect-modal")).hide();
+    window.invokeFromMonitor("redirect", url).then(() => {
+        uproot.alert("The action has completed.");
+    });
+};
+
 window.mmodal = function mmodal(moname) {
     const selected = getSelectedPlayers();
     const modal = window.bootstrap?.Modal.getOrCreateInstance(I(`${moname}-modal`));

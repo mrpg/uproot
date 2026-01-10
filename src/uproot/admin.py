@@ -601,6 +601,28 @@ async def put_to_end(
     return await info_online(sname)
 
 
+async def redirect(sname: t.Sessionname, unames: list[str], url: str) -> None:
+    session_exists(sname, False)
+
+    if not url.startswith("http://") and not url.startswith("https://"):
+        raise ValueError("URL must start with http:// or https://")
+
+    for uname in unames:
+        ptuple = sname, uname
+
+        q.enqueue(
+            ptuple,
+            dict(
+                source="admin",
+                kind="action",
+                payload=dict(
+                    action="redirect",
+                    url=url,
+                ),
+            ),
+        )
+
+
 async def reload(sname: t.Sessionname, unames: list[str]) -> None:
     session_exists(sname, False)
 

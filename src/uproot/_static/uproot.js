@@ -277,6 +277,9 @@ window.uproot = {
                 if (action == "reload") {
                     this.reload();
                 }
+                else if (action == "redirect" && "url" in payload) {
+                    this.redirect(payload.url);
+                }
                 else if (action == "submit") {
                     this.submit();
                 }
@@ -393,6 +396,12 @@ window.uproot = {
     reload() {
         // this "works" even with POST - skips confirmation
         document.location = document.location;
+    },
+
+    redirect(url) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            document.location = url;
+        }
     },
 
     submit() {

@@ -357,6 +357,11 @@
                         {% translate %}Send message{% endtranslate %}
                     </span>
                 </li>
+                <li>
+                    <span class="dropdown-item" onclick="mmodal('redirect')" role="button">
+                        {% translate %}Redirect to URL{% endtranslate %}
+                    </span>
+                </li>
             </ul>
         </div>
     </div>
@@ -560,6 +565,48 @@
                 <button type="button" class="btn btn-danger" onclick="actuallyAdminmessageSend()">
                     {% translate %}
                     Send message
+                    {% endtranslate %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for redirect to URL -->
+
+<div class="modal fade" id="redirect-modal" tabindex="-1" aria-labelledby="redirect-modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="redirect-modalLabel">
+                    {% translate %}
+                    Redirect to URL
+                    {% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {% translate %}
+                    You have selected <b><span class="pcount"></span> player(s)</b>.
+                    {% endtranslate %}
+                </p>
+
+                <div class="mb-3">
+                    <label for="redirect-url" class="form-label">{% translate %}Target URL{% endtranslate %}</label>
+                    <input type="url" class="form-control font-monospace" id="redirect-url" placeholder="https://example.com/">
+                    <div class="form-text">{% translate %}URL must start with http:// or https://{% endtranslate %}</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+                <button type="button" class="btn btn-danger" onclick="actuallyRedirect()">
+                    {% translate %}
+                    Redirect players
                     {% endtranslate %}
                 </button>
             </div>
