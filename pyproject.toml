@@ -28,7 +28,7 @@ dependencies = [
     "sortedcontainers==2.4.0",
     "uvicorn==0.40.0",
     "watchdog==6.0.0",
-    "websockets==15.0.1",
+    "websockets==16.0",
     "wtforms==3.2.1",
 ]
 
