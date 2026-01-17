@@ -164,18 +164,23 @@ window.uproot = {
             ? parts.slice(0, -1).join(_(", ")) + _(" and ") + parts[parts.length - 1]
             : parts[0];
 
-        I("uproot-time-remaining").innerText = timeText;
-        I("uproot-timeout").hidden = false;
+        if (I("uproot-time-remaining")) {
+            I("uproot-time-remaining").innerText = timeText;
+        }
 
-        if (remainingSeconds < 60) {
-            I("uproot-timeout").classList.remove("alert-light");
-            I("uproot-timeout").classList.remove("alert-warning");
+        if (I("uproot-timeout")) {
+            I("uproot-timeout").hidden = false;
 
-            if (remainingSeconds < 15) {
-                I("uproot-timeout").classList.add("alert-danger");
-            }
-            else {
-                I("uproot-timeout").classList.add("alert-warning");
+            if (remainingSeconds < 60) {
+                I("uproot-timeout").classList.remove("alert-light");
+                I("uproot-timeout").classList.remove("alert-warning");
+
+                if (remainingSeconds < 15) {
+                    I("uproot-timeout").classList.add("alert-danger");
+                }
+                else {
+                    I("uproot-timeout").classList.add("alert-warning");
+                }
             }
         }
 
