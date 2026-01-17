@@ -60,11 +60,11 @@
 
 {% block TOPLEVELbody %}
 
-<div class="modal fade" id="error-modal" tabindex="-1" aria-labelledby="error-modalLabel" aria-hidden="true">
+<div class="modal fade" id="error-modal" tabindex="-1" aria-hidden="true" aria-modal="true" role="alertdialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="error-modalLabel">
+                <h5 class="modal-title">
                     {% translate %}
                     Error
                     {% endtranslate %}
@@ -85,7 +85,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="alert-modal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="alert-modal" tabindex="-1" aria-hidden="true" aria-modal="true" role="alertdialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-body">
@@ -102,11 +102,11 @@
     </div>
 </div>
 
-<div class="modal fade" id="adminmessage-modal" tabindex="-1" aria-labelledby="adminmessage-modalLabel" aria-hidden="true">
+<div class="modal fade" id="adminmessage-modal" tabindex="-1" aria-hidden="true" aria-modal="true" role="alertdialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="adminmessage-modalLabel">
+                <h5 class="modal-title">
                     {% translate %}
                     Chat with Research Coordinator
                     {% endtranslate %}
@@ -128,7 +128,7 @@
 </div>
 
 {% if noconnectionlostmodal is not defined %}
-<div class="modal fade" id="connection-timeout-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="connection-timeout-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" aria-modal="true" role="alertdialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
