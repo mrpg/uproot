@@ -115,18 +115,29 @@ def timeout_reached(page: type[Page], player: Storage, tol: float) -> bool:
     return False
 
 
+def is_dunder(name: str) -> bool:
+    return len(name) > 4 and name.startswith("__") and name.endswith("__")
+
+
 def exported_constants(app: Any) -> dict[str, Any]:
-    if hasattr(app, "C") and hasattr(app.C, "__export__"):
-        if isinstance(app.C, type):
-            grabber = getattr
-        elif isinstance(app.C, dict):
-            grabber = dict.__getitem__  # type: ignore[assignment]
-        else:
-            raise TypeError(f"'C' must be class or dict (app: {app.__name__})")
+    if not (hasattr(app, "C") and hasattr(app.C, "__export__")):
+        return {}
 
-        return {k: grabber(app.C, k) for k in grabber(app.C, "__export__")}
+    C = app.C
+    if isinstance(C, type):
+        export = getattr(C, "__export__")
 
-    return {}
+        if export is Ellipsis:
+            return {k: v for k, v in vars(C).items() if not is_dunder(k)}
+
+        return {k: getattr(C, k) for k in export}
+    elif isinstance(C, dict):
+        if C["__export__"] is Ellipsis:
+            return C
+
+        return {k: C[k] for k in C["__export__"]}
+    else:
+        raise TypeError(f"'C' must be class or dict (app: {app.__name__})")
 
 
 async def render(
