@@ -23,6 +23,21 @@ from uproot.constraints import ensure, valid_token
 from uproot.pages import path2page, render
 from uproot.storage import Admin, Player, Session
 
+
+def safe_redirect(url: str) -> str:
+    """Ensure redirect URL is safe by validating it's a relative URL.
+
+    This prevents open redirect vulnerabilities by ensuring the URL:
+    - Starts with / (relative to our domain)
+    - Doesn't start with // (which would be protocol-relative)
+    """
+    if not url.startswith("/"):
+        raise ValueError("Redirect URL must be relative")
+    if url.startswith("//"):
+        raise ValueError("Protocol-relative URLs not allowed")
+    return url
+
+
 router = APIRouter(prefix=d.ROOT)
 
 
@@ -60,9 +75,10 @@ async def roommain(
                     ),
                 )
             elif not ur.validate(room, label) and not bad:
-                return RedirectResponse(
-                    f"{d.ROOT}/room/{quote(roomname, safe='')}/?bad=1", status_code=303
+                redirect_url = safe_redirect(
+                    f"{d.ROOT}/room/{quote(roomname, safe='')}/?bad=1"
                 )
+                return RedirectResponse(redirect_url, status_code=303)
             elif bad:
                 return HTMLResponse(
                     await render(

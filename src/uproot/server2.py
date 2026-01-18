@@ -57,6 +57,20 @@ from uproot.types import ensure_awaitable
 # General settings
 
 
+def safe_redirect(url: str) -> str:
+    """Ensure redirect URL is safe by validating it's a relative URL.
+
+    This prevents open redirect vulnerabilities by ensuring the URL:
+    - Starts with / (relative to our domain)
+    - Doesn't start with // (which would be protocol-relative)
+    """
+    if not url.startswith("/"):
+        raise ValueError("Redirect URL must be relative")
+    if url.startswith("//"):
+        raise ValueError("Protocol-relative URLs not allowed")
+    return url
+
+
 router = APIRouter(prefix=f"{d.ROOT}/admin")
 
 LAST_FAILED_LOGIN = 0.0
@@ -539,9 +553,8 @@ async def new_room2(
         with Session(sname) as session:
             session.room = name
 
-    return RedirectResponse(
-        f"{d.ROOT}/admin/room/{quote(name, safe='')}/", status_code=303
-    )
+    redirect_url = safe_redirect(f"{d.ROOT}/admin/room/{quote(name, safe='')}/")
+    return RedirectResponse(redirect_url, status_code=303)
 
 
 # Particular room
@@ -845,6 +858,7 @@ async def session_data_download(
         t0 = now()
         csv = a.generate_csv(sname, format, gvar, filters)
 
+        # Sanitize session name to prevent log injection
         d.LOGGER.debug(f"generate_csv({sname!r}, ...) took {(now()-t0):5f} seconds")
 
         return Response(

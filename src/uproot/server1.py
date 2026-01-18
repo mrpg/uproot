@@ -62,6 +62,22 @@ from uproot.storage import (
 from uproot.types import ensure_awaitable, optional_call, optional_call_once
 
 PROCESSED_FUTURES: deque[str] = deque(maxlen=8 * 1024)
+
+
+def safe_redirect(url: str) -> str:
+    """Ensure redirect URL is safe by validating it's a relative URL.
+
+    This prevents open redirect vulnerabilities by ensuring the URL:
+    - Starts with / (relative to our domain)
+    - Doesn't start with // (which would be protocol-relative)
+    """
+    if not url.startswith("/"):
+        raise ValueError("Redirect URL must be relative")
+    if url.startswith("//"):
+        raise ValueError("Protocol-relative URLs not allowed")
+    return url
+
+
 PROCESSED_FUTURES_LOCK = asyncio.Lock()
 router = APIRouter(prefix=d.ROOT)
 
@@ -396,10 +412,10 @@ async def sessionwide(
             with Player(sname, free_uname) as p:
                 p.started = True  # This prevents race conditions
 
-            return RedirectResponse(
-                f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(free_uname, safe='')}/",
-                status_code=303,
+            redirect_url = safe_redirect(
+                f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(free_uname, safe='')}/"
             )
+            return RedirectResponse(redirect_url, status_code=303)
         else:
             # Session is full, so to speak
             return HTMLResponse(
@@ -490,9 +506,8 @@ async def ws(
                     invoke_response = time()
                 case {"endpoint": "jserrors", "payload": msg} if isinstance(msg, str):
                     # Use repr() to prevent log injection attacks
-                    d.LOGGER.error(
-                        f"JavaScript error [{d.ROOT}/p/{sname}/{uname}/]: {msg[:256]!r}"
-                    )
+                    epath = f"{d.ROOT}/p/{sname}/{uname}/"
+                    d.LOGGER.error(f"JavaScript error [{epath!r}]: {msg[:256]!r}")
                 case {
                     "endpoint": "skip",
                     "payload": new_show_page,
@@ -752,7 +767,9 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     # 3. Helpful developer feedback for case-sensitivity issues
     # This layer is not strictly required for security (Layer 4 handles that)
     # but provides defense in depth and better error messages
-    path_parts = Path(location).parts
+    # Use the validated target_path (not raw location) for additional safety
+    relative_path = os.path.relpath(target_path, base_path)
+    path_parts = Path(relative_path).parts
     current_path = Path(base_path)
 
     for part in path_parts:

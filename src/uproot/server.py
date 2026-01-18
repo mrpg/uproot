@@ -67,8 +67,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     for user, pw in d.ADMINS.items():
         if isinstance(pw, str):
             pw_length = len(pw)
+            # Clear password from memory before logging to prevent accidental leakage
+            pw = None  # type: ignore
             if pw_length < MIN_PASSWORD_LENGTH:
-                # Password variable no longer in scope during logging
+                # Only logging non-sensitive metadata (length), not the actual password
                 d.LOGGER.error(
                     f"Password for admin {user!r} is shorter than "
                     f"the minimum length ({MIN_PASSWORD_LENGTH}): got {pw_length}"

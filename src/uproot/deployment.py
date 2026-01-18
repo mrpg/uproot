@@ -61,7 +61,6 @@ if DBENV == "sqlite3":
         os.getenv("UPROOT_SQLITE3", "uproot.sqlite3"), TBLEXTRA
     )
 elif DBENV == "memory":
-    pass
     LOGGER.warning("Using 'memory' database driver. Data will not persist.")
 elif DBENV == "postgresql":
     # Use DATABASE_URL (Heroku standard) if UPROOT_POSTGRESQL is not set

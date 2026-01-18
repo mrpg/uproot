@@ -388,6 +388,8 @@ def combine(named_tuples: Sequence[Any]) -> Any:
 
 class Random(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages: list[t.PageLike] = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RandomStart"],
@@ -472,6 +474,8 @@ class Random(t.SmoothOperator):
 
 class Rounds(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike, n: int) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RoundStart"],
@@ -494,6 +498,8 @@ class Rounds(t.SmoothOperator):
 
 class Repeat(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RepeatStart"],
@@ -534,6 +540,8 @@ class Repeat(t.SmoothOperator):
 
 class Bracket(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages = [
             INTERNAL_PAGES["{"],
             *pages,

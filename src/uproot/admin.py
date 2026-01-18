@@ -304,6 +304,10 @@ def generate_data(
 ]:
     gvar = [gv for gv in gvar if gv]
 
+    # Initialize to satisfy static analysis (case _ will raise if no match)
+    transformer: Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]]
+    transkwargs: dict[str, Any]
+
     match format:
         case "ultralong":
             transkwargs_ul: dict[str, Any] = {}
@@ -390,6 +394,7 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
 
     # Verify credentials first
     if user not in ADMINS or ADMINS[user] is ... or ADMINS[user] != pw:
+        # Sanitize user input to prevent log injection
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return None
 

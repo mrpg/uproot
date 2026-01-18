@@ -14,7 +14,6 @@ Basic usage:
 
 import os
 import re
-from textwrap import dedent
 from typing import Annotated, Callable
 
 import orjson
@@ -47,7 +46,7 @@ class TranslateLoader(BaseLoader):
         source, filename, uptodate = self.base_loader.get_source(environment, template)
 
         def replace_translate_block(mtch: re.Match[str]) -> str:
-            content = dedent(mtch.group(1))
+            # Extract and strip the content from the match
             content = mtch.group(1).strip()
 
             return compile_translate_block(content)
