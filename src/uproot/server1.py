@@ -15,6 +15,7 @@ from email.utils import formatdate, parsedate_to_datetime
 from pathlib import Path
 from time import time
 from typing import Any, Iterable, Optional, cast
+from urllib.parse import quote
 
 import orjson
 from fastapi import (
@@ -396,7 +397,8 @@ async def sessionwide(
                 p.started = True  # This prevents race conditions
 
             return RedirectResponse(
-                f"{d.ROOT}/p/{sname}/{free_uname}/", status_code=303
+                f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(free_uname, safe='')}/",
+                status_code=303,
             )
         else:
             # Session is full, so to speak
@@ -487,8 +489,9 @@ async def ws(
                 case {"endpoint": "time"}:
                     invoke_response = time()
                 case {"endpoint": "jserrors", "payload": msg} if isinstance(msg, str):
+                    # Use repr() to prevent log injection attacks
                     d.LOGGER.error(
-                        f"JavaScript error [{d.ROOT}/p/{sname}/{uname}/]: {msg[:256]}"
+                        f"JavaScript error [{d.ROOT}/p/{sname}/{uname}/]: {msg[:256]!r}"
                     )
                 case {
                     "endpoint": "skip",
@@ -753,6 +756,12 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     current_path = Path(base_path)
 
     for part in path_parts:
+        # Ensure current_path stays within base_path boundary
+        if (
+            not str(current_path).startswith(base_path + os.sep)
+            and str(current_path) != base_path
+        ):
+            raise HTTPException(status_code=404)
         actual_names = os.listdir(current_path)
         if part not in actual_names:
             # Check for case mismatches (helpful for cross-platform development)

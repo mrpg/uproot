@@ -390,8 +390,7 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
 
     # Verify credentials first
     if user not in ADMINS or ADMINS[user] is ... or ADMINS[user] != pw:
-        d.LOGGER.debug(f"Invalid credentials: {user} {pw}")
-        d.LOGGER.debug(f"Valid credentials would have been: {ADMINS}")
+        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return None
 
     return _create_token_for_user(user)

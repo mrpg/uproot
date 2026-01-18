@@ -65,11 +65,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         d.LOGGER.info(f"There are {la} admins")
 
     for user, pw in d.ADMINS.items():
-        if isinstance(pw, str) and len(pw) < MIN_PASSWORD_LENGTH:
-            d.LOGGER.error(
-                f"Password for admin '{user}' is shorter than "
-                f"the minimum length ({MIN_PASSWORD_LENGTH})"
-            )
+        if isinstance(pw, str):
+            pw_length = len(pw)
+            if pw_length < MIN_PASSWORD_LENGTH:
+                # Password variable no longer in scope during logging
+                d.LOGGER.error(
+                    f"Password for admin {user!r} is shorter than "
+                    f"the minimum length ({MIN_PASSWORD_LENGTH}): got {pw_length}"
+                )
 
     if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
         d.ensure_login_token()

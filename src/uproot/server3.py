@@ -7,6 +7,7 @@ This file implements room routes.
 
 import asyncio
 from typing import Any, Optional, cast
+from urllib.parse import quote
 
 import orjson
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
@@ -60,7 +61,7 @@ async def roommain(
                 )
             elif not ur.validate(room, label) and not bad:
                 return RedirectResponse(
-                    f"{d.ROOT}/room/{roomname}/?bad=1", status_code=303
+                    f"{d.ROOT}/room/{quote(roomname, safe='')}/?bad=1", status_code=303
                 )
             elif bad:
                 return HTMLResponse(

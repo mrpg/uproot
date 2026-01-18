@@ -13,6 +13,7 @@ import os
 import sys
 from time import perf_counter as now
 from typing import Any, Optional, cast
+from urllib.parse import quote
 
 import orjson
 from fastapi import (
@@ -538,7 +539,9 @@ async def new_room2(
         with Session(sname) as session:
             session.room = name
 
-    return RedirectResponse(f"{d.ROOT}/admin/room/{name}/", status_code=303)
+    return RedirectResponse(
+        f"{d.ROOT}/admin/room/{quote(name, safe='')}/", status_code=303
+    )
 
 
 # Particular room
@@ -842,7 +845,7 @@ async def session_data_download(
         t0 = now()
         csv = a.generate_csv(sname, format, gvar, filters)
 
-        d.LOGGER.debug(f"generate_csv('{sname}', ...) took {(now()-t0):5f} seconds")
+        d.LOGGER.debug(f"generate_csv({sname!r}, ...) took {(now()-t0):5f} seconds")
 
         return Response(
             csv,
