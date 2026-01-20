@@ -55,6 +55,19 @@ You may then log in to the admin area, or [run an example experiment](http://127
 
 © [Max R. P. Grossmann](https://max.pm/), [Holger Gerhardt](https://www.econ.uni-bonn.de/iame/en/team/gerhardt), et al., 2026. A full alphabetical overview of contributors may be viewed [here](CONTRIBUTORS.md).
 
+## Citation
+
+[You are ethically obliged to cite specialist software used to create research outputs.](https://peerj.com/articles/cs-86/) Please cite the following paper:
+
+```bibtex
+ @unpublished{uproot,
+  author = {Grossmann, Max~R.~P. and Gerhardt, Holger},
+  title = {uproot: An Experimental Framework with a~Focus on Performance, Flexibility, and Ease of Use},
+  year = {2026},
+  note = {Unpublished manuscript}
+}
+```
+
 ## Contributing
 
 Interested in contributing? See our [Contributing Guide](CONTRIBUTING.md) for development setup, coding standards, and workflow information.

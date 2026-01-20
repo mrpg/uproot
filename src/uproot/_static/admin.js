@@ -502,7 +502,7 @@ function showBibTeX() {
 <b>@unpublished</b>{<b>uproot</b>,<br>
 &nbsp;&nbsp;<b>author</b> = {Grossmann, Max~R.~P. and Gerhardt, Holger},<br>
 &nbsp;&nbsp;<b>title</b>&nbsp;= {uproot: An Experimental Framework with a~Focus on Performance, Flexibility, and Ease of Use},<br>
-&nbsp;&nbsp;<b>year</b>&nbsp;= {2025},<br>
+&nbsp;&nbsp;<b>year</b>&nbsp;= {2026},<br>
 &nbsp;&nbsp;<b>note</b>&nbsp;= {Unpublished manuscript}<br>
 }
 </code>`);
