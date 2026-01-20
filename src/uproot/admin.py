@@ -180,11 +180,15 @@ def displaystr(s: str) -> str:
     return s
 
 
-def from_cookie(uauth: str) -> dict[str, str]:
+def from_cookie(uauth: str | None) -> dict[str, str]:
     """Parse authentication token from cookie.
 
     Returns dict with 'user' and 'token' keys, or empty strings if invalid.
     """
+    if not uauth:
+        return dict(
+            user="", token=""
+        )  # nosec B106 - Empty strings for auth failure, not actual credentials
     try:
         serializer = _get_serializer()
         active_tokens = _get_active_tokens()
@@ -485,7 +489,10 @@ def get_active_auth_sessions() -> dict[str, dict[str, Any]]:
             if isinstance(data, dict) and "user" in data:
                 user = data["user"]
                 if user not in sessions:
-                    sessions[user] = {"token_count": 0, "created_at": []}
+                    sessions[user] = {  # nosec B105 - counter, not a credential
+                        "token_count": 0,
+                        "created_at": [],
+                    }
                 token_count = sessions[user]["token_count"]
                 if isinstance(token_count, int):
                     sessions[user]["token_count"] = token_count + 1

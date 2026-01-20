@@ -170,7 +170,7 @@ async def render(
         if player._uproot_group is not None:
             group = player.group
 
-    data = a.from_cookie(uauth) if uauth else {"user": "", "token": ""}
+    data = a.from_cookie(uauth)
     is_admin = (
         a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
@@ -270,7 +270,7 @@ async def render_error(
         player._uproot_session(),
     )
 
-    data = a.from_cookie(uauth) if uauth else {"user": "", "token": ""}
+    data = a.from_cookie(uauth)
     is_admin = (
         a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
