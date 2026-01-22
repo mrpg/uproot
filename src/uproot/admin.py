@@ -356,6 +356,60 @@ async def generate_json(
         await asyncio.sleep(0)
 
 
+def page_times(sname: t.Sessionname) -> str:
+    times = []
+
+    with s.Session(sname) as session:
+        for pid in session.players:
+            uname = pid.uname
+
+            with pid() as player:
+                one_row = False
+                history = player.__history__()
+                last_order = None
+
+                for show_page in history["show_page"]:
+                    if not isinstance(show_page.data, int):
+                        continue
+
+                    for page_order in history["page_order"]:
+                        if page_order.time > show_page.time:
+                            break
+
+                        last_order = page_order.data
+
+                    page_name = None
+
+                    if isinstance(last_order, list):
+                        if show_page.data == len(last_order):
+                            page_name = "(End)"
+                        elif show_page.data == -1:
+                            page_name = "(Initialize)"
+                        else:
+                            try:
+                                page_name = last_order[show_page.data]
+                            except (TypeError, IndexError):
+                                pass
+
+                    if one_row:
+                        times[-1]["left"] = show_page.time
+
+                    times.append(
+                        dict(
+                            sname=sname,
+                            uname=uname,
+                            show_page=show_page.data,
+                            page_name=page_name,
+                            entered=show_page.time,
+                            left=None,
+                            context=show_page.context,
+                        )
+                    )
+                    one_row = True
+
+    return data.csv_out(times)
+
+
 def _create_token_for_user(user: str) -> str:
     """Internal helper to create and store an authentication token.
 

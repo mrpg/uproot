@@ -781,6 +781,21 @@ async def session_data(
     return HTMLResponse(await render("SessionData.html", dict(sname=sname)))
 
 
+# Particular session: page times
+@router.get("/session/{sname}/page-times/")
+async def session_data(
+    request: Request,
+    sname: t.Sessionname,
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.session_exists(sname)
+    return Response(
+        a.page_times(sname),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={sname}-page-times.csv"},
+    )
+
+
 # Particular session: digest
 @router.get("/session/{sname}/digest/")
 async def session_digest(
