@@ -228,15 +228,25 @@ async def show_page(
                                 setattr(player, fname, field.data)
 
                         if stealth_fields:
-                            await ensure_awaitable(
+                            stealth_errors = await ensure_awaitable(
                                 optional_call,
                                 page,
                                 "handle_stealth_fields",
+                                default_return=[],
                                 player=player,
                                 **stealth_fields,
                             )
-
-                    proceed = True
+                            if isinstance(stealth_errors, str):
+                                stealth_errors = [stealth_errors]
+                            if stealth_errors:
+                                custom_errors.extend(stealth_errors)
+                                proceed = False
+                            else:
+                                proceed = True
+                        else:
+                            proceed = True
+                    else:
+                        proceed = True
         else:
             pass
     else:
