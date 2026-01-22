@@ -357,7 +357,7 @@ async def generate_json(
 
 
 def page_times(sname: t.Sessionname) -> str:
-    times = []
+    times: list[dict[str, Any]] = []
 
     with s.Session(sname) as session:
         for pid in session.players:

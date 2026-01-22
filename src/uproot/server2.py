@@ -783,7 +783,7 @@ async def session_data(
 
 # Particular session: page times
 @router.get("/session/{sname}/page-times/")
-async def session_data(
+async def session_page_times(
     request: Request,
     sname: t.Sessionname,
     auth: dict[str, Any] = Depends(auth_required),
