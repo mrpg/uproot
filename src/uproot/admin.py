@@ -368,15 +368,21 @@ def page_times(sname: t.Sessionname) -> str:
                 history = player.__history__()
                 last_order = None
 
-                for show_page in history["show_page"]:
+                show_pages = history.get("show_page", [])
+                page_orders = history.get("page_order", [])
+
+                for show_page in show_pages:
                     if not isinstance(show_page.data, int):
                         continue
 
-                    for page_order in history["page_order"]:
-                        if page_order.time > show_page.time:
-                            break
-
-                        last_order = page_order.data
+                    # Binary search to find the most recent page_order at or before show_page.time.
+                    # bisect_key_right returns the index where show_page.time would be inserted
+                    # after any existing entries with equal time (using the list's key function).
+                    # So (idx - 1) gives the last entry with time <= show_page.time.
+                    if page_orders:
+                        idx = page_orders.bisect_key_right(show_page.time)
+                        if idx > 0:
+                            last_order = page_orders[idx - 1].data
 
                     page_name = None
 
