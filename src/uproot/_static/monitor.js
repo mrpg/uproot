@@ -11,7 +11,6 @@ const EXTRA_FIELDS = ["started", "label", "round", "_uproot_group", "member_id"]
 const MONITOR_PRIORITY_FIELDS = ["id", "label", "player", "page", "progress", "lastSeen", "round", "group", "member_id"];
 const MAX_MULTIVIEW_PLAYERS = 36;
 const HEARTBEAT_DURATION_MS = 5000;
-const ROW_HEIGHT_PX = 44;
 const UPDATE_DEBOUNCE_MS = 150;
 
 // ============================================================================
@@ -28,6 +27,8 @@ const monitorState = {
 // ============================================================================
 // Initialization
 // ============================================================================
+
+rowHeight = 44;
 
 uproot.onStart(() => {
     createTable("tableOuter");
@@ -105,7 +106,7 @@ function createTable(containerId) {
         height: "100%",
         layout: "fitColumns",
         placeholder: "No players available",
-        rowHeight: ROW_HEIGHT_PX
+        rowHeight: rowHeight
     });
 
     monitorState.table.on("cellClick", (e, cell) => {

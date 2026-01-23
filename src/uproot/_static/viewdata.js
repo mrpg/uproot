@@ -36,9 +36,9 @@ const COLUMN_WIDTHS = {
 };
 
 // Table configuration
-const ROW_HEIGHT_PX = 41;
 const VALUE_MAX_LENGTH = 30;
 const HIGHLIGHT_DURATION_MS = 3000;
+let rowHeight = 41;
 
 // ============================================================================
 // Module State
@@ -333,7 +333,7 @@ function createTable(containerId) {
         height: containerId === "tableModalInner" ? "100%" : "400px",
         layout: "fitColumns",
         placeholder: _("No data available"),
-        rowHeight: ROW_HEIGHT_PX
+        rowHeight: rowHeight
     });
 }
 
