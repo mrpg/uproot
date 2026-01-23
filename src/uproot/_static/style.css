@@ -293,3 +293,56 @@ div.without-anchoring-overlay {
 .messages-container .sender {
     font-family: monospace;
 }
+
+/* Print styles */
+@media print {
+    /* Hide testing elements */
+    #uproot-testing-button-wrapper,
+    .uproot-testing-only {
+        display: none !important;
+    }
+
+    /* Hide interactive/non-printable elements */
+    #uproot-buddy,
+    #uproot-timeout,
+    .modal {
+        display: none !important;
+    }
+
+    /* Reset positioning for print layout */
+    #uproot-main-container {
+        margin-bottom: 0;
+    }
+
+    /* Preserve background colors and images */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Avoid awkward page breaks */
+    .uproot-form-group,
+    .card,
+    .alert,
+    table,
+    figure,
+    img {
+        break-inside: avoid;
+    }
+
+    /* Ensure links are visible */
+    a[href]:not(.btn)::after {
+        content: " (" attr(href) ")";
+        font-size: smaller;
+        opacity: 0.7;
+    }
+    a[href^="#"]::after,
+    a[href^="javascript:"]::after {
+        content: none;
+    }
+
+    /* Clean up body for print */
+    body {
+        overflow: visible;
+    }
+}
