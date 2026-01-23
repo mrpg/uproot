@@ -18,6 +18,8 @@
 
 {% block main3 %}
 
+<h3 class="mb-3">{% translate %}Main data{% endtranslate %}</h3>
+
 <form method="get" action="get/" target="_blank">
     <div class="row">
         <!-- Column 1 -->
@@ -99,23 +101,29 @@
                 {% translate %}File type{% endtranslate %}
             </h4>
             <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" id="filetype-json" name="filetype" value="json" checked>
-                <label class="form-check-label" for="option1">JSON</label>
+                <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv" checked>
+                <label class="form-check-label" for="option1">CSV</label>
                 <div class="form-text mt-2 text-body-tertiary">
-                    {% translate %}JSON is recommended for analysis.{% endtranslate %}
+                    {% translate %}CSV is the better choice for spreadsheet applications.{% endtranslate %}
                 </div>
             </div>
             <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv">
-                <label class="form-check-label" for="option1">CSV</label>
+                <input class="form-check-input" type="radio" id="filetype-json" name="filetype" value="json">
+                <label class="form-check-label" for="option1">JSON</label>
                 <div class="form-text mt-2 text-body-tertiary">
-                    {% translate %}CSV is usually the better choice for spreadsheet applications.{% endtranslate %}
+                    {% translate %}JSON is recommended for analysis.{% endtranslate %}
                 </div>
             </div>
         </div>
     </div>
     <button type="submit" class="btn btn-uproot">{% translate %}Download{% endtranslate %}</button>
 </form>
+
+<hr class="mt-5">
+
+<h3 class="mt-5 mb-3">{% translate %}Other data{% endtranslate %}</h3>
+
+<a class="btn btn-outline-uproot" href="../page-times/">{% translate %}Page times{% endtranslate %}</a>
 
 {% endblock main3 %}
 
