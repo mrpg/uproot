@@ -1,3 +1,4 @@
+import random
 from datetime import date, datetime, time
 from unittest.mock import patch
 
@@ -400,3 +401,184 @@ def test_stable_encode_decode_iso_format_normative():
     assert encoded[0] == 12  # Type ID
     iso_string = loads(encoded[1:])
     assert iso_string == "2013-09-17T14:30:45+05:30"
+
+
+def test_stable_encode_decode_random():
+    """Test basic random.Random encode/decode round-trip."""
+    rng = random.Random(42)
+    # Advance state a bit
+    for _ in range(10):
+        rng.random()
+
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert isinstance(decoded, random.Random)
+    # Verify state is preserved by checking next values match
+    assert rng.random() == decoded.random()
+    assert rng.random() == decoded.random()
+    assert rng.random() == decoded.random()
+
+
+def test_stable_encode_decode_random_seeded():
+    """Test random.Random with specific seed produces identical sequences."""
+    rng = random.Random(12345)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    # Generate sequences from both and verify they match
+    original_values = [rng.random() for _ in range(100)]
+    decoded_values = [decoded.random() for _ in range(100)]
+    assert original_values == decoded_values
+
+
+def test_stable_encode_decode_random_fresh():
+    """Test freshly created random.Random (unseeded)."""
+    rng = random.Random()
+    original_state = rng.getstate()
+
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert isinstance(decoded, random.Random)
+    assert decoded.getstate() == original_state
+
+
+def test_stable_encode_decode_random_state_preserved():
+    """Test that internal state is exactly preserved after encode/decode."""
+    rng = random.Random(99999)
+    # Advance state significantly
+    for _ in range(1000):
+        rng.random()
+
+    original_state = rng.getstate()
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert decoded.getstate() == original_state
+
+
+def test_stable_encode_decode_random_gauss_state():
+    """Test that gauss_next state is preserved (used by gauss/normalvariate)."""
+    rng = random.Random(42)
+    # Call gauss to set gauss_next state
+    rng.gauss(0, 1)
+
+    original_state = rng.getstate()
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert decoded.getstate() == original_state
+    # Verify subsequent gauss calls match
+    assert rng.gauss(0, 1) == decoded.gauss(0, 1)
+
+
+def test_stable_encode_decode_random_various_methods():
+    """Test that various random methods produce same results after decode."""
+    rng = random.Random(777)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    # Test various methods
+    assert rng.randint(0, 1000) == decoded.randint(0, 1000)
+    assert rng.choice([1, 2, 3, 4, 5]) == decoded.choice([1, 2, 3, 4, 5])
+    assert rng.uniform(0.0, 100.0) == decoded.uniform(0.0, 100.0)
+    assert rng.randrange(0, 100, 5) == decoded.randrange(0, 100, 5)
+
+
+def test_stable_encode_decode_random_shuffle_deterministic():
+    """Test that shuffle produces same results after decode."""
+    rng = random.Random(555)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    list1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    list2 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    rng.shuffle(list1)
+    decoded.shuffle(list2)
+
+    assert list1 == list2
+
+
+def test_stable_encode_decode_random_sample_deterministic():
+    """Test that sample produces same results after decode."""
+    rng = random.Random(333)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    population = list(range(100))
+    sample1 = rng.sample(population, 20)
+    sample2 = decoded.sample(population, 20)
+
+    assert sample1 == sample2
+
+
+def test_stable_random_type_id():
+    """Test that random.Random has correct type ID."""
+    from uproot.stable import TYPES
+
+    assert TYPES[random.Random] == 133
+
+
+def test_stable_random_is_mutable():
+    """Test that random.Random is classified as mutable type."""
+    from uproot.stable import IMMUTABLE_TYPES, MUTABLE_TYPES
+
+    assert random.Random in MUTABLE_TYPES
+    assert random.Random not in IMMUTABLE_TYPES
+
+
+def test_stable_encode_decode_random_type_id_in_bytes():
+    """Test that encoded bytes start with correct type ID."""
+    rng = random.Random(42)
+    encoded = encode(rng)
+    assert encoded[0] == 133
+
+
+def test_stable_encode_decode_random_different_seeds():
+    """Test multiple Random objects with different seeds."""
+    seeds = [0, 1, 42, 12345, 2**31 - 1, 2**32 - 1]
+
+    for seed in seeds:
+        rng = random.Random(seed)
+        encoded = encode(rng)
+        decoded = decode(encoded)
+
+        assert isinstance(decoded, random.Random)
+        assert rng.getstate() == decoded.getstate()
+        # Verify sequences match
+        for _ in range(10):
+            assert rng.random() == decoded.random()
+
+
+def test_stable_encode_decode_random_advanced_state():
+    """Test Random with heavily advanced state."""
+    rng = random.Random(42)
+    # Advance state through many iterations
+    for _ in range(10000):
+        rng.random()
+
+    original_state = rng.getstate()
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert decoded.getstate() == original_state
+
+
+def test_stable_encode_decode_random_multiple_round_trips():
+    """Test that multiple encode/decode cycles preserve state."""
+    rng = random.Random(42)
+
+    for _ in range(5):
+        encoded = encode(rng)
+        rng = decode(encoded)
+        # Advance state between round trips
+        rng.random()
+
+    # Verify it's still a valid Random object
+    assert isinstance(rng, random.Random)
+    # Should be able to generate more values
+    values = [rng.random() for _ in range(10)]
+    assert len(values) == 10
+    assert all(0.0 <= v < 1.0 for v in values)

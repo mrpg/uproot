@@ -7,6 +7,7 @@ EXHIBITED BY THIS FILE MUST REMAIN BACKWARD COMPATIBLE EVEN ACROSS MAJOR VERSION
 """
 
 import base64
+import random
 from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
@@ -41,6 +42,7 @@ TYPES: dict[type, int] = {
     bytearray: 130,
     set: 131,
     t.Bunch: 132,
+    random.Random: 133,
 }
 
 
@@ -101,6 +103,8 @@ def _encode(data: Any) -> tuple[int, bytes]:
             return 130, jd(base64.b64encode(data).decode("ascii"))
         case set():
             return 131, jd(list(data))
+        case random.Random():
+            return 133, jd(data.getstate())
         case _:
             raise NotImplementedError(f"{data} has invalid type: {type(data)}")
 
@@ -157,6 +161,13 @@ def _decode(typeid: int, raw: bytes) -> Any:
             return set(jl(raw))
         case 132:  # Bunch
             return t.Bunch(t.PlayerIdentifier(**el) for el in jl(raw))
+        case 133:  # random.Random
+            state = jl(raw)
+            # Convert list to tuple for setstate (version, state_tuple, gauss_next)
+            state = (state[0], tuple(state[1]), state[2])
+            rng = random.Random()  # nosec B311
+            rng.setstate(state)
+            return rng
         case _:
             raise NotImplementedError(f"Invalid typeid: {typeid}")
 
