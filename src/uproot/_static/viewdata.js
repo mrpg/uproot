@@ -1,25 +1,79 @@
-// This file mixes camelCase and snake_case as much data comes from Python
+/**
+ * Data viewer table for admin session data view.
+ * Displays player field data with filtering and historical state tracking.
+ *
+ * Note: This file mixes camelCase and snake_case as much data comes from Python.
+ */
 
-const ignoredFields = ["session", "key"];
-const priorityFields = ["id", "label", "_uproot_group", "member_id", "page_order", "show_page", "started", "round"];
+// ============================================================================
+// Constants
+// ============================================================================
 
-let FILTER = {};
-let lastData, lastUpdate = 0;
-let table;
-let currentContainer = "tableOuter";
-let fullDataset = {};
-let recentlyUpdated = new Set();
+// Payload tuple indices (data format from Python backend)
+const PAYLOAD = {
+    TIME: 0,           // Timestamp of the change
+    UNAVAILABLE: 1,    // Whether the field is unavailable/deleted
+    TYPE: 2,           // Python type name
+    VALUE: 3,          // The actual value (display representation)
+    CONTEXT: 4         // Context where the change occurred
+};
 
+// Fields that should not be displayed in the table
+const IGNORED_FIELDS = ["session", "key"];
+
+// Fields that should appear first in the table (in order)
+const PRIORITY_FIELDS = [
+    "id", "label", "_uproot_group", "member_id",
+    "page_order", "show_page", "started", "round"
+];
+
+// Column widths
+const COLUMN_WIDTHS = {
+    PLAYER: 110,
+    ID: 110,
+    PAGE_ORDER: 330,
+    DEFAULT: 150
+};
+
+// Table configuration
+const ROW_HEIGHT_PX = 41;
+const VALUE_MAX_LENGTH = 30;
+const HIGHLIGHT_DURATION_MS = 3000;
+
+// ============================================================================
+// Module State
+// ============================================================================
+
+const viewdataState = {
+    filter: {},
+    lastData: null,
+    lastUpdate: 0,
+    table: null,
+    currentContainer: "tableOuter",
+    fullDataset: {},
+    recentlyUpdated: new Set()
+};
+
+// ============================================================================
+// Field Utilities
+// ============================================================================
+
+/**
+ * Compares two fields for sorting, prioritizing fields in PRIORITY_FIELDS.
+ */
 function prioritizeFields(a, b) {
-    const ai = priorityFields.indexOf(a);
-    const bi = priorityFields.indexOf(b);
+    const ai = PRIORITY_FIELDS.indexOf(a);
+    const bi = PRIORITY_FIELDS.indexOf(b);
 
-    if (ai !== -1 && bi !== -1) return ai - bi;  // both prioritized
-    if (ai !== -1) return -1;                    // a is priority
-    if (bi !== -1) return 1;                     // b is priority
-    return a.localeCompare(b);                   // alphabetical for the rest
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return a.localeCompare(b);
 }
 
+/**
+ * Transforms internal field names to display names.
+ */
 function transformField(field) {
     if (field === "_uproot_group") {
         return "(group)";
@@ -27,16 +81,32 @@ function transformField(field) {
     return field;
 }
 
+/**
+ * Checks if a field should be included in the table.
+ */
+function shouldIncludeField(field) {
+    if (IGNORED_FIELDS.includes(field)) return false;
+    if (field.startsWith("_uproot_") && field !== "_uproot_group") return false;
+    return true;
+}
+
+// ============================================================================
+// Cell Formatting
+// ============================================================================
+
+/**
+ * Formats a cell value for display, with truncation and metadata tooltip.
+ */
 function formatCellValue(value, metadata) {
     if (!metadata || metadata.unavailable) {
-        return "<small class='text-muted'>(" + _("unset") + ")</small>";
+        return `<small class="text-muted">(${_("unset")})</small>`;
     }
 
     const str = String(value);
-    const displayValue = str.length > 30 ? str.substr(0, 27) + "..." : str;
-    // 27, since "...".length = 3
+    const displayValue = str.length > VALUE_MAX_LENGTH
+        ? str.substring(0, VALUE_MAX_LENGTH - 3) + "..."
+        : str;
 
-    // Add tooltip and click styling if metadata exists
     if (metadata && metadata.time) {
         const tooltip = `${epochToLocalISO(metadata.time)} @ ${metadata.context}`;
         return `<span class="a-value" title="${tooltip}" style="cursor: pointer;">${displayValue}</span>`;
@@ -45,33 +115,43 @@ function formatCellValue(value, metadata) {
     return displayValue;
 }
 
+/**
+ * Shows a modal with detailed cell information.
+ */
 function showCellDetails(field, metadata) {
     if (!metadata || metadata.no_details) return;
 
-    let details;
     const typeLabel = _("Type");
     const lastChangedLabel = _("Last changed");
     const unsetLabel = _("Unset or deleted");
 
+    let details;
     if (!metadata || metadata.unavailable) {
         details = `<h4>${uproot.escape(field)}</h4>
             <p><strong>${unsetLabel}</strong></p>
             <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}</p>`;
-    }
-    else {
+    } else {
         details = `<h4>${uproot.escape(field)}</h4>
             <p><strong>${typeLabel}:</strong> ${uproot.escape(metadata.type) || `<i>${_("Unknown")}</i>`}</p>
             <p><strong>${lastChangedLabel}:</strong> ${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}</p>
-            <textarea class="form-control" rows="8" disabled>${uproot.escape(metadata.trueValue) || ''}</textarea>`;
+            <textarea class="form-control" rows="8" disabled>${uproot.escape(metadata.trueValue) || ""}</textarea>`;
     }
 
-    uproot.alert(details); // SAFE
+    uproot.alert(details);
 }
 
+// ============================================================================
+// Column Detection
+// ============================================================================
+
+/**
+ * Detects the appropriate column type based on the Python type in the data.
+ */
 function detectColumnType(field, data) {
     for (const playerData of Object.values(data)) {
-        if (playerData[field] && playerData[field].length == 5) {
-            const type = playerData[field][2].toLowerCase();
+        const payload = playerData[field];
+        if (payload && payload.length === 5) {
+            const type = payload[PAYLOAD.TYPE].toLowerCase();
 
             if (type.includes("int") || type.includes("float") || type.includes("decimal")) {
                 return "number";
@@ -81,16 +161,31 @@ function detectColumnType(field, data) {
             }
         }
     }
-
-    return "string"; // default
+    return "string";
 }
 
+/**
+ * Determines the width for a column based on its field name.
+ */
+function getColumnWidth(field) {
+    if (field === "id") return COLUMN_WIDTHS.ID;
+    if (field === "page_order") return COLUMN_WIDTHS.PAGE_ORDER;
+    return COLUMN_WIDTHS.DEFAULT;
+}
+
+// ============================================================================
+// Column Creation
+// ============================================================================
+
+/**
+ * Creates column definitions for the Tabulator table.
+ */
 function createColumns(data) {
     const columns = [{
         title: "player",
         field: "player",
         frozen: true,
-        width: 110,
+        width: COLUMN_WIDTHS.PLAYER,
         headerFilter: "input"
     }];
 
@@ -98,10 +193,8 @@ function createColumns(data) {
     const allFields = new Set();
     Object.values(data).forEach(playerData => {
         Object.keys(playerData).forEach(field => {
-            if (!field.startsWith("_uproot_") || field === "_uproot_group") {
-                if (!ignoredFields.includes(field)) {
-                    allFields.add(transformField(field));
-                }
+            if (shouldIncludeField(field)) {
+                allFields.add(transformField(field));
             }
         });
     });
@@ -111,48 +204,68 @@ function createColumns(data) {
 
     sortedFields.forEach((field, index) => {
         const detectedType = detectColumnType(field, data);
-        const colWidth = field == "id" ? 110 : (field == "page_order" ? 330 : 150);
+
         columns.push({
             title: field,
             field: field,
             frozen: index < 2,
-            width: colWidth,
+            width: getColumnWidth(field),
             headerFilter: "input",
-            sorter: detectedType, // Use detected type
-            formatter: function (cell, formatterParams, onRendered) {
-                const value = cell.getValue();
-                const metadata = cell.getRow().getData()[field + "_meta"];
-                const cellKey = `${cell.getRow().getData().player}:${field}`;
-                const isUpdated = recentlyUpdated.has(cellKey);
-
-                const formattedValue = formatCellValue(value, metadata);
-
-                if (isUpdated) {
-                    // Add table-active class to the cell element
-                    onRendered(function () {
-                        //cell.getElement().classList.add('bg-opacity-75');
-                        cell.getElement().classList.add('bg-success-subtle');
-                        window.setTimeout(function () {
-                            cell.getElement().classList.remove('bg-success-subtle');
-                        }, 3000);
-                    });
-                }
-
-                return formattedValue;
-            },
-            cellClick: function (e, cell) {
-                const field = cell.getColumn().getField();
-                const metadata = cell.getRow().getData()[field + "_meta"];
-                if (field !== "player") {
-                    showCellDetails(field, metadata);
-                }
-            }
+            sorter: detectedType,
+            formatter: createCellFormatter(field),
+            cellClick: createCellClickHandler(field)
         });
     });
 
     return columns;
 }
 
+/**
+ * Creates a formatter function for a specific field.
+ */
+function createCellFormatter(field) {
+    return function(cell, formatterParams, onRendered) {
+        const value = cell.getValue();
+        const metadata = cell.getRow().getData()[field + "_meta"];
+        const cellKey = `${cell.getRow().getData().player}:${field}`;
+        const isUpdated = viewdataState.recentlyUpdated.has(cellKey);
+
+        const formattedValue = formatCellValue(value, metadata);
+
+        if (isUpdated) {
+            onRendered(() => {
+                const element = cell.getElement();
+                element.classList.add("bg-success-subtle");
+                setTimeout(() => {
+                    element.classList.remove("bg-success-subtle");
+                }, HIGHLIGHT_DURATION_MS);
+            });
+        }
+
+        return formattedValue;
+    };
+}
+
+/**
+ * Creates a click handler for a specific field.
+ */
+function createCellClickHandler(field) {
+    return function(e, cell) {
+        const clickedField = cell.getColumn().getField();
+        const metadata = cell.getRow().getData()[clickedField + "_meta"];
+        if (clickedField !== "player") {
+            showCellDetails(clickedField, metadata);
+        }
+    };
+}
+
+// ============================================================================
+// Data Transformation
+// ============================================================================
+
+/**
+ * Transforms raw data into the format expected by Tabulator.
+ */
 function transformDataForTabulator(rawData) {
     const transformedData = [];
 
@@ -160,25 +273,23 @@ function transformDataForTabulator(rawData) {
         const row = { player: uname };
 
         for (const [originalField, payload] of Object.entries(allfields)) {
+            if (!shouldIncludeField(originalField)) continue;
+
             const field = transformField(originalField);
 
-            if (!originalField.startsWith("_uproot_") || originalField === "_uproot_group") {
-                if (!ignoredFields.includes(originalField)) {
-                    // Store the display value
-                    row[field] = payload[3];
+            // Store the display value
+            row[field] = payload[PAYLOAD.VALUE];
 
-                    // Store metadata for tooltips and modals
-                    row[field + "_meta"] = {
-                        path: [uname, field],
-                        time: payload[0],
-                        unavailable: payload[1],
-                        type: payload[2],
-                        trueValue: payload[3],
-                        context: payload[4],
-                        no_details: originalField === "_uproot_group" // Set no_details for group fields
-                    };
-                }
-            }
+            // Store metadata for tooltips and modals
+            row[field + "_meta"] = {
+                path: [uname, field],
+                time: payload[PAYLOAD.TIME],
+                unavailable: payload[PAYLOAD.UNAVAILABLE],
+                type: payload[PAYLOAD.TYPE],
+                trueValue: payload[PAYLOAD.VALUE],
+                context: payload[PAYLOAD.CONTEXT],
+                no_details: originalField === "_uproot_group"
+            };
         }
 
         transformedData.push(row);
@@ -187,25 +298,31 @@ function transformDataForTabulator(rawData) {
     return transformedData;
 }
 
-function createTable(containerId) {
-    currentContainer = containerId;
+// ============================================================================
+// Table Management
+// ============================================================================
 
-    if (table) {
-        table.destroy();
+/**
+ * Creates and initializes the Tabulator table.
+ */
+function createTable(containerId) {
+    viewdataState.currentContainer = containerId;
+
+    if (viewdataState.table) {
+        viewdataState.table.destroy();
     }
 
-    const container = containerId === "tableOuter" ?
-        document.querySelector("#tableOuter") :
-        document.getElementById(containerId);
+    const container = containerId === "tableOuter"
+        ? document.querySelector("#tableOuter")
+        : document.getElementById(containerId);
 
-    // Create table element
     const tableEl = document.createElement("div");
     tableEl.id = "data-table";
     container.innerHTML = "";
     container.appendChild(tableEl);
 
-    table = new Tabulator("#data-table", {
-        columns: [{ // Start with just player column
+    viewdataState.table = new Tabulator("#data-table", {
+        columns: [{
             title: "player",
             field: "player",
             frozen: true,
@@ -216,36 +333,44 @@ function createTable(containerId) {
         height: containerId === "tableModalInner" ? "100%" : "400px",
         layout: "fitColumns",
         placeholder: _("No data available"),
-        rowHeight: 41,  // must be provided in pixels
+        rowHeight: ROW_HEIGHT_PX
     });
 }
 
-function mergeDiffIntoDataset(diffData) {
-    // Clear previous updates and track new ones
-    recentlyUpdated.clear();
+// ============================================================================
+// Data Merging and State
+// ============================================================================
 
-    // Merge the diff data into our full dataset
+/**
+ * Merges differential data into the full dataset and tracks updated cells.
+ */
+function mergeDiffIntoDataset(diffData) {
+    viewdataState.recentlyUpdated.clear();
+
     for (const [uname, fields] of Object.entries(diffData)) {
-        if (!fullDataset[uname]) {
-            fullDataset[uname] = { ...fields };
-        }
-        else {
+        if (!viewdataState.fullDataset[uname]) {
+            viewdataState.fullDataset[uname] = { ...fields };
+        } else {
             for (const [field, arr] of Object.entries(fields)) {
-                fullDataset[uname][field] = fullDataset[uname][field] ? [...fullDataset[uname][field], ...arr] : [...arr];
+                const existing = viewdataState.fullDataset[uname][field];
+                viewdataState.fullDataset[uname][field] = existing
+                    ? [...existing, ...arr]
+                    : [...arr];
             }
         }
 
-        // Update only the changed fields for this user
-        for (const [field, payload] of Object.entries(fields)) {
-            // Track this cell as recently updated
-            recentlyUpdated.add(`${uname}:${transformField(field)}`);
+        // Track changed fields
+        for (const field of Object.keys(fields)) {
+            viewdataState.recentlyUpdated.add(`${uname}:${transformField(field)}`);
         }
     }
 }
 
+/**
+ * Computes the latest state of all fields, optionally filtered by conditions.
+ * Uses "within-adjacent" temporal logic.
+ */
 function latest(obj, conditions = {}) {
-    // WITHIN-ADJACENT
-
     const result = {};
 
     for (const [uname, fields] of Object.entries(obj)) {
@@ -255,16 +380,16 @@ function latest(obj, conditions = {}) {
         for (const [field, values] of Object.entries(fields)) {
             for (let i = 0; i < values.length; i++) {
                 changes.push({
-                    time: values[i][0],
+                    time: values[i][PAYLOAD.TIME],
                     field: field,
-                    unavailable: values[i][1],
-                    data: values[i][3],
+                    unavailable: values[i][PAYLOAD.UNAVAILABLE],
+                    data: values[i][PAYLOAD.VALUE],
                     payload: values[i]
                 });
             }
         }
 
-        // Sort by time (just to be safe)
+        // Sort by time
         changes.sort((a, b) => a.time - b.time);
 
         // Build state evolution
@@ -272,7 +397,6 @@ function latest(obj, conditions = {}) {
         let latestValidState = null;
 
         for (const change of changes) {
-            // Update current state
             currentState[change.field] = change.payload;
 
             // Check if all conditions are met
@@ -282,7 +406,9 @@ function latest(obj, conditions = {}) {
                 for (const [condField, condValue] of Object.entries(conditions)) {
                     const fieldState = currentState[condField];
 
-                    if (!fieldState || fieldState[1] || fieldState[3] !== condValue) {
+                    if (!fieldState ||
+                        fieldState[PAYLOAD.UNAVAILABLE] ||
+                        fieldState[PAYLOAD.VALUE] !== condValue) {
                         allConditionsMet = false;
                         break;
                     }
@@ -295,16 +421,18 @@ function latest(obj, conditions = {}) {
         }
 
         if (latestValidState) {
-            // Apply temporal constraint: only include fields that meet the constraint with respect to conditions
+            // Apply temporal constraint
             const filteredState = {};
+
             for (const [field, payload] of Object.entries(latestValidState)) {
-                // Include field if it's a condition field or if all condition fields were set before or at the same time
                 let includeField = true;
-                if (Object.keys(conditions).length > 0 && !conditions.hasOwnProperty(field)) {
-                    const fieldTime = payload[0]; // timestamp is at index 0
-                    for (const [condField] of Object.entries(conditions)) {
+
+                if (Object.keys(conditions).length > 0 && !Object.hasOwn(conditions, field)) {
+                    const fieldTime = payload[PAYLOAD.TIME];
+
+                    for (const condField of Object.keys(conditions)) {
                         if (latestValidState[condField]) {
-                            const condTime = latestValidState[condField][0];
+                            const condTime = latestValidState[condField][PAYLOAD.TIME];
                             if (condTime > fieldTime) {
                                 includeField = false;
                                 break;
@@ -317,6 +445,7 @@ function latest(obj, conditions = {}) {
                     filteredState[field] = payload;
                 }
             }
+
             result[uname] = filteredState;
         }
     }
@@ -324,6 +453,13 @@ function latest(obj, conditions = {}) {
     return result;
 }
 
+// ============================================================================
+// App Filter Dropdown
+// ============================================================================
+
+/**
+ * Populates the app filter dropdown with all unique app names.
+ */
 function writeAllAppNames() {
     const extractAppNames = (app) => {
         if (!Array.isArray(app)) return [];
@@ -331,33 +467,49 @@ function writeAllAppNames() {
         if (app.some(Array.isArray)) {
             return app
                 .filter(Array.isArray)
-                .map(arr => arr[3])
+                .map(arr => arr[PAYLOAD.VALUE])
                 .filter(value => value !== undefined);
         }
 
-        return app[3] !== undefined ? [String(app[3])] : [];
+        return app[PAYLOAD.VALUE] !== undefined ? [String(app[PAYLOAD.VALUE])] : [];
     };
 
     const allAppNames = [...new Set(
-        Object.values(fullDataset)
-        .flatMap(({ app }) => extractAppNames(app))
+        Object.values(viewdataState.fullDataset)
+            .flatMap(({ app }) => extractAppNames(app))
     )];
 
-    const createDropdownItem = (name, isDefault = false) => {
-        const li = document.createElement("li");
-        const span = document.createElement("span");
+    const container = I("all-app-names");
+    if (!container) return;
 
-        if (isDefault) {
-            span.className = "dropdown-item fst-italic";
-            span.setAttribute("role", "button");
-            span.textContent = _("Any app");
-            span.onclick = () => {
-                filterThenRefreshData("app", "");
-                I("current-app-filter").textContent = "";
-            };
-        } else if (name === "None") {
-            return null;
-        } else {
+    container.innerHTML = "";
+
+    // Add "Any app" option
+    const defaultItem = document.createElement("li");
+    const defaultSpan = document.createElement("span");
+    defaultSpan.className = "dropdown-item fst-italic";
+    defaultSpan.setAttribute("role", "button");
+    defaultSpan.textContent = _("Any app");
+    defaultSpan.onclick = () => {
+        filterThenRefreshData("app", "");
+        I("current-app-filter").textContent = "";
+    };
+    defaultItem.appendChild(defaultSpan);
+    container.appendChild(defaultItem);
+
+    // Add divider
+    const divider = document.createElement("li");
+    const hr = document.createElement("hr");
+    hr.className = "dropdown-divider";
+    divider.appendChild(hr);
+    container.appendChild(divider);
+
+    // Add app names
+    allAppNames
+        .filter(name => name !== "None")
+        .forEach(name => {
+            const li = document.createElement("li");
+            const span = document.createElement("span");
             span.className = "dropdown-item font-monospace";
             span.setAttribute("role", "button");
             span.textContent = name;
@@ -365,102 +517,116 @@ function writeAllAppNames() {
                 filterThenRefreshData("app", name);
                 I("current-app-filter").textContent = ` | ${name}`;
             };
-        }
-
-        li.appendChild(span);
-        return li;
-    };
-
-    const createDivider = () => {
-        const li = document.createElement("li");
-        const hr = document.createElement("hr");
-        hr.className = "dropdown-divider";
-        li.appendChild(hr);
-        return li;
-    };
-
-    const container = I("all-app-names");
-    container.innerHTML = "";
-
-    const defaultItem = createDropdownItem(null, true);
-    if (defaultItem) container.appendChild(defaultItem);
-
-    container.appendChild(createDivider());
-
-    allAppNames
-        .map(name => createDropdownItem(name))
-        .filter(item => item !== null)
-        .forEach(item => container.appendChild(item));
+            li.appendChild(span);
+            container.appendChild(li);
+        });
 }
 
+// ============================================================================
+// Filtering
+// ============================================================================
+
+/**
+ * Clears all filters and refreshes the data.
+ */
 function removeFilter() {
-    FILTER = {};
+    viewdataState.filter = {};
     refreshData();
-    I("filter-by-round-input").value = "";
-    I("current-app-filter").textContent = "";
+
+    const roundInput = I("filter-by-round-input");
+    const appFilter = I("current-app-filter");
+
+    if (roundInput) roundInput.value = "";
+    if (appFilter) appFilter.textContent = "";
 }
 
+/**
+ * Updates a filter key and refreshes the data.
+ */
 function filterThenRefreshData(key, value) {
-    if (value == "" & FILTER != {}) {  // Remove the key
-        const { [key]: _, ...rest } = FILTER;
-        FILTER = rest;
-    } else {  // Add or update
-        FILTER = { ...FILTER, [key]: value };
+    if (value === "" && Object.keys(viewdataState.filter).length > 0) {
+        // Remove the key
+        const { [key]: _, ...rest } = viewdataState.filter;
+        viewdataState.filter = rest;
+    } else {
+        // Add or update
+        viewdataState.filter = { ...viewdataState.filter, [key]: value };
     }
     refreshData();
-    console.log(FILTER);
 }
 
+// ============================================================================
+// Data Updates
+// ============================================================================
+
+/**
+ * Fetches new data from the server and updates the table.
+ */
 async function updateData() {
     try {
-        const firstLoad = lastUpdate == 0;
+        const firstLoad = viewdataState.lastUpdate === 0;
 
-        [lastData, lastUpdate] = await uproot.invoke("everything_from_session_display", uproot.vars.sname, lastUpdate);
+        const [lastData, lastUpdate] = await uproot.invoke(
+            "everything_from_session_display",
+            uproot.vars.sname,
+            viewdataState.lastUpdate
+        );
+
+        viewdataState.lastData = lastData;
+        viewdataState.lastUpdate = lastUpdate;
 
         // Merge the diff into our full dataset
         mergeDiffIntoDataset(lastData);
 
-        if (table) {
-            const latestOnly = latest(fullDataset, FILTER);
+        if (viewdataState.table) {
+            const latestOnly = latest(viewdataState.fullDataset, viewdataState.filter);
             const transformedData = transformDataForTabulator(latestOnly);
             const columns = createColumns(latestOnly);
 
-            // Update columns if they've changed (only on significant changes)
-            const currentColumnFields = table.getColumnDefinitions().map(col => col.field);
+            // Update columns if they've changed
+            const currentColumnFields = viewdataState.table.getColumnDefinitions().map(col => col.field);
             const newColumnFields = columns.map(col => col.field);
 
             if (JSON.stringify(currentColumnFields) !== JSON.stringify(newColumnFields)) {
-                table.setColumns(columns);
+                viewdataState.table.setColumns(columns);
             }
 
-            // Update data with full merged dataset
-            table.setData(transformedData);
+            viewdataState.table.setData(transformedData);
 
             if (firstLoad) {
-                table.setSort("id", "asc");
+                viewdataState.table.setSort("id", "asc");
             }
         }
     } catch (error) {
         console.error("Error updating data:", error);
-        if (table) {
-            table.setData([]);
+        if (viewdataState.table) {
+            viewdataState.table.setData([]);
         }
     }
 
     writeAllAppNames();
 }
 
+/**
+ * Refreshes data while preserving scroll position.
+ */
 async function refreshData() {
     const tableHolder = document.getElementsByClassName("tabulator-tableholder")[0];
     if (!tableHolder) return;
+
     const scrollPosX = tableHolder.scrollLeft;
     const scrollPosY = tableHolder.scrollTop;
+
     await updateData();
+
     tableHolder.scrollLeft = scrollPosX;
     tableHolder.scrollTop = scrollPosY;
 }
 
+/**
+ * Initializes the table and loads initial data.
+ */
 function initializeTable() {
-    createTable(currentContainer);
+    createTable(viewdataState.currentContainer);
     updateData();
 }

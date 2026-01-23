@@ -701,68 +701,85 @@
 
 {% block late %}
 
+<script src="{{ internalstatic('viewdata.js') }}"></script>
+<script src="{{ internalstatic('monitor.js') }}"></script>
+
 <script>
+    // ========================================================================
+    // Session Actions
+    // ========================================================================
+
     function disassociate() {
         uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(uproot.reload);
     }
+
     function flipActive() {
         uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
     }
+
     function flipTesting() {
         uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
     }
+
     function setDescription() {
         uproot.prompt(_("Enter new description:"), {{ session.description | tojson }})
             .then((newdesc) => uproot.invoke("update_description", uproot.vars.sname, newdesc))
             .then(uproot.reload);
     }
+
     function saveSettings() {
         try {
             const settings = JSON.parse(uproot.looseJSONtoJSON(I("settings-input").value));
             uproot.invoke("update_settings", uproot.vars.sname, settings).then(uproot.reload);
-        }
-        catch (error) {
+        } catch (error) {
             uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
         }
     }
 
-    uproot.onStart(() => {
-        var popovers = [].slice.call(document.querySelectorAll("[data-bs-toggle='popover']"))
-        popovers.map(function(el) { return new bootstrap.Popover(el) })
-    });
-</script>
+    // ========================================================================
+    // URL Utilities
+    // ========================================================================
 
-<script src="{{ internalstatic('viewdata.js') }}"></script>
-<script src="{{ internalstatic('monitor.js') }}"></script>
-
-<script>
     function copyURLsToClipboard() {
-        const keys = Object.keys(uproot.vars.info)
-        var text = ""
-        for (const k of keys) {
-            text += `${window.location.origin}${uproot.vars.root}/p/${uproot.vars.sname}/${k}/\n`;
-        };
-        // Copy the text inside the text field
+        const keys = Object.keys(uproot.vars.info);
+        const text = keys
+            .map(k => `${window.location.origin}${uproot.vars.root}/p/${uproot.vars.sname}/${k}/`)
+            .join("\n");
+
         navigator.clipboard.writeText(text);
         I("urls-copied").classList.remove("invisible");
-        setTimeout(function() {
-            I("urls-copied").classList.add("invisible");
-        }, 3000);
-    };
-    var fullWidthTable = false;
+        setTimeout(() => I("urls-copied").classList.add("invisible"), 3000);
+    }
+
+    // ========================================================================
+    // Table Width Toggle
+    // ========================================================================
+
+    let fullWidthTable = false;
+
     function toggleTableWidth() {
-        if (fullWidthTable == true) {
-            I("full-width-text").className = "d-block";
-            I("normal-width-text").className = "d-none";
-            I("tableContainer").classList.remove("table-sticky-outer-full-width");
-            fullWidthTable = false;
-        } else {
-            I("full-width-text").className = "d-none";
-            I("normal-width-text").className = "d-block";
+        fullWidthTable = !fullWidthTable;
+
+        I("full-width-text").className = fullWidthTable ? "d-none" : "d-block";
+        I("normal-width-text").className = fullWidthTable ? "d-block" : "d-none";
+
+        if (fullWidthTable) {
             I("tableContainer").classList.add("table-sticky-outer-full-width");
-            fullWidthTable = true;
+        } else {
+            I("tableContainer").classList.remove("table-sticky-outer-full-width");
         }
     }
+
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
+    uproot.onStart(() => {
+        // Initialize Bootstrap popovers
+        document.querySelectorAll("[data-bs-toggle='popover']").forEach(el => {
+            new bootstrap.Popover(el);
+        });
+    });
 </script>
 
 {% endblock late %}

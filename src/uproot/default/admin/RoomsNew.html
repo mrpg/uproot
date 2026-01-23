@@ -109,9 +109,10 @@ New room
     function createRoom() {
         let nameValid = true, labelsValid = true, snameValid = true;
 
-        // Validate room name
-        nameValid = uproot.isValidToken(I("name").value);
-        nameValid2 = !uproot.vars.rooms_available.includes(I("name").value);
+        // Validate room name format
+        const nameValid = uproot.isValidToken(I("name").value);
+        // Validate room name doesn't already exist
+        const nameAvailable = !uproot.vars.rooms_available.includes(I("name").value);
 
         // Validate labels if used
         if (I("use_labels").checked) {
@@ -127,7 +128,7 @@ New room
         if (!nameValid) {
             uproot.error(_("The room name you entered is invalid."));
         }
-        else if (!nameValid) {
+        else if (!nameAvailable) {
             uproot.error(_("The room name you entered already exists."));
         }
         else if (!labelsValid) {

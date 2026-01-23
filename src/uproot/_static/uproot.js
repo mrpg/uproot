@@ -602,8 +602,26 @@ window.uproot = {
         return span.innerHTML; // SAFE
     },
 
+    /**
+     * Evaluates a JavaScript expression and returns its JSON representation.
+     *
+     * This function intentionally uses eval() to allow rich expressions in admin
+     * settings input, including comments, calculations, and variables. This is
+     * admin-only functionality - never expose this to untrusted input.
+     *
+     * Examples of supported input:
+     *   { speed: 2 * 50, name: "test" }
+     *   { items: [1, 2, 3], }  // trailing commas and JS comments OK
+     *
+     * @param {string} input - JavaScript expression that evaluates to an object
+     * @returns {string} JSON string representation of the evaluated object
+     * @throws {SyntaxError} If the input cannot be parsed as JavaScript
+     * @throws {TypeError} If the result cannot be serialized to JSON
+     */
     looseJSONtoJSON(input) {
-        // eval is fine here; this is admin-only
+        // SECURITY NOTE: eval() is used intentionally here for admin convenience.
+        // This allows JS expressions (calculations, comments, etc.) in settings.
+        // This function must NEVER be exposed to untrusted user input.
         const obj = eval("(" + input + ")");
         return JSON.stringify(obj);
     },
@@ -998,8 +1016,8 @@ window._ = (s) => {
     else {
         window.uproot.missing.add(s);
 
-        if (this.verbose) {
-            console.log(`Missing translation into of: '${s}'`);
+        if (window.uproot.verbose) {
+            console.log(`Missing translation for: "${s}"`);
         }
 
         return s;
