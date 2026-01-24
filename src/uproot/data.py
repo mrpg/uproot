@@ -211,10 +211,10 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     rows = list(rows)
 
     buffer = StringIO()
-    csvfields: set[str] = set()
+    csvfields: dict[str, None] = dict()
 
     for row in rows:
-        csvfields.update(row.keys())
+        csvfields.update(dict.fromkeys(row.keys()))
 
     dw = pycsv.DictWriter(buffer, fieldnames=csvfields)
     dw.writeheader()
