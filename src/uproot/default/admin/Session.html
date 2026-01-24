@@ -21,7 +21,6 @@
                 {% endif %}
             </ul>
         </div>
-        {#<a class="btn btn-uproot mb-2" href="monitor/">Monitor</a>#}
     </div>
 </div>
 
@@ -243,8 +242,8 @@
 </div>
 
 <!-- Modal to manage players -->
-{% call modal("manage", title=_("Manage players"), action_text=_("Save changes"), action_handler="actuallyManage()") %}
-{{ player_count() }}
+{% call modal(_, "manage", title=_("Manage players"), action_text=_("Save changes"), action_handler="actuallyManage()") %}
+{{ player_count(_) }}
 <div class="mb-1">
     <div class="form-check mb-3">
         <input class="form-check-input" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
@@ -292,8 +291,8 @@
 {% endcall %}
 
 <!-- Modal for inserting fields -->
-{% call modal("insert", title=_("Insert fields"), action_text=_("Insert fields"), action_handler="actuallyInsert()") %}
-{{ player_count() }}
+{% call modal(_, "insert", title=_("Insert fields"), action_text=_("Insert fields"), action_handler="actuallyInsert()") %}
+{{ player_count(_) }}
 <div class="mb-3">
     <textarea class="form-control font-monospace" id="json-input" rows="3">{}</textarea>
 </div>
@@ -313,16 +312,16 @@
 {% endcall %}
 
 <!-- Modal for admin to send message to players -->
-{% call modal("adminmessage_send", title=_("Send message"), action_text=_("Send message"), action_handler="actuallyAdminmessageSend()") %}
-{{ player_count() }}
+{% call modal(_, "adminmessage_send", title=_("Send message"), action_text=_("Send message"), action_handler="actuallyAdminmessageSend()") %}
+{{ player_count(_) }}
 <div class="mb-3">
     <textarea class="form-control" id="adminmsg" rows="3"></textarea>
 </div>
 {% endcall %}
 
 <!-- Modal for redirect to URL -->
-{% call modal("redirect", title=_("Redirect to URL"), action_text=_("Redirect players"), action_handler="actuallyRedirect()") %}
-{{ player_count() }}
+{% call modal(_, "redirect", title=_("Redirect to URL"), action_text=_("Redirect players"), action_handler="actuallyRedirect()") %}
+{{ player_count(_) }}
 <div class="mb-3">
     <label for="redirect-url" class="form-label">{% translate %}Target URL{% endtranslate %}</label>
     <input type="url" class="form-control font-monospace" id="redirect-url" placeholder="https://example.com/">
@@ -374,7 +373,7 @@
 </div>
 
 <!-- Modal for settings -->
-{% call modal("settings", title=_("Change settings"), action_text=_("Save settings"), action_handler="saveSettings()") %}
+{% call modal(_, "settings", title=_("Change settings"), action_text=_("Save settings"), action_handler="saveSettings()") %}
 <div class="mb-3">
     <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
 </div>

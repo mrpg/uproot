@@ -19,7 +19,7 @@
             <p>Modal body content here</p>
         {% endcall %}
 #}
-{% macro modal(id, title, action_text=None, action_handler=None, dialog_class="", content_class="", footer_class="") %}
+{% macro modal(_, id, title, action_text=None, action_handler=None, dialog_class="", content_class="", footer_class="") %}
 <div class="modal fade" id="{{ id }}-modal" tabindex="-1" aria-labelledby="{{ id }}-modalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered {{ dialog_class }}">
         <div class="modal-content {{ content_class }}">
@@ -34,7 +34,7 @@
             </div>
             <div class="modal-footer {{ footer_class }}">
                 <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}Close{% endtranslate %}
+                    {{ _("Close") }}
                 </button>
                 {% if action_text and action_handler %}
                 <button type="button" class="btn btn-danger" onclick="{{ action_handler }}">
@@ -50,10 +50,10 @@
 {#
     Player count display - shows "You have selected X player(s)" message.
 #}
-{% macro player_count() %}
+{% macro player_count(_) %}
 <p>
-    {% translate %}You have selected{% endtranslate %}
+    {{ _("You have selected") }}
     <b><span class="pcount"></span>
-    {% translate %}player(s){% endtranslate %}</b>.
+    {{ _("player(s)") }}</b>.
 </p>
 {% endmacro %}
