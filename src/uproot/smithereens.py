@@ -639,8 +639,7 @@ class Between(t.SmoothOperator):
         if not grouped_pages:
             # No pages to select from, leave empty
             player.page_order = (
-                player.page_order[: start_ix + 1]
-                + player.page_order[end_ix:]
+                player.page_order[: start_ix + 1] + player.page_order[end_ix:]
             )
             return
 
@@ -648,9 +647,7 @@ class Between(t.SmoothOperator):
         selected_group = choice(grouped_pages)
 
         # Record which page was selected (filter out bracket markers)
-        selected_page = next(
-            (p for p in selected_group if p not in ("#{", "#}")), None
-        )
+        selected_page = next((p for p in selected_group if p not in ("#{", "#}")), None)
         if selected_page is not None:
             if not hasattr(player, "between_showed") or player.between_showed is None:
                 player.between_showed = []
