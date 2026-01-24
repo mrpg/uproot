@@ -119,10 +119,11 @@ async def render(
         | BUILTINS
         | dict(
             internalstatic=static_factory(),
-            _uproot_js=context,
-            _uproot_internal=context,
-            _uproot_errors=None,
             JSON_TERMS=i18n.json(d.LANGUAGE),
+            _=lambda s: i18n.lookup(s, d.LANGUAGE),
+            _uproot_errors=None,
+            _uproot_internal=context,
+            _uproot_js=context,
         )
     )
 

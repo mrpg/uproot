@@ -200,14 +200,14 @@ async def render(
 
     internal = dict(
         _uproot_internal=dict(
-            sname=sname,
-            uname=uname,
-            thisis=thisis,
-            key=key,
-            root=d.ROOT,
-            language=language,
-            is_admin=is_admin,
             C=exported_constants(app),
+            is_admin=is_admin,
+            key=key,
+            language=language,
+            root=d.ROOT,
+            sname=sname,
+            thisis=thisis,
+            uname=uname,
         )
         | (metadata if metadata is not None else {})
     )
@@ -231,16 +231,17 @@ async def render(
             )
             | BUILTINS
             | dict(
-                session=session,
-                player=player,
-                page=page,
-                part=part,
                 app=app,
-                form=form,
-                JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
-                show2path=show2path,
                 app_or_default=app_or_default,
                 C=getattr(app, "C", {}),
+                form=form,
+                JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
+                _=lambda s: i18n.lookup(s, language),
+                page=page,
+                part=part,
+                player=player,
+                session=session,
+                show2path=show2path,
                 _uproot_errors=custom_errors,
                 _uproot_js=jsvars,
                 _uproot_testing=(
