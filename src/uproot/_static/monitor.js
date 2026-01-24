@@ -21,20 +21,16 @@ const monitorState = {
     table: null,
     currentContainer: "tableOuter",
     pendingUpdate: null,       // For debouncing
-    activeHeartbeats: new Map() // uname -> timeoutId (for cleanup)
+    activeHeartbeats: new Map(), // uname -> timeoutId (for cleanup)
+    rowHeight: 44
 };
 
 // ============================================================================
 // Initialization
 // ============================================================================
 
-rowHeight = 44;
-
 uproot.onStart(() => {
     createTable("tableOuter");
-});
-
-uproot.onStart(() => {
     loadExtraData();
     uproot.invoke("subscribe_to_attendance", uproot.vars.sname);
     uproot.invoke("subscribe_to_fieldchange", uproot.vars.sname, EXTRA_FIELDS);
@@ -106,7 +102,7 @@ function createTable(containerId) {
         height: "100%",
         layout: "fitColumns",
         placeholder: "No players available",
-        rowHeight: rowHeight
+        rowHeight: monitorState.rowHeight
     });
 
     monitorState.table.on("cellClick", (e, cell) => {

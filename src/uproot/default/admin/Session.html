@@ -1,4 +1,5 @@
 {% extends "Admin.html" %}
+{% from "_macros.html" import modal, player_count %}
 
 
 {% block titlearea %}
@@ -28,138 +29,6 @@
 
 
 {% block head %}
-
-<style>
-    .btn-group-sm {
-        padding-bottom: 0pt !important;
-        padding-top: 0pt !important;
-        height: 31px;
-    }
-
-    /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
-    .player-url:visited, .player-name .link-subtle:visited {
-        color: var(--bs-uproot) !important;
-    }
-    .player-url:visited:hover, .player-name .link-subtle:visited:hover {
-        color: var(--bs-uproot-dark) !important;
-    }
-
-    /* Tabulator styling for monitor table */
-    #data-table {
-        font-family: var(--bs-font-monospace);
-        height: 100% !important;
-    }
-    #data-table .tabulator-frozen-left {
-        border: 0px;
-    }
-    #data-table .tabulator-row {
-        background-color: white;
-    }
-    #data-table .tabulator-row:hover {
-        background-color: #eeeeee;
-    }
-    #data-table .tabulator-row.tabulator-selected {
-        background-color: var(--bs-uproot-bg-light) !important;
-    }
-
-    .table-sticky-outer {
-        height: 89vh;
-    }
-    .table-sticky-outer-full-width {
-        margin-left: 50%;
-        padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important;
-        width: 99vw;
-        transform: translate(-50%, 0%);
-    }
-
-    .tabulator-col-content, .tabulator-cell {
-        padding: 11px !important;
-    }
-    /* Sticky column styling for Tabulator */
-    .tabulator-col[aria-sort="ascending"] .tabulator-col-content, .tabulator-col[aria-sort="descending"] .tabulator-col-content {
-        background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
-    }
-    .tabulator-cell[tabulator-field="id"], .tabulator-col[tabulator-field="id"] {
-        color: var(--bs-uproot);
-    }
-    .tabulator-cell[tabulator-field="id"], .tabulator-cell[tabulator-field="player"] {
-        font-weight: bolder;
-    }
-    .tabulator-col-content {
-        background-color: var(--bs-uproot-bg-light);
-        border-bottom: 1px solid var(--bs-uproot-border-subtle);
-        border-right: 1px dashed var(--bs-uproot-border-subtle);
-        height: 100%;
-    }
-    .tabulator-cell {
-        border-left: none !important;
-    }
-    .tabulator-col {
-        border-left: none !important;
-    }
-    .tabulator-header {
-        border-bottom: 0px !important;
-    }
-    .tabulator-headers {
-        vertical-align: bottom !important;
-    }
-    /* Sticky row headers for first 4 columns */
-    .tabulator-headers > div:nth-of-type(1),
-    .tabulator-headers > div:nth-of-type(2),
-    .tabulator-headers > div:nth-of-type(3),
-    .tabulator-headers > div:nth-of-type(4) {
-        position: sticky !important;
-        z-index: 99;
-    }
-    .tabulator-row > div:nth-of-type(1),
-    .tabulator-row > div:nth-of-type(2),
-    .tabulator-row > div:nth-of-type(3),
-    .tabulator-row > div:nth-of-type(4) {
-        font-weight: bolder;
-        position: sticky !important;
-        z-index: 97;
-    }
-    /* Position to stick at for column 1 */
-    .tabulator-headers > div:nth-of-type(1),
-    .tabulator-row > div:nth-of-type(1) {
-        left: 0em !important;
-    }
-    /* Position to stick at for column 2 */
-    .tabulator-headers > div:nth-of-type(2),
-    .tabulator-row > div:nth-of-type(2) {
-        left: 2.5em !important;
-    }
-    /* Position to stick at for column 3 */
-    .tabulator-headers > div:nth-of-type(3),
-    .tabulator-row > div:nth-of-type(3) {
-        left: 6em !important;
-    }
-    /* Position to stick at for column 4 */
-    .tabulator-headers > div:nth-of-type(4),
-    .tabulator-row > div:nth-of-type(4) {
-        left: 12em !important;
-    }
-
-    /* Heartbeat animation */
-    .heartbeat {
-        transition: color 0.3s ease;
-    }
-    .heartbeat.active {
-        color: #28a745; /* Bootstrap success green */
-    }
-    .not-yet-implemented {
-        color: red;
-        font-weight: bold;
-    }
-    a .not-yet-implemented {
-        display: none;
-    }
-    a:hover .not-yet-implemented {
-        display: block;
-    }
-</style>
-
 {% endblock %}
 
 
@@ -374,245 +243,92 @@
 </div>
 
 <!-- Modal to manage players -->
-
-<div class="modal fade" id="manage-modal" tabindex="-1" aria-labelledby="manage-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="manage-modalLabel">
-                    {% translate %}
-                    Manage players
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% translate %}You have selected{% endtranslate %}
-                    <b><span class="pcount"></span>
-                    {% translate %}player(s){% endtranslate %}</b>.
-                </p>
-                <div class="mb-1">
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
-                        <label class="form-check-label" for="advance_by_one">
-                            {% translate %}
-                            Advance by one page
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            If the next page is not shown, it will be skipped.
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
-                        <label class="form-check-label" for="reload">
-                            {% translate %}
-                            Reload players’ pages
-                            {% endtranslate %}
-                        </label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="revert_by_one" value="revert_by_one">
-                        <label class="form-check-label" for="revert_by_one">
-                            {% translate %}
-                            Revert by one page
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            If the previous page was not shown, this will return to the current page.
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="put_to_end" value="put_to_end">
-                        <label class="form-check-label" for="put_to_end">
-                            {% translate %}
-                            Put to end
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            This terminates the study for the selected player(s).
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="manage" id="mark_dropout" value="mark_dropout">
-                        <label class="form-check-label" for="mark_dropout">
-                            {% translate %}
-                            Mark as dropout
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            This will run all dropout handlers registered with <code>watch_for_dropout()</code>.
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="actuallyManage()">
-                    {% translate %}
-                    Save changes
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
+{% call modal("manage", title=_("Manage players"), action_text=_("Save changes"), action_handler="actuallyManage()") %}
+{{ player_count() }}
+<div class="mb-1">
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
+        <label class="form-check-label" for="advance_by_one">
+            {% translate %}Advance by one page{% endtranslate %}
+        </label><br>
+        <span class="form-text text-muted">
+            {% translate %}If the next page is not shown, it will be skipped.{% endtranslate %}
+        </span>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
+        <label class="form-check-label" for="reload">
+            {% translate %}Reload players' pages{% endtranslate %}
+        </label>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="revert_by_one" value="revert_by_one">
+        <label class="form-check-label" for="revert_by_one">
+            {% translate %}Revert by one page{% endtranslate %}
+        </label><br>
+        <span class="form-text text-muted">
+            {% translate %}If the previous page was not shown, this will return to the current page.{% endtranslate %}
+        </span>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="put_to_end" value="put_to_end">
+        <label class="form-check-label" for="put_to_end">
+            {% translate %}Put to end{% endtranslate %}
+        </label><br>
+        <span class="form-text text-muted">
+            {% translate %}This terminates the study for the selected player(s).{% endtranslate %}
+        </span>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="manage" id="mark_dropout" value="mark_dropout">
+        <label class="form-check-label" for="mark_dropout">
+            {% translate %}Mark as dropout{% endtranslate %}
+        </label><br>
+        <span class="form-text text-muted">
+            {% translate %}This will run all dropout handlers registered with <code>watch_for_dropout()</code>.{% endtranslate %}
+        </span>
     </div>
 </div>
+{% endcall %}
 
 <!-- Modal for inserting fields -->
-
-<div class="modal fade" id="insert-modal" tabindex="-1" aria-labelledby="insert-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="insert-modalLabel">
-                    {% translate %}
-                    Insert fields
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% translate %}
-                    You have selected <b><span class="pcount"></span> player(s)</b>.
-                    {% endtranslate %}
-                </p>
-
-                <div class="mb-3">
-                    <textarea class="form-control font-monospace" id="json-input" rows="3">{}</textarea>
-                </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" name="manage" id="reload2" value="reload">
-                    <label class="form-check-label" for="reload2">
-                        {% translate %}
-                        Reload players’ pages
-                        {% endtranslate %}
-                    </label>
-                </div>
-
-                <p>
-                    {% translate %}
-                    Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):
-                    {% endtranslate %}<br>
-                    <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
-                </p>
-
-                <p class="text-muted">
-                    {% translate %}
-                    Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.
-                    {% endtranslate %}
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="actuallyInsert()">
-                    {% translate %}
-                    Insert fields
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
-    </div>
+{% call modal("insert", title=_("Insert fields"), action_text=_("Insert fields"), action_handler="actuallyInsert()") %}
+{{ player_count() }}
+<div class="mb-3">
+    <textarea class="form-control font-monospace" id="json-input" rows="3">{}</textarea>
 </div>
+<div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="manage" id="reload2" value="reload">
+    <label class="form-check-label" for="reload2">
+        {% translate %}Reload players' pages{% endtranslate %}
+    </label>
+</div>
+<p>
+    {% translate %}Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):{% endtranslate %}<br>
+    <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
+</p>
+<p class="text-muted">
+    {% translate %}Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.{% endtranslate %}
+</p>
+{% endcall %}
 
 <!-- Modal for admin to send message to players -->
-
-<div class="modal fade" id="adminmessage_send-modal" tabindex="-1" aria-labelledby="adminmessage_send-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="adminmessage_send-modalLabel">
-                    {% translate %}
-                    Send message
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% translate %}
-                    You have selected <b><span class="pcount"></span> player(s)</b>.
-                    {% endtranslate %}
-                </p>
-
-                <div class="mb-3">
-                    <textarea class="form-control" id="adminmsg" rows="3"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="actuallyAdminmessageSend()">
-                    {% translate %}
-                    Send message
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
-    </div>
+{% call modal("adminmessage_send", title=_("Send message"), action_text=_("Send message"), action_handler="actuallyAdminmessageSend()") %}
+{{ player_count() }}
+<div class="mb-3">
+    <textarea class="form-control" id="adminmsg" rows="3"></textarea>
 </div>
+{% endcall %}
 
 <!-- Modal for redirect to URL -->
-
-<div class="modal fade" id="redirect-modal" tabindex="-1" aria-labelledby="redirect-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="redirect-modalLabel">
-                    {% translate %}
-                    Redirect to URL
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% translate %}
-                    You have selected <b><span class="pcount"></span> player(s)</b>.
-                    {% endtranslate %}
-                </p>
-
-                <div class="mb-3">
-                    <label for="redirect-url" class="form-label">{% translate %}Target URL{% endtranslate %}</label>
-                    <input type="url" class="form-control font-monospace" id="redirect-url" placeholder="https://example.com/">
-                    <div class="form-text">{% translate %}URL must start with http:// or https://{% endtranslate %}</div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="actuallyRedirect()">
-                    {% translate %}
-                    Redirect players
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
-    </div>
+{% call modal("redirect", title=_("Redirect to URL"), action_text=_("Redirect players"), action_handler="actuallyRedirect()") %}
+{{ player_count() }}
+<div class="mb-3">
+    <label for="redirect-url" class="form-label">{% translate %}Target URL{% endtranslate %}</label>
+    <input type="url" class="form-control font-monospace" id="redirect-url" placeholder="https://example.com/">
+    <div class="form-text">{% translate %}URL must start with http:// or https://{% endtranslate %}</div>
 </div>
+{% endcall %}
 
 <!-- Modal for player URLs -->
 
@@ -658,43 +374,14 @@
 </div>
 
 <!-- Modal for settings -->
-
-<div class="modal fade" id="settings-modal" tabindex="-1" aria-labelledby="settings-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="settings-modalLabel">
-                    {% translate %}
-                    Change settings
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
-                </div>
-                <small class="d-block form-text text-muted">
-                    {% translate %}
-                    Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.
-                    {% endtranslate %}
-                </small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="saveSettings()">
-                    {% translate %}
-                    Save settings
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
-    </div>
+{% call modal("settings", title=_("Change settings"), action_text=_("Save settings"), action_handler="saveSettings()") %}
+<div class="mb-3">
+    <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
 </div>
+<small class="d-block form-text text-muted">
+    {% translate %}Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.{% endtranslate %}
+</small>
+{% endcall %}
 
 {% endblock main %}
 

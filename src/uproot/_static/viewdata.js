@@ -38,7 +38,6 @@ const COLUMN_WIDTHS = {
 // Table configuration
 const VALUE_MAX_LENGTH = 30;
 const HIGHLIGHT_DURATION_MS = 3000;
-let rowHeight = 41;
 
 // ============================================================================
 // Module State
@@ -51,7 +50,8 @@ const viewdataState = {
     table: null,
     currentContainer: "tableOuter",
     fullDataset: {},
-    recentlyUpdated: new Set()
+    recentlyUpdated: new Set(),
+    rowHeight: 41
 };
 
 // ============================================================================
@@ -333,7 +333,7 @@ function createTable(containerId) {
         height: containerId === "tableModalInner" ? "100%" : "400px",
         layout: "fitColumns",
         placeholder: _("No data available"),
-        rowHeight: rowHeight
+        rowHeight: viewdataState.rowHeight
     });
 }
 

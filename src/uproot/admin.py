@@ -3,7 +3,7 @@
 
 import asyncio
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 from types import EllipsisType
 from typing import (
     Annotated,
@@ -88,13 +88,14 @@ def _get_active_tokens() -> set[str]:
         return getattr(admin, "active_auth_tokens", set())
 
 
-def _store_active_tokens(tokens: set[str]) -> None:
+def _store_active_tokens(tokens: set[str], cleanup: bool = True) -> None:
     """Store set of active tokens to storage."""
     with s.Admin() as admin:
         admin.active_auth_tokens = tokens
 
-    # Clean up expired tokens when storing active ones
-    _cleanup_expired_tokens()
+    # Optionally clean up expired tokens when storing active ones
+    if cleanup:
+        _cleanup_expired_tokens()
 
 
 def _cleanup_expired_tokens() -> None:
@@ -111,12 +112,15 @@ def _cleanup_expired_tokens() -> None:
             continue  # Token is expired or invalid, don't keep it
 
     if len(valid_tokens) != len(active_tokens):
-        _store_active_tokens(valid_tokens)
+        # Store without triggering cleanup again to avoid recursion
+        _store_active_tokens(valid_tokens, cleanup=False)
 
 
 async def advance_by_one(
     sname: t.Sessionname, unames: list[str]
 ) -> dict[str, dict[t.Username, Optional[float]]]:
+    session_exists(sname, False)
+
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
@@ -208,7 +212,7 @@ def from_cookie(uauth: str | None) -> dict[str, str]:
             )  # nosec B106 - Empty strings for auth failure, not actual credentials
 
         return dict(user=data["user"], token=uauth)
-    except (BadSignature, SignatureExpired, Exception):
+    except (BadSignature, SignatureExpired):
         return dict(
             user="", token=""
         )  # nosec B106 - Empty strings for auth failure, not actual credentials
@@ -428,7 +432,7 @@ def _create_token_for_user(user: str) -> str:
     # Create token data
     token_data = {
         "user": user,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "nonce": secrets.token_hex(16),  # Prevent token reuse across sessions
     }
 
@@ -851,7 +855,7 @@ def verify_auth_token(user: str, token: str) -> Optional[str]:
             return None
 
         return user
-    except (BadSignature, SignatureExpired, Exception):
+    except (BadSignature, SignatureExpired):
         return None
 
 

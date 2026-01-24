@@ -315,12 +315,7 @@ class MultiviewManager {
     }
 
     handlePointerMove(e) {
-        e.preventDefault();
-        if (this.isDragging && this.dragState.container) {
-            this.updateDrag(e);
-        } else if (this.isResizing && this.resizeState.container) {
-            this.updateResize(e);
-        }
+        this.handleMouseMove(e);
     }
 
     handlePointerUp(e) {

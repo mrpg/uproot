@@ -90,6 +90,24 @@ function createBadge(text, className) {
 }
 
 // ============================================================================
+// URL Helpers
+// ============================================================================
+
+/**
+ * Constructs an admin area URL for a given resource type and name.
+ */
+function adminUrl(type, name) {
+    return `${uproot.vars.root}/admin/${type}/${encodeURIComponent(name)}/`;
+}
+
+/**
+ * Constructs a URL for creating a new session with a given config.
+ */
+function newSessionUrl(config) {
+    return `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(config)}`;
+}
+
+// ============================================================================
 // Room Rendering
 // ============================================================================
 
@@ -112,7 +130,7 @@ function renderRooms(rooms, containerId) {
         );
 
         const title = createElement("h5", "fw-semibold mb-1 me-3 text-nowrap");
-        const roomUrl = `${uproot.vars.root}/admin/room/${encodeURIComponent(room.name)}/`;
+        const roomUrl = adminUrl("room", room.name);
         title.innerHTML = `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`; // SAFE
 
         const statusBadge = createBadge(
@@ -139,7 +157,7 @@ function renderRooms(rooms, containerId) {
 
         // Session row
         if (room.sname) {
-            const sessionUrl = `${uproot.vars.root}/admin/session/${encodeURIComponent(room.sname)}/`;
+            const sessionUrl = adminUrl("session", room.sname);
             leftCol.appendChild(createTableRow(_("Session"), room.sname, {
                 valueIsLink: true,
                 linkHref: sessionUrl,
@@ -258,7 +276,7 @@ function renderSessions(sessions, containerId) {
 
         if (session.sname) {
             const title = createElement("h5", "d-inline-block fw-semibold mb-1 me-3 text-nowrap");
-            const sessionUrl = `${uproot.vars.root}/admin/session/${encodeURIComponent(session.sname)}/`;
+            const sessionUrl = adminUrl("session", session.sname);
             title.innerHTML = `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-opacity-0" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> <i class="font-bi">&#xF8A7;</i></a>`; // SAFE
             headerContent.appendChild(title);
         }
@@ -282,7 +300,7 @@ function renderSessions(sessions, containerId) {
 
         // Room row
         if (session.room) {
-            const roomUrl = `${uproot.vars.root}/admin/room/${encodeURIComponent(session.room)}/`;
+            const roomUrl = adminUrl("room", session.room);
             infoTable.appendChild(createTableRow(_("Room"), session.room, {
                 valueIsLink: true,
                 linkHref: roomUrl,
@@ -437,7 +455,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         item.appendChild(content);
 
         const detailsLink = createElement("a", "btn btn-sm btn-outline-uproot btn-launch", {
-            href: `${uproot.vars.root}/admin/sessions/new/?config=${encodeURIComponent(key)}`,
+            href: newSessionUrl(key),
             title: _("New session")
         });
         detailsLink.innerHTML = `<span class="font-bi fs-3">&#xF4FA;</span>`; // SAFE

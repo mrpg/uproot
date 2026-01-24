@@ -886,7 +886,7 @@ async def session_data_download(
 
         return StreamingResponse(
             a.generate_json(sname, format, gvar, filters),
-            media_type="text/json",
+            media_type="application/json",
             headers={"Content-Disposition": f"attachment; filename={sname}.json"},
         )
     else:
@@ -918,11 +918,11 @@ async def session_multiview(
         unames = []
 
         for i, pid in enumerate(session.players):
-            player = pid()
-            ensure(player.id == i)
+            with pid() as player:
+                ensure(player.id == i)
 
-            unames.append(player.name)
-            labels.append(player.label)
+                unames.append(player.name)
+                labels.append(player.label)
 
         return HTMLResponse(
             await render(
