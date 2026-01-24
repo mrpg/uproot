@@ -32,6 +32,7 @@ from uproot.storage import Player, Storage
 
 __all__ = [
     "_",
+    "Between",
     "Bracket",
     "chat",
     "combine",
@@ -552,6 +553,117 @@ class Bracket(t.SmoothOperator):
         return self.pages
 
 
+class Between(t.SmoothOperator):
+    """
+    A SmoothOperator that randomly selects exactly one of the encompassed pages.
+
+    Between(A, B, C) yields either A, B, or C, randomly selected with equal
+    probability. When used with Bracket groups, each group counts as one option:
+    Between(A, Bracket(B, C), D) picks one of: A, (B and C together), or D.
+    """
+
+    def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
+        self.pages = [
+            INTERNAL_PAGES["{"],
+            INTERNAL_PAGES["BetweenStart"],
+            *pages,
+            INTERNAL_PAGES["BetweenEnd"],
+            INTERNAL_PAGES["}"],
+        ]
+
+    def expand(self) -> list[t.PageLike]:
+        return self.pages
+
+    @classmethod
+    async def start(page, player: Storage) -> None:
+        from random import choice
+
+        # Find the nearest #BetweenStart before our position
+        start_ix = None
+        for i in range(player.show_page, -1, -1):
+            if player.page_order[i] == "#BetweenStart":
+                start_ix = i
+                break
+
+        if start_ix is None:
+            raise RuntimeError("Could not find #BetweenStart")
+
+        # Find the matching #BetweenEnd for this #BetweenStart
+        between_depth = 1
+        end_ix = None
+        for i in range(start_ix + 1, len(player.page_order)):
+            if player.page_order[i] == "#BetweenStart":
+                between_depth += 1
+            elif player.page_order[i] == "#BetweenEnd":
+                between_depth -= 1
+                if between_depth == 0:
+                    end_ix = i
+                    break
+
+        if end_ix is None:
+            raise RuntimeError("Could not find matching #BetweenEnd")
+
+        pages = player.page_order[start_ix + 1 : end_ix]
+
+        # Group pages by brackets (each bracket group is one selectable option)
+        grouped_pages: list[list[str]] = []
+        i = 0
+        while i < len(pages):
+            if pages[i] == "#{":
+                # Find the matching closing bracket
+                bracket_group = ["#{"]
+                bracket_depth = 1
+                i += 1  # Skip the opening bracket
+
+                while i < len(pages) and bracket_depth > 0:
+                    if pages[i] == "#{":
+                        bracket_depth += 1
+                    elif pages[i] == "#}":
+                        bracket_depth -= 1
+
+                    bracket_group.append(pages[i])
+                    i += 1
+
+                if bracket_depth == 0:
+                    grouped_pages.append(bracket_group)
+                else:
+                    raise RuntimeError("Unmatched opening bracket")
+            elif pages[i] == "#}":
+                raise RuntimeError("Unmatched closing bracket")
+            else:
+                grouped_pages.append([pages[i]])
+                i += 1
+
+        if not grouped_pages:
+            # No pages to select from, leave empty
+            player.page_order = (
+                player.page_order[: start_ix + 1]
+                + player.page_order[end_ix:]
+            )
+            return
+
+        # Randomly select exactly one group
+        selected_group = choice(grouped_pages)
+
+        # Record which page was selected (filter out bracket markers)
+        selected_page = next(
+            (p for p in selected_group if p not in ("#{", "#}")), None
+        )
+        if selected_page is not None:
+            if not hasattr(player, "between_showed") or player.between_showed is None:
+                player.between_showed = []
+            player.between_showed = player.between_showed + [selected_page]
+
+        # Replace the content between markers with just the selected page(s)
+        player.page_order = (
+            player.page_order[: start_ix + 1]
+            + selected_group
+            + player.page_order[end_ix:]
+        )
+
+
 INTERNAL_PAGES = {
     "RandomStart": type(
         "RandomStart",
@@ -582,6 +694,16 @@ INTERNAL_PAGES = {
         "RepeatEnd",
         (t.InternalPage,),
         dict(before_always_once=Repeat.__dict__["continue_maybe"]),
+    ),
+    "BetweenStart": type(
+        "BetweenStart",
+        (t.InternalPage,),
+        dict(after_always_once=Between.__dict__["start"]),
+    ),
+    "BetweenEnd": type(
+        "BetweenEnd",
+        (t.InternalPage,),
+        dict(),
     ),
     "{": type(
         "{",

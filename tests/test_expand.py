@@ -576,3 +576,219 @@ def test_bracket_grouping_in_random():
         assert "C" in randomized_section
         assert "X" in randomized_section
         assert "Y" in randomized_section
+
+
+# Tests for Between operator
+def test_between_selects_exactly_one_page():
+    """Test that Between selects exactly one page from the options"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Between as SmithereenssBetween
+
+    mock_player = Mock()
+    mock_player.page_order = [
+        "#BetweenStart",
+        "A",
+        "B",
+        "C",
+        "#BetweenEnd",
+    ]
+    mock_player.show_page = 0
+    mock_player.between_showed = None
+
+    # Run multiple times to verify randomness
+    selected_pages = set()
+    for _ in range(30):
+        mock_player.page_order = [
+            "#BetweenStart",
+            "A",
+            "B",
+            "C",
+            "#BetweenEnd",
+        ]
+        mock_player.between_showed = None
+
+        asyncio.run(SmithereenssBetween.start(mock_player))
+
+        # Check that exactly one page remains between markers
+        start_ix = mock_player.page_order.index("#BetweenStart")
+        end_ix = mock_player.page_order.index("#BetweenEnd")
+        between_pages = mock_player.page_order[start_ix + 1 : end_ix]
+
+        assert len(between_pages) == 1, f"Expected 1 page, got {between_pages}"
+        assert between_pages[0] in ("A", "B", "C")
+        selected_pages.add(between_pages[0])
+
+        # Verify between_showed was recorded
+        assert mock_player.between_showed == [between_pages[0]]
+
+    # After 30 runs, we should have seen all three pages at least once
+    assert selected_pages == {"A", "B", "C"}, f"Not all pages were selected: {selected_pages}"
+
+
+def test_between_with_bracket_groups():
+    """Test that Between treats bracketed groups as single options"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Between as SmithereenssBetween
+
+    mock_player = Mock()
+    original_order = [
+        "#BetweenStart",
+        "A",
+        "#{",
+        "B",
+        "C",
+        "#}",
+        "D",
+        "#BetweenEnd",
+    ]
+    mock_player.show_page = 0
+    mock_player.between_showed = None
+
+    # Track what gets selected
+    selections = {"A": 0, "B_C": 0, "D": 0}
+
+    for _ in range(60):
+        mock_player.page_order = original_order.copy()
+        mock_player.between_showed = None
+
+        asyncio.run(SmithereenssBetween.start(mock_player))
+
+        start_ix = mock_player.page_order.index("#BetweenStart")
+        end_ix = mock_player.page_order.index("#BetweenEnd")
+        between_pages = mock_player.page_order[start_ix + 1 : end_ix]
+
+        if between_pages == ["A"]:
+            selections["A"] += 1
+        elif between_pages == ["#{", "B", "C", "#}"]:
+            selections["B_C"] += 1
+        elif between_pages == ["D"]:
+            selections["D"] += 1
+        else:
+            pytest.fail(f"Unexpected selection: {between_pages}")
+
+    # All three options should have been selected at least once
+    assert selections["A"] > 0, "Option A was never selected"
+    assert selections["B_C"] > 0, "Option B_C was never selected"
+    assert selections["D"] > 0, "Option D was never selected"
+
+
+def test_between_records_selection():
+    """Test that Between records the selected page in between_showed"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Between as SmithereenssBetween
+
+    mock_player = Mock()
+    mock_player.page_order = [
+        "#BetweenStart",
+        "A",
+        "B",
+        "#BetweenEnd",
+    ]
+    mock_player.show_page = 0
+    mock_player.between_showed = None
+
+    asyncio.run(SmithereenssBetween.start(mock_player))
+
+    # between_showed should be a list with the selected page
+    assert isinstance(mock_player.between_showed, list)
+    assert len(mock_player.between_showed) == 1
+    assert mock_player.between_showed[0] in ("A", "B")
+
+
+def test_between_multiple_blocks_accumulate():
+    """Test that multiple Between blocks accumulate in between_showed"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Between as SmithereenssBetween
+
+    mock_player = Mock()
+    mock_player.between_showed = ["PreviousPage"]
+
+    mock_player.page_order = [
+        "#BetweenStart",
+        "X",
+        "Y",
+        "#BetweenEnd",
+    ]
+    mock_player.show_page = 0
+
+    asyncio.run(SmithereenssBetween.start(mock_player))
+
+    # Should have previous page plus the new selection
+    assert len(mock_player.between_showed) == 2
+    assert mock_player.between_showed[0] == "PreviousPage"
+    assert mock_player.between_showed[1] in ("X", "Y")
+
+
+def test_between_empty_pages():
+    """Test Between with no pages"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Between as SmithereenssBetween
+
+    mock_player = Mock()
+    mock_player.page_order = [
+        "#BetweenStart",
+        "#BetweenEnd",
+    ]
+    mock_player.show_page = 0
+    mock_player.between_showed = None
+
+    asyncio.run(SmithereenssBetween.start(mock_player))
+
+    # Nothing should be between the markers
+    start_ix = mock_player.page_order.index("#BetweenStart")
+    end_ix = mock_player.page_order.index("#BetweenEnd")
+    between_pages = mock_player.page_order[start_ix + 1 : end_ix]
+    assert between_pages == []
+
+
+def test_between_nested_depth():
+    """Test that nested Between blocks are handled correctly (depth tracking)"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Between as SmithereenssBetween
+
+    mock_player = Mock()
+    # Outer Between contains inner Between as one option
+    mock_player.page_order = [
+        "#BetweenStart",  # Outer start
+        "A",
+        "#{",
+        "#BetweenStart",  # Inner start (nested)
+        "X",
+        "Y",
+        "#BetweenEnd",  # Inner end
+        "#}",
+        "B",
+        "#BetweenEnd",  # Outer end
+    ]
+    mock_player.show_page = 0
+    mock_player.between_showed = None
+
+    asyncio.run(SmithereenssBetween.start(mock_player))
+
+    # Should select one of: A, the bracketed group (with nested Between), or B
+    start_ix = mock_player.page_order.index("#BetweenStart")
+    # Find the LAST #BetweenEnd (the outer one after selection)
+    end_indices = [i for i, p in enumerate(mock_player.page_order) if p == "#BetweenEnd"]
+    end_ix = end_indices[-1] if end_indices else None
+
+    assert end_ix is not None
+    between_pages = mock_player.page_order[start_ix + 1 : end_ix]
+
+    # Valid selections are: ["A"], ["#{", "#BetweenStart", "X", "Y", "#BetweenEnd", "#}"], or ["B"]
+    assert (
+        between_pages == ["A"]
+        or between_pages == ["#{", "#BetweenStart", "X", "Y", "#BetweenEnd", "#}"]
+        or between_pages == ["B"]
+    ), f"Unexpected selection: {between_pages}"
