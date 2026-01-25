@@ -225,7 +225,13 @@ async def show_page(
                             ):
                                 stealth_fields[fname] = field.data
                             else:
-                                setattr(player, fname, field.data)
+                                if fname in formdata:
+                                    setattr(player, fname, field.data)
+                                else:
+                                    # Since this nonetheless validated, it must be an
+                                    # optional field that was cleared - set to None!
+                                    # See issue #156.
+                                    setattr(player, fname, None)
 
                         if stealth_fields:
                             stealth_errors = await ensure_awaitable(
