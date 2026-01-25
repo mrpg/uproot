@@ -787,6 +787,46 @@ window.uproot = {
         });
     },
 
+    nonRequiredRadios() {
+        document.querySelectorAll("input[type='radio']:not([required])").forEach(radio => {
+            const name = radio.name;
+            if (!name || document.querySelector(`[data-clear-for="${name}"]`)) return;
+
+            const group = document.querySelectorAll(`input[type='radio'][name="${name}"]`);
+
+            const clearsel = document.createElement("span");
+            clearsel.className = "ms-3 fst-italic text-muted";
+            clearsel.style.cursor = "pointer";
+            clearsel.style.visibility = "hidden";
+            clearsel.textContent = _("Clear selection");
+            clearsel.dataset.clearFor = name;
+
+            const getLabel = (r) => r.closest("label") || document.querySelector(`label[for="${r.id}"]`);
+
+            const updateButton = () => {
+                const checked = Array.from(group).find(r => r.checked);
+                if (checked) {
+                    const label = getLabel(checked);
+                    (label || checked).after(clearsel);
+                    clearsel.style.visibility = "visible";
+                } else {
+                    clearsel.style.visibility = "hidden";
+                }
+            };
+
+            clearsel.addEventListener("click", () => {
+                group.forEach(r => r.checked = false);
+                updateButton();
+                group[0].dispatchEvent(new Event("change", { bubbles: true }));
+            });
+
+            group.forEach(r => r.addEventListener("change", updateButton));
+
+            getLabel(group[0]).after(clearsel);
+            updateButton();
+        });
+    },
+
     enableConnectionLostModal() {
         let connectionModal = null;
         let timeoutTimer = null;
