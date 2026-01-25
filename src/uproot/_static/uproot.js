@@ -428,7 +428,12 @@ window.uproot = {
     },
 
     onReady(fun) {
-        window.addEventListener("UprootReady", fun);
+        if (!this.isInitialized) {
+            window.addEventListener("UprootReady", fun);
+        }
+        else {
+            fun();
+        }
     },
 
     onReconnect(fun) {
