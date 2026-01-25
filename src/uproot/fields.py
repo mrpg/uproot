@@ -99,6 +99,7 @@ class DecimalField(wtforms.fields.DecimalField):
         label: str = "",
         min: Optional[float] = None,
         max: Optional[float] = None,
+        step: Optional[float] = None,
         optional: bool = False,
         render_kw: Optional[dict[str, Any]] = None,
         description: str = "",
@@ -121,6 +122,8 @@ class DecimalField(wtforms.fields.DecimalField):
 
         if render_kw is None:
             render_kw = {}
+        if step is not None:
+            render_kw["step"] = step
         render_kw["autocomplete"] = "off"
 
         super().__init__(
