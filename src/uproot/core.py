@@ -48,7 +48,7 @@ def create_session(
 
     with s.Session(sname) as session:
         session.active = True
-        session.apps = u.CONFIGS[config]  # Use this instead of CONFIGS (TODO)
+        session.apps = u.CONFIGS[config]
         session.name = sname
         session.config = config
         session.description = None

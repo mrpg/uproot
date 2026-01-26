@@ -285,7 +285,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                 p.id,
                                 p.page_order,
                                 p.show_page,
-                            )  # TODO: Remove monkeypatch
+                            )
                     else:
                         info = (0, [""], 0)
 

@@ -258,7 +258,7 @@ function renderRooms(rooms, containerId) {
 
 function renderSessions(sessions, containerId) {
     const container = I(containerId);
-    const sortedSessions = Object.values(sessions).sort((a, b) => (b.started || 0) - (a.started || 0));
+    const sortedSessions = Object.values(sessions).sort((a, b) => (b.created || 0) - (a.created || 0));
 
     if (sortedSessions.length > 0) {
         container.innerHTML = ""; // SAFE
@@ -281,10 +281,10 @@ function renderSessions(sessions, containerId) {
             headerContent.appendChild(title);
         }
 
-        if (session.started) {
+        if (session.created) {
             const time = createElement("small",
                 "badge border border-opacity-0 border-white fw-normal px-0 my-1 text-body-tertiary",
-                { textContent: `${_("Started")}: ${epochToLocalDateTime(session.started)}` }
+                { textContent: `${_("Created")}: ${epochToLocalDateTime(session.created)}` }
             );
             headerContent.appendChild(time);
         }

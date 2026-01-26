@@ -788,13 +788,14 @@ def sessions() -> dict[str, dict[str, Any]]:
         with s.Session(sname) as session:
             stats[sname] = dict(
                 sname=session.name,  # Exactly equal to sname
+                created=session.__history__()["_uproot_session"][0].time,
                 active=session.active,
                 config=session.config,
                 room=session.room,
                 description=session.description,
                 n_players=len(session.players),
                 n_groups=len(session.groups),
-            )  # TODO: created
+            )
 
     return stats
 

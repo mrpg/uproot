@@ -192,7 +192,7 @@ async def render(
     app = u.APPS[page.__module__] if page.__module__ in u.APPS else None
     language = await ensure_awaitable(
         optional_call,
-        app,  # TODO: or previous app
+        app,  # TODO: or previous app if on End.html
         "language",
         default_return=d.LANGUAGE,
         player=player,

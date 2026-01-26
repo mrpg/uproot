@@ -1,5 +1,5 @@
 {% extends "Admin.html" %}
-{% from "_macros.html" import modal, player_count %}
+{% from "Macros.html" import modal, player_count %}
 
 
 {% block titlearea %}
@@ -117,9 +117,6 @@
                             <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
                             <span class="d-table-cell text-end" id="started-count">?</span>
                         </p>
-                    </div>
-                    <div>
-                        <a class="btn btn-sm btn-uproot" href="#">{% translate %}Add players{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
                     </div>
                 </div>
                 <h6 class="fw-semibold mb-2">{% translate %}Player URLs{% endtranslate %}</h6>
