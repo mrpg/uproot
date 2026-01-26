@@ -1,8 +1,9 @@
 # uproot
 
-*uproot* is a modern software framework for developing and conducting browser-based behavioral experiments. This includes studies with hundreds of participants such as large-scale surveys and experiments with real-time interaction between the participants.
+[![Examples](https://img.shields.io/badge/Examples-uproot--examples-blue)](https://github.com/mrpg/uproot-examples)
+[![Website](https://img.shields.io/badge/Website-uproot.science-green)](https://uproot.science/)
 
-**[See example apps.](https://github.com/mrpg/uproot-examples)**
+*uproot* is a modern software framework for developing and conducting browser-based behavioral experiments. This includes studies with hundreds of participants such as large-scale surveys and experiments with real-time interaction between the participants.
 
 > [!IMPORTANT]
 > This repository contains a pre-alpha version. Breaking changes are made with reckless abandon. We are working towards the first alpha (0.0.1) and invite you to join us.
@@ -48,6 +49,7 @@ uv run uproot run
 ```
 
 You may then log in to the admin area, or [run an example experiment](http://127.0.0.1:8000/room/test/).
+You can find other examples [here](https://github.com/mrpg/uproot-examples).
 
 ## License
 
