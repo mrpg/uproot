@@ -246,10 +246,12 @@ Room
                 <p class="font-monospace fs-4">
                     {{ room.config }}
                 </p>
+                {% if room.config in configs.configs %}
                 <h6 class="fw-semibold">Apps</h6>
                 <p class="font-monospace mb-1">
                     {{ configs.configs[room.config] }}
                 </p>
+                {% endif %}
                 {% else %}
                 {% translate %}This room is not associated with a particular config{% endtranslate %}.
                 {% endif %}
