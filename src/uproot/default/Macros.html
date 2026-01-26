@@ -60,7 +60,10 @@
 
 
 {% macro field(field) %}
-    <div class="form-group uproot-form-group {{ field.class_wrapper | default('', true) }}">
+    {% set ADDON_START = (field.addon_start is defined and field.addon_start is not none) %}
+    {% set ADDON_END = (field.addon_end is defined and field.addon_end is not none) %}
+    {% set ADDON_PRESENT = ADDON_START or ADDON_END %}
+    <div class="uproot-form-group {{ field.class_wrapper | default('', true) }}">
         <div class="{{ error_class(field) }}">
         {% if field.type == "BooleanField" %}
             <div class="form-check">
@@ -162,18 +165,30 @@
             {% endif %}
         {% elif field.type == "IBANField" or field.type == "StringField" or field.type == "TextAreaField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
-            <div {% if field.label_floating is defined and field.label_floating is not none %}class="form-floating"{% endif %}>
-                {% set class_list = ["form-control"] %}
-                {% if field.render_kw and field.render_kw.get("class") %}
-                    {% set _ = class_list.append(field.render_kw.get("class")) %}
+            {% if ADDON_PRESENT %}
+                <div class="input-group">
+            {% endif %}
+                {% if ADDON_START %}
+                    <span class="input-group-text {{ field.class_addon_start }}">{{ field.addon_start }}</span>
                 {% endif %}
-                {% if field.label_floating is defined and field.label_floating is not none %}
-                    {{ field(class_=" ".join(class_list), placeholder="text") | safe }}
-                    <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ field.label_floating }}</label>
-                {% else %}
-                    {{ field(class_=" ".join(class_list)) | safe }}
+                {% if field.label_floating is defined and field.label_floating is not none %}<div class="form-floating">{% endif %}
+                    {% set class_list = ["form-control"] %}
+                    {% if field.render_kw and field.render_kw.get("class") %}
+                        {% set _ = class_list.append(field.render_kw.get("class")) %}
+                    {% endif %}
+                    {% if field.label_floating is defined and field.label_floating is not none %}
+                        {{ field(class_=" ".join(class_list), placeholder="text") | safe }}
+                        <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ field.label_floating }}</label>
+                    {% else %}
+                        {{ field(class_=" ".join(class_list)) | safe }}
+                    {% endif %}
+                {% if field.label_floating is defined and field.label_floating is not none %}</div>{% endif %}
+                {% if ADDON_END %}
+                    <span class="input-group-text {{ field.class_addon_end }}">{{ field.addon_end }}</span>
                 {% endif %}
-            </div>
+            {% if ADDON_PRESENT %}
+                </div>
+            {% endif %}
             {% if field.description %}
                 <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
@@ -184,13 +199,25 @@
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
-            {{ field(class_=" ".join(class_list)) | safe }}
+            {% if ADDON_PRESENT %}
+                <div class="input-group">
+            {% endif %}
+                {% if ADDON_START %}
+                    <span class="input-group-text {{ field.class_addon_start }}">{{ field.addon_start }}</span>
+                {% endif %}
+                {{ field(class_=" ".join(class_list)) | safe }}
+                {% if ADDON_END %}
+                    <span class="input-group-text {{ field.class_addon_end }}">{{ field.addon_end }}</span>
+                {% endif %}
+            {% if ADDON_PRESENT %}
+                </div>
+            {% endif %}
             {% if field.description %}
                 <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% endif %}
         {{ error(field) }}
-    </div>
+        </div>
     </div>
 {% endmacro %}
 
@@ -204,8 +231,8 @@
 
 {% macro errors() %}
     {% for field_ in form %}
-        <div class="form-group uproot-form-group {{ error_class(field_) }}">
-        {{ error(field_) }}
+        <div class="uproot-form-group {{ error_class(field_) }}">
+            {{ error(field_) }}
         </div>
     {% endfor %}
 {% endmacro %}
