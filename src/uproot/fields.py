@@ -1,11 +1,14 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from typing import Any, Callable, Optional
+from decimal import Decimal
+from typing import Any, Callable
 
 import wtforms
 import wtforms.fields
 import wtforms.validators
+
+Number = int | float | Decimal
 
 
 def type_coercer(choices: list[tuple[Any, str] | Any]) -> Callable[[str], Any]:
@@ -30,13 +33,13 @@ class BooleanField(wtforms.fields.BooleanField):
     def __init__(
         self,
         *,
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        validators: Optional[list[Any]] = None,
-        render_kw: Optional[dict[str, Any]] = None,
+        validators: list[Any] | None = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         self.class_wrapper = class_wrapper
@@ -60,13 +63,13 @@ class DateField(wtforms.fields.DateField):
     def __init__(
         self,
         *,
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -95,20 +98,20 @@ class DecimalField(wtforms.fields.DecimalField):
     def __init__(
         self,
         *,
-        addon_start: Optional[str] = None,
-        addon_end: Optional[str] = None,
+        addon_start: str | None = None,
+        addon_end: str | None = None,
         class_addon_start: str = "",
         class_addon_end: str = "",
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        min: Optional[float] = None,
-        max: Optional[float] = None,
-        step: Optional[float] = None,
+        min: Number | None = None,
+        max: Number | None = None,
+        step: Number | None = None,
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -149,17 +152,17 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
     def __init__(
         self,
         *,
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        min: Optional[float] = None,
-        max: Optional[float] = None,
-        step: float = 1.0,
+        min: Number | None = None,
+        max: Number | None = None,
+        step: Number = 1.0,
         optional: bool = False,
         anchoring: bool = True,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -197,14 +200,14 @@ class EmailField(wtforms.fields.EmailField):
     def __init__(
         self,
         *,
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        label_floating: Optional[str] = None,
+        label_floating: str | None = None,
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -242,13 +245,13 @@ class FileField(wtforms.fields.FileField):
     def __init__(
         self,
         *,
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -277,19 +280,19 @@ class IntegerField(wtforms.fields.IntegerField):
     def __init__(
         self,
         *,
-        addon_start: Optional[str] = None,
-        addon_end: Optional[str] = None,
+        addon_start: str | None = None,
+        addon_end: str | None = None,
         class_addon_start: str = "",
         class_addon_end: str = "",
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        min: Optional[float] = None,
-        max: Optional[float] = None,
+        min: Number | None = None,
+        max: Number | None = None,
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -328,17 +331,17 @@ class LikertField(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
         label_max: str = "",
         label_min: str = "",
         max: int = 7,
         min: int = 1,
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         choices = [(i, str(i)) for i in range(min, max + 1)]
@@ -380,15 +383,15 @@ class RadioField(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
-        choices: Optional[list[tuple[Any, str] | Any] | dict[Any, str]] = None,
-        class_wrapper: Optional[str] = None,
+        choices: list[tuple[Any, str] | Any] | dict[Any, str] | None = None,
+        class_wrapper: str | None = None,
         label: str = "",
         layout: str = "vertical",
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if choices is None:
@@ -430,13 +433,13 @@ class SelectField(wtforms.fields.SelectField):
         self,
         *,
         choices: list[tuple[Any, str] | Any] | dict[Any, str],
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if isinstance(choices, dict):
@@ -470,18 +473,18 @@ class StringField(wtforms.fields.StringField):
     def __init__(
         self,
         *,
-        addon_start: Optional[str] = None,
-        addon_end: Optional[str] = None,
+        addon_start: str | None = None,
+        addon_end: str | None = None,
         class_addon_start: str = "",
         class_addon_end: str = "",
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        label_floating: Optional[str] = None,
+        label_floating: str | None = None,
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -515,18 +518,18 @@ class TextAreaField(wtforms.fields.TextAreaField):
     def __init__(
         self,
         *,
-        addon_start: Optional[str] = None,
-        addon_end: Optional[str] = None,
+        addon_start: str | None = None,
+        addon_end: str | None = None,
         class_addon_start: str = "",
         class_addon_end: str = "",
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        label_floating: Optional[str] = None,
+        label_floating: str | None = None,
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
@@ -557,7 +560,7 @@ class TextAreaField(wtforms.fields.TextAreaField):
 
 
 class IBANValidator:
-    def __init__(self, message: Optional[str] = None) -> None:
+    def __init__(self, message: str | None = None) -> None:
         self.message = message or "Invalid IBAN format."
 
     def __call__(self, form: wtforms.Form, field: wtforms.Field) -> None:
@@ -575,18 +578,18 @@ class IBANField(wtforms.fields.StringField):
     def __init__(
         self,
         *,
-        addon_start: Optional[str] = None,
-        addon_end: Optional[str] = None,
+        addon_start: str | None = None,
+        addon_end: str | None = None,
         class_addon_start: str = "",
         class_addon_end: str = "",
-        class_wrapper: Optional[str] = None,
+        class_wrapper: str | None = None,
         label: str = "",
-        label_floating: Optional[str] = None,
+        label_floating: str | None = None,
         optional: bool = False,
-        render_kw: Optional[dict[str, Any]] = None,
+        render_kw: dict[str, Any] | None = None,
         description: str = "",
-        widget: Optional[Any] = None,
-        default: Optional[Any] = None,
+        widget: Any | None = None,
+        default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if not optional:
