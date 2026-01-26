@@ -95,6 +95,10 @@ class DecimalField(wtforms.fields.DecimalField):
     def __init__(
         self,
         *,
+        addon_start: Optional[str] = None,
+        addon_end: Optional[str] = None,
+        class_addon_start: str = "",
+        class_addon_end: str = "",
         class_wrapper: Optional[str] = None,
         label: str = "",
         min: Optional[float] = None,
@@ -118,6 +122,10 @@ class DecimalField(wtforms.fields.DecimalField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
+        self.addon_start = addon_start
+        self.addon_end = addon_end
+        self.class_addon_start = class_addon_start
+        self.class_addon_end = class_addon_end
         self.class_wrapper = class_wrapper
 
         if render_kw is None:
@@ -269,6 +277,10 @@ class IntegerField(wtforms.fields.IntegerField):
     def __init__(
         self,
         *,
+        addon_start: Optional[str] = None,
+        addon_end: Optional[str] = None,
+        class_addon_start: str = "",
+        class_addon_end: str = "",
         class_wrapper: Optional[str] = None,
         label: str = "",
         min: Optional[float] = None,
@@ -291,6 +303,10 @@ class IntegerField(wtforms.fields.IntegerField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
+        self.addon_start = addon_start
+        self.addon_end = addon_end
+        self.class_addon_start = class_addon_start
+        self.class_addon_end = class_addon_end
         self.class_wrapper = class_wrapper
 
         if render_kw is None:
@@ -454,6 +470,10 @@ class StringField(wtforms.fields.StringField):
     def __init__(
         self,
         *,
+        addon_start: Optional[str] = None,
+        addon_end: Optional[str] = None,
+        class_addon_start: str = "",
+        class_addon_end: str = "",
         class_wrapper: Optional[str] = None,
         label: str = "",
         label_floating: Optional[str] = None,
@@ -469,6 +489,10 @@ class StringField(wtforms.fields.StringField):
         else:
             v = [wtforms.validators.Optional()]
 
+        self.addon_start = addon_start
+        self.addon_end = addon_end
+        self.class_addon_start = class_addon_start
+        self.class_addon_end = class_addon_end
         self.class_wrapper = class_wrapper
         self.label_floating = label_floating
 
@@ -491,6 +515,10 @@ class TextAreaField(wtforms.fields.TextAreaField):
     def __init__(
         self,
         *,
+        addon_start: Optional[str] = None,
+        addon_end: Optional[str] = None,
+        class_addon_start: str = "",
+        class_addon_end: str = "",
         class_wrapper: Optional[str] = None,
         label: str = "",
         label_floating: Optional[str] = None,
@@ -506,6 +534,10 @@ class TextAreaField(wtforms.fields.TextAreaField):
         else:
             v = [wtforms.validators.Optional()]
 
+        self.addon_start = addon_start
+        self.addon_end = addon_end
+        self.class_addon_start = class_addon_start
+        self.class_addon_end = class_addon_end
         self.class_wrapper = class_wrapper
         self.label_floating = label_floating
 
@@ -543,6 +575,10 @@ class IBANField(wtforms.fields.StringField):
     def __init__(
         self,
         *,
+        addon_start: Optional[str] = None,
+        addon_end: Optional[str] = None,
+        class_addon_start: str = "",
+        class_addon_end: str = "",
         class_wrapper: Optional[str] = None,
         label: str = "",
         label_floating: Optional[str] = None,
@@ -564,6 +600,10 @@ class IBANField(wtforms.fields.StringField):
                 IBANValidator(),
             ]
 
+        self.addon_start = addon_start
+        self.addon_end = addon_end
+        self.class_addon_start = class_addon_start
+        self.class_addon_end = class_addon_end
         self.class_wrapper = class_wrapper
         self.label_floating = label_floating
 
