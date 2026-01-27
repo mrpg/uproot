@@ -491,10 +491,47 @@ class Rounds(t.SmoothOperator):
 
     @classmethod
     async def next(page, player: Storage) -> None:
+        # Increment overall round counter
         if not hasattr(player, "round") or player.round is None:
             player.round = 1
         else:
             player.round += 1
+
+        # Calculate round_nested by scanning page_order up to current position.
+        # This tracks the round number at each nesting level.
+        # E.g., round_nested = [2, 3] means "outer round 2, inner round 3"
+        depth = 0
+        completed_at_depth: dict[int, int] = {}  # depth -> completed rounds
+        current_at_depth: dict[int, int] = {}  # depth -> current round number
+
+        for i in range(player.show_page):
+            page_name = player.page_order[i]
+            if page_name == "#RoundStart":
+                # Entering a round at this depth
+                current_at_depth[depth] = completed_at_depth.get(depth, 0) + 1
+                depth += 1
+            elif page_name == "#RoundEnd":
+                # Exiting a round - mark it as completed at that depth
+                depth -= 1
+                completed_at_depth[depth] = current_at_depth.get(depth, 0)
+                # Clear deeper levels - they reset when we start a new iteration
+                for d in list(completed_at_depth.keys()):
+                    if d > depth:
+                        del completed_at_depth[d]
+                for d in list(current_at_depth.keys()):
+                    if d > depth:
+                        del current_at_depth[d]
+
+        # We're now at a #RoundStart at the current depth
+        this_round = completed_at_depth.get(depth, 0) + 1
+
+        # Build round_nested: [round at depth 0, round at depth 1, ..., this_round]
+        round_nested = []
+        for d in range(depth):
+            round_nested.append(current_at_depth.get(d, 1))
+        round_nested.append(this_round)
+
+        player.round_nested = round_nested
 
 
 class Repeat(t.SmoothOperator):
