@@ -484,7 +484,8 @@ async def ws(
     pid = cast(t.PlayerIdentifier, ~player)
     data = a.from_cookie(uauth)
     is_admin = (
-        a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        d.UNSAFE
+        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
     tasks = dict()

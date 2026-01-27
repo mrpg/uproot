@@ -124,11 +124,18 @@ def cli() -> None:
 @click.command(help="Run this uproot project")
 @click.option("--host", "-h", default="127.0.0.1", show_default="127.0.0.1", help="Host")
 @click.option("--port", "-p", default=8000, show_default=8000, help="Port")
+@click.option("--unsafe", default=False, is_flag=True, help="Run without admin authentication")
 @click.pass_context
 # fmt: on
-def run(ctx: click.Context, host: str, port: int) -> None:
+def run(
+    ctx: click.Context,
+    host: str,
+    port: int,
+    unsafe: bool,
+) -> None:
     d.HOST = host
     d.PORT = port
+    d.UNSAFE = unsafe
 
     set_ulimit()
 

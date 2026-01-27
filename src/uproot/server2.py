@@ -136,6 +136,9 @@ async def render(
 
 
 async def auth_required(request: Request) -> dict[str, Any]:
+    if d.UNSAFE:
+        return dict()
+
     uauth = request.cookies.get("uauth")
     if not uauth:
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
@@ -164,12 +167,13 @@ async def home(
 
 @router.websocket("/ws/")
 async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
-    if uauth is None:
-        raise HTTPException(status_code=403, detail="No authentication token")
+    if not d.UNSAFE:
+        if uauth is None:
+            raise HTTPException(status_code=403, detail="No authentication token")
 
-    data = a.from_cookie(uauth)
-    if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
-        raise HTTPException(status_code=403, detail="Invalid authentication token")
+        data = a.from_cookie(uauth)
+        if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
+            raise HTTPException(status_code=403, detail="Invalid authentication token")
 
     await websocket.accept()
 
@@ -341,7 +345,13 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 async def login_get(
     request: Request,
     bad: Optional[bool] = False,
-) -> HTMLResponse:
+) -> Response:
+    try:
+        await auth_required(request)
+        return RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
+    except HTTPException:
+        pass
+
     response = HTMLResponse(await render("Login.html", dict(bad=bad)))
 
     if bad:

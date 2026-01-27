@@ -64,38 +64,51 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     else:
         d.LOGGER.info(f"There are {la} admins")
 
-    for user, pw in d.ADMINS.items():
-        if isinstance(pw, str):
-            pw_length = len(pw)
-            # Clear password from memory before logging to prevent accidental leakage
-            pw = None  # type: ignore
-            if pw_length < MIN_PASSWORD_LENGTH:
-                # Only logging non-sensitive metadata (length), not the actual password
-                d.LOGGER.error(
-                    f"Password for admin {user!r} is shorter than "
-                    f"the minimum length ({MIN_PASSWORD_LENGTH}): got {pw_length}"
-                )
-
-    if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
-        d.ensure_login_token()
-
+    if d.UNSAFE:
         print(file=stderr)
         print(
-            "You can securely log in through the URL below because you are using the\n"
-            "default administrator ('admin') with an empty password (...). If you add\n"
-            "more administrators, change admin's username or set a password, this\n"
-            "message will no longer appear.",
+            "!!! You are using unsafe mode. Only ever do so on localhost.",
+            file=stderr,
+        )
+        print(
+            "Admin area:\n\t",
+            f"{d.ORIGIN}{d.ROOT}/admin/",
             file=stderr,
         )
         print(file=stderr)
+    else:
+        for user, pw in d.ADMINS.items():
+            if isinstance(pw, str):
+                pw_length = len(pw)
+                # Clear password from memory before logging to prevent accidental leakage
+                pw = None  # type: ignore
+                if pw_length < MIN_PASSWORD_LENGTH:
+                    # Only logging non-sensitive metadata (length), not the actual password
+                    d.LOGGER.error(
+                        f"Password for admin {user!r} is shorter than "
+                        f"the minimum length ({MIN_PASSWORD_LENGTH}): got {pw_length}"
+                    )
 
-        print(
-            "Auto login:\n\t",
-            f"{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
-            file=stderr,
-        )
+        if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
+            d.ensure_login_token()
 
-        print(file=stderr)
+            print(file=stderr)
+            print(
+                "You can securely log in through the URL below because you are using the\n"
+                "default administrator ('admin') with an empty password (...). If you add\n"
+                "more administrators, change admin's username or set a password, this\n"
+                "message will no longer appear.",
+                file=stderr,
+            )
+            print(file=stderr)
+
+            print(
+                "Auto login:\n\t",
+                f"{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
+                file=stderr,
+            )
+
+            print(file=stderr)
 
     tasks = []
 

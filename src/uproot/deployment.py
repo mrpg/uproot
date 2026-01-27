@@ -51,6 +51,7 @@ PROJECT_METADATA: dict[str, Any] = dict()
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
+UNSAFE: bool = False
 UVICORN_KWARGS: dict[str, Any] = dict(
     reload=False,
     log_level="info",

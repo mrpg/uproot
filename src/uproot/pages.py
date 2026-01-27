@@ -172,7 +172,8 @@ async def render(
 
     data = a.from_cookie(uauth)
     is_admin = (
-        a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        d.UNSAFE
+        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
     try:
@@ -273,7 +274,8 @@ async def render_error(
 
     data = a.from_cookie(uauth)
     is_admin = (
-        a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        d.UNSAFE
+        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
     internal = dict(

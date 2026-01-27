@@ -62,6 +62,14 @@ Server status
                 </h4>
             </div>
             <div class="card-body pb-0 pt-2">
+                {% if deployment.UNSAFE %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% translate %}
+                    You are running uproot with <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.
+                    {% endtranslate %}
+                </div>
+                {% else %}
                 {% if sessions %}
                 <table class="table table-sm">
                     <thead>
@@ -114,6 +122,7 @@ Server status
                         {% endtranslate %}
                     </a>
                 </p>
+                {% endif %}
             </div>
         </div>
     </div>
