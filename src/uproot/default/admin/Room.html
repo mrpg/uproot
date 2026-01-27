@@ -82,6 +82,14 @@ Room
     {% endtranslate %}
 </p>
 
+{% if room.labels %}
+<p class="mb-3">
+    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
+        {% translate %}Show individual URLs{% endtranslate %}
+    </button>
+</p>
+{% endif %}
+
 <div class="row" style="min-height: 200px">
     <div class="col-md-6">
         <h4 class="mb-1">{% translate %}Recently seen{% endtranslate %}, <i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></h4>
@@ -308,6 +316,16 @@ Room
     </div>
 </div>
 
+<script>
+    function disassociate() {
+        uproot.invoke("disassociate", uproot.vars.room.name, uproot.vars.room.sname).then(() => {
+            uproot.reload();
+        });
+    }
+</script>
+
+{% endif %}
+
 <!-- Modal for label URLs -->
 {% if room.labels %}
 <div class="modal fade" id="labelUrlModal" tabindex="-1" aria-labelledby="labelUrlModalLabel" aria-hidden="true">
@@ -346,16 +364,8 @@ Room
         </div>
     </div>
 </div>
-{% endif %}
 
 <script>
-    function disassociate() {
-        uproot.invoke("disassociate", uproot.vars.room.name, uproot.vars.room.sname).then(() => {
-            uproot.reload();
-        });
-    }
-
-    {% if room.labels %}
     function copyLabelURLsToClipboard() {
         const labels = uproot.vars.room.labels;
         const text = labels
@@ -366,9 +376,7 @@ Room
         I("label-urls-copied").classList.remove("invisible");
         setTimeout(() => I("label-urls-copied").classList.add("invisible"), 3000);
     }
-    {% endif %}
 </script>
-
 {% endif %}
 
 {% endblock main %}
