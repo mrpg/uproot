@@ -792,3 +792,298 @@ def test_between_nested_depth():
         or between_pages == ["#{", "#BetweenStart", "X", "Y", "#BetweenEnd", "#}"]
         or between_pages == ["B"]
     ), f"Unexpected selection: {between_pages}"
+
+
+# Tests for smithereens.Rounds operator
+def test_rounds_expand():
+    """Test that Rounds.expand() repeats pages n times with markers"""
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    rounds = SmithereensRounds(A, B, n=3)
+    result = rounds.expand()
+
+    # Should repeat the structure 3 times
+    # Each iteration has: #{, #RoundStart, A, B, #RoundEnd, #}
+    assert len(result) == 18  # 6 elements * 3 repetitions
+
+    # Convert to paths for easier comparison
+    paths = [getattr(p, "__name__", str(p)) for p in result]
+
+    # Verify the structure repeats correctly
+    expected_unit = ["{", "RoundStart", "A", "B", "RoundEnd", "}"]
+    for i in range(3):
+        for j, expected in enumerate(expected_unit):
+            assert expected in paths[i * 6 + j], f"Mismatch at position {i * 6 + j}"
+
+
+def test_rounds_next_initializes_round():
+    """Test that Rounds.next() initializes player.round to 1 when not set"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    mock_player = Mock(spec=[])  # Empty spec so hasattr returns False
+
+    asyncio.run(SmithereensRounds.next(mock_player))
+
+    assert mock_player.round == 1
+
+
+def test_rounds_next_increments_round():
+    """Test that Rounds.next() increments player.round"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    mock_player = Mock()
+    mock_player.round = 1
+
+    asyncio.run(SmithereensRounds.next(mock_player))
+    assert mock_player.round == 2
+
+    asyncio.run(SmithereensRounds.next(mock_player))
+    assert mock_player.round == 3
+
+
+def test_rounds_next_handles_none_round():
+    """Test that Rounds.next() handles player.round being None"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    mock_player = Mock()
+    mock_player.round = None
+
+    asyncio.run(SmithereensRounds.next(mock_player))
+
+    assert mock_player.round == 1
+
+
+# Tests for smithereens.Repeat operator
+def test_repeat_expand():
+    """Test that Repeat.expand() returns pages with markers"""
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    repeat = SmithereensRepeat(A, B)
+    result = repeat.expand()
+
+    # Should have: #{, #RepeatStart, A, B, #RepeatEnd, #}
+    assert len(result) == 6
+
+    paths = [getattr(p, "__name__", str(p)) for p in result]
+    assert "{" in paths[0]
+    assert "RepeatStart" in paths[1]
+    assert result[2] is A
+    assert result[3] is B
+    assert "RepeatEnd" in paths[4]
+    assert "}" in paths[5]
+
+
+def test_repeat_next_initializes_round():
+    """Test that Repeat.next() initializes player.round to 1"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock(spec=[])
+
+    asyncio.run(SmithereensRepeat.next(mock_player))
+
+    assert mock_player.round == 1
+
+
+def test_repeat_next_increments_round():
+    """Test that Repeat.next() increments player.round"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock()
+    mock_player.round = 5
+
+    asyncio.run(SmithereensRepeat.next(mock_player))
+
+    assert mock_player.round == 6
+
+
+def test_repeat_continue_maybe_adds_pages_when_add_round_true():
+    """Test that Repeat.continue_maybe() duplicates pages when add_round is True"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock()
+    mock_player.page_order = [
+        "Before",
+        "#RepeatStart",
+        "A",
+        "B",
+        "#RepeatEnd",
+        "After",
+    ]
+    mock_player.show_page = 3  # Somewhere in the repeat block
+    mock_player.add_round = True
+
+    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+
+    # Should have duplicated the repeat block
+    expected = [
+        "Before",
+        "#RepeatStart",
+        "A",
+        "B",
+        "#RepeatEnd",
+        "#RepeatStart",
+        "A",
+        "B",
+        "#RepeatEnd",
+        "After",
+    ]
+    assert mock_player.page_order == expected
+
+
+def test_repeat_continue_maybe_no_change_when_add_round_false():
+    """Test that Repeat.continue_maybe() does nothing when add_round is False"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock()
+    original_order = [
+        "Before",
+        "#RepeatStart",
+        "A",
+        "B",
+        "#RepeatEnd",
+        "After",
+    ]
+    mock_player.page_order = original_order.copy()
+    mock_player.show_page = 3
+    mock_player.add_round = False
+
+    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+
+    # Should be unchanged
+    assert mock_player.page_order == original_order
+
+
+def test_repeat_continue_maybe_multiple_iterations():
+    """Test that Repeat.continue_maybe() can add multiple iterations"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock()
+    mock_player.page_order = [
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+    ]
+    mock_player.show_page = 1
+
+    # First continuation
+    mock_player.add_round = True
+    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+
+    assert mock_player.page_order == [
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+    ]
+
+    # Second continuation (at end of first repeat)
+    mock_player.show_page = 4  # Position in the second repeat block
+    mock_player.add_round = True
+    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+
+    assert mock_player.page_order == [
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+    ]
+
+
+def test_repeat_continue_maybe_raises_without_start_marker():
+    """Test that Repeat.continue_maybe() raises if #RepeatStart not found"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock()
+    mock_player.page_order = [
+        "A",
+        "B",
+        "#RepeatEnd",
+    ]
+    mock_player.show_page = 1
+    mock_player.add_round = True
+
+    with pytest.raises(RuntimeError, match="Could not find #RepeatStart"):
+        asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+
+
+# Tests for smithereens.Bracket operator
+def test_bracket_expand():
+    """Test that Bracket.expand() wraps pages with bracket markers"""
+    from uproot.smithereens import Bracket as SmithereenssBracket
+
+    bracket = SmithereenssBracket(A, B, C)
+    result = bracket.expand()
+
+    # Should have: #{, A, B, C, #}
+    assert len(result) == 5
+
+    paths = [getattr(p, "__name__", str(p)) for p in result]
+    assert "{" in paths[0]
+    assert result[1] is A
+    assert result[2] is B
+    assert result[3] is C
+    assert "}" in paths[4]
+
+
+def test_bracket_expand_empty():
+    """Test that Bracket.expand() handles empty pages"""
+    from uproot.smithereens import Bracket as SmithereenssBracket
+
+    bracket = SmithereenssBracket()
+    result = bracket.expand()
+
+    # Should have just: #{, #}
+    assert len(result) == 2
+
+    paths = [getattr(p, "__name__", str(p)) for p in result]
+    assert "{" in paths[0]
+    assert "}" in paths[1]
+
+
+def test_bracket_expand_single_page():
+    """Test that Bracket.expand() works with a single page"""
+    from uproot.smithereens import Bracket as SmithereenssBracket
+
+    bracket = SmithereenssBracket(A)
+    result = bracket.expand()
+
+    assert len(result) == 3
+
+    paths = [getattr(p, "__name__", str(p)) for p in result]
+    assert "{" in paths[0]
+    assert result[1] is A
+    assert "}" in paths[2]
