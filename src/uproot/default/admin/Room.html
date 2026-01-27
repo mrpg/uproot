@@ -294,6 +294,11 @@ Room
                     {{ label }}{% if not loop.last %}<span class="text-body-tertiary"> |</span>{% endif %}
                     {% endfor %}
                 </p>
+                <p class="mb-1">
+                    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
+                        {% translate %}Show individual URLs{% endtranslate %}
+                    </button>
+                </p>
                 {% else %}
                 {% translate %}This room is not associated with any labels{% endtranslate %}.
                 {% endif %}
@@ -303,12 +308,65 @@ Room
     </div>
 </div>
 
+<!-- Modal for label URLs -->
+{% if room.labels %}
+<div class="modal fade" id="labelUrlModal" tabindex="-1" aria-labelledby="labelUrlModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="border-uproot-light modal-content">
+        <div class="border-uproot-light modal-header">
+            <h5 class="modal-title" id="labelUrlModalLabel">
+                {% translate %}Individual label URLs{% endtranslate %}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th class="fw-semibold ps-0">{% translate %}Label{% endtranslate %}</th>
+                        <th class="fw-semibold">{% translate %}URL{% endtranslate %}</th>
+                    </tr>
+                </thead>
+                <tbody x-data="{}">
+                    {% for label in room.labels %}
+                    <tr>
+                        <td class="ps-0">{{ label }}</td>
+                        <td>
+                            <a class="link-subtle player-url" href="../../../room/{{ roomname }}/?label={{ label }}" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/room/{{ roomname }}/?label={{ label }}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="border-uproot-light modal-footer justify-content-between">
+            <button class="btn btn-outline-uproot btn-sm" onclick="copyLabelURLsToClipboard()" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
+            <span class="fw-300 invisible me-3 text-uproot" id="label-urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
+        </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <script>
     function disassociate() {
         uproot.invoke("disassociate", uproot.vars.room.name, uproot.vars.room.sname).then(() => {
             uproot.reload();
         });
     }
+
+    {% if room.labels %}
+    function copyLabelURLsToClipboard() {
+        const labels = uproot.vars.room.labels;
+        const text = labels
+            .map(label => `${window.location.origin}${uproot.vars.root}/room/${uproot.vars.roomname}/?label=${label}`)
+            .join("\n");
+
+        navigator.clipboard.writeText(text);
+        I("label-urls-copied").classList.remove("invisible");
+        setTimeout(() => I("label-urls-copied").classList.add("invisible"), 3000);
+    }
+    {% endif %}
 </script>
 
 {% endif %}

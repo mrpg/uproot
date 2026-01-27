@@ -342,8 +342,8 @@
             <table class="table table-sm table-hover">
                 <thead>
                     <tr>
-                        <th class="fw-semibold ps-0">Player ID</th>
-                        <th class="fw-semibold">Player URL</th>
+                        <th class="fw-semibold ps-0">{% translate %}Player ID{% endtranslate %}</th>
+                        <th class="fw-semibold">{% translate %}Player URL{% endtranslate %}</th>
                     </tr>
                 </thead>
                 <tbody x-data="{}">
@@ -357,12 +357,10 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <ol class="mb-3">
-            </ol>
             {% endif %}
         </div>
         <div class="border-uproot-light modal-footer justify-content-between">
-            <button class="btn btn-outline-uproot btn-sm" onclick="copyURLsToClipboard()" type="button">Copy URLs as plain text</button>
+            <button class="btn btn-outline-uproot btn-sm" onclick="copyURLsToClipboard()" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
             <span class="fw-300 invisible me-3 text-uproot" id="urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
         </div>
         </div>
