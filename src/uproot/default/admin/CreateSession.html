@@ -1,8 +1,8 @@
 <div class="row">
-    <div class="col-12 col-lg-9 col-xl-10 mb-2">
+    <div class="col-12 col-xl-8 mb-2">
         <div class="form-floating" id="config-select"></div>
     </div>
-    <div class="col-12 col-lg-3 col-xl-2 mb-2">
+    <div class="col-12 col-xl-4 mb-2">
         <div class="form-floating">
             <input class="form-control" id="nplayers" min="0" name="nplayers"
                 placeholder="0" required type="number" value="">
@@ -12,7 +12,7 @@
     </div>
 </div>
 
-<div x-data="{automatic: true}">
+<div class="ps-1" x-data="{automatic: true}">
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="automatic_settings" name="automatic_settings" value="1"
             @click="automatic = !automatic" checked>
@@ -29,14 +29,14 @@
     </div>
 </div>
 
-<div x-data="{automatic: true}">
+<div class="ps-1" x-data="{automatic: true}">
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="automatic_sname" name="automatic_sname" value="1"
             @click="automatic = !automatic" checked>
         <label for="automatic_sname">Set session name automatically</label>
     </div>
     <div class="form-floating mt-3" x-show="!automatic">
-        <input class="form-control" type="text" id="sname" name="sname" placeholder="Session name">
+        <input class="font-monospace form-control" type="text" id="sname" name="sname" placeholder="Session name">
         <label for="sname">Session name</label>
         <small class="d-block form-text pt-2 text-muted">
             {% translate %}
@@ -46,7 +46,7 @@
     </div>
 </div>
 
-<div x-data="{automatic: true}">
+<div class="mb-2 ps-1" x-data="{automatic: true}">
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="automatic_unames" name="automatic_unames" value="1"
             @click="automatic = !automatic" checked>
