@@ -34,8 +34,8 @@ New room
 
 <div class="mt-4" x-data="{useConfig: false, useSession: false}">
     <div class="form-check" x-show="!useSession">
-        <input class="form-check-input" type="checkbox" id="use_config" name="use_config" value="1"
-            @click="useConfig = !useConfig">
+        <input class="form-check-input" type="checkbox" id="use_config"
+            @click="useConfig = !useConfig; if (!useConfig) { I('config').value = ''; }">
         <label for="use_config">{% translate %}Associate with a particular config{% endtranslate %}</label>
     </div>
     <div x-show="useConfig">
@@ -48,8 +48,8 @@ New room
     </div>
 
     <div class="form-check mt-3" x-show="!useConfig">
-        <input class="form-check-input" type="checkbox" id="use_session" name="use_session" value="1"
-            @click="useSession = !useSession">
+        <input class="form-check-input" type="checkbox" id="use_session"
+            @click="useSession = !useSession; if (!useSession) { I('sname').value = ''; }">
         <label for="use_session">{% translate %}Associate with an existing session{% endtranslate %}</label>
     </div>
     <div class="form-floating mt-3" x-show="useSession">
@@ -66,8 +66,8 @@ New room
 
 <div x-data="{useLabels: false}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="use_labels" name="use_labels" value="1"
-            @click="useLabels = !useLabels">
+        <input class="form-check-input" type="checkbox" id="use_labels"
+            @click="useLabels = !useLabels; if (!useLabels) { I('labels').value = ''; }">
         <label for="use_labels">Use labels/Access Codes</label>
     </div>
     <div class="form-floating mt-3" x-show="useLabels">
@@ -83,13 +83,13 @@ New room
 
 <div x-data="{useCapacity: false}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="use_capacity" name="use_capacity" value="1"
-            @click="useCapacity = !useCapacity">
+        <input class="form-check-input" type="checkbox" id="use_capacity"
+            @click="useCapacity = !useCapacity; if (!useCapacity) { I('capacity').value = ''; }">
         <label for="use_capacity">Limit capacity of resulting session</label>
     </div>
     <div class="form-floating mt-3" x-show="useCapacity">
         <input type="number" class="form-control w-auto" id="capacity" name="capacity"
-            placeholder="{% translate %}Maximum players{% endtranslate %}" min="1" value="1">
+            placeholder="{% translate %}Maximum players{% endtranslate %}" min="1">
         <label for="capacity" class="form-label">{% translate %}Maximum players{% endtranslate %}</label>
     </div>
 </div>
@@ -114,15 +114,17 @@ New room
         // Validate room name doesn't already exist
         nameAvailable = !uproot.vars.rooms_available.includes(I("name").value);
 
-        // Validate labels if used
-        if (I("use_labels").checked) {
-            const labels = I("labels").value.split("\n").map((a) => a.trim()).filter(l => l.length > 0);
+        // Validate labels if any are entered
+        const labelsValue = I("labels").value.trim();
+        if (labelsValue) {
+            const labels = labelsValue.split("\n").map((a) => a.trim()).filter(l => l.length > 0);
             labelsValid = labels.every(label => label.length <= 128);
         }
 
-        // Validate session name if used
-        if (I("use_session").checked && I("sname").value.trim() !== "") {
-            snameValid = uproot.vars.sessions_available.includes(I("sname").value);
+        // Validate session name if entered
+        const snameValue = I("sname").value.trim();
+        if (snameValue) {
+            snameValid = uproot.vars.sessions_available.includes(snameValue);
         }
 
         if (!nameValid) {

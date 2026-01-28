@@ -529,19 +529,20 @@ async def new_room(
 async def new_room2(
     request: Request,
     name: str = Form(),
-    use_config: Optional[bool] = Form(False),
-    config: Optional[str] = Form(""),
-    use_labels: Optional[bool] = Form(False),
-    labels: Optional[str] = Form(""),
-    use_capacity: Optional[bool] = Form(False),
-    capacity: Optional[int] = Form(1),
-    use_session: Optional[bool] = Form(False),
-    sname: Optional[str] = Form(""),
+    config: str = Form(""),
+    labels: str = Form(""),
+    capacity: str = Form(""),
+    sname: str = Form(""),
     open: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    if sname:
-        a.session_exists(sname)
+    config_ = config.strip() or None
+    sname_ = sname.strip() or None
+    capacity_ = int(capacity) if capacity.strip() else None
+    labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
+
+    if sname_:
+        a.session_exists(sname_)
 
     with Admin() as admin:
         if name in admin.rooms:
@@ -549,19 +550,15 @@ async def new_room2(
 
         admin.rooms[name] = r.room(
             name=name,
-            config=(config if use_config else None),
-            labels=(
-                [a.strip() for a in labels.split("\n") if a.strip()]
-                if labels
-                else [] if use_labels else None
-            ),
-            capacity=(capacity if use_capacity else None),
+            config=config_,
+            labels=labels_list,
+            capacity=capacity_,
             open=bool(open),
-            sname=(sname if use_session and sname and sname.strip() else None),
+            sname=sname_,
         )
 
-    if sname:
-        with Session(sname) as session:
+    if sname_:
+        with Session(sname_) as session:
             session.room = name
 
     redirect_url = safe_redirect(f"{d.ROOT}/admin/room/{quote(name, safe='')}/")
@@ -601,16 +598,21 @@ async def new_session_in_room(
     config: str = Form(),
     assignees: str = Form(),
     nplayers: int = Form(),
-    automatic_settings: Optional[bool] = Form(False),
-    automatic_sname: Optional[bool] = Form(False),
-    automatic_unames: Optional[bool] = Form(False),
-    settings: Optional[str] = Form("{}"),
-    sname: Optional[str] = Form(""),
-    unames: Optional[str] = Form(""),
+    settings: str = Form(""),
+    sname: str = Form(""),
+    unames: str = Form(""),
     nogrow: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.room_exists(roomname)
+
+    sname_ = sname.strip() or None
+    unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
+    settings_parsed = (
+        orjson.loads(settings)
+        if settings.strip()
+        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
+    )
 
     if assignees:
         assignees_list = sorted(orjson.loads(assignees))
@@ -644,12 +646,8 @@ async def new_session_in_room(
         sid = c.create_session(
             admin,
             config,
-            sname=(None if automatic_sname else sname),
-            settings=(
-                u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
-                if automatic_settings
-                else orjson.loads(cast(str, settings))
-            ),
+            sname=sname_,
+            settings=settings_parsed,
         )
 
         admin.rooms[roomname]["sname"] = sid.sname
@@ -664,11 +662,7 @@ async def new_session_in_room(
         c.create_players(
             session,
             n=nplayers,
-            unames=(
-                None
-                if automatic_unames or unames is None
-                else [a.strip() for a in unames.split("\n")]
-            ),
+            unames=unames_list,
             data=data,
         )
 
@@ -724,35 +718,32 @@ async def new_session2(
     request: Request,
     config: str = Form(),
     nplayers: int = Form(),
-    automatic_settings: Optional[bool] = Form(False),
-    automatic_sname: Optional[bool] = Form(False),
-    automatic_unames: Optional[bool] = Form(False),
-    settings: Optional[str] = Form("{}"),
-    sname: Optional[str] = Form(""),
-    unames: Optional[str] = Form(""),
+    settings: str = Form(""),
+    sname: str = Form(""),
+    unames: str = Form(""),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
+    sname_ = sname.strip() or None
+    unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
+    settings_parsed = (
+        orjson.loads(settings)
+        if settings.strip()
+        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
+    )
+
     with Admin() as admin:
         sid = c.create_session(
             admin,
             config,
-            sname=(None if automatic_sname else sname),
-            settings=(
-                u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
-                if automatic_settings
-                else orjson.loads(cast(str, settings))
-            ),
+            sname=sname_,
+            settings=settings_parsed,
         )
 
     with sid() as session:
         c.create_players(
             session,
             n=nplayers,
-            unames=(
-                None
-                if automatic_unames or unames is None
-                else [a.strip() for a in unames.split("\n")]
-            ),
+            unames=unames_list,
         )
 
     c.finalize_session(sid)

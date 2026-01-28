@@ -317,7 +317,7 @@ window.uproot = {
 
     isValidToken(x) {
         if (typeof x !== "string") return false;
-        return /^[a-zA-Z0-9._-]*$/.test(x);
+        return /^[a-zA-Z0-9._-]+$/.test(x);
     },
 
     hello() {
