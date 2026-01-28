@@ -105,17 +105,17 @@
     </div>
     <div class="col-12 col-xl-3 col-lg-6 mb-4">
         <div class="card h-100">
-            <div class="card-body pb-2">
+            <div class="card-body pb-2" x-data>
                 <h5 class="border-bottom fw-semibold mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
                 <div class="d-flex justify-content-between mb-3 mt-3">
                     <div>
                         <p class="d-table-row">
                             <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
-                            <span class="d-table-cell text-end">{{ len(session.players) }}</span>
+                            <span class="d-table-cell text-end" x-text="$store.session.totalPlayers"></span>
                         </p>
                         <p class="d-table-row">
                             <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
-                            <span class="d-table-cell text-end" id="started-count">?</span>
+                            <span class="d-table-cell text-end" x-text="$store.session.startedCount"></span>
                         </p>
                     </div>
                 </div>
@@ -381,6 +381,17 @@
 
 
 {% block late %}
+
+<script>
+    // Alpine.js store for session player counts
+    document.addEventListener("alpine:init", () => {
+        Alpine.store("session", {
+            totalPlayers: {{ len(session.players) }},
+            startedCount: "?",
+            selectedCount: 0
+        });
+    });
+</script>
 
 <script src="{{ internalstatic('viewdata.js') }}"></script>
 <script src="{{ internalstatic('monitor.js') }}"></script>

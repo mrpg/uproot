@@ -34,6 +34,11 @@ uproot.onStart(() => {
     loadExtraData();
     uproot.invoke("subscribe_to_attendance", uproot.vars.sname);
     uproot.invoke("subscribe_to_fieldchange", uproot.vars.sname, EXTRA_FIELDS);
+
+    // Initialize Alpine store counts once Alpine is ready
+    document.addEventListener("alpine:initialized", () => {
+        updateSessionStore();
+    });
 });
 
 // ============================================================================
@@ -45,9 +50,30 @@ function loadExtraData() {
         .then(reshapeAndUpdateExtraData);
 }
 
+/**
+ * Updates the Alpine store with current player counts.
+ * Calculates total and started counts in a single pass.
+ */
+function updateSessionStore() {
+    if (!window.Alpine || !Alpine.store("session")) return;
+
+    const info = uproot.vars.info || {};
+    let total = 0;
+    let started = 0;
+
+    for (const tuple of Object.values(info)) {
+        total++;
+        const showPage = Number.isInteger(tuple?.[2]) ? tuple[2] : -1;
+        if (showPage >= 0) started++;
+    }
+
+    const store = Alpine.store("session");
+    store.totalPlayers = total;
+    store.startedCount = started;
+}
+
 function reshapeAndUpdateExtraData(data) {
     const newData = {};
-    let startedCount = 0;
 
     for (const [key, value] of Object.entries(data)) {
         if (value._uproot_group !== undefined) {
@@ -55,19 +81,12 @@ function reshapeAndUpdateExtraData(data) {
             delete value._uproot_group;
         }
 
+        // Remove started field if present (we derive it from showPage instead)
         if (value.started !== undefined) {
-            startedCount += value.started;
             delete value.started;
         }
 
         newData[key] = value;
-    }
-
-    // Note: This count is approximate as it only tracks incremental changes
-    // received since page load, not the true total from database
-    const startedCountEl = I("started-count");
-    if (startedCountEl) {
-        startedCountEl.textContent = startedCount;
     }
 
     updateExtraData(newData);
@@ -339,6 +358,9 @@ function updateData() {
  * Performs the actual table update. Called by the debounce mechanism.
  */
 async function doTableUpdate() {
+    // Keep Alpine store in sync with current data
+    updateSessionStore();
+
     try {
         if (!monitorState.table) return;
 
@@ -493,7 +515,7 @@ uproot.onCustomEvent("Attended", (event) => {
     uproot.vars.info[uname] = info;
     uproot.vars.online[uname] = Date.now() / 1000;
 
-    // Debounced table update (for lastSeen time and any data changes)
+    // Debounced table update (also updates Alpine store counts)
     updateData();
 
     // Heartbeat animation via direct DOM manipulation (no re-render needed)
@@ -512,6 +534,8 @@ window.newInfoOnline = function(data) {
     if (!uproot) return;
     uproot.vars.online = data.online || {};
     uproot.vars.info = data.info || {};
+
+    // Debounced table update (also updates Alpine store counts)
     updateData();
 };
 
@@ -552,9 +576,10 @@ window.mmodal = function(modalName) {
     const modal = window.bootstrap?.Modal.getOrCreateInstance(I(`${modalName}-modal`));
 
     if (selected.length > 0) {
-        document.querySelectorAll(".pcount").forEach((el) => {
-            el.innerText = String(selected.length);
-        });
+        // Update Alpine store with selected player count
+        if (window.Alpine && Alpine.store("session")) {
+            Alpine.store("session").selectedCount = selected.length;
+        }
         modal?.show();
     } else {
         uproot.error("No players selected.");
