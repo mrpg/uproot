@@ -531,13 +531,14 @@ async def new_room2(
     name: str = Form(),
     config: str = Form(""),
     labels: str = Form(""),
-    capacity: Optional[int] = Form(None),
+    capacity: str = Form(""),
     sname: str = Form(""),
     open: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     config_ = config.strip() or None
     sname_ = sname.strip() or None
+    capacity_ = int(capacity) if capacity.strip() else None
     labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
 
     if sname_:
@@ -551,7 +552,7 @@ async def new_room2(
             name=name,
             config=config_,
             labels=labels_list,
-            capacity=capacity,
+            capacity=capacity_,
             open=bool(open),
             sname=sname_,
         )
