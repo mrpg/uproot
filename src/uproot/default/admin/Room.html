@@ -14,10 +14,10 @@ Room
 {% block head %}
 
 <style>
-    /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
-    .player-url:visited {
-        color: var(--bs-uproot) !important;
-    }
+/* Color visited links so that it is clear during debuggin which participat URL one has already opened */
+.player-url:visited {
+    color: var(--bs-uproot) !important;
+}
 </style>
 
 {% endblock head %}
@@ -40,7 +40,7 @@ Room
                 <ul>
                     <li>
                         <a class="link-subtle player-url"
-                            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+                           href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
                     </li>
                 </ul>
             </div>
@@ -60,30 +60,30 @@ Room
                         <div id="recently-seen" class="mb-4"></div>
                     </div>
                     <div class="col-md-6"
-                    {% if not room.labels %}
-                    hidden
-                    {% endif %}
-                    >
-                        <h5 class="mb-2">{% translate %}Not recently seen{% endtranslate %}</h5>
-                        <div id="not-recently-seen" class="font-monospace"></div>
+                         {% if not room.labels %}
+                         hidden
+                         {% endif %}
+                         >
+                         <h5 class="mb-2">{% translate %}Not recently seen{% endtranslate %}</h5>
+                         <div id="not-recently-seen" class="font-monospace"></div>
                     </div>
                 </div>
                 {% if room.labels %}
                 <p class="mb-4">
-                    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
-                        {% translate %}Show individual URLs{% endtranslate %}
-                    </button>
+                <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
+                    {% translate %}Show individual URLs{% endtranslate %}
+                </button>
                 </p>
                 {% endif %}
                 <p class="mb-2 text-black-50">
-                    {% translate %}
-                    Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”
-                    {% endtranslate %}
+                {% translate %}
+                Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”
+                {% endtranslate %}
                 </p>
                 <p class="text-black-50">
-                    {% translate %}
-                    Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.
-                    {% endtranslate %}
+                {% translate %}
+                Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.
+                {% endtranslate %}
                 </p>
             </div>
         </div>
@@ -248,13 +248,13 @@ Room
             </div>
             <div class="card-body">
                 <p class="mb-2">
-                    {% translate %}This room is associated with the following session{% endtranslate %}:
+                {% translate %}This room is associated with the following session{% endtranslate %}:
                 </p>
                 <p class="fs-4">
-                    <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
+                <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
                 </p>
                 <p class="mb-1 mt-4">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
                 </p>
             </div>
         </div>
@@ -269,16 +269,16 @@ Room
             <div class="card-body">
                 {% if room.config %}
                 <p class="mb-2">
-                    {% translate %}This room is associated with the following config{% endtranslate %}:
+                {% translate %}This room is associated with the following config{% endtranslate %}:
                 </p>
                 <p class="font-monospace fs-4">
-                    {{ room.config }}
+                {{ room.config }}
                 </p>
                 {% if room.config in configs.configs %}
                 <h6 class="fw-semibold">Apps</h6>
                 <p class="font-monospace mb-1">
-                    {{ configs.configs[room.config] }}
-                    {# TODO: Use session.apps with formatting #}
+                {{ configs.configs[room.config] }}
+                {# TODO: Use session.apps with formatting #}
                 </p>
                 {% endif %}
                 {% else %}
@@ -299,7 +299,7 @@ Room
                 <ul>
                     <li>
                         <a class="link-subtle player-url"
-                            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+                           href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
                     </li>
                 </ul>
             </div>
@@ -315,17 +315,17 @@ Room
             <div class="card-body">
                 {% if room.labels %}
                 <p class="mb-2">
-                    {% translate %}This room is associated with the following labels{% endtranslate %}:
+                {% translate %}This room is associated with the following labels{% endtranslate %}:
                 </p>
                 <p class="font-monospace">
-                    {% for label in room.labels %}
-                    {{ label }}{% if not loop.last %}<span class="text-body-tertiary"> |</span>{% endif %}
-                    {% endfor %}
+                {% for label in room.labels %}
+                {{ label }}{% if not loop.last %}<span class="text-body-tertiary"> |</span>{% endif %}
+                {% endfor %}
                 </p>
                 <p class="mb-1">
-                    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
-                        {% translate %}Show individual URLs{% endtranslate %}
-                    </button>
+                <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
+                    {% translate %}Show individual URLs{% endtranslate %}
+                </button>
                 </p>
                 {% else %}
                 {% translate %}This room is not associated with any labels{% endtranslate %}.
@@ -350,36 +350,36 @@ Room
 <div class="modal fade" id="labelUrlModal" tabindex="-1" aria-labelledby="labelUrlModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="border-uproot-light modal-content">
-        <div class="border-uproot-light modal-header">
-            <h5 class="modal-title" id="labelUrlModalLabel">
-                {% translate %}Individual label URLs{% endtranslate %}
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <table class="table table-sm table-hover">
-                <thead>
-                    <tr>
-                        <th class="fw-semibold ps-0">{% translate %}Label{% endtranslate %}</th>
-                        <th class="fw-semibold">{% translate %}URL{% endtranslate %}</th>
-                    </tr>
-                </thead>
-                <tbody x-data="{}">
-                    {% for label in room.labels %}
-                    <tr>
-                        <td class="font-monospace ps-0">{{ label }}</td>
-                        <td>
-                            <a class="link-subtle player-url" href="../../../room/{{ roomname }}/?label={{ label }}" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/room/{{ roomname }}/?label={{ label }}</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="border-uproot-light modal-footer justify-content-between">
-            <button class="btn btn-outline-uproot btn-sm" onclick="copyLabelURLsToClipboard()" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
-            <span class="fw-300 invisible me-3 text-uproot" id="label-urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
-        </div>
+            <div class="border-uproot-light modal-header">
+                <h5 class="modal-title" id="labelUrlModalLabel">
+                    {% translate %}Individual label URLs{% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th class="fw-semibold ps-0">{% translate %}Label{% endtranslate %}</th>
+                            <th class="fw-semibold">{% translate %}URL{% endtranslate %}</th>
+                        </tr>
+                    </thead>
+                    <tbody x-data="{}">
+                        {% for label in room.labels %}
+                        <tr>
+                            <td class="font-monospace ps-0">{{ label }}</td>
+                            <td>
+                                <a class="link-subtle player-url" href="../../../room/{{ roomname }}/?label={{ label }}" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/room/{{ roomname }}/?label={{ label }}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="border-uproot-light modal-footer justify-content-between">
+                <button class="btn btn-outline-uproot btn-sm" onclick="copyLabelURLsToClipboard()" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
+                <span class="fw-300 invisible me-3 text-uproot" id="label-urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
+            </div>
         </div>
     </div>
 </div>
