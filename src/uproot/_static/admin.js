@@ -364,7 +364,7 @@ function renderSessions(sessions, containerId) {
 function renderConfigsApps(data, containerId) {
     const container = I(containerId);
 
-    const select = createElement("select", "form-select", {
+    const select = createElement("select", "font-monospace form-select", {
         id: "configs-apps-select",
         name: "config"
     });
