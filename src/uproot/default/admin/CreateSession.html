@@ -14,8 +14,8 @@
 
 <div x-data="{automatic: true}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="automatic_settings" name="automatic_settings" value="1"
-            @click="automatic = !automatic" checked>
+        <input class="form-check-input" type="checkbox" id="automatic_settings"
+            @click="automatic = !automatic; if (automatic) { I('settings').value = ''; }" checked>
         <label for="automatic_settings">Keep default settings</label>
     </div>
     <div class="form-floating mt-3" x-show="!automatic">
@@ -31,8 +31,8 @@
 
 <div x-data="{automatic: true}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="automatic_sname" name="automatic_sname" value="1"
-            @click="automatic = !automatic" checked>
+        <input class="form-check-input" type="checkbox" id="automatic_sname"
+            @click="automatic = !automatic; if (automatic) { I('sname').value = ''; }" checked>
         <label for="automatic_sname">Set session name automatically</label>
     </div>
     <div class="form-floating mt-3" x-show="!automatic">
@@ -48,8 +48,8 @@
 
 <div x-data="{automatic: true}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="automatic_unames" name="automatic_unames" value="1"
-            @click="automatic = !automatic" checked>
+        <input class="form-check-input" type="checkbox" id="automatic_unames"
+            @click="automatic = !automatic; if (automatic) { I('unames').value = ''; }" checked>
         <label for="automatic_unames">Set player names automatically</label>
     </div>
     <div class="form-floating mt-3" x-show="!automatic">
@@ -97,12 +97,16 @@
             return uproot.error(_("The number of players you entered is invalid."));
         }
 
-        if (!I("automatic_sname").checked) {
-            snameValid = uproot.isValidToken(I("sname").value);
+        // Validate session name if entered
+        const snameValue = I("sname").value.trim();
+        if (snameValue) {
+            snameValid = uproot.isValidToken(snameValue);
         }
 
-        if (!I("automatic_unames").checked) {
-            const unames = I("unames").value.split("\n").map((a) => a.trim());
+        // Validate player names if entered
+        const unamesValue = I("unames").value.trim();
+        if (unamesValue) {
+            const unames = unamesValue.split("\n").map((a) => a.trim()).filter(u => u.length > 0);
             const wanted = parseInt(I("nplayers").value);
             unamesValid = unames.every(uproot.isValidToken);
 
@@ -111,9 +115,11 @@
             }
         }
 
-        if (!I("automatic_settings").checked) {
+        // Validate settings if entered
+        const settingsValue = I("settings").value.trim();
+        if (settingsValue) {
             try {
-                I("settings").value = uproot.looseJSONtoJSON(I("settings").value);
+                I("settings").value = uproot.looseJSONtoJSON(settingsValue);
             }
             catch (error) {
                 return uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
