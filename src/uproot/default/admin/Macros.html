@@ -49,11 +49,12 @@
 
 {#
     Player count display - shows "You have selected X player(s)" message.
+    Uses Alpine.js store for reactive updates.
 #}
 {% macro player_count(_) %}
-<p>
+<p x-data>
     {{ _("You have selected") }}
-    <b><span class="pcount"></span>
+    <b><span x-text="$store.session.selectedCount"></span>
     {{ _("player(s)") }}</b>.
 </p>
 {% endmacro %}
