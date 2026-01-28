@@ -395,6 +395,7 @@ def nocache(response: Response) -> None:
 async def avoid_side_effects_when_previewing(
     request: Request,
 ) -> HTMLResponse:
+    # TODO: Check whether sname/roomname actually exist
     return HTMLResponse(
         await render(
             request.app,
