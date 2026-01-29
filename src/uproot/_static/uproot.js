@@ -827,6 +827,40 @@ window.uproot = {
         });
     },
 
+    boundedChoiceFields() {
+        document.querySelectorAll(".uproot-bounded-choice").forEach(container => {
+            const minAttr = container.dataset.boundedMin;
+            const maxAttr = container.dataset.boundedMax;
+            const min = minAttr !== "" ? parseInt(minAttr, 10) : 0;
+            const max = maxAttr !== "" ? parseInt(maxAttr, 10) : null;
+            const checkboxes = container.querySelectorAll("input[type='checkbox']");
+
+            const updateState = () => {
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+
+                // If max is reached, disable unchecked checkboxes
+                if (max !== null && checkedCount >= max) {
+                    checkboxes.forEach(cb => {
+                        if (!cb.checked) {
+                            cb.disabled = true;
+                        }
+                    });
+                } else {
+                    checkboxes.forEach(cb => {
+                        cb.disabled = false;
+                    });
+                }
+            };
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener("change", updateState);
+            });
+
+            // Initialize state
+            updateState();
+        });
+    },
+
     enableConnectionLostModal() {
         let connectionModal = null;
         let timeoutTimer = null;
