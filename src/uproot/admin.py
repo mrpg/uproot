@@ -774,11 +774,17 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
 
 
 def rooms() -> SortedDict[str, dict]:
+    if d.PUBLIC_DEMO:
+        return SortedDict()
+
     with s.Admin() as admin:
         return SortedDict(admin.rooms)
 
 
 def sessions() -> dict[str, dict[str, Any]]:
+    if d.PUBLIC_DEMO:
+        return dict()
+
     stats = dict()
 
     with s.Admin() as admin:
@@ -815,6 +821,9 @@ async def flip_testing(sname: t.Sessionname) -> None:
 
 
 async def update_description(sname: t.Sessionname, newdesc: str) -> None:
+    if d.PUBLIC_DEMO:
+        raise PermissionError("Cannot update description in public demo.")
+
     session_exists(sname, False)
 
     with s.Session(sname) as session:

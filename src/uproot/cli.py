@@ -125,6 +125,7 @@ def cli() -> None:
 @click.option("--host", "-h", default="127.0.0.1", show_default="127.0.0.1", help="Host")
 @click.option("--port", "-p", default=8000, show_default=8000, help="Port")
 @click.option("--unsafe", default=False, is_flag=True, help="Run without admin authentication")
+@click.option("--public-demo", default=False, is_flag=True, help="Run a public demo (use with --unsafe)")
 @click.pass_context
 # fmt: on
 def run(
@@ -132,10 +133,15 @@ def run(
     host: str,
     port: int,
     unsafe: bool,
+    public_demo: bool,
 ) -> None:
+    if public_demo and not unsafe:
+        raise RuntimeError("If you use --public-demo, you MUST also use --unsafe.")
+
     d.HOST = host
     d.PORT = port
     d.UNSAFE = unsafe
+    d.PUBLIC_DEMO = public_demo
 
     set_ulimit()
 

@@ -12,6 +12,8 @@ Server status
 
 {% block main %}
 
+{% if not deployment.PUBLIC_DEMO %}
+
 <div class="row">
     <div class="col-12 col-lg-6 pb-4">
         <div class="card h-100 mb-4">
@@ -213,12 +215,6 @@ Server status
     </div>
 </div>
 
-
-{% endblock main %}
-
-
-{% block late %}
-
 <script>
     function parseVersion(versionString) {
         return versionString.split(".").map(Number);
@@ -289,4 +285,10 @@ Server status
     }
 </script>
 
-{% endblock late %}
+{% else %}
+
+{% include "PublicDemo.html" %}
+
+{% endif %}
+
+{% endblock main %}

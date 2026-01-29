@@ -66,10 +66,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     if d.UNSAFE:
         print(file=stderr)
-        print(
-            "!!! You are using unsafe mode. Only ever do so on localhost.",
-            file=stderr,
-        )
+
+        if not d.PUBLIC_DEMO:
+            print(
+                "!!! You are using unsafe mode. Only ever do so on localhost.",
+                file=stderr,
+            )
+
         print(
             "Admin area:\n\t",
             f"{d.ORIGIN}{d.ROOT}/admin/",

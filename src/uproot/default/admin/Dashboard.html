@@ -19,7 +19,11 @@ Dashboard
             Rooms
             {% endtranslate %}
         </h3>
+        {% if not deployment.PUBLIC_DEMO %}
         <div class="col mb-4" id="rooms-container"></div>
+        {% else %}
+        {% include "PublicDemo.html" %}
+        {% endif %}
     </div>
     <div class="col-12 col-lg-6">
         <h3 class="mb-3">
@@ -27,7 +31,11 @@ Dashboard
             Active sessions
             {% endtranslate %}
         </h3>
+        {% if not deployment.PUBLIC_DEMO %}
         <div class="col mb-4" id="sessions-container"></div>
+        {% else %}
+        {% include "PublicDemo.html" %}
+        {% endif %}
     </div>
 </div>
 

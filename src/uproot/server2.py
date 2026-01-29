@@ -118,6 +118,7 @@ async def render(
         context
         | BUILTINS
         | dict(
+            deployment=d,
             internalstatic=static_factory(),
             JSON_TERMS=i18n.json(d.LANGUAGE),
             _=lambda s: i18n.lookup(s, d.LANGUAGE),
@@ -960,30 +961,36 @@ async def status(
 
     sessions = a.get_active_auth_sessions()
 
-    return HTMLResponse(
-        await render(
-            "Status.html",
-            dict(
-                dbsize=dbsize,
-                missing=missing,
-                sessions=sessions,
-                versions=dict(
-                    uproot=u.__version__,
-                    python=sys.version,
+    if not d.PUBLIC_DEMO:
+        return HTMLResponse(
+            await render(
+                "Status.html",
+                dict(
+                    dbsize=dbsize,
+                    missing=missing,
+                    sessions=sessions,
+                    versions=dict(
+                        uproot=u.__version__,
+                        python=sys.version,
+                    ),
                 ),
-            ),
-            dict(
-                deployment=d,
-                packages=SortedDict(
-                    {
-                        dist.metadata["name"]: dist.version
-                        for dist in importlib.metadata.distributions()
-                    }
-                ).items(),
-                environ=SortedDict(os.environ),
+                dict(
+                    packages=SortedDict(
+                        {
+                            dist.metadata["name"]: dist.version
+                            for dist in importlib.metadata.distributions()
+                        }
+                    ).items(),
+                    environ=SortedDict(os.environ),
+                ),
+            )
+        )
+    else:
+        return HTMLResponse(
+            await render(
+                "Status.html",
             ),
         )
-    )
 
 
 @router.get("/status/logout-all/")

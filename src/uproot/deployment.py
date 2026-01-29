@@ -48,6 +48,7 @@ if ORIGIN is None:
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = dict()
+PUBLIC_DEMO: bool = False
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
