@@ -54,6 +54,7 @@
         <div class="card h-100">
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Essential information{% endtranslate %}</h5>
+                {% if not deployment.PUBLIC_DEMO %}
                 <div class="d-flex justify-content-between mb-3">
                     {% if session.description is none %}
                     <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
@@ -70,6 +71,7 @@
                     </div>
                     {% endif %}
                 </div>
+                {% endif %}
                 <div class="d-flex justify-content-between mb-3">
                     <div>
                         <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Settings{% endtranslate %}</h6>

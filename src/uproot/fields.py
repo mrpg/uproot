@@ -559,6 +559,91 @@ class TextAreaField(wtforms.fields.TextAreaField):
         )
 
 
+class BoundedChoiceValidator:
+    def __init__(self, min: int, max: int | None) -> None:
+        self.min = min
+        self.max = max
+
+    def __call__(self, form: wtforms.Form, field: wtforms.Field) -> None:
+        count = len(field.data) if field.data else 0
+
+        if count < self.min:
+            if self.min == 1:
+                raise wtforms.validators.ValidationError(
+                    "Please select at least one option."
+                )
+            else:
+                raise wtforms.validators.ValidationError(
+                    f"Please select at least {self.min} options."
+                )
+
+        if self.max is not None and count > self.max:
+            if self.max == 1:
+                raise wtforms.validators.ValidationError(
+                    "Please select at most one option."
+                )
+            else:
+                raise wtforms.validators.ValidationError(
+                    f"Please select at most {self.max} options."
+                )
+
+
+class BoundedChoiceField(wtforms.fields.SelectMultipleField):
+    def __init__(
+        self,
+        *,
+        choices: list[tuple[Any, str] | Any] | dict[Any, str],
+        class_wrapper: str | None = None,
+        label: str = "",
+        layout: str = "vertical",
+        min: int = 0,
+        max: int | None = None,
+        render_kw: dict[str, Any] | None = None,
+        description: str = "",
+        widget: Any | None = None,
+        default: Any | None = None,
+        **kwargs: Any,  # WTForms-internal use only
+    ) -> None:
+        if isinstance(choices, dict):
+            choices = [*choices.items()]
+
+        v = [BoundedChoiceValidator(min=min, max=max)]
+
+        if render_kw is None:
+            render_kw = {}
+        if layout != "vertical":
+            if "class" in render_kw:
+                render_kw["class"] += " form-check-inline"
+            else:
+                render_kw["class"] = "form-check-inline"
+        render_kw["autocomplete"] = "off"
+
+        self.class_wrapper = class_wrapper
+        self.bounded_min = min
+        self.bounded_max = max
+
+        super().__init__(
+            choices=choices,
+            label=label,
+            validators=v,
+            coerce=type_coercer(choices),
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default if default is not None else [],
+            **kwargs,  # Unpacks WTForms-internal kwargs
+        )
+
+    def process_formdata(self, valuelist: list[Any]) -> None:
+        # Filter out empty strings from hidden input placeholder
+        valuelist = [v for v in valuelist if v != ""]
+        super().process_formdata(valuelist)
+
+        # Ensure data is always a list
+        if self.data is None:  # type: ignore[has-type]
+            self.data = []  # type: ignore[var-annotated]
+
+
 class IBANValidator:
     def __init__(self, message: str | None = None) -> None:
         self.message = message or "Invalid IBAN format."

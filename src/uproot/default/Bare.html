@@ -165,7 +165,7 @@
         title="{% translate %}Open Chat with Research Coordinator{% endtranslate %}">
 </div>
 
-<div id="uproot-main-container" class="container">
+<div id="uproot-main-container" class="container" x-data>
     {% if _uproot_testing %}
     {% include "TestingHead.html" %}
     {% endif %}
@@ -240,6 +240,10 @@
         // clear selection feature for non-required radios
 
         uproot.nonRequiredRadios();
+
+        // bounded choice fields (checkboxes with min/max constraints)
+
+        uproot.boundedChoiceFields();
     });
 
     uproot.onReady(() => {

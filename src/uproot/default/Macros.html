@@ -153,6 +153,24 @@
             {% if field.description %}
                 <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
+        {% elif field.type == "BoundedChoiceField" %}
+            {{ field.label(class_="form-label uproot-form-label") }}
+            <input type="hidden" name="{{ field.name }}" value="">
+            <div class="uproot-bounded-choice" data-bounded-min="{{ field.bounded_min }}" data-bounded-max="{{ field.bounded_max if field.bounded_max is not none else '' }}">
+            {% for subfield in field %}
+                {% set div_class_list = ["form-check"] %}
+                {% if field.render_kw and field.render_kw.get("class") %}
+                    {% set _ = div_class_list.append(field.render_kw.get("class")) %}
+                {% endif %}
+                <div class="{{ ' '.join(div_class_list) }}">
+                    <input type="checkbox" class="form-check-input" id="{{ subfield.id }}" name="{{ field.name }}" value="{{ subfield.data }}"{% if field.data and subfield.data in field.data %} checked{% endif %}>
+                    {{ subfield.label(class_="form-check-label") }}
+                </div>
+            {% endfor %}
+            </div>
+            {% if field.description %}
+                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+            {% endif %}
         {% elif field.type == "SelectField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
             {% set class_list = ["form-select"] %}
