@@ -787,111 +787,101 @@ window.uproot = {
     },
 
     nonRequiredRadios() {
-        // Inject CSS once
-        if (!document.getElementById("radio-toggle-clear-style")) {
-            const style = document.createElement("style");
-            style.id = "radio-toggle-clear-style";
-            style.textContent = `
-                .form-check.radio-toggle-clear-hover > .form-check-label {
-                    color: var(--bs-dark-bg-subtle);
-                    text-decoration: line-through;
-                    text-decoration-color: var(--bs-dark-bg-subtle);
-                    text-decoration-thickness: from-font;
-                    cursor: pointer;
-                }
-            `;
-            document.head.appendChild(style);
-        }
+        const HOVER_CLASS = "radio-toggle-clear-hover";
+        const BOUND_ATTR = "toggleClearBound";
+        const PRE_CHECKED_ATTR = "preChecked";
         const TOOLTIP_TEXT = _("Click again to unselect.");
-        document.querySelectorAll("input[type='radio']:not([required])").forEach((radio) => {
-            // Prevent double-binding
-            if (radio.dataset.toggleClearBound === "1") return;
-            radio.dataset.toggleClearBound = "1";
-            const formCheck = radio.closest(".form-check");
-            const label =
-            formCheck?.querySelector(`label.form-check-label[for="${CSS.escape(radio.id)}"]`) ||
-            radio.closest("label") ||
-            document.querySelector(`label[for="${CSS.escape(radio.id)}"]`);
-            /* ---------- Hover cue + tooltip ---------- */
-            if (formCheck) {
-                formCheck.addEventListener("mouseenter", () => {
-                    if (!radio.required && radio.checked) {
-                    formCheck.classList.add("radio-toggle-clear-hover");
-                    formCheck.title = TOOLTIP_TEXT;
-                    }
-                });
-                formCheck.addEventListener("mouseleave", () => {
-                    formCheck.classList.remove("radio-toggle-clear-hover");
-                    formCheck.removeAttribute("title");
-                });
-                // Keep things correct if state changes via keyboard/code
-                radio.addEventListener("change", () => {
-                    formCheck.classList.remove("radio-toggle-clear-hover");
-                    formCheck.removeAttribute("title");
-                });
-            }
-            /* ---------- Label behavior (capture phase) ---------- */
-            if (label) {
-                label.addEventListener(
-                    "pointerdown",
-                    () => {
-                    radio.dataset.preChecked = radio.checked ? "1" : "0";
-                    },
-                    true
-                );
-                label.addEventListener(
-                    "click",
-                    (e) => {
-                    if (radio.required) return;
-                    const preChecked = radio.dataset.preChecked === "1";
-                    radio.dataset.preChecked = "0";
-                    if (!preChecked) return; // normal selection
-                        e.preventDefault();
-                        e.stopPropagation();
-                        radio.checked = false;
-                        radio.dispatchEvent(new Event("change", { bubbles: true }));
-                    },
-                    true
-                );
-            }
-            /* ---------- Input behavior (must clear on pointerdown) ---------- */
-            radio.addEventListener(
-                "pointerdown",
-                (e) => {
-                    radio.dataset.preChecked = radio.checked ? "1" : "0";
-                    // Clicking the already-checked radio itself
-                    if (!radio.required && radio.checked) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    radio.checked = false;
-                    radio.dispatchEvent(new Event("change", { bubbles: true }));
-                    }
-                },
-                true
-            );
-            radio.addEventListener(
-                "click",
-                (e) => {
-                    if (radio.required) return;
 
-                    if (radio.dataset.preChecked === "1") {
+        // Enable CSS styles (scoped to this class in style.css)
+        document.documentElement.classList.add("radio-toggle-enabled");
+
+        const uncheckRadio = (radio) => {
+            radio.checked = false;
+            radio.dispatchEvent(new Event("change", { bubbles: true }));
+        };
+
+        const findLabel = (radio, formCheck) => {
+            if (radio.id) {
+                const escapedId = CSS.escape(radio.id);
+                const labelInFormCheck = formCheck?.querySelector(`label.form-check-label[for="${escapedId}"]`);
+                if (labelInFormCheck) return labelInFormCheck;
+                const labelById = document.querySelector(`label[for="${escapedId}"]`);
+                if (labelById) return labelById;
+            }
+            return radio.closest("label");
+        };
+
+        const setupHoverBehavior = (radio, formCheck) => {
+            formCheck.addEventListener("mouseenter", () => {
+                if (radio.checked) {
+                    formCheck.classList.add(HOVER_CLASS);
+                    formCheck.title = TOOLTIP_TEXT;
+                }
+            });
+
+            formCheck.addEventListener("mouseleave", () => {
+                formCheck.classList.remove(HOVER_CLASS);
+                formCheck.removeAttribute("title");
+            });
+
+            radio.addEventListener("change", () => {
+                formCheck.classList.remove(HOVER_CLASS);
+                formCheck.removeAttribute("title");
+            });
+        };
+
+        const setupLabelBehavior = (radio, label) => {
+            label.addEventListener("pointerdown", () => {
+                radio.dataset[PRE_CHECKED_ATTR] = radio.checked ? "1" : "0";
+            }, true);
+
+            label.addEventListener("click", (e) => {
+                const wasChecked = radio.dataset[PRE_CHECKED_ATTR] === "1";
+                radio.dataset[PRE_CHECKED_ATTR] = "0";
+                if (wasChecked) {
                     e.preventDefault();
                     e.stopPropagation();
-                    }
-                    radio.dataset.preChecked = "0";
-                },
-                true
-            );
-            /* ---------- Keyboard support ---------- */
-            radio.addEventListener("keydown", (e) => {
-            if (e.key === " " || e.key === "Spacebar") {
-                if (!radio.required && radio.checked) {
-                    e.preventDefault();
-                    radio.checked = false;
-                    radio.dispatchEvent(new Event("change", { bubbles: true }));
+                    uncheckRadio(radio);
                 }
-            }
+            }, true);
+        };
+
+        const setupRadioBehavior = (radio) => {
+            radio.addEventListener("pointerdown", (e) => {
+                radio.dataset[PRE_CHECKED_ATTR] = radio.checked ? "1" : "0";
+                if (radio.checked) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    uncheckRadio(radio);
+                }
+            }, true);
+
+            radio.addEventListener("click", (e) => {
+                if (radio.dataset[PRE_CHECKED_ATTR] === "1") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                radio.dataset[PRE_CHECKED_ATTR] = "0";
+            }, true);
+
+            radio.addEventListener("keydown", (e) => {
+                if ((e.key === " " || e.key === "Spacebar") && radio.checked) {
+                    e.preventDefault();
+                    uncheckRadio(radio);
+                }
             });
+        };
+
+        document.querySelectorAll("input[type='radio']:not([required])").forEach((radio) => {
+            if (radio.dataset[BOUND_ATTR] === "1") return;
+            radio.dataset[BOUND_ATTR] = "1";
+
+            const formCheck = radio.closest(".form-check");
+            const label = findLabel(radio, formCheck);
+
+            if (formCheck) setupHoverBehavior(radio, formCheck);
+            if (label) setupLabelBehavior(radio, label);
+            setupRadioBehavior(radio);
         });
     },
 

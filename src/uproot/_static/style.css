@@ -292,6 +292,15 @@ div.without-anchoring-overlay {
     font-family: monospace;
 }
 
+/* Radio toggle-clear styles (requires JS initialization via nonRequiredRadios) */
+.radio-toggle-enabled .form-check.radio-toggle-clear-hover > .form-check-label {
+    color: var(--bs-dark-bg-subtle);
+    text-decoration: line-through;
+    text-decoration-color: var(--bs-dark-bg-subtle);
+    text-decoration-thickness: from-font;
+    cursor: pointer;
+}
+
 /* Print styles */
 @media print {
     /* Hide testing elements */
