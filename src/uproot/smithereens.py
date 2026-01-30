@@ -28,10 +28,11 @@ from uproot.flexibility import PlayerLike, flexible, is_player_like
 from uproot.pages import page2path
 from uproot.queries import FieldReferent
 from uproot.queues import enqueue
-from uproot.storage import Player, Storage
+from uproot.storage import Admin, Group, Model, Player, Session, Storage
 
 __all__ = [
     "_",
+    "Admin",
     "Between",
     "Bracket",
     "chat",
@@ -40,10 +41,12 @@ __all__ = [
     "create_groups",
     "cu",
     "data_uri",
+    "Group",
     "GroupCreatingWait",
     "GroupIdentifier",
     "live",
     "mark_dropout",
+    "Model",
     "ModelIdentifier",
     "move_to_end",
     "move_to_page",
@@ -54,6 +57,7 @@ __all__ = [
     "others_in_group",
     "others_in_session",
     "Page",
+    "Player",
     "PlayerIdentifier",
     "players",
     "Random",
@@ -63,7 +67,9 @@ __all__ = [
     "safe",
     "send_to",
     "send_to_one",
+    "Session",
     "SessionIdentifier",
+    "Storage",
     "SynchronizingWait",
     "uuid",
     "watch_for_dropout",
