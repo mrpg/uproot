@@ -179,37 +179,37 @@ Admin area
         {% block late2 %}
         {% endblock late2 %}
 
-        <footer class="bg-uproot-subtle border-uproot-subtle border-1 pt-2 pb-5" id="uproot-footer" style="margin-top: auto;">
+        <footer class="bg-uproot-subtle border-uproot-subtle border-1 pb-3 pt-2" id="uproot-footer" style="margin-top: auto;">
             <div class="container my-2">
-                <div class="mb-2 row">
+                <div class="mb-2 pt-2 row">
                     <div class="col-6">
-                        <a class="btn btn-xs btn-uproot me-2 my-2" href="https://uproot.science/" target="_blank">{% translate %}uproot docs{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-uproot me-2 my-2" href="https://github.com/mrpg/uproot-examples" target="_blank">{% translate %}uproot examples{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-outline-uproot me-2 my-2" href="https://q.mg.sb/uproot_faq" target="_blank">{% translate %}FAQ{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-outline-uproot me-2 my-2" href="https://github.com/mrpg/uproot" target="_blank">{% translate %}uproot on GitHub{% endtranslate %}</a>
+                        <a class="btn btn-xs btn-uproot me-2 my-1" href="https://uproot.science/" target="_blank">{% translate %}uproot docs{% endtranslate %}</a>
+                        <a class="btn btn-xs btn-uproot me-2 my-1" href="https://github.com/mrpg/uproot-examples" target="_blank">{% translate %}uproot examples{% endtranslate %}</a>
+                        <a class="btn btn-xs btn-outline-uproot me-2 my-1" href="https://q.mg.sb/uproot_faq" target="_blank">{% translate %}FAQ{% endtranslate %}</a>
+                        <a class="btn btn-xs btn-outline-uproot me-2 my-1" href="https://github.com/mrpg/uproot" target="_blank">{% translate %}uproot on GitHub{% endtranslate %}</a>
                     </div>
-                    <div class="col-6 text-end">
-                        <a class="btn btn-xs btn-danger ms-2 my-2" href="https://github.com/mrpg/uproot/issues" target="_blank">{% translate %}Report a bug{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-warning ms-2 my-2" href="https://q.mg.sb/uproot_help" target="_blank">{% translate %}Get help{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-success ms-2 my-2" href="https://q.mg.sb/uproot_praise" target="_blank">{% translate %}Submit praise{% endtranslate %}</a>
+                    <div class="col-6">
+                        <a class="btn btn-xs btn-danger me-2 my-1" href="https://github.com/mrpg/uproot/issues" target="_blank">{% translate %}Report a bug{% endtranslate %}</a>
+                        <a class="btn btn-xs btn-warning me-2 my-1" href="https://q.mg.sb/uproot_help" target="_blank">{% translate %}Get help{% endtranslate %}</a>
+                        <a class="btn btn-xs btn-success my-1" href="https://q.mg.sb/uproot_praise" target="_blank">{% translate %}Submit praise{% endtranslate %}</a>
                     </div>
                 </div>
-                <hr class="border-uproot opacity-25">
-                <p class="fs-sm mb-2">
-                    {% translate %}
-                    If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications.
-                    {% endtranslate %}
-                </p>
-                <hr class="border-uproot opacity-25">
-                <div class="fs-sm mt-4">
-                    <p class="fw-semibold mb-2 text-uproot-dark">&copy; Max R. P. Grossmann, Holger Gerhardt, et al., 2025.</p>
-                    <div class="fs-sm row text-muted">
-                        <div class="col-6 mb-1 opacity-75">
-                            uproot is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-                        </div>
-                        <div class="col-6 mb-1 opacity-75">
-                            uproot is distributed in the hope that it will be useful, but <i>without any warranty</i>; without even the implied warranty of <i>merchantability</i> or <i>fitness for a particular purpose</i>. See the <a class="link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> for more details.
-                        </div>
+                <div class="fs-sm pt-2 row text-muted">
+                    <div class="col-6 mb-2 fw-semibold text-uproot">
+                        &copy; Max R. P. Grossmann, Holger Gerhardt, et al., 2026.
+                    </div>
+                    <div class="col-6 mb-2 text-uproot">
+                        {% translate %}
+                        If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications.
+                        {% endtranslate %}
+                    </div>
+                </div>
+                <div class="fs-sm pt-1 row text-muted">
+                    <div class="col-6 mb-1 opacity-75">
+                        uproot is free software: you can redistribute it and/or modify it under the terms of the <a class="link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+                    </div>
+                    <div class="col-6 mb-1 opacity-75">
+                        uproot is distributed in the hope that it will be useful, but <i>without any warranty</i>; without even the implied warranty of <i>merchantability</i> or <i>fitness for a particular purpose</i>. See the <a class="link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> for more details.
                     </div>
                 </div>
             </div>

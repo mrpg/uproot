@@ -83,7 +83,6 @@ class RobustWebSocket {
         }
     }
 
-
     close() {
         this.shouldReconnect = false;
         this.ws?.close();
@@ -788,42 +787,111 @@ window.uproot = {
     },
 
     nonRequiredRadios() {
-        document.querySelectorAll("input[type='radio']:not([required])").forEach(radio => {
-            const name = radio.name;
-            if (!name || document.querySelector(`[data-clear-for="${name}"]`)) return;
-
-            const group = document.querySelectorAll(`input[type='radio'][name="${name}"]`);
-
-            const clearsel = document.createElement("span");
-            clearsel.className = "ms-3 fst-italic text-muted";
-            clearsel.style.cursor = "pointer";
-            clearsel.style.visibility = "hidden";
-            clearsel.textContent = _("Clear selection");
-            clearsel.dataset.clearFor = name;
-
-            const getLabel = (r) => r.closest("label") || document.querySelector(`label[for="${r.id}"]`);
-
-            const updateButton = () => {
-                const checked = Array.from(group).find(r => r.checked);
-                if (checked) {
-                    const label = getLabel(checked);
-                    (label || checked).after(clearsel);
-                    clearsel.style.visibility = "visible";
-                } else {
-                    clearsel.style.visibility = "hidden";
+        // Inject CSS once
+        if (!document.getElementById("radio-toggle-clear-style")) {
+            const style = document.createElement("style");
+            style.id = "radio-toggle-clear-style";
+            style.textContent = `
+                .form-check.radio-toggle-clear-hover > .form-check-label {
+                    color: var(--bs-dark-bg-subtle);
+                    text-decoration: line-through;
+                    text-decoration-color: var(--bs-dark-bg-subtle);
+                    text-decoration-thickness: from-font;
+                    cursor: pointer;
                 }
-            };
+            `;
+            document.head.appendChild(style);
+        }
+        const TOOLTIP_TEXT = _("Click again to unselect.");
+        document.querySelectorAll("input[type='radio']:not([required])").forEach((radio) => {
+            // Prevent double-binding
+            if (radio.dataset.toggleClearBound === "1") return;
+            radio.dataset.toggleClearBound = "1";
+            const formCheck = radio.closest(".form-check");
+            const label =
+            formCheck?.querySelector(`label.form-check-label[for="${CSS.escape(radio.id)}"]`) ||
+            radio.closest("label") ||
+            document.querySelector(`label[for="${CSS.escape(radio.id)}"]`);
+            /* ---------- Hover cue + tooltip ---------- */
+            if (formCheck) {
+                formCheck.addEventListener("mouseenter", () => {
+                    if (!radio.required && radio.checked) {
+                    formCheck.classList.add("radio-toggle-clear-hover");
+                    formCheck.title = TOOLTIP_TEXT;
+                    }
+                });
+                formCheck.addEventListener("mouseleave", () => {
+                    formCheck.classList.remove("radio-toggle-clear-hover");
+                    formCheck.removeAttribute("title");
+                });
+                // Keep things correct if state changes via keyboard/code
+                radio.addEventListener("change", () => {
+                    formCheck.classList.remove("radio-toggle-clear-hover");
+                    formCheck.removeAttribute("title");
+                });
+            }
+            /* ---------- Label behavior (capture phase) ---------- */
+            if (label) {
+                label.addEventListener(
+                    "pointerdown",
+                    () => {
+                    radio.dataset.preChecked = radio.checked ? "1" : "0";
+                    },
+                    true
+                );
+                label.addEventListener(
+                    "click",
+                    (e) => {
+                    if (radio.required) return;
+                    const preChecked = radio.dataset.preChecked === "1";
+                    radio.dataset.preChecked = "0";
+                    if (!preChecked) return; // normal selection
+                        e.preventDefault();
+                        e.stopPropagation();
+                        radio.checked = false;
+                        radio.dispatchEvent(new Event("change", { bubbles: true }));
+                    },
+                    true
+                );
+            }
+            /* ---------- Input behavior (must clear on pointerdown) ---------- */
+            radio.addEventListener(
+                "pointerdown",
+                (e) => {
+                    radio.dataset.preChecked = radio.checked ? "1" : "0";
+                    // Clicking the already-checked radio itself
+                    if (!radio.required && radio.checked) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    radio.checked = false;
+                    radio.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                },
+                true
+            );
+            radio.addEventListener(
+                "click",
+                (e) => {
+                    if (radio.required) return;
 
-            clearsel.addEventListener("click", () => {
-                group.forEach(r => r.checked = false);
-                updateButton();
-                group[0].dispatchEvent(new Event("change", { bubbles: true }));
+                    if (radio.dataset.preChecked === "1") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    }
+                    radio.dataset.preChecked = "0";
+                },
+                true
+            );
+            /* ---------- Keyboard support ---------- */
+            radio.addEventListener("keydown", (e) => {
+            if (e.key === " " || e.key === "Spacebar") {
+                if (!radio.required && radio.checked) {
+                    e.preventDefault();
+                    radio.checked = false;
+                    radio.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+            }
             });
-
-            group.forEach(r => r.addEventListener("change", updateButton));
-
-            getLabel(group[0]).after(clearsel);
-            updateButton();
         });
     },
 
