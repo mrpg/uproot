@@ -674,6 +674,42 @@ async def new_session_in_room(
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 
 
+@router.post("/room/{roomname}/settings/")
+async def update_room_settings(
+    request: Request,
+    roomname: str,
+    config: str = Form(""),
+    labels: str = Form(""),
+    capacity: str = Form(""),
+    open: Optional[bool] = Form(False),
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.room_exists(roomname)
+
+    config_ = config.strip() or None
+    capacity_ = int(capacity) if capacity.strip() else None
+    labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
+
+    with Admin() as admin:
+        ensure(
+            admin.rooms[roomname]["sname"] is None,
+            RuntimeError,
+            "Cannot edit room settings while a session is associated",
+        )
+
+        admin.rooms[roomname] = r.room(
+            name=roomname,
+            config=config_,
+            labels=labels_list,
+            capacity=capacity_,
+            open=bool(open),
+            sname=None,
+        )
+
+    redirect_url = safe_redirect(f"{d.ROOT}/admin/room/{quote(roomname, safe='')}/")
+    return RedirectResponse(redirect_url, status_code=303)
+
+
 # Sessions
 
 
@@ -1057,6 +1093,7 @@ FUNS = dict(
     adminmessage=a.adminmessage,
     advance_by_one=a.advance_by_one,
     announcements=a.announcements,
+    delete_room=a.delete_room,
     disassociate=a.disassociate,
     everything_from_session_display=a.everything_from_session_display,
     fields_from_all=a.fields_from_all,

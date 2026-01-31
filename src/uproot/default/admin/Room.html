@@ -90,7 +90,7 @@ Room
     </div>
 </div>
 
-<div class="border-uproot-light card h-100">
+<div class="border-uproot-light card h-100 mb-4">
     <div class="bg-white border-0 card-header pb-1">
         <h3 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3 text-uproot">
             {% translate %}New session{% endtranslate %}
@@ -108,21 +108,40 @@ Room
                 <label for="nogrow">Set room capacity to number of players</label>
                 <small class="d-block form-text pt-2">
                     {% translate %}
-                    If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.
+                    If this box is unchecked, the room's capacity will not be changed. This means that new room entrants can grow the session.
                     {% endtranslate %}
                     {% if room.capacity is none %}
                     {% translate %}
-                    This room’s capacity is infinite.
+                    This room's capacity is infinite.
                     {% endtranslate %}
                     {% else %}
                     {% translate %}
-                    This room’s capacity is {{ room.capacity }}.
+                    This room's capacity is {{ room.capacity }}.
                     {% endtranslate %}
                     {% endif %}
                 </small>
             </div>
         </div>
         <button type="button" class="btn btn-uproot mt-4" onclick="createSession()">Create session</button>
+    </div>
+</div>
+
+<p>
+    <button class="btn btn-outline-uproot" type="button" data-bs-toggle="collapse" data-bs-target="#room-settings-collapse" aria-expanded="false" aria-controls="room-settings-collapse">
+        {% translate %}Room settings{% endtranslate %}
+    </button>
+</p>
+<div class="collapse" id="room-settings-collapse">
+    <div class="border-uproot-light card h-100">
+        <div class="card-body pb-3">
+            {% set editing = true %}
+            {% include "RoomSettingsForm.html" %}
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" class="btn btn-uproot" onclick="saveRoomSettings()">{% translate %}Save settings{% endtranslate %}</button>
+                <button type="button" class="btn btn-outline-danger" onclick="deleteRoom()">{% translate %}Delete room{% endtranslate %}</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -234,6 +253,65 @@ Room
         updateUI();
     });
 
+    uproot.onStart(() => {
+        const select = renderConfigsApps(uproot.vars.configs, "room-config-select");
+        // Give this select a unique name to avoid conflict with CreateSession's config select
+        select.name = "config";
+        select.id = "room-config-select-input";
+
+        const roomConfig = uproot.vars.room.config || "";
+        const useConfigCheckbox = I("use_config");
+
+        if (roomConfig) {
+            const option = select.querySelector(`option[value='${roomConfig}']`);
+            if (option) {
+                option.selected = true;
+            }
+            select.disabled = false;
+            if (useConfigCheckbox) useConfigCheckbox.checked = true;
+        } else {
+            // No config - disable the select and uncheck the checkbox
+            select.disabled = true;
+            if (useConfigCheckbox) useConfigCheckbox.checked = false;
+        }
+    });
+
+    function saveRoomSettings() {
+        let labelsValid = true;
+
+        const labelsValue = I("labels").value.trim();
+        if (labelsValue) {
+            const labels = labelsValue.split("\n").map((a) => a.trim()).filter(l => l.length > 0);
+            labelsValid = labels.every(label => label.length <= 128);
+        }
+
+        if (!labelsValid) {
+            uproot.error(_("One or more labels exceed the maximum length of 128 characters."));
+        }
+        else {
+            // Disable the CreateSession config select to prevent it from being submitted
+            const createSessionSelect = I("configs-apps-select");
+            if (createSessionSelect) createSessionSelect.disabled = true;
+
+            // Disable room settings config select if not using config
+            if (!I("use_config").checked) {
+                I("room-config-select-input").disabled = true;
+                I("open").checked = false;
+            } else {
+                I("room-config-select-input").disabled = false;
+            }
+            const form = I("uproot-form");
+            form.action = "settings/";
+            form.submit();
+        }
+    }
+
+    function deleteRoom() {
+        uproot.invoke("delete_room", uproot.vars.roomname).then(() => {
+            window.location.href = "../../rooms/";
+        });
+    }
+
 </script>
 
 {% else %}  {# room.sname is not none #}
@@ -332,6 +410,19 @@ Room
                 {% endif %}
             </div>
         </div>
+    </div>
+</div>
+
+<div class="border-uproot-light card">
+    <div class="bg-white border-0 card-header pb-1">
+        <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+            {% translate %}Room settings{% endtranslate %}
+        </h4>
+    </div>
+    <div class="card-body">
+        <p class="text-body-secondary mb-0">
+            {% translate %}To edit room settings, first dissociate the session from this room.{% endtranslate %}
+        </p>
     </div>
 </div>
 

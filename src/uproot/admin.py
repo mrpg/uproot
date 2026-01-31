@@ -773,6 +773,18 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     r.reset(roomname)
 
 
+async def delete_room(roomname: str) -> None:
+    room_exists(roomname, False)
+
+    with s.Admin() as admin:
+        if admin.rooms[roomname]["sname"] is not None:
+            raise ValueError("Cannot delete room while a session is associated")
+
+        del admin.rooms[roomname]
+
+    r.reset(roomname)
+
+
 def rooms() -> SortedDict[str, dict]:
     if d.PUBLIC_DEMO:
         return SortedDict()
