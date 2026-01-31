@@ -108,7 +108,16 @@ def main() -> None:
         print("Use --help for more options")
         return
 
-    cmds = ["deployment", "dump", "examples", "new", "reset", "restore", "run"]
+    cmds = [
+        "deployment",
+        "dump",
+        "examples",
+        "new",
+        "newpage",
+        "reset",
+        "restore",
+        "run",
+    ]
 
     parser = argparse.ArgumentParser(prog="uproot", add_help=False)
     parser.add_argument(

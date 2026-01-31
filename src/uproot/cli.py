@@ -208,6 +208,16 @@ def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
 
 
 # fmt: off
+@click.command(help="Create new page in an app")
+@click.argument("app")
+@click.argument("page")
+@click.pass_context
+# fmt: on
+def newpage(ctx: click.Context, app: str, page: str) -> None:
+    ex.new_page(Path("."), app, page)
+
+
+# fmt: off
 @click.command(help="Download examples")
 @click.pass_context
 # fmt: on
@@ -233,6 +243,7 @@ cli.add_command(deployment)
 cli.add_command(dump)
 cli.add_command(examples)
 cli.add_command(new)
+cli.add_command(newpage)
 cli.add_command(reset)
 cli.add_command(restore)
 cli.add_command(run)

@@ -283,6 +283,29 @@ Results
 {% endblock main %}
 """.lstrip()
 
+PAGE_TEMPLATE_HTML = """
+{% extends "Base.html" %}
+
+{% block title %}
+#PAGENAME#
+{% endblock title %}
+
+
+{% block main %}
+
+{{ fields() }}
+
+{% endblock main %}
+""".lstrip()
+
+PAGE_TEMPLATE_PY = """
+
+class #PAGENAME#(Page):
+    fields = dict(
+        # Add your fields here
+    )
+"""
+
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
 PYTHON_VERSION = "3.13\n"
@@ -398,3 +421,42 @@ def new_minimal_app(path: Path, app: str = "my_app") -> None:
 
     with open(appdir / "FirstPage.html", "w", encoding="utf-8") as f2:
         f2.write(FIRSTPAGE_HTML)
+
+
+def new_page(path: Path, app: str, page: str) -> None:
+    ensure(
+        page.isidentifier(),  # KEEP AS IS
+        ValueError,
+        "Pages must have valid Python identifiers as names.",
+    )
+    appdir = path / app
+
+    ensure(
+        appdir.exists() and appdir.is_dir(),
+        ValueError,
+        f"App directory '{app}' does not exist.",
+    )
+
+    # Create the HTML file
+    html_path = appdir / f"{page}.html"
+    ensure(
+        not html_path.exists(),
+        ValueError,
+        f"Page '{page}.html' already exists.",
+    )
+
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(PAGE_TEMPLATE_HTML.replace("#PAGENAME#", page))
+
+    # Try to modify __init__.py if safe
+    init_path = appdir / "__init__.py"
+    if init_path.exists():
+        try:
+            content = init_path.read_text(encoding="utf-8")
+            marker = "\n\npage_order = ["
+            if marker in content:
+                page_class = PAGE_TEMPLATE_PY.replace("#PAGENAME#", page)
+                new_content = content.replace(marker, page_class + "\n\npage_order = [")
+                init_path.write_text(new_content, encoding="utf-8")
+        except Exception:
+            pass  # Fail silently if __init__.py cannot be safely modified
