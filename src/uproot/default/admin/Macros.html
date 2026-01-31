@@ -52,7 +52,7 @@
     Uses Alpine.js store for reactive updates.
 #}
 {% macro player_count(_) %}
-<p x-data>
+<p>
     {{ _("You have selected") }}
     <b><span x-text="$store.session.selectedCount"></span>
     {{ _("player(s)") }}</b>.
