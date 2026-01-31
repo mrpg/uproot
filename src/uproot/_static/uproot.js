@@ -1085,12 +1085,12 @@ window.uproot = {
             const messageElement = document.createElement("li");
             messageElement.className = "px-3 py-2 message-hover";
             messageElement.innerHTML = /* SAFE */ `
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <span class="fw-semibold ${cls} sender">${escapedUsername}</span>
-                            <time class="text-muted small time" title="${isoString}" datetime="${isoString}">${timeString}</time>
-                        </div>
-                        <div class="text-break">${escapedMessage}</div>
-                    `;
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="fw-semibold ${cls} sender">${escapedUsername}</span>
+                    <time class="text-secondary small time" title="${isoString}" datetime="${isoString}">${timeString}</time>
+                </div>
+                <div class="text-break">${escapedMessage}</div>
+            `;
 
             messagesList.appendChild(messageElement);
             if (messagesList.parentElement) {

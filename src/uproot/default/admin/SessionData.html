@@ -30,7 +30,7 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" name="format" id="option1" value="ultralong">
                 <label class="form-check-label" for="option1">{% translate %}Ultra Long{% endtranslate %}</label>
-                <div class="form-text mt-2 text-body-tertiary">
+                <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Raw event log where every single change to any field becomes its own row.
                     {% endtranslate %}
@@ -39,7 +39,7 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" name="format" id="option2" value="sparse">
                 <label class="form-check-label" for="option2">{% translate %}Sparse{% endtranslate %}</label>
-                <div class="form-text mt-2 text-body-tertiary">
+                <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.
                     {% endtranslate %}
@@ -48,7 +48,7 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" name="format" id="option3" value="latest" checked>
                 <label class="form-check-label" for="option3">{% translate %}Latest{% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
-                <div class="form-text mt-2 text-body-tertiary">
+                <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     One row per player showing their final state: just the last/current value of every field.
                     {% endtranslate %}
@@ -57,7 +57,7 @@
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="format" id="option4" value="latest">
                 <label class="form-check-label" for="option4">{% translate %}Latest &times; Field(s){% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
-                <div class="form-text mt-2 text-body-tertiary">
+                <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     One row per player per specified grouping (like per round): shows what each participant's state was at the end of each round, condition, or other grouping you specify.
                     {% endtranslate %}
@@ -88,7 +88,7 @@
                 <label class="form-check-label" for="apply-filters">
                     {% translate %}Apply reasonable filters{% endtranslate %}
                 </label>
-                <div class="form-text mt-2 text-body-tertiary">
+                <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.
                     {% endtranslate %}
@@ -103,14 +103,14 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv" checked>
                 <label class="form-check-label" for="option1">CSV</label>
-                <div class="form-text mt-2 text-body-tertiary">
+                <div class="form-text mt-2 text-secondary">
                     {% translate %}CSV is the better choice for spreadsheet applications.{% endtranslate %}
                 </div>
             </div>
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" id="filetype-json" name="filetype" value="json">
                 <label class="form-check-label" for="option1">JSON</label>
-                <div class="form-text mt-2 text-body-tertiary">
+                <div class="form-text mt-2 text-secondary">
                     {% translate %}JSON is recommended for analysis.{% endtranslate %}
                 </div>
             </div>

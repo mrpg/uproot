@@ -247,14 +247,14 @@
         <label class="form-check-label" for="advance_by_one">
             {% translate %}Advance by one page{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}If the next page is not shown, it will be skipped.{% endtranslate %}
         </span>
     </div>
     <div class="form-check mb-3">
         <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
         <label class="form-check-label" for="reload">
-            {% translate %}Reload players' pages{% endtranslate %}
+            {% translate %}Reload players’ pages{% endtranslate %}
         </label>
     </div>
     <div class="form-check mb-3">
@@ -262,7 +262,7 @@
         <label class="form-check-label" for="revert_by_one">
             {% translate %}Revert by one page{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}If the previous page was not shown, this will return to the current page.{% endtranslate %}
         </span>
     </div>
@@ -271,7 +271,7 @@
         <label class="form-check-label" for="put_to_end">
             {% translate %}Put to end{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}This terminates the study for the selected player(s).{% endtranslate %}
         </span>
     </div>
@@ -280,7 +280,7 @@
         <label class="form-check-label" for="mark_dropout">
             {% translate %}Mark as dropout{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}This will run all dropout handlers registered with <code>watch_for_dropout()</code>.{% endtranslate %}
         </span>
     </div>
@@ -303,7 +303,7 @@
     {% translate %}Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):{% endtranslate %}<br>
     <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
 </p>
-<p class="text-muted">
+<p class="small text-danger">
     {% translate %}Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.{% endtranslate %}
 </p>
 {% endcall %}
@@ -372,8 +372,8 @@
 <div class="mb-3">
     <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
 </div>
-<small class="d-block form-text text-muted">
-    {% translate %}Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.{% endtranslate %}
+<small class="d-block form-text">
+    {% translate %}Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.{% endtranslate %}
 </small>
 {% endcall %}
 

@@ -99,7 +99,7 @@ function shouldIncludeField(field) {
  */
 function formatCellValue(value, metadata) {
     if (!metadata || metadata.unavailable) {
-        return `<small class="text-muted">(${_("unset")})</small>`;
+        return `<small class="text-secondary">(${_("unset")})</small>`;
     }
 
     const str = String(value);

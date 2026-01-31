@@ -36,7 +36,7 @@ Server status
                     </tbody>
                 </table>
                 <h5 class="mb-3 mt-4">{% translate %}Download database dump{% endtranslate %}</h5>
-                <p class="text-muted">
+                <p class="text-secondary">
                     {% translate %}
                     This creates a complete machine-readable record of all data.
                     {% endtranslate %}
@@ -65,11 +65,13 @@ Server status
             </div>
             <div class="card-body pb-0 pt-2">
                 {% if deployment.UNSAFE %}
-                <div class="alert alert-warning">
+                <div class="alert alert-warning d-flex">
                     <i class="bi bi-info-circle me-2"></i>
-                    {% translate %}
-                    You are running uproot with <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.
-                    {% endtranslate %}
+                    <div class="ps-1">
+                        {% translate %}
+                        You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.
+                        {% endtranslate %}
+                    </div>
                 </div>
                 {% else %}
                 {% if sessions %}
@@ -102,7 +104,7 @@ Server status
                             </td>
                             <td>
                                 {% for created_at in info.created_at %}
-                                    <small class="text-muted d-block">{{ created_at }}</small>
+                                    <small class="text-secondary d-block">{{ created_at }}</small>
                                 {% endfor %}
                             </td>
                         </tr>
@@ -170,7 +172,7 @@ Server status
         </div>
         <div class="col-12 col-lg-6">
             <h5 class="mb-3">{% translate %}Installed packages{% endtranslate %}</h5>
-            <p class="text-muted">
+            <p class="text-secondary">
                 {% translate %}
                 For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.
                 {% endtranslate %}
