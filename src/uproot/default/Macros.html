@@ -45,7 +45,7 @@
                 <td class="ps-0">
                     {{ field_.label(class_="form-label uproot-form-label") }}
                     {% if field_.description %}
-                        <small class="form-text text-muted uproot-form-description">{{ field_.description | safe }}</small>
+                        <small class="form-text text-body-secondary uproot-form-description">{{ field_.description | safe }}</small>
                     {% endif %}
                 </td>
                 {% for subfield in field_ %}
@@ -74,7 +74,7 @@
                 {{ field(class_=" ".join(class_list)) | safe }}
                 {{ field.label(class_="form-check-label uproot-form-label") }}
                 {% if field.description %}
-                    <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                    <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
                 {% endif %}
             </div>
         {% elif field.type == "DecimalRangeField" %}
@@ -88,7 +88,7 @@
             {% endif %}
             {{ field(class_=" ".join(class_list)) | safe }}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "EmailField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -105,7 +105,7 @@
                 {% endif %}
             </div>
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "LikertField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -136,7 +136,7 @@
                 </tr>
             </table>
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "RadioField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -151,7 +151,7 @@
                 </div>
             {% endfor %}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "BoundedChoiceField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -169,7 +169,7 @@
             {% endfor %}
             </div>
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "SelectField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -179,7 +179,7 @@
             {% endif %}
             {{ field(class_=" ".join(class_list)) | safe }}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "IBANField" or field.type == "StringField" or field.type == "TextAreaField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -208,7 +208,7 @@
                 </div>
             {% endif %}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% else %}
             {# DateField, FileField, IntegerField, DecimalField #}
@@ -231,7 +231,7 @@
                 </div>
             {% endif %}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% endif %}
         {{ error(field) }}

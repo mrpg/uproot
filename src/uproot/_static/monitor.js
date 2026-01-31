@@ -181,12 +181,17 @@ function createMonitorColumns(data) {
             title: field,
             field: field,
             frozen: frozen,
-            headerFilter: "input"
+            headerFilter: "input",
         };
 
         // Add special formatters for specific fields
-        if (field === "player") {
+        if (field === "id") {
+            column.width = 70;
+        } else if (field === "label") {
+            column.width = 120;
+        } else if (field === "player") {
             column.formatter = formatPlayerCell;
+            column.width = 120;
         } else if (field === "page") {
             column.formatter = formatPageCell;
         } else if (field === "progress") {

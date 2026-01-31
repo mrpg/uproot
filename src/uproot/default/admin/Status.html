@@ -36,7 +36,7 @@ Server status
                     </tbody>
                 </table>
                 <h5 class="mb-3 mt-4">{% translate %}Download database dump{% endtranslate %}</h5>
-                <p class="text-muted">
+                <p class="text-secondary">
                     {% translate %}
                     This creates a complete machine-readable record of all data.
                     {% endtranslate %}
@@ -65,11 +65,13 @@ Server status
             </div>
             <div class="card-body pb-0 pt-2">
                 {% if deployment.UNSAFE %}
-                <div class="alert alert-warning">
+                <div class="alert alert-warning d-flex">
                     <i class="bi bi-info-circle me-2"></i>
-                    {% translate %}
-                    You are running uproot with <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.
-                    {% endtranslate %}
+                    <div class="ps-1">
+                        {% translate %}
+                        You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.
+                        {% endtranslate %}
+                    </div>
                 </div>
                 {% else %}
                 {% if sessions %}
@@ -102,7 +104,7 @@ Server status
                             </td>
                             <td>
                                 {% for created_at in info.created_at %}
-                                    <small class="text-muted d-block">{{ created_at }}</small>
+                                    <small class="text-secondary d-block">{{ created_at }}</small>
                                 {% endfor %}
                             </td>
                         </tr>
@@ -134,63 +136,71 @@ Server status
     <div class="bg-white border-0 card-header pb-1">
         <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Version information{% endtranslate %}</h4>
     </div>
-    <div class="card-body pb-1 row">
-        <div class="col-12 col-lg-6">
-            <h5 class="mb-3">uproot {% translate %}version{% endtranslate %}</h5>
-            <p>
-                {% translate %}You are currently running{% endtranslate %}
-                uproot {{ versions.uproot }}.
-            </p>
-            <p>
-                <button type="button" class="btn btn-outline-uproot btn-sm fw-semibold" onclick="announcements()">
-                    {% translate %}
-                    Check for important annoucements
-                    {% endtranslate %}
-                </button>
-            </p>
-            <h5 class="mb-3 mt-4">{% translate %}Python version{% endtranslate %}</h5>
-            <p class="font-monospace">{{ versions.python }}</p>
-            <h5 class="mb-3 mt-4">{% translate %}Environment variables{% endtranslate %}</h5>
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th class="fw-semibold ps-0" scope="col">{% translate %}Variable{% endtranslate %}</th>
-                        <th class="col-4 fw-semibold" scope="col">{% translate %}Value{% endtranslate %}</th>
-                    </tr>
-                </thead>
-                <tbody class="font-monospace">
-                    {% for name, value in environ.items() %}
-                    <tr>
-                        <td class="ps-0">{{ name }}</td>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="card-body pt-2">
+        <div class="row">
+            <div class="col-12 col-xl-6">
+                <h5 class="mb-3 mt-2">uproot {% translate %}version{% endtranslate %}</h5>
+                <p>
+                    {% translate %}You are currently running{% endtranslate %}
+                    uproot {{ versions.uproot }}.
+                </p>
+                <p>
+                    <button type="button" class="btn btn-outline-uproot btn-sm fw-semibold" onclick="announcements()">
+                        {% translate %}
+                        Check for important annoucements
+                        {% endtranslate %}
+                    </button>
+                </p>
+            </div>
+            <div class="col-12 col-xl-6">
+                <h5 class="mb-3 mt-2">{% translate %}Python version{% endtranslate %}</h5>
+                <p class="font-monospace">{{ versions.python }}</p>
+            </div>
         </div>
-        <div class="col-12 col-lg-6">
-            <h5 class="mb-3">{% translate %}Installed packages{% endtranslate %}</h5>
-            <p class="text-muted">
-                {% translate %}
-                For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.
-                {% endtranslate %}
-            </p>
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th class="fw-semibold ps-0" scope="col">{% translate %}Package{% endtranslate %}</th>
-                        <th class="col-4 fw-semibold" scope="col">{% translate %}Version{% endtranslate %}</th>
-                    </tr>
-                </thead>
-                <tbody class="font-monospace">
-                    {% for pkg, version in packages %}
-                    <tr>
-                        <td class="ps-0 {% if pkg=='uproot-science' %} fw-bold text-uproot {% endif %}">{{ pkg }}</td>
-                        <td {% if pkg=="uproot-science" %} class="fw-bold text-uproot" {% endif %}>{{ version }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="row">
+            <div class="col-12 col-xl-6 pb-2">
+                <h5 class="my-3">{% translate %}Environment variables{% endtranslate %}</h5>
+                <table class="mb-0 table table-hover table-sm" style="table-layout: fixed">
+                    <thead>
+                        <tr>
+                            <th class="col-6 fw-semibold ps-0" scope="col">{% translate %}Variable{% endtranslate %}</th>
+                            <th class="fw-semibold pe-0" scope="col">{% translate %}Value{% endtranslate %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="font-monospace">
+                        {% for name, value in environ.items() %}
+                        <tr>
+                            <td class="ps-0">{{ name }}</td>
+                            <td class="pe-0">{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-12 col-xl-6 pb-2">
+                <h5 class="my-3">{% translate %}Installed packages{% endtranslate %}</h5>
+                <p class="text-secondary">
+                    {% translate %}
+                    For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.
+                    {% endtranslate %}
+                </p>
+                <table class="mb-0 table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th class="col-6 fw-semibold ps-0" scope="col">{% translate %}Package{% endtranslate %}</th>
+                            <th class="fw-semibold" scope="col">{% translate %}Version{% endtranslate %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="font-monospace">
+                        {% for pkg, version in packages %}
+                        <tr>
+                            <td class="ps-0 {% if pkg=='uproot-science' %}fw-bold text-uproot{% endif %}">{{ pkg }}</td>
+                            <td class="pe-0 {% if pkg=='uproot-science' %}fw-bold text-uproot{% endif %}">{{ version }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

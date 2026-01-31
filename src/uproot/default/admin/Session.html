@@ -4,13 +4,13 @@
 
 {% block titlearea %}
 
-<div class="d-flex justify-content-between my-4">
+<div class="d-flex flex-wrap justify-content-between me-2 my-4">
     <h2 id="uproot-title" class="fw-semibold">
         {% translate %}Session{% endtranslate %}
         <span class="font-monospace">{{ sname }}</span>
     </h2>
     <div>
-        <div class="btn-group ms-2 my-1">
+        <div class="btn-group my-1">
             <a class="btn btn-uproot" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
             <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
             <ul class="dropdown-menu">
@@ -28,6 +28,13 @@
 
 
 {% block head %}
+
+<style>
+    .tabulator-row > div:first-of-type {
+        background-color: white !important;
+    }
+</style>
+
 {% endblock %}
 
 
@@ -39,11 +46,11 @@
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
                 {% if session.room is none %}
-                <p class="mb-2">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
+                <p class="mb-2 pt-1">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
                 {% else %}
-                <p class="mb-2">{% translate %}This session is associated with a room.{% endtranslate %}</p>
+                <p class="mb-2 pt-1">{% translate %}This session is associated with a room.{% endtranslate %}</p>
                 <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
-                <p class="mb-2">
+                <p class="mb-2 pt-1">
                     <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
                 </p>
                 {% endif %}
@@ -55,52 +62,43 @@
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Essential information{% endtranslate %}</h5>
                 {% if not deployment.PUBLIC_DEMO %}
-                <div class="d-flex justify-content-between mb-3">
-                    {% if session.description is none %}
-                    <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
-                    <div>
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Description{% endtranslate %}</h6>
+                        {% if session.description is none %}
                         <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button>
-                    </div>
-                    {% else %}
-                    <div>
-                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
-                        <p class="mb-2">{{ session.description }}</p>
-                    </div>
-                    <div>
+                        {% else %}
                         <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
+                        {% endif %}
                     </div>
+                    {% if session.description %}
+                    <p>{{ session.description }}</p>
                     {% endif %}
                 </div>
                 {% endif %}
-                <div class="d-flex justify-content-between mb-3">
-                    <div>
-                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Settings{% endtranslate %}</h6>
-                        {% if session.settings %}
-                        <p class="mb-2">{% translate %}Custom settings{% endtranslate %}</p>
-                        {% else %}
-                        <p class="mb-2 text-muted">{% translate %}No settings{% endtranslate %}</p>
-                        {% endif %}
-                    </div>
-                    <div>
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Settings{% endtranslate %}</h6>
                         <button type="button" class="btn btn-sm btn-outline-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change{% endtranslate %}</button>
                     </div>
+                    {% if session.settings %}
+                    <p>{% translate %}Custom settings{% endtranslate %}</p>
+                    {% else %}
+                    <p class="text-body-tertiary">{% translate %}No settings{% endtranslate %}</p>
+                    {% endif %}
                 </div>
                 {% if session.config %}
-                <div class="d-flex justify-content-between mb-3">
-                    <div>
-                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Config{% endtranslate %}</h6>
-                        <p class="font-monospace mb-2">{{ session.config }}</p>
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Config{% endtranslate %}</h6>
+                        <a class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
                     </div>
-                    <div>
-                        <a class="btn btn-sm btn-uproot h-auto" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
-                    </div>
+                    <p class="font-monospace mb-2">{{ session.config }}</p>
                 </div>
                 {% endif %}
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
-                        <p class="font-monospace mb-2">{{ " → ".join(session.apps) }}</p>
-                    </div>
+                <div>
+                    <h6 class="fw-semibold mb-2 pb-0 pt-1">{% translate %}Apps{% endtranslate %}</h6>
+                    <p class="font-monospace mb-2">{{ " → ".join(session.apps) }}</p>
                 </div>
             </div>
         </div>
@@ -109,19 +107,17 @@
         <div class="card h-100">
             <div class="card-body pb-2" x-data>
                 <h5 class="border-bottom fw-semibold mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
-                <div class="d-flex justify-content-between mb-3 mt-3">
-                    <div>
-                        <p class="d-table-row">
-                            <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
-                            <span class="d-table-cell text-end" x-text="$store.session.totalPlayers"></span>
-                        </p>
-                        <p class="d-table-row">
-                            <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
-                            <span class="d-table-cell text-end" x-text="$store.session.startedCount"></span>
-                        </p>
-                    </div>
+                <div class="mb-4 mt-3 pt-1">
+                    <p class="d-table-row">
+                        <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
+                        <span class="d-table-cell text-end" x-text="$store.session.totalPlayers"></span>
+                    </p>
+                    <p class="d-table-row">
+                        <span class="d-table-cell pe-4 pt-1 text-nowrap">{% translate %}Started{% endtranslate %}</span>
+                        <span class="d-table-cell pt-1 text-end" x-text="$store.session.startedCount"></span>
+                    </p>
                 </div>
-                <h6 class="fw-semibold mb-2">{% translate %}Player URLs{% endtranslate %}</h6>
+                <h6 class="fw-semibold mb-3">{% translate %}Player URLs{% endtranslate %}</h6>
                 <p class="mb-2">{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>
                     <li>
@@ -132,8 +128,8 @@
                     </li>
                 </ul>
                 {% if len(info) > 0 %}
-                <p class="mb-1">
-                    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#urlModal" data-bs-toggle="modal" type="button">
+                <p class="mb-2">
+                    <button class="btn btn-sm btn-outline-uproot mt-1" data-bs-target="#urlModal" data-bs-toggle="modal" type="button">
                         {% translate %}Show individual URLs{% endtranslate %}
                     </button>
                 </p>
@@ -145,9 +141,9 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Admin settings{% endtranslate %}</h5>
-                <div class="d-grid gap-2">
-                    <button type="button" class="border-white btn btn-outline-uproot btn-sm mb-1 position-relative text-start w-100" onclick="flipTesting()">
-                        <i class="bi bi-toggle-{% if session.testing %}on{% else %}off{% endif %} me-1"></i>
+                <div class="d-grid">
+                    <button type="button" class="border-0 btn btn-outline-uproot btn-sm fs-6 mb-1 position-relative text-start w-100" onclick="flipTesting()">
+                        <i class="bi bi-toggle-{% if session.testing %}on{% else %}off{% endif %} me-2"></i>
                         {% if session.testing %}
                         <b>{% translate %}
                         Testing is enabled. <i class="bi bi-exclamation-triangle-fill ms-1"></i>
@@ -163,7 +159,7 @@
                         data-bs-content="{% if session.testing %}{% translate %}This will hide this session’s testing elements for all except admins.{% endtranslate %}{% else %}{% translate %}This will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
                         onclick="event.stopPropagation()"></i>
                     </button>
-                    <button type="button" class="border-white btn btn-outline-uproot btn-sm position-relative text-start w-100" onclick="flipActive()">
+                    <button type="button" class="border-0 btn btn-outline-uproot btn-sm fs-6 position-relative text-start w-100" onclick="flipActive()">
                         <i class="bi bi-toggle-{% if session.active %}on{% else %}off{% endif %} me-2"></i>
                         {% if session.active %}
                         {% translate %}
@@ -188,48 +184,50 @@
 
 <!-- Player monitor -->
 
-<div class="align-items-center d-flex justify-content-between mb-0 pb-2">
-    <h3 class="fw-semibold me-3 mb-3 mt-2">{% translate %}Player monitor{% endtranslate %}</h3>
-    <button type="button" class="btn btn-outline-uproot" onclick="toggleTableWidth()">
-        <span class="d-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
-        <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
-    </button>
-    <div>
-        <button class="btn btn-outline-uproot mb-3 mt-2" onclick="openMultiview()" type="button">
-            {% translate %}Multiview{% endtranslate %}
-            <i class="bi bi-question-circle"
-                data-bs-toggle="popover"
-                data-bs-trigger="hover"
-                data-bs-content="{% translate %}This opens a new browser tab displaying the current pages of the selected players.{% endtranslate %}"
-                onclick="event.stopPropagation()"></i>
+<div class="align-items-center d-flex flex-wrap justify-content-between mb-2 mt-1 pb-2">
+    <h3 class="flex-grow-1 fw-semibold me-3 mb-3 mt-2">{% translate %}Player monitor{% endtranslate %}</h3>
+    <div class="d-flex flex-grow-1 flex-wrap justify-content-between">
+        <button type="button" class="btn btn-outline-uproot mb-1 me-3" onclick="toggleTableWidth()">
+            <span class="d-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
+            <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
         </button>
-        <div class="btn-group mb-3 ms-2 mt-2">
-            <button type="button" class="btn btn-uproot" onclick="mmodal('manage')">
-                {% translate %}Manage players{% endtranslate %}
-                </button>
-            <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-            <ul class="dropdown-menu">
-                <li>
-                    <span class="dropdown-item" onclick="mmodal('manage')" role="button">
-                        {% translate %}Manage players{% endtranslate %}
-                    </span>
-                </li>
-                <li>
-                    <span class="dropdown-item" onclick="mmodal('insert')" role="button">
-                        {% translate %}Insert fields{% endtranslate %}
-                    </span>
-                </li>
-                <li>
-                    <span class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
-                        {% translate %}Send message{% endtranslate %}
-                    </span>
-                </li>
-                <li>
-                    <span class="dropdown-item" onclick="mmodal('redirect')" role="button">
-                        {% translate %}Redirect to URL{% endtranslate %}
-                    </span>
-                </li>
-            </ul>
+        <div class="align-items-baseline d-flex flex-wrap justify-content-between">
+            <button class="btn btn-outline-uproot mb-1 me-2" onclick="openMultiview()" type="button">
+                {% translate %}Multiview{% endtranslate %}
+                <i class="bi bi-question-circle"
+                    data-bs-toggle="popover"
+                    data-bs-trigger="hover"
+                    data-bs-content="{% translate %}This opens a new browser tab displaying the current pages of the selected players.{% endtranslate %}"
+                    onclick="event.stopPropagation()"></i>
+            </button>
+            <div class="btn-group mb-1">
+                <button type="button" class="btn btn-uproot" onclick="mmodal('manage')">
+                    {% translate %}Manage players{% endtranslate %}
+                    </button>
+                <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('manage')" role="button">
+                            {% translate %}Manage players{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('insert')" role="button">
+                            {% translate %}Insert fields{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
+                            {% translate %}Send message{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('redirect')" role="button">
+                            {% translate %}Redirect to URL{% endtranslate %}
+                        </span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -249,14 +247,14 @@
         <label class="form-check-label" for="advance_by_one">
             {% translate %}Advance by one page{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}If the next page is not shown, it will be skipped.{% endtranslate %}
         </span>
     </div>
     <div class="form-check mb-3">
         <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
         <label class="form-check-label" for="reload">
-            {% translate %}Reload players' pages{% endtranslate %}
+            {% translate %}Reload players’ pages{% endtranslate %}
         </label>
     </div>
     <div class="form-check mb-3">
@@ -264,7 +262,7 @@
         <label class="form-check-label" for="revert_by_one">
             {% translate %}Revert by one page{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}If the previous page was not shown, this will return to the current page.{% endtranslate %}
         </span>
     </div>
@@ -273,7 +271,7 @@
         <label class="form-check-label" for="put_to_end">
             {% translate %}Put to end{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}This terminates the study for the selected player(s).{% endtranslate %}
         </span>
     </div>
@@ -282,7 +280,7 @@
         <label class="form-check-label" for="mark_dropout">
             {% translate %}Mark as dropout{% endtranslate %}
         </label><br>
-        <span class="form-text text-muted">
+        <span class="form-text">
             {% translate %}This will run all dropout handlers registered with <code>watch_for_dropout()</code>.{% endtranslate %}
         </span>
     </div>
@@ -305,7 +303,7 @@
     {% translate %}Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):{% endtranslate %}<br>
     <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
 </p>
-<p class="text-muted">
+<p class="small text-danger">
     {% translate %}Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.{% endtranslate %}
 </p>
 {% endcall %}
@@ -374,8 +372,8 @@
 <div class="mb-3">
     <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
 </div>
-<small class="d-block form-text text-muted">
-    {% translate %}Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.{% endtranslate %}
+<small class="d-block form-text">
+    {% translate %}Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.{% endtranslate %}
 </small>
 {% endcall %}
 
