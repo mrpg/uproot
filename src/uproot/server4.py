@@ -22,7 +22,7 @@ import uproot.deployment as d
 import uproot.rooms as r
 from uproot.storage import Admin, Session
 
-router = APIRouter(prefix=f"{d.ROOT}/admin/api")
+router = APIRouter(prefix=f"{d.ROOT}/admin/api/v1")
 
 
 # =============================================================================

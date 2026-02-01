@@ -102,6 +102,7 @@ def setup_command(
 
 async def api_request(
     base_url: str,
+    version: int,
     auth: str,
     method: str,
     endpoint: str,
@@ -110,7 +111,7 @@ async def api_request(
     """Make an API request to the admin API."""
     base_url = base_url.rstrip("/")
     endpoint = endpoint.strip("/")
-    url = f"{base_url}/admin/api/{endpoint}/"
+    url = f"{base_url}/admin/api/v{version}/{endpoint}/"
     headers = {
         "Authorization": f"Bearer {auth}",
         "User-Agent": "uproot-cli",
@@ -131,6 +132,7 @@ async def api_request(
 
 def api_command(
     url: str,
+    version: int,
     auth: str,
     method: str,
     data: Optional[str],
@@ -147,7 +149,7 @@ def api_command(
 
     try:
         status, result = asyncio.run(
-            api_request(url, auth, method.upper(), endpoint, parsed_data)
+            api_request(url, version, auth, method.upper(), endpoint, parsed_data)
         )
     except aiohttp.ClientError as e:
         print(f"Error: Connection failed: {e}", file=sys.stderr)
@@ -269,7 +271,14 @@ For HTTPS or non-default servers:
                 "Error: --auth/-a is required (or set UPROOT_API_KEY)", file=sys.stderr
             )
             sys.exit(1)
-        api_command(args.url, args.auth, args.method, args.data, args.endpoint)
+        api_command(
+            args.url,
+            1,
+            args.auth,
+            args.method,
+            args.data,
+            args.endpoint,
+        )
     elif args.command in cmds:
         forward(unknown, args.command)
     else:
