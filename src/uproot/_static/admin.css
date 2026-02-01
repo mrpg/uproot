@@ -154,37 +154,6 @@ footer a {
     color: var(--bs-uproot);
 }
 
-/* Sticky column headers */
-.table-sticky {
-    border-collapse: separate; /* Don't collapse */
-    border-spacing: 0;
-}
-.table-sticky thead th {
-    background-color: var(--bs-uproot-bg-light);
-    position: sticky;
-    top: 0;
-    z-index: 98;
-}
-/* Sticky row headers for first 3 columns */
-.table-sticky tr > th:nth-of-type(1),
-.table-sticky tr > th:nth-of-type(2),
-.table-sticky tr > th:nth-of-type(3) {
-    position: sticky;
-    z-index: 99;
-}
-.table-sticky tr > td:nth-of-type(1),
-.table-sticky tr > td:nth-of-type(2),
-.table-sticky tr > td:nth-of-type(3) {
-    font-weight: bolder;
-    position: sticky;
-    z-index: 97;
-}
-/* Position to stick at for first column */
-.table-sticky tr > td:nth-of-type(1),
-.table-sticky tr > th:nth-of-type(1) {
-    left: 0em;
-}
-
 /* Surrounding divs to enable scrolling within table */
 .table-sticky-inner {
     left: 50%;
@@ -282,19 +251,19 @@ a:hover .not-yet-implemented {
     font-family: var(--bs-font-monospace);
     height: 100% !important;
 }
-
+#data-table input[type=search] {
+    font-size: small !important;
+    margin-top: 2px;
+}
 #data-table .tabulator-frozen-left {
     border: 0px;
 }
-
 #data-table .tabulator-row {
     background-color: white;
 }
-
 #data-table .tabulator-row:hover {
     background-color: #eeeeee;
 }
-
 #data-table .tabulator-row.tabulator-selected {
     background-color: var(--bs-uproot-bg-light) !important;
 }
@@ -342,44 +311,4 @@ a:hover .not-yet-implemented {
 
 .tabulator-headers {
     vertical-align: bottom !important;
-}
-
-/* Sticky headers for first 4 columns */
-.tabulator-headers > div:nth-of-type(1),
-.tabulator-headers > div:nth-of-type(2),
-.tabulator-headers > div:nth-of-type(3),
-.tabulator-headers > div:nth-of-type(4) {
-    position: sticky !important;
-    z-index: 99;
-}
-
-/* Sticky cells for first 4 columns */
-.tabulator-row > div:nth-of-type(1),
-.tabulator-row > div:nth-of-type(2),
-.tabulator-row > div:nth-of-type(3),
-.tabulator-row > div:nth-of-type(4) {
-    font-weight: bolder;
-    position: sticky !important;
-    z-index: 97;
-}
-
-/* Sticky column positions */
-.tabulator-headers > div:nth-of-type(1),
-.tabulator-row > div:nth-of-type(1) {
-    left: 0em !important;
-}
-
-.tabulator-headers > div:nth-of-type(2),
-.tabulator-row > div:nth-of-type(2) {
-    left: 2.5em !important;
-}
-
-.tabulator-headers > div:nth-of-type(3),
-.tabulator-row > div:nth-of-type(3) {
-    left: 6em !important;
-}
-
-.tabulator-headers > div:nth-of-type(4),
-.tabulator-row > div:nth-of-type(4) {
-    left: 12em !important;
 }

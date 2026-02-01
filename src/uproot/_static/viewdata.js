@@ -27,14 +27,6 @@ const PRIORITY_FIELDS = [
     "page_order", "show_page", "started", "round"
 ];
 
-// Column widths
-const COLUMN_WIDTHS = {
-    PLAYER: 110,
-    ID: 110,
-    PAGE_ORDER: 330,
-    DEFAULT: 150
-};
-
 // Table configuration
 const VALUE_MAX_LENGTH = 30;
 const HIGHLIGHT_DURATION_MS = 3000;
@@ -164,18 +156,20 @@ function detectColumnType(field, data) {
     return "string";
 }
 
-/**
- * Determines the width for a column based on its field name.
- */
-function getColumnWidth(field) {
-    if (field === "id") return COLUMN_WIDTHS.ID;
-    if (field === "page_order") return COLUMN_WIDTHS.PAGE_ORDER;
-    return COLUMN_WIDTHS.DEFAULT;
-}
-
 // ============================================================================
 // Column Creation
 // ============================================================================
+
+/**
+ * Determines the widths (in pixels) of columns based on their field names.
+ */
+function getColumnWidth(field) {
+    if (field === "id") return 75;
+    if (field === "label") return 125;
+    if (field === "page_order") return 330;
+    if (field === "player") return 125;
+    return 140;  // default
+}
 
 /**
  * Creates column definitions for the Tabulator table.
@@ -185,7 +179,7 @@ function createColumns(data) {
         title: "player",
         field: "player",
         frozen: true,
-        width: COLUMN_WIDTHS.PLAYER,
+        width: getColumnWidth("player"),
         headerFilter: "input"
     }];
 
