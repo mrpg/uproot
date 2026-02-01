@@ -151,7 +151,7 @@ function createMonitorColumns(data) {
         titleFormatter: "rowSelection",
         hozAlign: "center",
         headerSort: false,
-        width: 40,
+        width: 45,
     }];
 
     // Get all unique fields from data
@@ -195,6 +195,7 @@ function createMonitorColumns(data) {
             column.width = 120;
         } else if (field === "page") {
             column.formatter = formatPageCell;
+            column.width = 200;
         } else if (field === "progress") {
             column.formatter = formatProgressCell;
         } else if (field === "lastSeen") {
