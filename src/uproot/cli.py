@@ -241,16 +241,16 @@ def deployment(ctx: click.Context) -> None:
 
 
 async def api_request(
-    host: str,
-    port: int,
+    base_url: str,
     auth: str,
     method: str,
     endpoint: str,
     data: Optional[dict[str, Any]] = None,
 ) -> tuple[int, Any]:
     """Make an API request to the admin API."""
+    base_url = base_url.rstrip("/")
     endpoint = endpoint.strip("/")
-    url = f"http://{host}:{port}{d.ROOT}/admin/api/{endpoint}/"
+    url = f"{base_url}/admin/api/{endpoint}/"
     headers = {"Authorization": f"Bearer {auth}"}
 
     async with aiohttp.ClientSession() as session:
@@ -268,8 +268,7 @@ async def api_request(
 
 # fmt: off
 @click.command(help="Access the Admin REST API")
-@click.option("--host", "-h", default="127.0.0.1", show_default="127.0.0.1", help="Server host")
-@click.option("--port", "-p", default=8000, show_default=8000, help="Server port")
+@click.option("--url", "-u", default="http://127.0.0.1:8000/", show_default="http://127.0.0.1:8000/", help="Server base URL")
 @click.option("--auth", "-a", envvar="UPROOT_API_KEY", required=True, help="Bearer token (or set UPROOT_API_KEY)")
 @click.option("--method", "-X", default="GET", show_default="GET", help="HTTP method")
 @click.option("--data", "-d", default=None, help="JSON data for request body")
@@ -278,8 +277,7 @@ async def api_request(
 # fmt: on
 def api(
     ctx: click.Context,
-    host: str,
-    port: int,
+    url: str,
     auth: str,
     method: str,
     data: Optional[str],
@@ -301,6 +299,11 @@ def api(
       uproot api -X POST sessions -d '{"config":"myconfig","n_players":4}'
       uproot api -X PATCH sessions/mysession/active
       uproot api -X POST sessions/mysession/players/advance -d '{"unames":["ABC"]}'
+
+    \b
+    For HTTPS or non-default servers:
+      uproot api -u https://example.com/ sessions
+      uproot api -u https://example.com/mysubdir/ sessions
     """
     parsed_data = None
     if data:
@@ -312,7 +315,7 @@ def api(
 
     try:
         status, result = asyncio.run(
-            api_request(host, port, auth, method.upper(), endpoint, parsed_data)
+            api_request(url, auth, method.upper(), endpoint, parsed_data)
         )
     except aiohttp.ClientError as e:
         click.echo(f"Error: Connection failed: {e}", err=True)
