@@ -30,6 +30,7 @@ from uproot.pages import app_or_default, page2path
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
+from uproot.server4 import router as router4
 from uproot.storage import Admin, Storage
 from uproot.types import InternalPage, Page, ensure_awaitable, optional_call
 
@@ -161,6 +162,7 @@ uproot_server.add_middleware(
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)
 uproot_server.include_router(router3)
+uproot_server.include_router(router4)
 
 
 @uproot_server.get("/favicon.ico")

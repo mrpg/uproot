@@ -1074,18 +1074,6 @@ async def dummy(
     return PlainTextResponse("Ecce, præceptor œconomiae!")
 
 
-# Admin API endpoint (for future use)
-
-
-@router.get("/api/")
-@router.post("/api/")
-async def admin_api(
-    request: Request,
-    bauth: None = Depends(a.require_bearer_token),
-) -> None:
-    raise NotImplementedError
-
-
 # Functions
 
 
