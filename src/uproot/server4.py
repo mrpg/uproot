@@ -138,7 +138,7 @@ async def list_sessions(
     return a.sessions()
 
 
-@router.get("/sessions/{sname}/")
+@router.get("/session/{sname}/")
 async def get_session(
     sname: str,
     _: None = Depends(a.require_bearer_token),
@@ -200,7 +200,7 @@ async def create_session(
     return dict(sname=sid.sname, created=True)
 
 
-@router.patch("/sessions/{sname}/active/")
+@router.patch("/session/{sname}/active/")
 async def toggle_session_active(
     sname: str,
     _: None = Depends(a.require_bearer_token),
@@ -213,7 +213,7 @@ async def toggle_session_active(
         return dict(active=session.active)
 
 
-@router.patch("/sessions/{sname}/testing/")
+@router.patch("/session/{sname}/testing/")
 async def toggle_session_testing(
     sname: str,
     _: None = Depends(a.require_bearer_token),
@@ -226,7 +226,7 @@ async def toggle_session_testing(
         return dict(testing=session.testing)
 
 
-@router.patch("/sessions/{sname}/description/")
+@router.patch("/session/{sname}/description/")
 async def update_session_description(
     sname: str,
     body: DescriptionUpdate,
@@ -243,7 +243,7 @@ async def update_session_description(
     return dict(description=body.description if body.description else None)
 
 
-@router.patch("/sessions/{sname}/settings/")
+@router.patch("/session/{sname}/settings/")
 async def update_session_settings(
     sname: str,
     body: SettingsUpdate,
@@ -261,7 +261,7 @@ async def update_session_settings(
 # =============================================================================
 
 
-@router.get("/sessions/{sname}/players/")
+@router.get("/session/{sname}/players/")
 async def list_players(
     sname: str,
     fields: list[str] = Query(
@@ -274,7 +274,7 @@ async def list_players(
     return await a.fields_from_all(sname, fields)
 
 
-@router.get("/sessions/{sname}/players/online/")
+@router.get("/session/{sname}/players/online/")
 async def get_online_players(
     sname: str,
     _: None = Depends(a.require_bearer_token),
@@ -284,7 +284,7 @@ async def get_online_players(
     return await a.info_online(sname)
 
 
-@router.patch("/sessions/{sname}/players/fields/")
+@router.patch("/session/{sname}/players/fields/")
 async def set_player_fields(
     sname: str,
     body: PlayersFields,
@@ -297,7 +297,7 @@ async def set_player_fields(
     return dict(updated=body.unames, fields=list(body.fields.keys()))
 
 
-@router.post("/sessions/{sname}/players/advance/")
+@router.post("/session/{sname}/players/advance/")
 async def advance_players(
     sname: str,
     body: PlayersAction,
@@ -308,7 +308,7 @@ async def advance_players(
     return await a.advance_by_one(sname, body.unames)
 
 
-@router.post("/sessions/{sname}/players/revert/")
+@router.post("/session/{sname}/players/revert/")
 async def revert_players(
     sname: str,
     body: PlayersAction,
@@ -319,7 +319,7 @@ async def revert_players(
     return await a.revert_by_one(sname, body.unames)
 
 
-@router.post("/sessions/{sname}/players/end/")
+@router.post("/session/{sname}/players/end/")
 async def put_players_to_end(
     sname: str,
     body: PlayersAction,
@@ -330,7 +330,7 @@ async def put_players_to_end(
     return await a.put_to_end(sname, body.unames)
 
 
-@router.post("/sessions/{sname}/players/reload/")
+@router.post("/session/{sname}/players/reload/")
 async def reload_players(
     sname: str,
     body: PlayersAction,
@@ -343,7 +343,7 @@ async def reload_players(
     return dict(reloaded=body.unames)
 
 
-@router.post("/sessions/{sname}/players/redirect/")
+@router.post("/session/{sname}/players/redirect/")
 async def redirect_players(
     sname: str,
     body: PlayerRedirect,
@@ -360,7 +360,7 @@ async def redirect_players(
     return dict(redirected=body.unames, url=body.url)
 
 
-@router.post("/sessions/{sname}/players/message/")
+@router.post("/session/{sname}/players/message/")
 async def message_players(
     sname: str,
     body: PlayerMessage,
@@ -373,7 +373,7 @@ async def message_players(
     return dict(messaged=body.unames)
 
 
-@router.post("/sessions/{sname}/players/dropout/")
+@router.post("/session/{sname}/players/dropout/")
 async def mark_players_dropout(
     sname: str,
     body: PlayersAction,
@@ -391,7 +391,7 @@ async def mark_players_dropout(
 # =============================================================================
 
 
-@router.get("/sessions/{sname}/data/")
+@router.get("/session/{sname}/data/")
 async def get_session_data(
     sname: str,
     since: float = Query(
@@ -406,7 +406,7 @@ async def get_session_data(
     return dict(data=data, last_update=last_update)
 
 
-@router.get("/sessions/{sname}/data/csv/")
+@router.get("/session/{sname}/data/csv/")
 async def download_session_csv(
     sname: str,
     format: str = Query(
@@ -433,7 +433,7 @@ async def download_session_csv(
     )
 
 
-@router.get("/sessions/{sname}/data/json/")
+@router.get("/session/{sname}/data/json/")
 async def download_session_json(
     sname: str,
     format: str = Query(
@@ -458,7 +458,7 @@ async def download_session_json(
     )
 
 
-@router.get("/sessions/{sname}/page-times/")
+@router.get("/session/{sname}/page-times/")
 async def get_page_times(
     sname: str,
     _: None = Depends(a.require_bearer_token),
@@ -486,7 +486,7 @@ async def list_rooms(
     return dict(a.rooms())
 
 
-@router.get("/rooms/{roomname}/")
+@router.get("/room/{roomname}/")
 async def get_room(
     roomname: str,
     _: None = Depends(a.require_bearer_token),
@@ -538,7 +538,7 @@ async def create_room(
     return dict(name=body.name, created=True)
 
 
-@router.patch("/rooms/{roomname}/")
+@router.patch("/room/{roomname}/")
 async def update_room(
     roomname: str,
     body: RoomUpdate,
@@ -569,7 +569,7 @@ async def update_room(
     return dict(name=roomname, updated=True)
 
 
-@router.delete("/rooms/{roomname}/")
+@router.delete("/room/{roomname}/")
 async def delete_room(
     roomname: str,
     _: None = Depends(a.require_bearer_token),
@@ -585,7 +585,7 @@ async def delete_room(
     return dict(name=roomname, deleted=True)
 
 
-@router.post("/rooms/{roomname}/disassociate/")
+@router.post("/room/{roomname}/disassociate/")
 async def disassociate_room(
     roomname: str,
     _: None = Depends(a.require_bearer_token),
@@ -604,7 +604,7 @@ async def disassociate_room(
     return dict(name=roomname, disassociated=True)
 
 
-@router.post("/rooms/{roomname}/session/", status_code=201)
+@router.post("/room/{roomname}/session/", status_code=201)
 async def create_session_in_room(
     roomname: str,
     body: RoomSessionCreate,
@@ -672,7 +672,7 @@ async def create_session_in_room(
     return dict(sname=sid.sname, roomname=roomname, created=True)
 
 
-@router.get("/rooms/{roomname}/online/")
+@router.get("/room/{roomname}/online/")
 async def get_room_online(
     roomname: str,
     _: None = Depends(a.require_bearer_token),
@@ -729,7 +729,7 @@ async def get_announcements(
         return dict(error="Failed to fetch announcements")
 
 
-@router.get("/sessions/{sname}/digest/")
+@router.get("/session/{sname}/digest/")
 async def get_session_digest(
     sname: str,
     _: None = Depends(a.require_bearer_token),
