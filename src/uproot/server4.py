@@ -8,6 +8,7 @@ All endpoints require Bearer token authentication via the Authorization header.
 Tokens are configured in deployment.API_KEYS.
 """
 
+import importlib.metadata
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -753,14 +754,15 @@ async def get_status(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get server status information."""
-    if d.PUBLIC_DEMO:
-        return dict(public_demo=True)
-
     dbsize_bytes = d.DATABASE.size()
     dbsize = float(dbsize_bytes) / (1024**2) if dbsize_bytes is not None else None
 
     return dict(
         version=u.__version__,
         database_size_mb=dbsize,
-        public_demo=False,
+        packages={
+            dist.metadata["name"]: dist.version
+            for dist in importlib.metadata.distributions()
+        },
+        public_demo=d.PUBLIC_DEMO,
     )
