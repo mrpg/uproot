@@ -43,24 +43,6 @@
 {% block head %}
 
 <style>
-    #data-table {
-        font-family: var(--bs-font-monospace);
-        height: 100% !important;
-    }
-    #data-table input[type=search] {
-        font-size: small !important;
-        margin-top: 2px;
-    }
-    #data-table .tabulator-frozen-left {
-        border: 0px;
-    }
-    #data-table .tabulator-row {
-        background-color: white;
-    }
-    #data-table .tabulator-row:hover {
-        background-color: #eeeeee;
-    }
-
     .table-sticky-outer-full-width {
         margin-left: 50%;
         padding-left: 1.5rem !important;
@@ -69,7 +51,7 @@
         transform: translate(-50%, 0%);
     }
 
-    /* Sticky column styling for Tabulator */
+    /* Styling for Tabulator */
     .tabulator-col[aria-sort="ascending"] .tabulator-col-content, .tabulator-col[aria-sort="descending"] .tabulator-col-content {
         background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
     }
@@ -86,9 +68,6 @@
     }
     .tabulator-col-content, .tabulator-cell {
         padding: 10px !important;
-    }
-    .tabulator-header {
-        border-bottom: 0px !important;
     }
     .h-fullscreen-title {
         height: 1.5vh !important;

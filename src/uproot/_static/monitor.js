@@ -147,10 +147,11 @@ function createTable(containerId) {
 function createMonitorColumns(data) {
     const columns = [{
         formatter: "rowSelection",
+        frozen: true,
         titleFormatter: "rowSelection",
         hozAlign: "center",
         headerSort: false,
-        width: 40
+        width: 40,
     }];
 
     // Get all unique fields from data
@@ -175,22 +176,22 @@ function createMonitorColumns(data) {
     });
 
     sortedFields.forEach((field) => {
-        const frozen = ["id", "label", "player"].includes(field);
-
         const column = {
             title: field,
             field: field,
-            frozen: frozen,
             headerFilter: "input",
         };
 
         // Add special formatters for specific fields
         if (field === "id") {
+            column.frozen = true;
             column.width = 70;
         } else if (field === "label") {
+            column.frozen = true;
             column.width = 120;
         } else if (field === "player") {
             column.formatter = formatPlayerCell;
+            column.frozen = true;
             column.width = 120;
         } else if (field === "page") {
             column.formatter = formatPageCell;
