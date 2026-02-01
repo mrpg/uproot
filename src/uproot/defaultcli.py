@@ -111,7 +111,10 @@ async def api_request(
     base_url = base_url.rstrip("/")
     endpoint = endpoint.strip("/")
     url = f"{base_url}/admin/api/{endpoint}/"
-    headers = {"Authorization": f"Bearer {auth}"}
+    headers = {
+        "Authorization": f"Bearer {auth}",
+        "User-Agent": "uproot-cli",
+    }
 
     async with aiohttp.ClientSession() as session:
         kwargs: dict[str, Any] = {"headers": headers}
