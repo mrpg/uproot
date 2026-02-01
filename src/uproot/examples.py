@@ -458,5 +458,5 @@ def new_page(path: Path, app: str, page: str) -> None:
                 page_class = PAGE_TEMPLATE_PY.replace("#PAGENAME#", page)
                 new_content = content.replace(marker, page_class + "\n\npage_order = [")
                 init_path.write_text(new_content, encoding="utf-8")
-        except Exception:
+        except Exception:  # nosec B110
             pass  # Fail silently if __init__.py cannot be safely modified
