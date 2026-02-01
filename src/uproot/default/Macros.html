@@ -86,7 +86,15 @@
             {% if field.__module__ == "uproot.fields" and not field.anchoring %}
                 {% set _ = class_list.append("without-anchoring") %}
             {% endif %}
-            {{ field(class_=" ".join(class_list)) | safe }}
+            <div class="align-items-center d-flex">
+                {% if field.label_min != "" %}
+                    <span class="me-3 text-end">{{ field.label_min }}</span>
+                {% endif %}
+                {{ field(class_=" ".join(class_list)) | safe }}
+                {% if field.label_max != "" %}
+                    <span class="ms-3 text-start">{{ field.label_max }}</span>
+                {% endif %}
+            </div>
             {% if field.description %}
                 <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
