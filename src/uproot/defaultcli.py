@@ -109,6 +109,7 @@ def main() -> None:
         return
 
     cmds = [
+        "api",
         "deployment",
         "dump",
         "examples",
