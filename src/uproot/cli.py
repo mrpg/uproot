@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
-import json
 import os
 import platform
 import shutil
@@ -11,7 +10,7 @@ import time
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Generator, Optional
+from typing import Generator
 
 import aiohttp
 import click
@@ -240,97 +239,6 @@ def deployment(ctx: click.Context) -> None:
             click.echo(f"{k}={v}")
 
 
-async def api_request(
-    base_url: str,
-    auth: str,
-    method: str,
-    endpoint: str,
-    data: Optional[dict[str, Any]] = None,
-) -> tuple[int, Any]:
-    """Make an API request to the admin API."""
-    base_url = base_url.rstrip("/")
-    endpoint = endpoint.strip("/")
-    url = f"{base_url}/admin/api/{endpoint}/"
-    headers = {"Authorization": f"Bearer {auth}"}
-
-    async with aiohttp.ClientSession() as session:
-        kwargs: dict[str, Any] = {"headers": headers}
-        if data is not None:
-            kwargs["json"] = data
-
-        async with session.request(method, url, **kwargs) as response:
-            try:
-                result = await response.json()
-            except aiohttp.ContentTypeError:
-                result = await response.text()
-            return response.status, result
-
-
-# fmt: off
-@click.command(help="Access the Admin REST API")
-@click.option("--url", "-u", default="http://127.0.0.1:8000/", show_default="http://127.0.0.1:8000/", help="Server base URL")
-@click.option("--auth", "-a", envvar="UPROOT_API_KEY", required=True, help="Bearer token (or set UPROOT_API_KEY)")
-@click.option("--method", "-X", default="GET", show_default="GET", help="HTTP method")
-@click.option("--data", "-d", default=None, help="JSON data for request body")
-@click.argument("endpoint")
-@click.pass_context
-# fmt: on
-def api(
-    ctx: click.Context,
-    url: str,
-    auth: str,
-    method: str,
-    data: Optional[str],
-    endpoint: str,
-) -> None:
-    """
-    Access the Admin REST API.
-
-    \b
-    Examples:
-      uproot api sessions                          # List sessions
-      uproot api sessions/mysession                # Get session details
-      uproot api rooms                             # List rooms
-      uproot api configs                           # List configurations
-      uproot api sessions/mysession/players        # Get players
-      uproot api sessions/mysession/players/online # Get online players
-
-    \b
-      uproot api -X POST sessions -d '{"config":"myconfig","n_players":4}'
-      uproot api -X PATCH sessions/mysession/active
-      uproot api -X POST sessions/mysession/players/advance -d '{"unames":["ABC"]}'
-
-    \b
-    For HTTPS or non-default servers:
-      uproot api -u https://example.com/ sessions
-      uproot api -u https://example.com/mysubdir/ sessions
-    """
-    parsed_data = None
-    if data:
-        try:
-            parsed_data = json.loads(data)
-        except json.JSONDecodeError as e:
-            click.echo(f"Error: Invalid JSON data: {e}", err=True)
-            ctx.exit(1)
-
-    try:
-        status, result = asyncio.run(
-            api_request(url, auth, method.upper(), endpoint, parsed_data)
-        )
-    except aiohttp.ClientError as e:
-        click.echo(f"Error: Connection failed: {e}", err=True)
-        ctx.exit(1)
-
-    if isinstance(result, dict) or isinstance(result, list):
-        click.echo(json.dumps(result, indent=2))
-    else:
-        click.echo(result)
-
-    if status >= 400:
-        ctx.exit(1)
-
-
-cli.add_command(api)
 cli.add_command(deployment)
 cli.add_command(dump)
 cli.add_command(examples)
