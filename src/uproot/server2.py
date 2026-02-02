@@ -53,23 +53,9 @@ from uproot.pages import ENV as PENV
 from uproot.pages import static_factory, to_filter, tojson_filter
 from uproot.storage import Admin, Session
 from uproot.types import ensure_awaitable
+from uproot.utils import safe_redirect
 
 # General settings
-
-
-def safe_redirect(url: str) -> str:
-    """Ensure redirect URL is safe by validating it's a relative URL.
-
-    This prevents open redirect vulnerabilities by ensuring the URL:
-    - Starts with / (relative to our domain)
-    - Doesn't start with // (which would be protocol-relative)
-    """
-    if not url.startswith("/"):
-        raise ValueError("Redirect URL must be relative")
-    if url.startswith("//"):
-        raise ValueError("Protocol-relative URLs not allowed")
-    return url
-
 
 router = APIRouter(prefix=f"{d.ROOT}/admin")
 
