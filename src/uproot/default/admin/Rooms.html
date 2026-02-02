@@ -3,7 +3,7 @@
 
 {% block titlearea %}
 
-<div class="d-flex justify-content-between my-4">
+<div class="d-flex flex-wrap justify-content-between my-4">
     <h2 id="uproot-title" class="fw-semibold">{% translate %}Rooms{% endtranslate %}</h2>
     <div>
         <a class="btn btn-uproot" href="new/">{% translate %}New room{% endtranslate %}</a>
@@ -15,12 +15,14 @@
 
 {% block main %}
 
+{% if not deployment.PUBLIC_DEMO %}
+
 <h3 class="mb-3">
     {% translate %}
     Currently open rooms
     {% endtranslate %}
 </h3>
-<div class="mb-4 row row-cols-1 row-cols-lg-2" id="rooms-container">
+<div class="mb-4 row row-cols-1 row-cols-xl-2" id="rooms-container">
     <div class="col">
         {% translate %}None{% endtranslate %}.
     </div>
@@ -38,8 +40,12 @@
     </div>
 </div>
 #}
-{# TODO: Scheduling of rooms (setting date and time when “doors open”). #}
 
+{% else %}
+
+{% include "PublicDemo.html" %}
+
+{% endif %}
 
 {% endblock main %}
 

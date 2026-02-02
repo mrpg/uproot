@@ -115,18 +115,29 @@ def timeout_reached(page: type[Page], player: Storage, tol: float) -> bool:
     return False
 
 
+def is_dunder(name: str) -> bool:
+    return len(name) > 4 and name.startswith("__") and name.endswith("__")
+
+
 def exported_constants(app: Any) -> dict[str, Any]:
-    if hasattr(app, "C") and hasattr(app.C, "__export__"):
-        if isinstance(app.C, type):
-            grabber = getattr
-        elif isinstance(app.C, dict):
-            grabber = dict.__getitem__  # type: ignore[assignment]
-        else:
-            raise TypeError(f"'C' must be class or dict (app: {app.__name__})")
+    if not (hasattr(app, "C") and hasattr(app.C, "__export__")):
+        return {}
 
-        return {k: grabber(app.C, k) for k in grabber(app.C, "__export__")}
+    C = app.C
+    if isinstance(C, type):
+        export = getattr(C, "__export__")
 
-    return {}
+        if export is Ellipsis:
+            return {k: v for k, v in vars(C).items() if not is_dunder(k)}
+
+        return {k: getattr(C, k) for k in export}
+    elif isinstance(C, dict):
+        if C["__export__"] is Ellipsis:
+            return C
+
+        return {k: C[k] for k in C["__export__"]}
+    else:
+        raise TypeError(f"'C' must be class or dict (app: {app.__name__})")
 
 
 async def render(
@@ -159,9 +170,10 @@ async def render(
         if player._uproot_group is not None:
             group = player.group
 
-    data = a.from_cookie(uauth) if uauth else {"user": "", "token": ""}
+    data = a.from_cookie(uauth)
     is_admin = (
-        a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        d.UNSAFE
+        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
     try:
@@ -181,7 +193,7 @@ async def render(
     app = u.APPS[page.__module__] if page.__module__ in u.APPS else None
     language = await ensure_awaitable(
         optional_call,
-        app,  # TODO: or previous app
+        app,  # TODO: or previous app if on End.html
         "language",
         default_return=d.LANGUAGE,
         player=player,
@@ -189,14 +201,14 @@ async def render(
 
     internal = dict(
         _uproot_internal=dict(
-            sname=sname,
-            uname=uname,
-            thisis=thisis,
-            key=key,
-            root=d.ROOT,
-            language=language,
-            is_admin=is_admin,
             C=exported_constants(app),
+            is_admin=is_admin,
+            key=key,
+            language=language,
+            root=d.ROOT,
+            sname=sname,
+            thisis=thisis,
+            uname=uname,
         )
         | (metadata if metadata is not None else {})
     )
@@ -220,22 +232,21 @@ async def render(
             )
             | BUILTINS
             | dict(
-                session=session,
-                player=player,
-                page=page,
-                part=part,
                 app=app,
-                form=form,
-                JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
-                show2path=show2path,
                 app_or_default=app_or_default,
                 C=getattr(app, "C", {}),
+                form=form,
+                JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
+                _=lambda s: i18n.lookup(s, language),
+                page=page,
+                part=part,
+                player=player,
+                session=session,
+                show2path=show2path,
                 _uproot_errors=custom_errors,
                 _uproot_js=jsvars,
-                _uproot_testing=(
-                    is_admin
-                    or (sname is not None and getattr(session, "testing", False))
-                ),
+                _uproot_testing=sname is not None
+                and (is_admin or getattr(session, "testing", False)),
             )
             | function_context(page)
             | internal
@@ -259,9 +270,10 @@ async def render_error(
         player._uproot_session(),
     )
 
-    data = a.from_cookie(uauth) if uauth else {"user": "", "token": ""}
+    data = a.from_cookie(uauth)
     is_admin = (
-        a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        d.UNSAFE
+        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
     internal = dict(
@@ -287,7 +299,7 @@ async def render_error(
             player=player,
             session=session,
             show2path=show2path,
-            _uproot_testing=(is_admin or (session is not None and session.testing)),
+            _uproot_testing=session is not None and (is_admin or session.testing),
         )
     )
 
@@ -429,8 +441,13 @@ def type_filter(x: Any) -> str:
     return str(type(x))
 
 
-def tojson_filter(x: Any) -> str:
-    return Markup(orjson.dumps(x).decode("utf-8"))
+def tojson_filter(x: Any, indent: Optional[int] = None) -> str:
+    option = orjson.OPT_INDENT_2 if indent else 0
+    json_str = orjson.dumps(x, option=option).decode("utf-8")
+    # Escape </ to prevent breaking out of <script> or <textarea> tags
+    # in HTML contexts. The \/ is valid JSON (RFC 8259) and decodes correctly.
+    json_str = json_str.replace("</", r"<\/")
+    return Markup(json_str)  # nosec B704 - XSS protection via </ escaping above
 
 
 def fmtnum_filter(

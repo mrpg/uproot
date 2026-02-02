@@ -13,21 +13,29 @@ Dashboard
 {% block main %}
 
 <div class="row">
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-xl-6">
         <h3 class="mb-3">
             {% translate %}
             Rooms
             {% endtranslate %}
         </h3>
+        {% if not deployment.PUBLIC_DEMO %}
         <div class="col mb-4" id="rooms-container"></div>
+        {% else %}
+        {% include "PublicDemo.html" %}
+        {% endif %}
     </div>
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-xl-6">
         <h3 class="mb-3">
             {% translate %}
             Active sessions
             {% endtranslate %}
         </h3>
+        {% if not deployment.PUBLIC_DEMO %}
         <div class="col mb-4" id="sessions-container"></div>
+        {% else %}
+        {% include "PublicDemo.html" %}
+        {% endif %}
     </div>
 </div>
 

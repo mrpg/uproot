@@ -318,9 +318,12 @@ def Model(sname: Sessionname, mname: str) -> Storage:
 
 def virtual_group(
     storage: Storage,
-) -> Storage | Callable[[str | GroupIdentifier], Storage]:
+) -> Storage | Callable[[str | GroupIdentifier], Storage] | None:
     if storage.__namespace__[0] == "player":
-        return cast(Storage, storage._uproot_group())
+        if storage._uproot_group is None:
+            return None
+        else:
+            return cast(Storage, storage._uproot_group())
     elif storage.__namespace__[0] == "session":
 
         def grabber(glike: str | GroupIdentifier) -> Storage:

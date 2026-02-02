@@ -25,7 +25,7 @@
                         <span class="fw-bold"
                             title="{{ values[0].time | unixtime2datetime(True) }} @ {{ values[0].context }}">
                             {% else %}
-                            <span class="text-muted"
+                            <span class="text-secondary"
                                 title="{{ values[0].time | unixtime2datetime(True) }} @ {{ values[0].context }}">
                                 {% endif %}
                                 {{ values[0].time | unixtime2datetime() }}
@@ -35,7 +35,7 @@
                         {% if values | length == 1 %}
                         <span class="fw-bold" title="{{ values[0].data | type }}">
                             {% else %}
-                            <span class="text-muted" title="{{ values[0].data | type }}">
+                            <span class="text-secondary" title="{{ values[0].data | type }}">
                                 {% endif %}
                                 {{ values[0].data | repr }}
                             </span>
@@ -48,7 +48,7 @@
                         {% if loop.last %}
                         <span class="fw-bold" title="{{ entry.time | unixtime2datetime(True) }} @ {{ entry.context }}">
                             {% else %}
-                            <span class="text-muted"
+                            <span class="text-secondary"
                                 title="{{ entry.time | unixtime2datetime(True) }} @ {{ entry.context }}">
                                 {% endif %}
                                 {{ entry.time | unixtime2datetime() }}
@@ -58,7 +58,7 @@
                         {% if loop.last %}
                         <span class="fw-bold" title="{{ entry.data | type }}">
                             {% else %}
-                            <span class="text-muted" title="{{ entry.data | type }}">
+                            <span class="text-secondary" title="{{ entry.data | type }}">
                                 {% endif %}
                                 {{ entry.data | repr }}
                             </span>

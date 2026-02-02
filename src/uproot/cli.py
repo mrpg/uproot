@@ -124,11 +124,24 @@ def cli() -> None:
 @click.command(help="Run this uproot project")
 @click.option("--host", "-h", default="127.0.0.1", show_default="127.0.0.1", help="Host")
 @click.option("--port", "-p", default=8000, show_default=8000, help="Port")
+@click.option("--unsafe", default=False, is_flag=True, help="Run without admin authentication")
+@click.option("--public-demo", default=False, is_flag=True, help="Run a public demo (use with --unsafe)")
 @click.pass_context
 # fmt: on
-def run(ctx: click.Context, host: str, port: int) -> None:
+def run(
+    ctx: click.Context,
+    host: str,
+    port: int,
+    unsafe: bool,
+    public_demo: bool,
+) -> None:
+    if public_demo and not unsafe:
+        raise RuntimeError("If you use --public-demo, you MUST also use --unsafe.")
+
     d.HOST = host
     d.PORT = port
+    d.UNSAFE = unsafe
+    d.PUBLIC_DEMO = public_demo
 
     set_ulimit()
 
@@ -195,6 +208,16 @@ def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
 
 
 # fmt: off
+@click.command(help="Create new page in an app")
+@click.argument("app")
+@click.argument("page")
+@click.pass_context
+# fmt: on
+def newpage(ctx: click.Context, app: str, page: str) -> None:
+    ex.new_page(Path("."), app, page)
+
+
+# fmt: off
 @click.command(help="Download examples")
 @click.pass_context
 # fmt: on
@@ -220,6 +243,7 @@ cli.add_command(deployment)
 cli.add_command(dump)
 cli.add_command(examples)
 cli.add_command(new)
+cli.add_command(newpage)
 cli.add_command(reset)
 cli.add_command(restore)
 cli.add_command(run)

@@ -45,7 +45,7 @@
                 <td class="ps-0">
                     {{ field_.label(class_="form-label uproot-form-label") }}
                     {% if field_.description %}
-                        <small class="form-text text-muted uproot-form-description">{{ field_.description | safe }}</small>
+                        <small class="form-text text-body-secondary uproot-form-description">{{ field_.description | safe }}</small>
                     {% endif %}
                 </td>
                 {% for subfield in field_ %}
@@ -60,7 +60,10 @@
 
 
 {% macro field(field) %}
-    <div class="form-group uproot-form-group {{ field.class_wrapper | default('', true) }}">
+    {% set ADDON_START = (field.addon_start is defined and field.addon_start is not none) %}
+    {% set ADDON_END = (field.addon_end is defined and field.addon_end is not none) %}
+    {% set ADDON_PRESENT = ADDON_START or ADDON_END %}
+    <div class="uproot-form-group {{ field.class_wrapper | default('', true) }}">
         <div class="{{ error_class(field) }}">
         {% if field.type == "BooleanField" %}
             <div class="form-check">
@@ -71,7 +74,7 @@
                 {{ field(class_=" ".join(class_list)) | safe }}
                 {{ field.label(class_="form-check-label uproot-form-label") }}
                 {% if field.description %}
-                    <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                    <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
                 {% endif %}
             </div>
         {% elif field.type == "DecimalRangeField" %}
@@ -83,9 +86,17 @@
             {% if field.__module__ == "uproot.fields" and not field.anchoring %}
                 {% set _ = class_list.append("without-anchoring") %}
             {% endif %}
-            {{ field(class_=" ".join(class_list)) | safe }}
+            <div class="align-items-center d-flex">
+                {% if field.label_min != "" %}
+                    <span class="me-3 text-end">{{ field.label_min }}</span>
+                {% endif %}
+                {{ field(class_=" ".join(class_list)) | safe }}
+                {% if field.label_max != "" %}
+                    <span class="ms-3 text-start">{{ field.label_max }}</span>
+                {% endif %}
+            </div>
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "EmailField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -102,7 +113,7 @@
                 {% endif %}
             </div>
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "LikertField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -133,7 +144,7 @@
                 </tr>
             </table>
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "RadioField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -148,7 +159,25 @@
                 </div>
             {% endfor %}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
+            {% endif %}
+        {% elif field.type == "BoundedChoiceField" %}
+            {{ field.label(class_="form-label uproot-form-label") }}
+            <input type="hidden" name="{{ field.name }}" value="">
+            <div class="uproot-bounded-choice" data-bounded-min="{{ field.bounded_min }}" data-bounded-max="{{ field.bounded_max if field.bounded_max is not none else '' }}">
+            {% for subfield in field %}
+                {% set div_class_list = ["form-check"] %}
+                {% if field.render_kw and field.render_kw.get("class") %}
+                    {% set _ = div_class_list.append(field.render_kw.get("class")) %}
+                {% endif %}
+                <div class="{{ ' '.join(div_class_list) }}">
+                    <input type="checkbox" class="form-check-input" id="{{ subfield.id }}" name="{{ field.name }}" value="{{ subfield.data }}"{% if field.data and subfield.data in field.data %} checked{% endif %}>
+                    {{ subfield.label(class_="form-check-label") }}
+                </div>
+            {% endfor %}
+            </div>
+            {% if field.description %}
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "SelectField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
@@ -158,24 +187,36 @@
             {% endif %}
             {{ field(class_=" ".join(class_list)) | safe }}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "IBANField" or field.type == "StringField" or field.type == "TextAreaField" %}
             {{ field.label(class_="form-label uproot-form-label") }}
-            <div {% if field.label_floating is defined and field.label_floating is not none %}class="form-floating"{% endif %}>
-                {% set class_list = ["form-control"] %}
-                {% if field.render_kw and field.render_kw.get("class") %}
-                    {% set _ = class_list.append(field.render_kw.get("class")) %}
+            {% if ADDON_PRESENT %}
+                <div class="input-group">
+            {% endif %}
+                {% if ADDON_START %}
+                    <span class="input-group-text {{ field.class_addon_start }}">{{ field.addon_start }}</span>
                 {% endif %}
-                {% if field.label_floating is defined and field.label_floating is not none %}
-                    {{ field(class_=" ".join(class_list), placeholder="text") | safe }}
-                    <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ field.label_floating }}</label>
-                {% else %}
-                    {{ field(class_=" ".join(class_list)) | safe }}
+                {% if field.label_floating is defined and field.label_floating is not none %}<div class="form-floating">{% endif %}
+                    {% set class_list = ["form-control"] %}
+                    {% if field.render_kw and field.render_kw.get("class") %}
+                        {% set _ = class_list.append(field.render_kw.get("class")) %}
+                    {% endif %}
+                    {% if field.label_floating is defined and field.label_floating is not none %}
+                        {{ field(class_=" ".join(class_list), placeholder="text") | safe }}
+                        <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ field.label_floating }}</label>
+                    {% else %}
+                        {{ field(class_=" ".join(class_list)) | safe }}
+                    {% endif %}
+                {% if field.label_floating is defined and field.label_floating is not none %}</div>{% endif %}
+                {% if ADDON_END %}
+                    <span class="input-group-text {{ field.class_addon_end }}">{{ field.addon_end }}</span>
                 {% endif %}
-            </div>
+            {% if ADDON_PRESENT %}
+                </div>
+            {% endif %}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% else %}
             {# DateField, FileField, IntegerField, DecimalField #}
@@ -184,13 +225,25 @@
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set _ = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
-            {{ field(class_=" ".join(class_list)) | safe }}
+            {% if ADDON_PRESENT %}
+                <div class="input-group">
+            {% endif %}
+                {% if ADDON_START %}
+                    <span class="input-group-text {{ field.class_addon_start }}">{{ field.addon_start }}</span>
+                {% endif %}
+                {{ field(class_=" ".join(class_list)) | safe }}
+                {% if ADDON_END %}
+                    <span class="input-group-text {{ field.class_addon_end }}">{{ field.addon_end }}</span>
+                {% endif %}
+            {% if ADDON_PRESENT %}
+                </div>
+            {% endif %}
             {% if field.description %}
-                <small class="form-text text-muted uproot-form-description">{{ field.description | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% endif %}
         {{ error(field) }}
-    </div>
+        </div>
     </div>
 {% endmacro %}
 
@@ -204,8 +257,8 @@
 
 {% macro errors() %}
     {% for field_ in form %}
-        <div class="form-group uproot-form-group {{ error_class(field_) }}">
-        {{ error(field_) }}
+        <div class="uproot-form-group {{ error_class(field_) }}">
+            {{ error(field_) }}
         </div>
     {% endfor %}
 {% endmacro %}

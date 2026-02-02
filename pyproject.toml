@@ -14,21 +14,21 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "aiohttp==3.13.2",
+    "aiohttp==3.13.3",
     "click==8.3.1",
-    "fastapi==0.124.0",
+    "fastapi==0.128.0",
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
     "msgpack==1.1.2",
     "orjson==3.11.5",
     "pydantic==2.12.5",
     "strictyaml==1.7.3",
-    "python-multipart==0.0.20",
+    "python-multipart==0.0.22",
     "setproctitle==1.3.7",
     "sortedcontainers==2.4.0",
     "uvicorn==0.40.0",
     "watchdog==6.0.0",
-    "websockets==15.0.1",
+    "websockets==16.0",
     "wtforms==3.2.1",
 ]
 
@@ -80,26 +80,22 @@ pg = [
     "psycopg-pool==3.3.0",
 ]
 dev = [
-    "bandit==1.8.1",
-    "black==25.12.0",
+    "bandit==1.9.3",
+    "black==26.1.0",
     "deptry==0.24.0",
     "isort==7.0.0",
     "mypy==1.19.1",
-    "pip-audit==2.9.0",
-    "pip-tools==7.4.1",
-    "pre-commit==4.0.1",
-    "pytest==9.0.1",
+    "pip-audit==2.10.0",
+    "pip-tools==7.5.2",
+    "pre-commit==4.5.1",
+    "pytest==9.0.2",
     "pytest-asyncio==1.3.0",
     "pytest-cov==7.0.0",
     "radon==6.0.1",
-    "ruff==0.14.2",
-    "semgrep==1.104.0",
-]
-docs = [
-    "mkdocs-material==9.7.0"
+    "ruff==0.14.14",
 ]
 iban = [
-    "schwifty==2025.9.0"
+    "schwifty==2026.1.0"
 ]
 
 [tool.mypy]
@@ -150,13 +146,11 @@ DEP002 = [
     "pytest-cov",
     "radon",
     "ruff",
-    "semgrep",
     # Runtime dependencies not directly imported
     "python-multipart",  # Required by FastAPI for form data
     "websockets",  # Required for WebSocket support
     # Optional/docs dependencies
     "psycopg",
-    "mkdocs-material",
 ]
 DEP003 = [
     "uproot",  # Internal package imports

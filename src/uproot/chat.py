@@ -31,6 +31,10 @@ def show_msg(
 ) -> dict[str, Any]:
     pseudonyms = um.get_field(chat, "pseudonyms")
 
+    # Initialize variables to satisfy static analysis
+    joined_pid = ""
+    anonymized = ""
+
     if msg.sender is not None:
         joined_pid = str(msg.sender)
         anonymized = pseudonyms.get(joined_pid, anonymize(joined_pid))

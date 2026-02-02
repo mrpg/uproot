@@ -47,8 +47,8 @@ class TranslateLoader(BaseLoader):
         source, filename, uptodate = self.base_loader.get_source(environment, template)
 
         def replace_translate_block(mtch: re.Match[str]) -> str:
-            content = dedent(mtch.group(1))
-            content = mtch.group(1).strip()
+            # Dedent and strip the content from the match
+            content = dedent(mtch.group(1)).strip()
 
             return compile_translate_block(content)
 

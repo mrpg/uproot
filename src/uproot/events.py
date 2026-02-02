@@ -28,3 +28,7 @@ def set_fieldchange(
 
 def set_room(roomname: str) -> None:
     ROOMS[roomname].set()
+
+
+def clear_room(roomname: str) -> None:
+    ROOMS[roomname].clear()

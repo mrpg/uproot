@@ -268,8 +268,7 @@ class PostgreSQL(DBDriver):
                 cur.execute(
                     f"DROP TABLE IF EXISTS uproot{self.tblextra}_values CASCADE"
                 )
-                cur.execute(
-                    f"""
+                cur.execute(f"""
                     CREATE TABLE uproot{self.tblextra}_values (
                         id BIGSERIAL PRIMARY KEY,
                         namespace TEXT NOT NULL,
@@ -278,8 +277,7 @@ class PostgreSQL(DBDriver):
                         created_at DOUBLE PRECISION NOT NULL,
                         context TEXT NOT NULL
                     )
-                    """
-                )
+                    """)
                 # Create unique index for efficient upserts on players field in session namespaces
                 cur.execute(
                     f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players' AND namespace LIKE 'session/%'"
@@ -542,8 +540,7 @@ class Sqlite3(DBDriver):
 
             conn = self._get_connection()
             conn.execute(f"DROP TABLE IF EXISTS uproot{self.tblextra}_values")
-            conn.execute(
-                f"""
+            conn.execute(f"""
                 CREATE TABLE uproot{self.tblextra}_values (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     namespace TEXT NOT NULL,
@@ -552,8 +549,7 @@ class Sqlite3(DBDriver):
                     created_at REAL NOT NULL,
                     context TEXT NOT NULL
                 )
-                """
-            )
+                """)
             # Create unique index for efficient upserts on players field in session namespaces
             conn.execute(
                 f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players' AND namespace LIKE 'session/%'"

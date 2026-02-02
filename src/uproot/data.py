@@ -146,7 +146,7 @@ def latest(
 
         # Build state evolution and track all seen combinations
         current_state: dict[str, dict[str, Any]] = {}
-        seen_combinations: dict[tuple[Any, ...], dict[str, Any]] = {}
+        seen_combinations: dict[str, dict[str, Any]] = {}
 
         for change in changes:
             field = change["!field"]
@@ -171,7 +171,7 @@ def latest(
 
                 if all_fields_valid:
                     # Create snapshot of current state
-                    combination_key = tuple(combination_values)
+                    combination_key = repr(tuple(combination_values))
                     state_snapshot = {"!storage": storage, "!time": change["!time"]}
 
                     for f, field_state in current_state.items():
@@ -200,7 +200,7 @@ def latest(
                     if not field_state["unavailable"]:
                         state_snapshot[f] = field_state["data"]
 
-                seen_combinations[()] = state_snapshot
+                seen_combinations[""] = state_snapshot
 
         # Yield all tracked combinations
         for state in seen_combinations.values():
@@ -211,10 +211,10 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     rows = list(rows)
 
     buffer = StringIO()
-    csvfields: set[str] = set()
+    csvfields: dict[str, None] = dict()
 
     for row in rows:
-        csvfields.update(row.keys())
+        csvfields.update(dict.fromkeys(row.keys()))
 
     dw = pycsv.DictWriter(buffer, fieldnames=csvfields)
     dw.writeheader()

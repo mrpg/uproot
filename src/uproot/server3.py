@@ -7,6 +7,7 @@ This file implements room routes.
 
 import asyncio
 from typing import Any, Optional, cast
+from urllib.parse import quote
 
 import orjson
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
@@ -21,6 +22,7 @@ import uproot.types as t
 from uproot.constraints import ensure, valid_token
 from uproot.pages import path2page, render
 from uproot.storage import Admin, Player, Session
+from uproot.utils import safe_redirect
 
 router = APIRouter(prefix=d.ROOT)
 
@@ -59,9 +61,10 @@ async def roommain(
                     ),
                 )
             elif not ur.validate(room, label) and not bad:
-                return RedirectResponse(
-                    f"{d.ROOT}/room/{roomname}/?bad=1", status_code=303
+                redirect_url = safe_redirect(
+                    f"{d.ROOT}/room/{quote(roomname, safe='')}/?bad=1"
                 )
+                return RedirectResponse(redirect_url, status_code=303)
             elif bad:
                 return HTMLResponse(
                     await render(
@@ -97,7 +100,11 @@ async def roommain(
 
         if room["sname"] is None:
             # TODO: move this elsewhere entirely
-            sid = c.create_session(admin, room["config"])
+            sid = c.create_session(
+                admin,
+                room["config"],
+                settings=u.CONFIGS_EXTRA.get(room["config"], {}).get("settings", {}),
+            )
             room["sname"] = sid.sname
             c.finalize_session(sid)  # This seems fine?!
             new_session = True
@@ -283,6 +290,7 @@ async def ws(
             except Exception as exc:
                 raise exc
 
-            # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-            tasks[new_task] = (fname, factory)
+            # Re-add new instance of the same task (except one-shot tasks)
+            if fname != "subscribe_to_room":
+                new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+                tasks[new_task] = (fname, factory)

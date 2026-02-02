@@ -2,9 +2,19 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import argparse
+import asyncio
+import os
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
+
+import aiohttp
+import orjson
+
+
+def is_uv() -> bool:
+    """Detect if we're running under uv."""
+    return "UV_VIRTUAL_ENV" in os.environ or "UV" in os.environ
 
 
 def forward(args: list[str], command: Optional[str] = None) -> None:
@@ -41,6 +51,7 @@ def show_help() -> None:
     print()
     print("Commands:")
     print("  setup        Create a new uproot project")
+    print("  api          Access the Admin REST API")
     print()
     print("Project commands (require main.py in current directory):")
     print("  run          Run this uproot project")
@@ -75,16 +86,82 @@ def setup_command(
             else:
                 ex.new_prisoners_dilemma(path_)
 
+        run_prefix = "uv run " if is_uv() else ""
+
         print("📂 A new project has been created in '" + path + "'.")
         print("✅ 'main.py' and some other files have been written.")
         print("🚶 Go to the new project directory by running")
         print("\tcd " + path)
         print("📖 Get started by reading 'main.py'.")
         print("🚀 Then you may run this project using")
-        print("\tuproot run")
+        print("\t" + run_prefix + "uproot run")
         print("📰 The following command provides additional information:")
-        print("\tuproot --help")
+        print("\t" + run_prefix + "uproot --help")
         print("🤯 Help, docs & code can be found at https://uproot.science/")
+
+
+async def api_request(
+    base_url: str,
+    version: int,
+    auth: str,
+    method: str,
+    endpoint: str,
+    data: Optional[dict[str, Any]] = None,
+) -> tuple[int, Any]:
+    """Make an API request to the admin API."""
+    base_url = base_url.rstrip("/")
+    endpoint = endpoint.strip("/")
+    url = f"{base_url}/admin/api/v{version}/{endpoint}/"
+    headers = {
+        "Authorization": f"Bearer {auth}",
+        "User-Agent": "uproot-cli",
+    }
+
+    async with aiohttp.ClientSession() as session:
+        kwargs: dict[str, Any] = {"headers": headers}
+        if data is not None:
+            kwargs["json"] = data
+
+        async with session.request(method, url, **kwargs) as response:
+            try:
+                result = await response.json()
+            except aiohttp.ContentTypeError:
+                result = await response.text()
+            return response.status, result
+
+
+def api_command(
+    url: str,
+    version: int,
+    auth: str,
+    method: str,
+    data: Optional[str],
+    endpoint: str,
+) -> None:
+    """Access the Admin REST API."""
+    parsed_data = None
+    if data:
+        try:
+            parsed_data = orjson.loads(data)
+        except orjson.JSONDecodeError as e:
+            print(f"Error: Invalid JSON data: {e}", file=sys.stderr)
+            sys.exit(1)
+
+    try:
+        status, result = asyncio.run(
+            api_request(url, version, auth, method.upper(), endpoint, parsed_data)
+        )
+    except aiohttp.ClientError as e:
+        print(f"Error: Connection failed: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if isinstance(result, dict) or isinstance(result, list):
+        print(orjson.dumps(result, option=orjson.OPT_INDENT_2).decode())
+    else:
+        print(result)
+
+    if status >= 400:
+        sys.exit(1)
 
 
 def main() -> None:
@@ -100,7 +177,16 @@ def main() -> None:
         print("Use --help for more options")
         return
 
-    cmds = ["deployment", "dump", "examples", "new", "reset", "restore", "run"]
+    cmds = [
+        "deployment",
+        "dump",
+        "examples",
+        "new",
+        "newpage",
+        "reset",
+        "restore",
+        "run",
+    ]
 
     parser = argparse.ArgumentParser(prog="uproot", add_help=False)
     parser.add_argument(
@@ -123,6 +209,49 @@ def main() -> None:
         "--no-example", action="store_true", help="Don't create example app."
     )
 
+    api_parser = subparsers.add_parser(
+        "api",
+        help="Access the Admin REST API",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Access the Admin REST API.",
+        epilog="""\
+Examples:
+  uproot api sessions                          # List sessions
+  uproot api sessions/mysession                # Get session details
+  uproot api rooms                             # List rooms
+  uproot api configs                           # List configurations
+  uproot api sessions/mysession/players        # Get players
+  uproot api sessions/mysession/players/online # Get online players
+
+  uproot api -X POST sessions -d '{"config":"myconfig","n_players":4}'
+  uproot api -X PATCH sessions/mysession/active
+  uproot api -X POST sessions/mysession/players/advance -d '{"unames":["ABC"]}'
+
+For HTTPS or non-default servers:
+  uproot api -u https://example.com/ sessions
+  uproot api -u https://example.com/mysubdir/ sessions
+""",
+    )
+    api_parser.add_argument(
+        "--url",
+        "-u",
+        default="http://127.0.0.1:8000/",
+        help="Server base URL (default: http://127.0.0.1:8000/)",
+    )
+    api_parser.add_argument(
+        "--auth",
+        "-a",
+        default=os.environ.get("UPROOT_API_KEY"),
+        help="Bearer token (or set UPROOT_API_KEY)",
+    )
+    api_parser.add_argument(
+        "--method", "-X", default="GET", help="HTTP method (default: GET)"
+    )
+    api_parser.add_argument(
+        "--data", "-d", default=None, help="JSON data for request body"
+    )
+    api_parser.add_argument("endpoint", help="API endpoint")
+
     for cmd in cmds:
         subparsers.add_parser(cmd, add_help=False)
 
@@ -136,6 +265,20 @@ def main() -> None:
         show_help()
     elif args.command == "setup":
         setup_command(args.path, args.force, args.no_example, args.minimal)
+    elif args.command == "api":
+        if not args.auth:
+            print(
+                "Error: --auth/-a is required (or set UPROOT_API_KEY)", file=sys.stderr
+            )
+            sys.exit(1)
+        api_command(
+            args.url,
+            1,
+            args.auth,
+            args.method,
+            args.data,
+            args.endpoint,
+        )
     elif args.command in cmds:
         forward(unknown, args.command)
     else:

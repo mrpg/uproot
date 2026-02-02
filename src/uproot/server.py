@@ -10,6 +10,7 @@ from typing import (
     Callable,
     Coroutine,
     Never,
+    Optional,
     cast,
 )
 
@@ -29,6 +30,7 @@ from uproot.pages import app_or_default, page2path
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
+from uproot.server4 import router as router4
 from uproot.storage import Admin, Storage
 from uproot.types import InternalPage, Page, ensure_awaitable, optional_call
 
@@ -63,37 +65,56 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     else:
         d.LOGGER.info(f"There are {la} admins")
 
-    for user, pw in d.ADMINS.items():
-        if isinstance(pw, str) and len(pw) < MIN_PASSWORD_LENGTH:
-            d.LOGGER.error(
-                f"Password for admin '{user}' is shorter than "
-                f"the minimum length ({MIN_PASSWORD_LENGTH})"
+    if d.UNSAFE:
+        print(file=stderr)
+
+        if not d.PUBLIC_DEMO:
+            print(
+                "!!! You are using unsafe mode. Only ever do so on localhost.",
+                file=stderr,
             )
 
-    if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
-        d.ensure_login_token()
-
-        print(file=stderr)
         print(
-            "You can securely log in through the URL below because you are using the\n"
-            "default administrator ('admin') with an empty password (...). If you add\n"
-            "more administrators, change admin's username or set a password, this\n"
-            "message will no longer appear.",
+            "Admin area:\n\t",
+            f"{d.ORIGIN}{d.ROOT}/admin/",
             file=stderr,
         )
         print(file=stderr)
+    else:
+        for user, pw in d.ADMINS.items():
+            if isinstance(pw, str):
+                pw_length = len(pw)
+                # Clear password from memory before logging to prevent accidental leakage
+                pw = None  # type: ignore
+                if pw_length < MIN_PASSWORD_LENGTH:
+                    # Only logging non-sensitive metadata (length), not the actual password
+                    d.LOGGER.error(
+                        f"Password for admin {user!r} is shorter than "
+                        f"the minimum length ({MIN_PASSWORD_LENGTH}): got {pw_length}"
+                    )
 
-        print(
-            "Auto login:\n\t",
-            f"{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
-            file=stderr,
-        )
+        if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
+            d.ensure_login_token()
 
-        print(file=stderr)
+            print(file=stderr)
+            print(
+                "You can securely log in through the URL below because you are using the\n"
+                "default administrator ('admin') with an empty password (...). If you add\n"
+                "more administrators, change admin's username or set a password, this\n"
+                "message will no longer appear.",
+                file=stderr,
+            )
+            print(file=stderr)
+
+            print(
+                "Auto login:\n\t",
+                f"{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
+                file=stderr,
+            )
+
+            print(file=stderr)
 
     tasks = []
-
-    u.APPS.start_watching()
 
     for gj in j.GLOBAL_JOBS:
         tasks.append(
@@ -102,10 +123,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
             )
         )
 
-    for uapp in u.APPS.modules:
-        uapp = u.APPS[uapp]
+    if hasattr(u, "APPS"):
+        u.APPS.start_watching()
 
-        await ensure_awaitable(optional_call, uapp, "restart")  # Thanks, Mia!
+        for uapp in u.APPS.modules:
+            uapp = u.APPS[uapp]
+
+            await ensure_awaitable(optional_call, uapp, "restart")  # Thanks, Mia!
 
     await d.lifespan_start(app, tasks)
 
@@ -118,7 +142,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     for t_ in tasks:
         t_.cancel()
 
-    u.APPS.stop_watching()
+    if hasattr(u, "APPS"):
+        u.APPS.stop_watching()
 
     await asyncio.gather(*tasks)
 
@@ -137,6 +162,7 @@ uproot_server.add_middleware(
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)
 uproot_server.include_router(router3)
+uproot_server.include_router(router4)
 
 
 @uproot_server.get("/favicon.ico")
@@ -238,7 +264,9 @@ def load_config(
     server: FastAPI,
     config: str,
     apps: list[str],
-    multiple_of: int = 1,
+    *,
+    multiple_of: int = 1,  # TODO: Rename
+    settings: Optional[dict[str, Any]] = None,
 ) -> None:
     ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
 
@@ -249,6 +277,7 @@ def load_config(
     u.CONFIGS_PPATHS[config] = list()
     u.CONFIGS_EXTRA[config] = dict(
         multiple_of=multiple_of,
+        settings=settings or {},
     )
 
     for appname in apps:

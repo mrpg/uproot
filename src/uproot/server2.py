@@ -13,6 +13,7 @@ import os
 import sys
 from time import perf_counter as now
 from typing import Any, Optional, cast
+from urllib.parse import quote
 
 import orjson
 from fastapi import (
@@ -42,7 +43,6 @@ import uproot as u
 import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
-import uproot.events as e
 import uproot.i18n as i18n
 import uproot.jobs as j
 import uproot.rooms as r
@@ -53,9 +53,9 @@ from uproot.pages import ENV as PENV
 from uproot.pages import static_factory, to_filter, tojson_filter
 from uproot.storage import Admin, Session
 from uproot.types import ensure_awaitable
+from uproot.utils import safe_redirect
 
 # General settings
-
 
 router = APIRouter(prefix=f"{d.ROOT}/admin")
 
@@ -104,11 +104,13 @@ async def render(
         context
         | BUILTINS
         | dict(
+            deployment=d,
             internalstatic=static_factory(),
-            _uproot_js=context,
-            _uproot_internal=context,
-            _uproot_errors=None,
             JSON_TERMS=i18n.json(d.LANGUAGE),
+            _=lambda s: i18n.lookup(s, d.LANGUAGE),
+            _uproot_errors=None,
+            _uproot_internal=context,
+            _uproot_js=context,
         )
     )
 
@@ -121,6 +123,9 @@ async def render(
 
 
 async def auth_required(request: Request) -> dict[str, Any]:
+    if d.UNSAFE:
+        return dict()
+
     uauth = request.cookies.get("uauth")
     if not uauth:
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
@@ -149,12 +154,13 @@ async def home(
 
 @router.websocket("/ws/")
 async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
-    if uauth is None:
-        raise HTTPException(status_code=403, detail="No authentication token")
+    if not d.UNSAFE:
+        if uauth is None:
+            raise HTTPException(status_code=403, detail="No authentication token")
 
-    data = a.from_cookie(uauth)
-    if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
-        raise HTTPException(status_code=403, detail="Invalid authentication token")
+        data = a.from_cookie(uauth)
+        if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
+            raise HTTPException(status_code=403, detail="Invalid authentication token")
 
     await websocket.accept()
 
@@ -270,7 +276,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                 p.id,
                                 p.page_order,
                                 p.show_page,
-                            )  # TODO: Remove monkeypatch
+                            )
                     else:
                         info = (0, [""], 0)
 
@@ -326,7 +332,13 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 async def login_get(
     request: Request,
     bad: Optional[bool] = False,
-) -> HTMLResponse:
+) -> Response:
+    try:
+        await auth_required(request)
+        return RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
+    except HTTPException:
+        pass
+
     response = HTMLResponse(await render("Login.html", dict(bad=bad)))
 
     if bad:
@@ -369,7 +381,9 @@ async def login_post(
                     auth_token,
                     x_forwarded_proto.lower() == "https"
                     or not (
-                        host.startswith("localhost") or host.startswith("127.0.0.")
+                        host.startswith("localhost")
+                        or host.startswith("127.0.0.")
+                        or ".onion" in host
                     ),  # Safari really sucks
                 )
                 return response
@@ -383,7 +397,9 @@ async def login_post(
             auth_token,
             x_forwarded_proto.lower() == "https"
             or not (
-                host.startswith("localhost") or host.startswith("127.0.0.")
+                host.startswith("localhost")
+                or host.startswith("127.0.0.")
+                or ".onion" in host
             ),  # Safari really sucks
         )
         return response
@@ -500,19 +516,20 @@ async def new_room(
 async def new_room2(
     request: Request,
     name: str = Form(),
-    use_config: Optional[bool] = Form(False),
-    config: Optional[str] = Form(""),
-    use_labels: Optional[bool] = Form(False),
-    labels: Optional[str] = Form(""),
-    use_capacity: Optional[bool] = Form(False),
-    capacity: Optional[int] = Form(1),
-    use_session: Optional[bool] = Form(False),
-    sname: Optional[str] = Form(""),
+    config: str = Form(""),
+    labels: str = Form(""),
+    capacity: str = Form(""),
+    sname: str = Form(""),
     open: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    if sname:
-        a.session_exists(sname)
+    config_ = config.strip() or None
+    sname_ = sname.strip() or None
+    capacity_ = int(capacity) if capacity.strip() else None
+    labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
+
+    if sname_:
+        a.session_exists(sname_)
 
     with Admin() as admin:
         if name in admin.rooms:
@@ -520,22 +537,19 @@ async def new_room2(
 
         admin.rooms[name] = r.room(
             name=name,
-            config=(config if use_config else None),
-            labels=(
-                [a.strip() for a in labels.split("\n") if a.strip()]
-                if labels
-                else [] if use_labels else None
-            ),
-            capacity=(capacity if use_capacity else None),
+            config=config_,
+            labels=labels_list,
+            capacity=capacity_,
             open=bool(open),
-            sname=(sname if use_session and sname and sname.strip() else None),
+            sname=sname_,
         )
 
-    if sname:
-        with Session(sname) as session:
+    if sname_:
+        with Session(sname_) as session:
             session.room = name
 
-    return RedirectResponse(f"{d.ROOT}/admin/room/{name}/", status_code=303)
+    redirect_url = safe_redirect(f"{d.ROOT}/admin/room/{quote(name, safe='')}/")
+    return RedirectResponse(redirect_url, status_code=303)
 
 
 # Particular room
@@ -557,6 +571,7 @@ async def roommain(
                     roomname=roomname,
                     room=admin.rooms[roomname],
                     configs=a.configs(),
+                    configs_extra=u.CONFIGS_EXTRA,
                 )
                 | await a.info_online(f"^{roomname}"),
             )
@@ -570,14 +585,21 @@ async def new_session_in_room(
     config: str = Form(),
     assignees: str = Form(),
     nplayers: int = Form(),
-    automatic_sname: Optional[bool] = Form(False),
-    automatic_unames: Optional[bool] = Form(False),
-    sname: Optional[str] = Form(""),
-    unames: Optional[str] = Form(""),
+    settings: str = Form(""),
+    sname: str = Form(""),
+    unames: str = Form(""),
     nogrow: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.room_exists(roomname)
+
+    sname_ = sname.strip() or None
+    unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
+    settings_parsed = (
+        orjson.loads(settings)
+        if settings.strip()
+        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
+    )
 
     if assignees:
         assignees_list = sorted(orjson.loads(assignees))
@@ -611,7 +633,8 @@ async def new_session_in_room(
         sid = c.create_session(
             admin,
             config,
-            sname=(None if automatic_sname else sname),
+            sname=sname_,
+            settings=settings_parsed,
         )
 
         admin.rooms[roomname]["sname"] = sid.sname
@@ -626,19 +649,51 @@ async def new_session_in_room(
         c.create_players(
             session,
             n=nplayers,
-            unames=(
-                None
-                if automatic_unames or unames is None
-                else [a.strip() for a in unames.split("\n")]
-            ),
+            unames=unames_list,
             data=data,
         )
 
     c.finalize_session(sid)
 
-    e.set_room(roomname)
+    r.start(roomname)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
+
+
+@router.post("/room/{roomname}/settings/")
+async def update_room_settings(
+    request: Request,
+    roomname: str,
+    config: str = Form(""),
+    labels: str = Form(""),
+    capacity: str = Form(""),
+    open: Optional[bool] = Form(False),
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.room_exists(roomname)
+
+    config_ = config.strip() or None
+    capacity_ = int(capacity) if capacity.strip() else None
+    labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
+
+    with Admin() as admin:
+        ensure(
+            admin.rooms[roomname]["sname"] is None,
+            RuntimeError,
+            "Cannot edit room settings while a session is associated",
+        )
+
+        admin.rooms[roomname] = r.room(
+            name=roomname,
+            config=config_,
+            labels=labels_list,
+            capacity=capacity_,
+            open=bool(open),
+            sname=None,
+        )
+
+    redirect_url = safe_redirect(f"{d.ROOT}/admin/room/{quote(roomname, safe='')}/")
+    return RedirectResponse(redirect_url, status_code=303)
 
 
 # Sessions
@@ -670,7 +725,15 @@ async def new_session(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    return HTMLResponse(await render("SessionsNew.html", dict(configs=a.configs())))
+    return HTMLResponse(
+        await render(
+            "SessionsNew.html",
+            dict(
+                configs=a.configs(),
+                configs_extra=u.CONFIGS_EXTRA,
+            ),
+        )
+    )
 
 
 @router.post("/sessions/new/")
@@ -678,28 +741,32 @@ async def new_session2(
     request: Request,
     config: str = Form(),
     nplayers: int = Form(),
-    automatic_sname: Optional[bool] = Form(False),
-    automatic_unames: Optional[bool] = Form(False),
-    sname: Optional[str] = Form(""),
-    unames: Optional[str] = Form(""),
+    settings: str = Form(""),
+    sname: str = Form(""),
+    unames: str = Form(""),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
+    sname_ = sname.strip() or None
+    unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
+    settings_parsed = (
+        orjson.loads(settings)
+        if settings.strip()
+        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
+    )
+
     with Admin() as admin:
         sid = c.create_session(
             admin,
             config,
-            sname=(None if automatic_sname else sname),
+            sname=sname_,
+            settings=settings_parsed,
         )
 
     with sid() as session:
         c.create_players(
             session,
             n=nplayers,
-            unames=(
-                None
-                if automatic_unames or unames is None
-                else [a.strip() for a in unames.split("\n")]
-            ),
+            unames=unames_list,
         )
 
     c.finalize_session(sid)
@@ -737,6 +804,21 @@ async def session_data(
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(await render("SessionData.html", dict(sname=sname)))
+
+
+# Particular session: page times
+@router.get("/session/{sname}/page-times/")
+async def session_page_times(
+    request: Request,
+    sname: t.Sessionname,
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.session_exists(sname)
+    return Response(
+        a.page_times(sname),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={sname}-page-times.csv"},
+    )
 
 
 # Particular session: digest
@@ -790,7 +872,7 @@ async def session_digest(
                 )
             )
 
-            html[appname] = Markup(
+            html[appname] = Markup(  # nosec B704 - trusted template output
                 await PENV.get_template(str(digest_template)).render_async(**context)
             )
 
@@ -816,7 +898,8 @@ async def session_data_download(
         t0 = now()
         csv = a.generate_csv(sname, format, gvar, filters)
 
-        d.LOGGER.debug(f"generate_csv('{sname}', ...) took {(now()-t0):5f} seconds")
+        # Sanitize session name to prevent log injection
+        d.LOGGER.debug(f"generate_csv({sname!r}, ...) took {(now()-t0):5f} seconds")
 
         return Response(
             csv,
@@ -828,7 +911,7 @@ async def session_data_download(
 
         return StreamingResponse(
             a.generate_json(sname, format, gvar, filters),
-            media_type="text/json",
+            media_type="application/json",
             headers={"Content-Disposition": f"attachment; filename={sname}.json"},
         )
     else:
@@ -860,11 +943,11 @@ async def session_multiview(
         unames = []
 
         for i, pid in enumerate(session.players):
-            player = pid()
-            ensure(player.id == i)
+            with pid() as player:
+                ensure(player.id == i)
 
-            unames.append(player.name)
-            labels.append(player.label)
+                unames.append(player.name)
+                labels.append(player.label)
 
         return HTMLResponse(
             await render(
@@ -900,29 +983,36 @@ async def status(
 
     sessions = a.get_active_auth_sessions()
 
-    return HTMLResponse(
-        await render(
-            "Status.html",
-            dict(
-                dbsize=dbsize,
-                missing=missing,
-                sessions=sessions,
-                versions=dict(
-                    uproot=u.__version__,
-                    python=sys.version,
+    if not d.PUBLIC_DEMO:
+        return HTMLResponse(
+            await render(
+                "Status.html",
+                dict(
+                    dbsize=dbsize,
+                    missing=missing,
+                    sessions=sessions,
+                    versions=dict(
+                        uproot=u.__version__,
+                        python=sys.version,
+                    ),
                 ),
-            ),
-            dict(
-                deployment=d,
-                packages=SortedDict(
-                    {
-                        dist.metadata["name"]: dist.version
-                        for dist in importlib.metadata.distributions()
-                    }
-                ).items(),
+                dict(
+                    packages=SortedDict(
+                        {
+                            dist.metadata["name"]: dist.version
+                            for dist in importlib.metadata.distributions()
+                        }
+                    ).items(),
+                    environ=SortedDict(os.environ),
+                ),
+            )
+        )
+    else:
+        return HTMLResponse(
+            await render(
+                "Status.html",
             ),
         )
-    )
 
 
 @router.get("/status/logout-all/")
@@ -970,18 +1060,6 @@ async def dummy(
     return PlainTextResponse("Ecce, præceptor œconomiae!")
 
 
-# Admin API endpoint (for future use)
-
-
-@router.get("/api/")
-@router.post("/api/")
-async def admin_api(
-    request: Request,
-    bauth: None = Depends(a.require_bearer_token),
-) -> None:
-    raise NotImplementedError
-
-
 # Functions
 
 
@@ -989,6 +1067,7 @@ FUNS = dict(
     adminmessage=a.adminmessage,
     advance_by_one=a.advance_by_one,
     announcements=a.announcements,
+    delete_room=a.delete_room,
     disassociate=a.disassociate,
     everything_from_session_display=a.everything_from_session_display,
     fields_from_all=a.fields_from_all,
@@ -997,7 +1076,9 @@ FUNS = dict(
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,
     put_to_end=a.put_to_end,
+    redirect=a.redirect,
     reload=a.reload,
     revert_by_one=a.revert_by_one,
     update_description=a.update_description,
+    update_settings=a.update_settings,
 )

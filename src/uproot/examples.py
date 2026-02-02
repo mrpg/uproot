@@ -15,6 +15,19 @@ from uproot.constraints import ensure
 
 LICENSE_PATH = Path(__file__).parent / "_static" / "uproot_license.txt"
 
+LICENSE_0BSD = """\
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+"""
+
 GITIGNORE = """
 build/
 .coverage
@@ -53,8 +66,28 @@ venv/
 *.whl
 """.lstrip()
 
+README = """\
+# uproot project
+
+This directory contains an [uproot](https://uproot.science/) project for browser-based behavioral experiments.
+
+## Run locally
+
+```bash
+uv run uproot run  # or just "uproot run"
+```
+
+Then follow the instructions from the console.
+
+## Documentation
+
+See [https://uproot.science/](https://uproot.science/) to peruse the *uproot* documentation.
+""".lstrip()
+
 PROJECT_TEMPLATE = """
 #!/usr/bin/env python
+# SPDX-License-Identifier: 0BSD
+#
 # Third-party dependencies:
 # - uproot: LGPL v3+, see ./uproot_license.txt
 import uproot.deployment as upd
@@ -94,7 +127,7 @@ if __name__ == "__main__":
 """.lstrip()
 
 MINIMAL_INIT_PY = """
-# Copyright (c) 2025 [Insert Your Name Here] - MIT License
+# SPDX-License-Identifier: 0BSD
 #
 # Third-party dependencies:
 # - uproot: LGPL v3+, see ../uproot_license.txt
@@ -138,7 +171,7 @@ First page
 """.lstrip()
 
 PD_INIT_PY = """
-# Copyright (c) 2025 [Insert Your Name Here] - MIT License
+# SPDX-License-Identifier: 0BSD
 #
 # Third-party dependencies:
 # - uproot: LGPL v3+, see ../uproot_license.txt
@@ -250,38 +283,50 @@ Results
 {% endblock main %}
 """.lstrip()
 
+PAGE_TEMPLATE_HTML = """
+{% extends "Base.html" %}
+
+{% block title %}
+#PAGENAME#
+{% endblock title %}
+
+
+{% block main %}
+
+{{ fields() }}
+
+{% endblock main %}
+""".lstrip()
+
+PAGE_TEMPLATE_PY = """
+
+class #PAGENAME#(Page):
+    fields = dict(
+        # Add your fields here
+    )
+"""
+
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
 PYTHON_VERSION = "3.13\n"
 
-APP_JSON = """{
-  "name": "Uproot Project",
-  "description": "An uproot-based web application for behavioral science experiments",
-  "keywords": ["python", "uproot", "experimental-economics", "behavioral-science"],
-  "buildpacks": [
-    {
-      "url": "heroku/python"
-    }
-  ],
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "basic"
-    }
-  },
-  "addons": [
-    {
-      "plan": "heroku-postgresql:essential-0"
-    }
-  ],
-  "env": {
-    "UPROOT_ORIGIN": {
-      "description": "The public URL of your app (e.g., https://your-app-name.herokuapp.com). Auto-detected if you enable 'heroku labs:enable runtime-dyno-metadata'. Override for custom domains.",
-      "required": false
-    }
-  }
-}
-""".lstrip()
+PYPROJECT_TOML = """\
+[project]
+name = "uproot-project"
+version = "0.1.0"
+description = "An uproot-based web application for behavioral science experiments"
+readme = "README.md"
+license = "0BSD"
+requires-python = ">=3.13"
+dependencies = [
+    "uproot-science @ git+https://github.com/mrpg/uproot.git@main",
+]
+
+[project.optional-dependencies]
+pg = [
+    "uproot-science[pg] @ git+https://github.com/mrpg/uproot.git@main",
+]
+"""
 
 
 def setup_empty_project(path: Path, minimal: bool) -> None:
@@ -306,23 +351,23 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
     with open(path / ".gitignore", "w", encoding="utf-8") as rf:
         rf.write(GITIGNORE)
 
-    with open(path / "requirements.txt", "w", encoding="utf-8") as rf:
-        rf.write(
-            f"# For PostgreSQL support, instead use: uproot-science[pg]>={u.__version__}\n"
-            f"uproot-science>={u.__version__}, <{u.__version_info__[0] + 1}.0.0\n"
-        )
+    with open(path / "README.md", "w", encoding="utf-8") as rf:
+        rf.write(README)
+
+    with open(path / "pyproject.toml", "w", encoding="utf-8") as pf:
+        pf.write(PYPROJECT_TOML)
 
     shutil.copy(LICENSE_PATH, path / "uproot_license.txt")
 
-    # Heroku deployment files
+    with open(path / "LICENSE", "w", encoding="utf-8") as lf:
+        lf.write(LICENSE_0BSD)
+
+    # Deployment files
     with open(path / "Procfile", "w", encoding="utf-8") as pf:
         pf.write(PROCFILE)
 
     with open(path / ".python-version", "w", encoding="utf-8") as pv:
         pv.write(PYTHON_VERSION)
-
-    with open(path / "app.json", "w", encoding="utf-8") as aj:
-        aj.write(APP_JSON)
 
     # Initialize git repository if git is available
     if shutil.which("git") is not None:
@@ -376,3 +421,42 @@ def new_minimal_app(path: Path, app: str = "my_app") -> None:
 
     with open(appdir / "FirstPage.html", "w", encoding="utf-8") as f2:
         f2.write(FIRSTPAGE_HTML)
+
+
+def new_page(path: Path, app: str, page: str) -> None:
+    ensure(
+        page.isidentifier(),  # KEEP AS IS
+        ValueError,
+        "Pages must have valid Python identifiers as names.",
+    )
+    appdir = path / app
+
+    ensure(
+        appdir.exists() and appdir.is_dir(),
+        ValueError,
+        f"App directory '{app}' does not exist.",
+    )
+
+    # Create the HTML file
+    html_path = appdir / f"{page}.html"
+    ensure(
+        not html_path.exists(),
+        ValueError,
+        f"Page '{page}.html' already exists.",
+    )
+
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(PAGE_TEMPLATE_HTML.replace("#PAGENAME#", page))
+
+    # Try to modify __init__.py if safe
+    init_path = appdir / "__init__.py"
+    if init_path.exists():
+        try:
+            content = init_path.read_text(encoding="utf-8")
+            marker = "\n\npage_order = ["
+            if marker in content:
+                page_class = PAGE_TEMPLATE_PY.replace("#PAGENAME#", page)
+                new_content = content.replace(marker, page_class + "\n\npage_order = [")
+                init_path.write_text(new_content, encoding="utf-8")
+        except Exception:  # nosec B110
+            pass  # Fail silently if __init__.py cannot be safely modified

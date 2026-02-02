@@ -128,7 +128,7 @@ def test_comparison_greater_than():
     address = Address("123 Main St", "Springfield", "USA")
     person = Person("John", 30, address)
 
-    comp = _.age > 18
+    comp =_.age > 18
     assert comp(person) is True
 
     comp = _.age > 35
@@ -140,7 +140,7 @@ def test_comparison_greater_equal():
     address = Address("123 Main St", "Springfield", "USA")
     person = Person("John", 30, address)
 
-    comp = _.age >= 30
+    comp =_.age >= 30
     assert comp(person) is True
 
     comp = _.age >= 35
@@ -152,7 +152,7 @@ def test_comparison_less_than():
     address = Address("123 Main St", "Springfield", "USA")
     person = Person("John", 30, address)
 
-    comp = _.age < 35
+    comp =_.age < 35
     assert comp(person) is True
 
     comp = _.age < 25
@@ -164,7 +164,7 @@ def test_comparison_less_equal():
     address = Address("123 Main St", "Springfield", "USA")
     person = Person("John", 30, address)
 
-    comp = _.age <= 30
+    comp =_.age <= 30
     assert comp(person) is True
 
     comp = _.age <= 25
@@ -176,7 +176,7 @@ def test_comparison_equal():
     address = Address("123 Main St", "Springfield", "USA")
     person = Person("John", 30, address)
 
-    comp = _.name == "John"
+    comp =_.name == "John"
     assert comp(person) is True
 
     comp = _.name == "Jane"
@@ -188,7 +188,7 @@ def test_comparison_not_equal():
     address = Address("123 Main St", "Springfield", "USA")
     person = Person("John", 30, address)
 
-    comp = _.name != "Jane"
+    comp =_.name != "Jane"
     assert comp(person) is True
 
     comp = _.name != "John"
@@ -200,7 +200,7 @@ def test_comparison_with_nested_fields():
     address = Address("123 Main St", "Springfield", "USA")
     person = Person("John", 30, address)
 
-    comp = _.address.city == "Springfield"
+    comp =_.address.city == "Springfield"
     assert comp(person) is True
 
     comp = _.address.country != "Canada"
@@ -218,7 +218,7 @@ def test_comparison_field_to_field():
 
     obj = TestObj()
 
-    comp = _.a > _.b
+    comp =_.a > _.b
     assert comp(obj) is True
 
     comp = _.a == _.c
@@ -271,7 +271,7 @@ def test_complex_nested_structure():
     company = Company("TechCorp", ceo, [employee])
 
     # Test deeply nested access
-    comp = _.ceo.address.street == "123 Main St"
+    comp =_.ceo.address.street == "123 Main St"
     assert comp(company) is True
 
     comp = _.ceo.age < 40
@@ -300,10 +300,10 @@ def test_comparison_with_none_values():
 
     obj = TestObj()
 
-    comp = _.value == None
+    comp = _.value == None  # noqa: E711 - Comparison framework requires ==
     assert comp(obj) is True
 
-    comp = _.value != None
+    comp = _.value != None  # noqa: E711 - Comparison framework requires !=
     assert comp(obj) is False
 
 
@@ -317,7 +317,7 @@ def test_comparison_with_boolean_values():
 
     obj = TestObj()
 
-    comp = _.active == True
+    comp =_.active == True
     assert comp(obj) is True
 
     comp = _.disabled == False
@@ -355,7 +355,7 @@ def test_comparison_string_operations():
 
     person = Person("Alice")
 
-    comp = _.name == "Alice"
+    comp =_.name == "Alice"
     assert comp(person) is True
 
     comp = _.name != "Bob"
@@ -373,7 +373,7 @@ def test_comparison_numeric_edge_cases():
 
     nums = Numbers()
 
-    comp = _.zero == 0
+    comp =_.zero == 0
     assert comp(nums) is True
 
     comp = _.negative < 0

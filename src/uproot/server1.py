@@ -15,6 +15,7 @@ from email.utils import formatdate, parsedate_to_datetime
 from pathlib import Path
 from time import time
 from typing import Any, Iterable, Optional, cast
+from urllib.parse import quote
 
 import orjson
 from fastapi import (
@@ -59,6 +60,7 @@ from uproot.storage import (
     Storage,
 )
 from uproot.types import ensure_awaitable, optional_call, optional_call_once
+from uproot.utils import safe_redirect
 
 PROCESSED_FUTURES: deque[str] = deque(maxlen=8 * 1024)
 PROCESSED_FUTURES_LOCK = asyncio.Lock()
@@ -208,18 +210,34 @@ async def show_page(
                             ):
                                 stealth_fields[fname] = field.data
                             else:
-                                setattr(player, fname, field.data)
+                                if fname in formdata:
+                                    setattr(player, fname, field.data)
+                                else:
+                                    # Since this nonetheless validated, it must be an
+                                    # optional field that was cleared - set to None!
+                                    # See issue #156.
+                                    setattr(player, fname, None)
 
                         if stealth_fields:
-                            await ensure_awaitable(
+                            stealth_errors = await ensure_awaitable(
                                 optional_call,
                                 page,
                                 "handle_stealth_fields",
+                                default_return=[],
                                 player=player,
                                 **stealth_fields,
                             )
-
-                    proceed = True
+                            if isinstance(stealth_errors, str):
+                                stealth_errors = [stealth_errors]
+                            if stealth_errors:
+                                custom_errors.extend(stealth_errors)
+                                proceed = False
+                            else:
+                                proceed = True
+                        else:
+                            proceed = True
+                    else:
+                        proceed = True
         else:
             pass
     else:
@@ -362,6 +380,11 @@ def nocache(response: Response) -> None:
 async def avoid_side_effects_when_previewing(
     request: Request,
 ) -> HTMLResponse:
+    if "sname" in request.path_params:
+        a.session_exists(request.path_params["sname"])
+    elif "roomname" in request.path_params:
+        a.room_exists(request.path_params["roomname"])
+
     return HTMLResponse(
         await render(
             request.app,
@@ -395,9 +418,10 @@ async def sessionwide(
             with Player(sname, free_uname) as p:
                 p.started = True  # This prevents race conditions
 
-            return RedirectResponse(
-                f"{d.ROOT}/p/{sname}/{free_uname}/", status_code=303
+            redirect_url = safe_redirect(
+                f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(free_uname, safe='')}/"
             )
+            return RedirectResponse(redirect_url, status_code=303)
         else:
             # Session is full, so to speak
             return HTMLResponse(
@@ -448,9 +472,10 @@ async def ws(
     await websocket.accept()
 
     pid = cast(t.PlayerIdentifier, ~player)
-    data = a.from_cookie(uauth) if uauth else {"user": "", "token": ""}
+    data = a.from_cookie(uauth)
     is_admin = (
-        a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        d.UNSAFE
+        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
     tasks = dict()
@@ -487,9 +512,9 @@ async def ws(
                 case {"endpoint": "time"}:
                     invoke_response = time()
                 case {"endpoint": "jserrors", "payload": msg} if isinstance(msg, str):
-                    d.LOGGER.error(
-                        f"JavaScript error [{d.ROOT}/p/{sname}/{uname}/]: {msg[:256]}"
-                    )
+                    # Use repr() to prevent log injection attacks
+                    epath = f"{d.ROOT}/p/{sname}/{uname}/"
+                    d.LOGGER.error(f"JavaScript error [{epath!r}]: {msg[:256]!r}")
                 case {
                     "endpoint": "skip",
                     "payload": new_show_page,
@@ -749,10 +774,18 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     # 3. Helpful developer feedback for case-sensitivity issues
     # This layer is not strictly required for security (Layer 4 handles that)
     # but provides defense in depth and better error messages
-    path_parts = Path(location).parts
+    # Use the validated target_path (not raw location) for additional safety
+    relative_path = os.path.relpath(target_path, base_path)
+    path_parts = Path(relative_path).parts
     current_path = Path(base_path)
 
     for part in path_parts:
+        # Ensure current_path stays within base_path boundary
+        if (
+            not str(current_path).startswith(base_path + os.sep)
+            and str(current_path) != base_path
+        ):
+            raise HTTPException(status_code=404)
         actual_names = os.listdir(current_path)
         if part not in actual_names:
             # Check for case mismatches (helpful for cross-platform development)

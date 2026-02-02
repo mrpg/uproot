@@ -1,27 +1,44 @@
 <div class="row">
-    <div class="col-12 col-lg-9 col-xl-10 mb-2">
+    <div class="col-12 col-xl-8 mb-2">
         <div class="form-floating" id="config-select"></div>
     </div>
-    <div class="col-12 col-lg-3 col-xl-2 mb-2">
+    <div class="col-12 col-xl-4 mb-2">
         <div class="form-floating">
             <input class="form-control" id="nplayers" min="0" name="nplayers"
                 placeholder="0" required type="number" value="">
-            {# TODO: value = "{{ demo-size }}" #}
+            {# TODO (and multiple_of): value = "{{ demo-size }}" #}
             <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
         </div>
     </div>
 </div>
 
-<div x-data="{automatic: true}">
+<div class="ps-1" x-data="{automatic: true}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="automatic_sname" name="automatic_sname" value="1"
-            @click="automatic = !automatic" checked>
+        <input class="form-check-input" type="checkbox" id="automatic_settings"
+            @click="automatic = !automatic; if (automatic) { I('settings').value = ''; }" checked>
+        <label for="automatic_settings">Keep default settings</label>
+    </div>
+    <div class="form-floating mt-3" x-show="!automatic">
+        <textarea class="form-control h-auto font-monospace" id="settings" rows="10" name="settings" placeholder="Settings"></textarea>
+        <label for="settings">Settings</label>
+        <small class="d-block form-text pt-2">
+            {% translate %}
+            Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.
+            {% endtranslate %}
+        </small>
+    </div>
+</div>
+
+<div class="ps-1" x-data="{automatic: true}">
+    <div class="form-check mt-3">
+        <input class="form-check-input" type="checkbox" id="automatic_sname"
+            @click="automatic = !automatic; if (automatic) { I('sname').value = ''; }" checked>
         <label for="automatic_sname">Set session name automatically</label>
     </div>
     <div class="form-floating mt-3" x-show="!automatic">
-        <input class="form-control" type="text" id="sname" name="sname" placeholder="Session name">
+        <input class="font-monospace form-control" type="text" id="sname" name="sname" placeholder="Session name">
         <label for="sname">Session name</label>
-        <small class="d-block form-text pt-2 text-muted">
+        <small class="d-block form-text pt-2">
             {% translate %}
             The session name must only use the following characters: <code>A-Za-z0-9-._</code>
             {% endtranslate %}
@@ -29,16 +46,16 @@
     </div>
 </div>
 
-<div x-data="{automatic: true}">
+<div class="mb-2 ps-1" x-data="{automatic: true}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="automatic_unames" name="automatic_unames" value="1"
-            @click="automatic = !automatic" checked>
+        <input class="form-check-input" type="checkbox" id="automatic_unames"
+            @click="automatic = !automatic; if (automatic) { I('unames').value = ''; }" checked>
         <label for="automatic_unames">Set player names automatically</label>
     </div>
     <div class="form-floating mt-3" x-show="!automatic">
-        <textarea class="form-control h-auto" id="unames" rows="10" name="unames" placeholder="Player names"></textarea>
+        <textarea class="form-control h-auto font-monospace" id="unames" rows="10" name="unames" placeholder="Player names"></textarea>
         <label for="unames">Player names</label>
-        <small class="d-block form-text pt-2 text-muted">
+        <small class="d-block form-text pt-2">
             {% translate %}
             Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>
             {% endtranslate %}
@@ -48,30 +65,64 @@
 
 <script>
     uproot.onStart(() => {
-        renderConfigsApps(uproot.vars.configs, "config-select");
+        select = renderConfigsApps(uproot.vars.configs, "config-select");
         const option = document.querySelector(`option[value='${defaultConfig}']`);
-        if (option) { option.selected = true; }
+
+        if (option) {
+            option.selected = true;
+        }
+
+        select.dispatchEvent(new Event("change", { bubbles: true }));
     });
+
+    function configSelected(config) {
+        // TODO: Handle multiple_of here
+
+        if (!Object.hasOwn(uproot.vars.configs_extra, config) ||
+            !Object.hasOwn(uproot.vars.configs_extra[config], "settings") ||
+            Object.keys(uproot.vars.configs_extra[config].settings).length == 0) {
+            I("settings").value = "{\n  // Example:\n  // \"parameter\": -42,\n  // \"speed\": \"high\",\n}";
+        }
+        else {
+            const settings = uproot.vars.configs_extra[config].settings;
+
+            I("settings").value = JSON.stringify(settings, null, 2);
+        }
+    }
 
     function createSession() {
         let snameValid = true, unamesValid = true;
 
         if (I("nplayers").value.trim() == "" || parseInt(I("nplayers").value) < 0) {
-            uproot.error(_("The number of players you entered is invalid."));
-            return;
+            return uproot.error(_("The number of players you entered is invalid."));
         }
 
-        if (!I("automatic_sname").checked) {
-            snameValid = uproot.isValidToken(I("sname").value);
+        // Validate session name if entered
+        const snameValue = I("sname").value.trim();
+        if (snameValue) {
+            snameValid = uproot.isValidToken(snameValue);
         }
 
-        if (!I("automatic_unames").checked) {
-            const unames = I("unames").value.split("\n").map((a) => a.trim());
+        // Validate player names if entered
+        const unamesValue = I("unames").value.trim();
+        if (unamesValue) {
+            const unames = unamesValue.split("\n").map((a) => a.trim()).filter(u => u.length > 0);
             const wanted = parseInt(I("nplayers").value);
             unamesValid = unames.every(uproot.isValidToken);
 
             if (unames.length != wanted) {
                 return uproot.error(_("You cannot create a session with #n1# players but #n2# player names.").replace("#n1#", wanted).replace("#n2#", unames.length));
+            }
+        }
+
+        // Validate settings if entered
+        const settingsValue = I("settings").value.trim();
+        if (settingsValue) {
+            try {
+                I("settings").value = uproot.looseJSONtoJSON(settingsValue);
+            }
+            catch (error) {
+                return uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
             }
         }
 

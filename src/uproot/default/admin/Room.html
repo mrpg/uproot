@@ -14,10 +14,10 @@ Room
 {% block head %}
 
 <style>
-    /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
-    .player-url:visited {
-        color: var(--bs-uproot) !important;
-    }
+/* Color visited links so that it is clear during debuggin which participat URL one has already opened */
+.player-url:visited {
+    color: var(--bs-uproot) !important;
+}
 </style>
 
 {% endblock head %}
@@ -27,74 +27,121 @@ Room
 
 {% if room.sname is none %}
 
-<h3 class="mb-3">{% translate %}Player URL{% endtranslate %}</h3>
-
-<p>{% translate %}Players can use the following URL for entering this room{% endtranslate %}:</p>
-<ul>
-    <li>
-        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
-            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
-    </li>
-</ul>
-
-<h3 class="mb-3 mt-4">{% translate %}New session{% endtranslate %}</h3>
-
-<script>
-    const defaultConfig = uproot.vars.room.config || "";
-</script>
-
-{% include "CreateSession.html" %}
-
-<input type="hidden" name="assignees" id="assignees" value="">
-
-<div x-data="{}">
-    <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="nogrow" name="nogrow" value="1" checked>
-        <label for="nogrow">Set room capacity to number of players</label>
-        <small class="d-block form-text pt-2 text-muted">
-            {% translate %}
-            If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.
-            {% endtranslate %}
-            {% if room.capacity is none %}
-            {% translate %}
-            This room’s capacity is infinite.
-            {% endtranslate %}
-            {% else %}
-            {% translate %}
-            This room’s capacity is {{ room.capacity }}.
-            {% endtranslate %}
-            {% endif %}
-        </small>
+<div class="row">
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Player URL{% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body pb-2">
+                <p>{% translate %}Players can use the following URL for entering this room{% endtranslate %}:</p>
+                <ul>
+                    <li>
+                        <a class="link-subtle player-url"
+                           href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Labels{% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body pb-2">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="mb-2">{% translate %}Recently seen{% endtranslate %}: <i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></h5>
+                        <div id="recently-seen" class="mb-4"></div>
+                    </div>
+                    <div class="col-md-6"
+                         {% if not room.labels %}
+                         hidden
+                         {% endif %}
+                         >
+                         <h5 class="mb-2">{% translate %}Not recently seen{% endtranslate %}</h5>
+                         <div id="not-recently-seen" class="font-monospace"></div>
+                    </div>
+                </div>
+                {% if room.labels %}
+                <p class="mb-4">
+                <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
+                    {% translate %}Show individual URLs{% endtranslate %}
+                </button>
+                </p>
+                {% endif %}
+                <p class="mb-2 text-black-50">
+                {% translate %}
+                Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”
+                {% endtranslate %}
+                </p>
+                <p class="text-black-50">
+                {% translate %}
+                Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.
+                {% endtranslate %}
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
-<button type="button" class="btn btn-uproot mt-4" onclick="createSession()">Create session</button>
-
-<h3 class="mb-3 mt-4">{% translate %}Labels{% endtranslate %}</h3>
-
-<p class="text-muted">
-    {% translate %}
-    Ascertaining which labels are ‘online’ is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were ‘recently seen.’
-    {% endtranslate %}
-
-    {% translate %}
-    Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.
-    {% endtranslate %}
-</p>
-
-<div class="row" style="min-height: 200px">
-    <div class="col-md-6">
-        <h4 class="mb-1">{% translate %}Recently seen{% endtranslate %}, <i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></h4>
-        <div id="recently-seen" class="mb-4"></div>
+<div class="border-uproot-light card h-100 mb-4">
+    <div class="bg-white border-0 card-header pb-1">
+        <h3 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3 text-uproot">
+            {% translate %}New session{% endtranslate %}
+        </h3>
     </div>
+    <div class="card-body pb-3">
+        <script>
+            const defaultConfig = uproot.vars.room.config || "";
+        </script>
+        {% include "CreateSession.html" %}
+        <input type="hidden" name="assignees" id="assignees" value="">
+        <div class="ps-1">
+            <div class="form-check mt-3">
+                <input class="form-check-input" type="checkbox" id="nogrow" name="nogrow" value="1" checked>
+                <label for="nogrow">Set room capacity to number of players</label>
+                <small class="d-block form-text pt-2">
+                    {% translate %}
+                    If this box is unchecked, the room's capacity will not be changed. This means that new room entrants can grow the session.
+                    {% endtranslate %}
+                    {% if room.capacity is none %}
+                    {% translate %}
+                    This room's capacity is infinite.
+                    {% endtranslate %}
+                    {% else %}
+                    {% translate %}
+                    This room's capacity is {{ room.capacity }}.
+                    {% endtranslate %}
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+        <button type="button" class="btn btn-uproot mt-4" onclick="createSession()">Create session</button>
+    </div>
+</div>
 
-    <div class="col-md-6"
-    {% if not room.labels %}
-    hidden
-    {% endif %}
-    >
-        <h4 class="mb-1">{% translate %}Not recently seen{% endtranslate %}</h4>
-        <div id="not-recently-seen"></div>
+<p>
+    <button class="btn btn-outline-uproot" type="button" data-bs-toggle="collapse" data-bs-target="#room-settings-collapse" aria-expanded="false" aria-controls="room-settings-collapse">
+        {% translate %}Room settings{% endtranslate %}
+    </button>
+</p>
+<div class="collapse" id="room-settings-collapse">
+    <div class="border-uproot-light card h-100">
+        <div class="card-body pb-3">
+            {% set editing = true %}
+            {% include "RoomSettingsForm.html" %}
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" class="btn btn-uproot" onclick="saveRoomSettings()">{% translate %}Save settings{% endtranslate %}</button>
+                <button type="button" class="btn btn-outline-danger" onclick="deleteRoom()">{% translate %}Delete room{% endtranslate %}</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -206,6 +253,65 @@ Room
         updateUI();
     });
 
+    uproot.onStart(() => {
+        const select = renderConfigsApps(uproot.vars.configs, "room-config-select");
+        // Give this select a unique name to avoid conflict with CreateSession's config select
+        select.name = "config";
+        select.id = "room-config-select-input";
+
+        const roomConfig = uproot.vars.room.config || "";
+        const useConfigCheckbox = I("use_config");
+
+        if (roomConfig) {
+            const option = select.querySelector(`option[value='${roomConfig}']`);
+            if (option) {
+                option.selected = true;
+            }
+            select.disabled = false;
+            if (useConfigCheckbox) useConfigCheckbox.checked = true;
+        } else {
+            // No config - disable the select and uncheck the checkbox
+            select.disabled = true;
+            if (useConfigCheckbox) useConfigCheckbox.checked = false;
+        }
+    });
+
+    function saveRoomSettings() {
+        let labelsValid = true;
+
+        const labelsValue = I("labels").value.trim();
+        if (labelsValue) {
+            const labels = labelsValue.split("\n").map((a) => a.trim()).filter(l => l.length > 0);
+            labelsValid = labels.every(label => label.length <= 128);
+        }
+
+        if (!labelsValid) {
+            uproot.error(_("One or more labels exceed the maximum length of 128 characters."));
+        }
+        else {
+            // Disable the CreateSession config select to prevent it from being submitted
+            const createSessionSelect = I("configs-apps-select");
+            if (createSessionSelect) createSessionSelect.disabled = true;
+
+            // Disable room settings config select if not using config
+            if (!I("use_config").checked) {
+                I("room-config-select-input").disabled = true;
+                I("open").checked = false;
+            } else {
+                I("room-config-select-input").disabled = false;
+            }
+            const form = I("uproot-form");
+            form.action = "settings/";
+            form.submit();
+        }
+    }
+
+    function deleteRoom() {
+        uproot.invoke("delete_room", uproot.vars.roomname).then(() => {
+            window.location.href = "../../rooms/";
+        });
+    }
+
 </script>
 
 {% else %}  {# room.sname is not none #}
@@ -220,13 +326,13 @@ Room
             </div>
             <div class="card-body">
                 <p class="mb-2">
-                    {% translate %}This room is associated with the following session{% endtranslate %}:
+                {% translate %}This room is associated with the following session{% endtranslate %}:
                 </p>
                 <p class="fs-4">
-                    <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
+                <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
                 </p>
                 <p class="mb-1 mt-4">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
                 </p>
             </div>
         </div>
@@ -241,15 +347,18 @@ Room
             <div class="card-body">
                 {% if room.config %}
                 <p class="mb-2">
-                    {% translate %}This room is associated with the following config{% endtranslate %}:
+                {% translate %}This room is associated with the following config{% endtranslate %}:
                 </p>
                 <p class="font-monospace fs-4">
-                    {{ room.config }}
+                {{ room.config }}
                 </p>
+                {% if room.config in configs.configs %}
                 <h6 class="fw-semibold">Apps</h6>
                 <p class="font-monospace mb-1">
-                    {{ configs.configs[room.config] }}
+                {{ configs.configs[room.config] }}
+                {# TODO: Use session.apps with formatting #}
                 </p>
+                {% endif %}
                 {% else %}
                 {% translate %}This room is not associated with a particular config{% endtranslate %}.
                 {% endif %}
@@ -267,8 +376,8 @@ Room
                 <p>{% translate %}Players can use the following URL for entering this room{% endtranslate %}:</p>
                 <ul>
                     <li>
-                        <a class="link-offset-2 link-underline-dark link-underline-opacity-25 link-underline-opacity-100-hover player-url"
-                            href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
+                        <a class="link-subtle player-url"
+                           href="../../../room/{{ roomname }}/" target="_blank">{{ root }}/room/{{ roomname }}/</a>
                     </li>
                 </ul>
             </div>
@@ -284,19 +393,36 @@ Room
             <div class="card-body">
                 {% if room.labels %}
                 <p class="mb-2">
-                    {% translate %}This room is associated with the following labels{% endtranslate %}:
+                {% translate %}This room is associated with the following labels{% endtranslate %}:
                 </p>
                 <p class="font-monospace">
-                    {% for label in room.labels %}
-                    {{ label }}{% if not loop.last %}<span class="text-body-tertiary"> |</span>{% endif %}
-                    {% endfor %}
+                {% for label in room.labels %}
+                {{ label }}{% if not loop.last %}<span class="text-body-tertiary"> |</span>{% endif %}
+                {% endfor %}
+                </p>
+                <p class="mb-1">
+                <button class="btn btn-sm btn-outline-uproot" data-bs-target="#labelUrlModal" data-bs-toggle="modal" type="button">
+                    {% translate %}Show individual URLs{% endtranslate %}
+                </button>
                 </p>
                 {% else %}
                 {% translate %}This room is not associated with any labels{% endtranslate %}.
                 {% endif %}
-
             </div>
         </div>
+    </div>
+</div>
+
+<div class="border-uproot-light card">
+    <div class="bg-white border-0 card-header pb-1">
+        <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+            {% translate %}Room settings{% endtranslate %}
+        </h4>
+    </div>
+    <div class="card-body">
+        <p class="text-body-secondary mb-0">
+            {% translate %}To edit room settings, first dissociate the session from this room.{% endtranslate %}
+        </p>
     </div>
 </div>
 
@@ -308,6 +434,59 @@ Room
     }
 </script>
 
+{% endif %}
+
+<!-- Modal for label URLs -->
+{% if room.labels %}
+<div class="modal fade" id="labelUrlModal" tabindex="-1" aria-labelledby="labelUrlModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="border-uproot-light modal-content">
+            <div class="border-uproot-light modal-header">
+                <h5 class="modal-title" id="labelUrlModalLabel">
+                    {% translate %}Individual label URLs{% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th class="fw-semibold ps-0">{% translate %}Label{% endtranslate %}</th>
+                            <th class="fw-semibold">{% translate %}URL{% endtranslate %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for label in room.labels %}
+                        <tr>
+                            <td class="font-monospace ps-0">{{ label }}</td>
+                            <td>
+                                <a class="link-subtle player-url" href="../../../room/{{ roomname }}/?label={{ label }}" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/room/{{ roomname }}/?label={{ label }}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="border-uproot-light modal-footer justify-content-between">
+                <button class="btn btn-outline-uproot btn-sm" onclick="copyLabelURLsToClipboard()" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
+                <span class="fw-300 invisible me-3 text-uproot" id="label-urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyLabelURLsToClipboard() {
+        const labels = uproot.vars.room.labels;
+        const text = labels
+            .map(label => `${window.location.origin}${uproot.vars.root}/room/${uproot.vars.roomname}/?label=${label}`)
+            .join("\n");
+
+        navigator.clipboard.writeText(text);
+        I("label-urls-copied").classList.remove("invisible");
+        setTimeout(() => I("label-urls-copied").classList.add("invisible"), 3000);
+    }
+</script>
 {% endif %}
 
 {% endblock main %}

@@ -83,7 +83,6 @@ class RobustWebSocket {
         }
     }
 
-
     close() {
         this.shouldReconnect = false;
         this.ws?.close();
@@ -164,18 +163,23 @@ window.uproot = {
             ? parts.slice(0, -1).join(_(", ")) + _(" and ") + parts[parts.length - 1]
             : parts[0];
 
-        I("uproot-time-remaining").innerText = timeText;
-        I("uproot-timeout").hidden = false;
+        if (I("uproot-time-remaining")) {
+            I("uproot-time-remaining").innerText = timeText;
+        }
 
-        if (remainingSeconds < 60) {
-            I("uproot-timeout").classList.remove("alert-light");
-            I("uproot-timeout").classList.remove("alert-warning");
+        if (I("uproot-timeout")) {
+            I("uproot-timeout").hidden = false;
 
-            if (remainingSeconds < 15) {
-                I("uproot-timeout").classList.add("alert-danger");
-            }
-            else {
-                I("uproot-timeout").classList.add("alert-warning");
+            if (remainingSeconds < 60) {
+                I("uproot-timeout").classList.remove("alert-light");
+                I("uproot-timeout").classList.remove("alert-warning");
+
+                if (remainingSeconds < 15) {
+                    I("uproot-timeout").classList.add("alert-danger");
+                }
+                else {
+                    I("uproot-timeout").classList.add("alert-warning");
+                }
             }
         }
 
@@ -243,7 +247,7 @@ window.uproot = {
     },
 
     fromServer(event, ws) {
-        event.data.text().then(rawJson => {
+        const processMessage = (rawJson) => {
             const msg = Object.assign({ received: Date.now() }, JSON.parse(rawJson));
             const kind = msg.kind, payload = msg.payload;
             const currentPage = this.vars?._uproot_internal?.thisis || null;
@@ -277,6 +281,9 @@ window.uproot = {
                 if (action == "reload") {
                     this.reload();
                 }
+                else if (action == "redirect" && "url" in payload) {
+                    this.redirect(payload.url);
+                }
                 else if (action == "submit") {
                     this.submit();
                 }
@@ -294,12 +301,22 @@ window.uproot = {
                     this.queueDispatch(payload.u, payload.entry);
                 }
             }
-        });
+        };
+
+        // Handle both string and Blob message data
+        if (typeof event.data === "string") {
+            processMessage(event.data);
+        }
+        else {
+            event.data.text().then(processMessage).catch(() => {
+                // Blob may become unreadable under heavy load; silently ignore
+            });
+        }
     },
 
     isValidToken(x) {
         if (typeof x !== "string") return false;
-        return /^[a-zA-Z0-9._-]*$/.test(x);
+        return /^[a-zA-Z0-9._-]+$/.test(x);
     },
 
     hello() {
@@ -335,9 +352,7 @@ window.uproot = {
                 this.fromServer(event, ws);
             },
             onClose: (event, ws) => {
-                if (this.isInitialized) {
-                    window.dispatchEvent(new Event("UprootDisconnect"));
-                }
+                window.dispatchEvent(new Event("UprootDisconnect"));
             },
         });
     },
@@ -387,6 +402,12 @@ window.uproot = {
         document.location = document.location;
     },
 
+    redirect(url) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            document.location = url;
+        }
+    },
+
     submit() {
         return I("uproot-form").submit();
     },
@@ -406,7 +427,12 @@ window.uproot = {
     },
 
     onReady(fun) {
-        window.addEventListener("UprootReady", fun);
+        if (!this.isInitialized) {
+            window.addEventListener("UprootReady", fun);
+        }
+        else {
+            fun();
+        }
     },
 
     onReconnect(fun) {
@@ -580,6 +606,30 @@ window.uproot = {
         return span.innerHTML; // SAFE
     },
 
+    /**
+     * Evaluates a JavaScript expression and returns its JSON representation.
+     *
+     * This function intentionally uses eval() to allow rich expressions in admin
+     * settings input, including comments, calculations, and variables. This is
+     * admin-only functionality - never expose this to untrusted input.
+     *
+     * Examples of supported input:
+     *   { speed: 2 * 50, name: "test" }
+     *   { items: [1, 2, 3], }  // trailing commas and JS comments OK
+     *
+     * @param {string} input - JavaScript expression that evaluates to an object
+     * @returns {string} JSON string representation of the evaluated object
+     * @throws {SyntaxError} If the input cannot be parsed as JavaScript
+     * @throws {TypeError} If the result cannot be serialized to JSON
+     */
+    looseJSONtoJSON(input) {
+        // SECURITY NOTE: eval() is used intentionally here for admin convenience.
+        // This allows JS expressions (calculations, comments, etc.) in settings.
+        // This function must NEVER be exposed to untrusted user input.
+        const obj = eval("(" + input + ")");
+        return JSON.stringify(obj);
+    },
+
     ensureBuddy() {
         this.I("uproot-buddy").hidden = false;
     },
@@ -736,9 +786,143 @@ window.uproot = {
         });
     },
 
+    nonRequiredRadios() {
+        const HOVER_CLASS = "radio-toggle-clear-hover";
+        const BOUND_ATTR = "toggleClearBound";
+        const PRE_CHECKED_ATTR = "preChecked";
+        const TOOLTIP_TEXT = _("Click again to unselect.");
+
+        // Enable CSS styles (scoped to this class in style.css)
+        document.documentElement.classList.add("radio-toggle-enabled");
+
+        const uncheckRadio = (radio) => {
+            radio.checked = false;
+            radio.dispatchEvent(new Event("change", { bubbles: true }));
+        };
+
+        const findLabel = (radio, formCheck) => {
+            if (radio.id) {
+                const escapedId = CSS.escape(radio.id);
+                const labelInFormCheck = formCheck?.querySelector(`label.form-check-label[for="${escapedId}"]`);
+                if (labelInFormCheck) return labelInFormCheck;
+                const labelById = document.querySelector(`label[for="${escapedId}"]`);
+                if (labelById) return labelById;
+            }
+            return radio.closest("label");
+        };
+
+        const setupHoverBehavior = (radio, formCheck) => {
+            formCheck.addEventListener("mouseenter", () => {
+                if (radio.checked) {
+                    formCheck.classList.add(HOVER_CLASS);
+                    formCheck.title = TOOLTIP_TEXT;
+                }
+            });
+
+            formCheck.addEventListener("mouseleave", () => {
+                formCheck.classList.remove(HOVER_CLASS);
+                formCheck.removeAttribute("title");
+            });
+
+            radio.addEventListener("change", () => {
+                formCheck.classList.remove(HOVER_CLASS);
+                formCheck.removeAttribute("title");
+            });
+        };
+
+        const setupLabelBehavior = (radio, label) => {
+            label.addEventListener("pointerdown", () => {
+                radio.dataset[PRE_CHECKED_ATTR] = radio.checked ? "1" : "0";
+            }, true);
+
+            label.addEventListener("click", (e) => {
+                const wasChecked = radio.dataset[PRE_CHECKED_ATTR] === "1";
+                radio.dataset[PRE_CHECKED_ATTR] = "0";
+                if (wasChecked) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    uncheckRadio(radio);
+                }
+            }, true);
+        };
+
+        const setupRadioBehavior = (radio) => {
+            radio.addEventListener("pointerdown", (e) => {
+                radio.dataset[PRE_CHECKED_ATTR] = radio.checked ? "1" : "0";
+                if (radio.checked) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    uncheckRadio(radio);
+                }
+            }, true);
+
+            radio.addEventListener("click", (e) => {
+                if (radio.dataset[PRE_CHECKED_ATTR] === "1") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                radio.dataset[PRE_CHECKED_ATTR] = "0";
+            }, true);
+
+            radio.addEventListener("keydown", (e) => {
+                if ((e.key === " " || e.key === "Spacebar") && radio.checked) {
+                    e.preventDefault();
+                    uncheckRadio(radio);
+                }
+            });
+        };
+
+        document.querySelectorAll("input[type='radio']:not([required])").forEach((radio) => {
+            if (radio.dataset[BOUND_ATTR] === "1") return;
+            radio.dataset[BOUND_ATTR] = "1";
+
+            const formCheck = radio.closest(".form-check");
+            const label = findLabel(radio, formCheck);
+
+            if (formCheck) setupHoverBehavior(radio, formCheck);
+            if (label) setupLabelBehavior(radio, label);
+            setupRadioBehavior(radio);
+        });
+    },
+
+    boundedChoiceFields() {
+        document.querySelectorAll(".uproot-bounded-choice").forEach(container => {
+            const minAttr = container.dataset.boundedMin;
+            const maxAttr = container.dataset.boundedMax;
+            const min = minAttr !== "" ? parseInt(minAttr, 10) : 0;
+            const max = maxAttr !== "" ? parseInt(maxAttr, 10) : null;
+            const checkboxes = container.querySelectorAll("input[type='checkbox']");
+
+            const updateState = () => {
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+
+                // If max is reached, disable unchecked checkboxes
+                if (max !== null && checkedCount >= max) {
+                    checkboxes.forEach(cb => {
+                        if (!cb.checked) {
+                            cb.disabled = true;
+                        }
+                    });
+                } else {
+                    checkboxes.forEach(cb => {
+                        cb.disabled = false;
+                    });
+                }
+            };
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener("change", updateState);
+            });
+
+            // Initialize state
+            updateState();
+        });
+    },
+
     enableConnectionLostModal() {
         let connectionModal = null;
         let timeoutTimer = null;
+        let startupTimer = null;
         let isPageUnloading = false;
 
         // Track when user is leaving the page
@@ -757,6 +941,8 @@ window.uproot = {
         };
 
         const showConnectionLostModal = () => {
+            if (isPageUnloading) return;
+
             const modal = ensureConnectionModal();
 
             // Show/hide reload button based on dirty state
@@ -771,11 +957,20 @@ window.uproot = {
         };
 
         const hideConnectionLostModal = () => {
+            clearTimeout(startupTimer);
             if (connectionModal) {
                 connectionModal.hide();
                 connectionModal = null;
             }
         };
+
+        // Startup failsafe: if isInitialized is still false after 10 seconds,
+        // something went wrong (init failed, wsstart failed, WS never connected, etc.)
+        startupTimer = setTimeout(() => {
+            if (!this.isInitialized) {
+                showConnectionLostModal();
+            }
+        }, 10000);
 
         // Wrap hello() to monitor connection health
         const originalHello = this.hello.bind(this);
@@ -890,12 +1085,12 @@ window.uproot = {
             const messageElement = document.createElement("li");
             messageElement.className = "px-3 py-2 message-hover";
             messageElement.innerHTML = /* SAFE */ `
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <span class="fw-semibold ${cls} sender">${escapedUsername}</span>
-                            <time class="text-muted small time" title="${isoString}" datetime="${isoString}">${timeString}</time>
-                        </div>
-                        <div class="text-break">${escapedMessage}</div>
-                    `;
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="fw-semibold ${cls} sender">${escapedUsername}</span>
+                    <time class="text-secondary small time" title="${isoString}" datetime="${isoString}">${timeString}</time>
+                </div>
+                <div class="text-break">${escapedMessage}</div>
+            `;
 
             messagesList.appendChild(messageElement);
             if (messagesList.parentElement) {
@@ -958,8 +1153,8 @@ window._ = (s) => {
     else {
         window.uproot.missing.add(s);
 
-        if (this.verbose) {
-            console.log(`Missing translation into of: '${s}'`);
+        if (window.uproot.verbose) {
+            console.log(`Missing translation for: "${s}"`);
         }
 
         return s;

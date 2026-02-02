@@ -1,0 +1,95 @@
+{# Shared form fields for room settings. Used by RoomsNew.html and Room.html #}
+{# Variables: editing (bool), room (dict or none) #}
+{% set room = room | default(none) %}
+
+{% if not editing %}
+<div class="form-floating">
+    <input type="text" class="font-monospace form-control" id="name" name="name"
+        placeholder="{% translate %}Room name{% endtranslate %}" required>
+    <label for="name" class="form-label">{% translate %}Room name{% endtranslate %}</label>
+    <small class="d-block form-text pt-2">
+        {% translate %}
+        The room name must only use the following characters: <code>A-Za-z0-9-._</code>
+        {% endtranslate %}
+    </small>
+</div>
+{% endif %}
+
+<div class="{% if not editing %}mt-4{% endif %}" x-data="{useConfig: {% if room and room.config %}true{% else %}false{% endif %}, useSession: false}">
+    {% if not editing %}
+    <div class="form-check" x-show="!useSession">
+        <input class="form-check-input" type="checkbox" id="use_config"
+            {% if room and room.config %}checked{% endif %}
+            @click="useConfig = !useConfig; const sel = I('room-config-select-input') || I('configs-apps-select'); if (sel) sel.disabled = !useConfig;">
+        <label for="use_config">{% translate %}Associate with a particular config{% endtranslate %}</label>
+    </div>
+    {% else %}
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="use_config"
+            {% if room and room.config %}checked{% endif %}
+            @click="useConfig = !useConfig; const sel = I('room-config-select-input') || I('configs-apps-select'); if (sel) sel.disabled = !useConfig;">
+        <label for="use_config">{% translate %}Associate with a particular config{% endtranslate %}</label>
+    </div>
+    {% endif %}
+    <div x-show="useConfig">
+        <div class="form-floating mt-3" id="room-config-select"></div>
+
+        <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="open" name="open" value="1"
+                {% if not editing or (room and room.open) %}checked{% endif %}>
+            <label for="open">{% translate %}Start this config immediately{% endtranslate %}</label>
+        </div>
+    </div>
+
+    {% if not editing %}
+    <div class="form-check mt-3" x-show="!useConfig">
+        <input class="form-check-input" type="checkbox" id="use_session"
+            @click="useSession = !useSession; if (!useSession) { I('sname').value = ''; }">
+        <label for="use_session">{% translate %}Associate with an existing session{% endtranslate %}</label>
+    </div>
+    <div class="form-floating mt-3" x-show="useSession">
+        <input class="font-monospace form-control" type="text" id="sname" name="sname" placeholder="Session name">
+        <label for="sname">{% translate %}Session name{% endtranslate %}</label>
+        <small class="d-block form-text pt-2">
+            {% translate %}
+            The session must exist.
+            This can be used to add players to an existing session.
+            {% endtranslate %}
+        </small>
+    </div>
+    {% endif %}
+</div>
+
+<div x-data="{useLabels: {% if room and room.labels %}true{% else %}false{% endif %}}">
+    <div class="form-check mt-3">
+        <input class="form-check-input" type="checkbox" id="use_labels"
+            {% if room and room.labels %}checked{% endif %}
+            @click="useLabels = !useLabels; if (!useLabels) { I('labels').value = ''; }">
+        <label for="use_labels">Use labels/Access Codes</label>
+    </div>
+    <div class="form-floating mt-3" x-show="useLabels">
+        <textarea class="font-monospace form-control h-auto" id="labels" rows="10" name="labels" placeholder="Labels">{% if room and room.labels %}{% for label in room.labels %}{{ label }}{% if not loop.last %}
+{% endif %}{% endfor %}{% endif %}</textarea>
+        <label for="labels">Labels</label>
+        <small class="d-block form-text pt-2">
+            {% translate %}
+            Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.
+            {% endtranslate %}
+        </small>
+    </div>
+</div>
+
+<div x-data="{useCapacity: {% if room and room.capacity %}true{% else %}false{% endif %}}">
+    <div class="form-check mt-3">
+        <input class="form-check-input" type="checkbox" id="use_capacity"
+            {% if room and room.capacity %}checked{% endif %}
+            @click="useCapacity = !useCapacity; if (!useCapacity) { I('capacity').value = ''; }">
+        <label for="use_capacity">Limit capacity of resulting session</label>
+    </div>
+    <div class="form-floating mt-3" x-show="useCapacity">
+        <input type="number" class="form-control w-auto" id="capacity" name="capacity"
+            placeholder="{% translate %}Maximum players{% endtranslate %}" min="1"
+            {% if room and room.capacity %}value="{{ room.capacity }}"{% endif %}>
+        <label for="capacity" class="form-label">{% translate %}Maximum players{% endtranslate %}</label>
+    </div>
+</div>

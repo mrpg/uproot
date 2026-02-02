@@ -1,6 +1,7 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import atexit
 import logging
 import os
 import secrets
@@ -31,6 +32,7 @@ else:
     DBENV = os.getenv("UPROOT_DATABASE", "sqlite3")
 
 DEFAULT_ROOMS: list["RoomType"] = list()
+HERE_TOLERANCE: float = 5.0
 HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: Optional[str] = None
@@ -46,9 +48,11 @@ if ORIGIN is None:
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = dict()
+PUBLIC_DEMO: bool = False
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
+UNSAFE: bool = False
 UVICORN_KWARGS: dict[str, Any] = dict(
     reload=False,
     log_level="info",
@@ -59,7 +63,6 @@ if DBENV == "sqlite3":
         os.getenv("UPROOT_SQLITE3", "uproot.sqlite3"), TBLEXTRA
     )
 elif DBENV == "memory":
-    pass
     LOGGER.warning("Using 'memory' database driver. Data will not persist.")
 elif DBENV == "postgresql":
     # Use DATABASE_URL (Heroku standard) if UPROOT_POSTGRESQL is not set
@@ -97,3 +100,7 @@ async def lifespan_start(*args: Any, **kwargs: Any) -> None:
 
 async def lifespan_stop(*args: Any, **kwargs: Any) -> None:
     DATABASE.close()
+
+
+# Ensure database is properly closed on program exit to flush any pending writes
+atexit.register(DATABASE.close)

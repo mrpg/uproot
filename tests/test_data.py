@@ -1,3 +1,4 @@
+import random
 from datetime import date, datetime, time
 from unittest.mock import patch
 
@@ -125,7 +126,7 @@ def test_csv_out_empty():
 
 
 def test_stable_encode_decode_date():
-    test_date = date(2025, 9, 17)
+    test_date = date(2013, 9, 17)
     encoded = encode(test_date)
     decoded = decode(encoded)
     assert decoded == test_date
@@ -149,7 +150,7 @@ def test_stable_encode_decode_time_no_microseconds():
 
 
 def test_stable_encode_decode_datetime():
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45, 123456)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -157,7 +158,7 @@ def test_stable_encode_decode_datetime():
 
 
 def test_stable_encode_decode_datetime_no_microseconds():
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -168,7 +169,7 @@ def test_stable_encode_decode_datetime_with_timezone():
     from datetime import timedelta, timezone
 
     test_datetime = datetime(
-        2025, 9, 17, 14, 30, 45, 123456, timezone(timedelta(hours=5, minutes=30))
+        2013, 9, 17, 14, 30, 45, 123456, timezone(timedelta(hours=5, minutes=30))
     )
     encoded = encode(test_datetime)
     decoded = decode(encoded)
@@ -179,7 +180,7 @@ def test_stable_encode_decode_datetime_with_timezone():
 
 def test_stable_encode_decode_datetime_naive():
     # Test that naive datetimes remain naive (no timezone info)
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -191,7 +192,7 @@ def test_stable_encode_decode_datetime_naive():
 def test_stable_encode_decode_datetime_utc():
     from datetime import timezone
 
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45, tzinfo=timezone.utc)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, tzinfo=timezone.utc)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -204,7 +205,7 @@ def test_stable_encode_decode_datetime_negative_offset():
 
     # Test negative timezone offset (e.g., US timezones)
     test_datetime = datetime(
-        2025, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=-8))
+        2013, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=-8))
     )
     encoded = encode(test_datetime)
     decoded = decode(encoded)
@@ -218,7 +219,7 @@ def test_stable_encode_decode_datetime_fractional_offset():
 
     # Test fractional timezone offset (e.g., India +05:30, Nepal +05:45)
     test_datetime = datetime(
-        2025, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=45))
+        2013, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=45))
     )
     encoded = encode(test_datetime)
     decoded = decode(encoded)
@@ -257,8 +258,8 @@ def test_stable_encode_decode_timezone_preservation():
     tz1 = timezone(timedelta(hours=3))
     tz2 = timezone(timedelta(hours=3), name="Custom+3")
 
-    dt1 = datetime(2025, 9, 17, 14, 30, 45, tzinfo=tz1)
-    dt2 = datetime(2025, 9, 17, 14, 30, 45, tzinfo=tz2)
+    dt1 = datetime(2013, 9, 17, 14, 30, 45, tzinfo=tz1)
+    dt2 = datetime(2013, 9, 17, 14, 30, 45, tzinfo=tz2)
 
     encoded1 = encode(dt1)
     encoded2 = encode(dt2)
@@ -317,12 +318,12 @@ def test_stable_encode_decode_datetime_edge_cases():
         datetime(1, 1, 1, 0, 0, 0),  # Minimum datetime
         datetime(9999, 12, 31, 23, 59, 59, 999999),  # Maximum datetime
         datetime(2000, 2, 29, 12, 0, 0),  # Leap year datetime
-        datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),  # UTC at epoch boundary
+        datetime(2013, 1, 1, 0, 0, 0, tzinfo=timezone.utc),  # UTC at epoch boundary
         datetime(
-            2025, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=14))
+            2013, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=14))
         ),  # Maximum positive offset
         datetime(
-            2025, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=-12))
+            2013, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=-12))
         ),  # Maximum negative offset
     ]
 
@@ -366,7 +367,7 @@ def test_stable_encode_decode_iso_format_normative():
     from orjson import loads
 
     # Test date ISO format
-    test_date = date(2025, 9, 17)
+    test_date = date(2013, 9, 17)
     encoded = encode(test_date)
     assert encoded[0] == 10  # Type ID
     iso_string = (
@@ -374,7 +375,7 @@ def test_stable_encode_decode_iso_format_normative():
         if isinstance(loads(encoded[1:]), bytes)
         else loads(encoded[1:])
     )
-    assert iso_string == "2025-09-17"
+    assert iso_string == "2013-09-17"
 
     # Test time ISO format
     test_time = time(14, 30, 45, 123456)
@@ -384,19 +385,200 @@ def test_stable_encode_decode_iso_format_normative():
     assert iso_string == "14:30:45.123456"
 
     # Test datetime ISO format
-    test_datetime = datetime(2025, 9, 17, 14, 30, 45, 123456)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456)
     encoded = encode(test_datetime)
     assert encoded[0] == 12  # Type ID
     iso_string = loads(encoded[1:])
-    assert iso_string == "2025-09-17T14:30:45.123456"
+    assert iso_string == "2013-09-17T14:30:45.123456"
 
     # Test datetime with timezone ISO format
     from datetime import timedelta, timezone
 
     test_datetime_tz = datetime(
-        2025, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=30))
+        2013, 9, 17, 14, 30, 45, tzinfo=timezone(timedelta(hours=5, minutes=30))
     )
     encoded = encode(test_datetime_tz)
     assert encoded[0] == 12  # Type ID
     iso_string = loads(encoded[1:])
-    assert iso_string == "2025-09-17T14:30:45+05:30"
+    assert iso_string == "2013-09-17T14:30:45+05:30"
+
+
+def test_stable_encode_decode_random():
+    """Test basic random.Random encode/decode round-trip."""
+    rng = random.Random(42)
+    # Advance state a bit
+    for _ in range(10):
+        rng.random()
+
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert isinstance(decoded, random.Random)
+    # Verify state is preserved by checking next values match
+    assert rng.random() == decoded.random()
+    assert rng.random() == decoded.random()
+    assert rng.random() == decoded.random()
+
+
+def test_stable_encode_decode_random_seeded():
+    """Test random.Random with specific seed produces identical sequences."""
+    rng = random.Random(12345)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    # Generate sequences from both and verify they match
+    original_values = [rng.random() for _ in range(100)]
+    decoded_values = [decoded.random() for _ in range(100)]
+    assert original_values == decoded_values
+
+
+def test_stable_encode_decode_random_fresh():
+    """Test freshly created random.Random (unseeded)."""
+    rng = random.Random()
+    original_state = rng.getstate()
+
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert isinstance(decoded, random.Random)
+    assert decoded.getstate() == original_state
+
+
+def test_stable_encode_decode_random_state_preserved():
+    """Test that internal state is exactly preserved after encode/decode."""
+    rng = random.Random(99999)
+    # Advance state significantly
+    for _ in range(1000):
+        rng.random()
+
+    original_state = rng.getstate()
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert decoded.getstate() == original_state
+
+
+def test_stable_encode_decode_random_gauss_state():
+    """Test that gauss_next state is preserved (used by gauss/normalvariate)."""
+    rng = random.Random(42)
+    # Call gauss to set gauss_next state
+    rng.gauss(0, 1)
+
+    original_state = rng.getstate()
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert decoded.getstate() == original_state
+    # Verify subsequent gauss calls match
+    assert rng.gauss(0, 1) == decoded.gauss(0, 1)
+
+
+def test_stable_encode_decode_random_various_methods():
+    """Test that various random methods produce same results after decode."""
+    rng = random.Random(777)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    # Test various methods
+    assert rng.randint(0, 1000) == decoded.randint(0, 1000)
+    assert rng.choice([1, 2, 3, 4, 5]) == decoded.choice([1, 2, 3, 4, 5])
+    assert rng.uniform(0.0, 100.0) == decoded.uniform(0.0, 100.0)
+    assert rng.randrange(0, 100, 5) == decoded.randrange(0, 100, 5)
+
+
+def test_stable_encode_decode_random_shuffle_deterministic():
+    """Test that shuffle produces same results after decode."""
+    rng = random.Random(555)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    list1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    list2 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    rng.shuffle(list1)
+    decoded.shuffle(list2)
+
+    assert list1 == list2
+
+
+def test_stable_encode_decode_random_sample_deterministic():
+    """Test that sample produces same results after decode."""
+    rng = random.Random(333)
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    population = list(range(100))
+    sample1 = rng.sample(population, 20)
+    sample2 = decoded.sample(population, 20)
+
+    assert sample1 == sample2
+
+
+def test_stable_random_type_id():
+    """Test that random.Random has correct type ID."""
+    from uproot.stable import TYPES
+
+    assert TYPES[random.Random] == 133
+
+
+def test_stable_random_is_mutable():
+    """Test that random.Random is classified as mutable type."""
+    from uproot.stable import IMMUTABLE_TYPES, MUTABLE_TYPES
+
+    assert random.Random in MUTABLE_TYPES
+    assert random.Random not in IMMUTABLE_TYPES
+
+
+def test_stable_encode_decode_random_type_id_in_bytes():
+    """Test that encoded bytes start with correct type ID."""
+    rng = random.Random(42)
+    encoded = encode(rng)
+    assert encoded[0] == 133
+
+
+def test_stable_encode_decode_random_different_seeds():
+    """Test multiple Random objects with different seeds."""
+    seeds = [0, 1, 42, 12345, 2**31 - 1, 2**32 - 1]
+
+    for seed in seeds:
+        rng = random.Random(seed)
+        encoded = encode(rng)
+        decoded = decode(encoded)
+
+        assert isinstance(decoded, random.Random)
+        assert rng.getstate() == decoded.getstate()
+        # Verify sequences match
+        for _ in range(10):
+            assert rng.random() == decoded.random()
+
+
+def test_stable_encode_decode_random_advanced_state():
+    """Test Random with heavily advanced state."""
+    rng = random.Random(42)
+    # Advance state through many iterations
+    for _ in range(10000):
+        rng.random()
+
+    original_state = rng.getstate()
+    encoded = encode(rng)
+    decoded = decode(encoded)
+
+    assert decoded.getstate() == original_state
+
+
+def test_stable_encode_decode_random_multiple_round_trips():
+    """Test that multiple encode/decode cycles preserve state."""
+    rng = random.Random(42)
+
+    for _ in range(5):
+        encoded = encode(rng)
+        rng = decode(encoded)
+        # Advance state between round trips
+        rng.random()
+
+    # Verify it's still a valid Random object
+    assert isinstance(rng, random.Random)
+    # Should be able to generate more values
+    values = [rng.random() for _ in range(10)]
+    assert len(values) == 10
+    assert all(0.0 <= v < 1.0 for v in values)

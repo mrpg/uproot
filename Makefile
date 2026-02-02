@@ -10,7 +10,7 @@ help:
 	@echo "  make lint           - Run linting checks (ruff, black, isort)"
 	@echo "  make format         - Auto-format code (black, isort)"
 	@echo "  make type-check     - Run mypy type checking"
-	@echo "  make security       - Run security scans (bandit, pip-audit, semgrep)"
+	@echo "  make security       - Run security scans (bandit, pip-audit)"
 	@echo "  make quality        - Run code quality checks (radon, deptry)"
 	@echo "  make all            - Run all checks (lint, type-check, security, quality, test)"
 	@echo "  make pre-commit     - Install and run pre-commit hooks"
@@ -48,8 +48,6 @@ security:
 	bandit -r src/uproot/ -c pyproject.toml
 	@echo "\nRunning pip-audit..."
 	pip-audit
-	@echo "\nRunning semgrep..."
-	semgrep scan --config=auto src/uproot/ || true
 
 quality:
 	@echo "Running deptry..."

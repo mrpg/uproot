@@ -21,78 +21,8 @@ New room
 
 </div>
 
-<div class="form-floating">
-    <input type="text" class="form-control" id="name" name="name"
-        placeholder="{% translate %}Room name{% endtranslate %}" required>
-    <label for="name" class="form-label">{% translate %}Room name{% endtranslate %}</label>
-    <small class="d-block form-text pt-2 text-muted">
-        {% translate %}
-        The room name must only use the following characters: <code>A-Za-z0-9-._</code>
-        {% endtranslate %}
-    </small>
-</div>
-
-<div class="mt-4" x-data="{useConfig: false, useSession: false}">
-    <div class="form-check" x-show="!useSession">
-        <input class="form-check-input" type="checkbox" id="use_config" name="use_config" value="1"
-            @click="useConfig = !useConfig">
-        <label for="use_config">{% translate %}Associate with a particular config{% endtranslate %}</label>
-    </div>
-    <div x-show="useConfig">
-        <div class="form-floating mt-3" id="config-select"></div>
-
-        <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" id="open" name="open" value="1" checked>
-            <label for="open">{% translate %}Start this config immediately{% endtranslate %}</label>
-        </div>
-    </div>
-
-    <div class="form-check mt-3" x-show="!useConfig">
-        <input class="form-check-input" type="checkbox" id="use_session" name="use_session" value="1"
-            @click="useSession = !useSession">
-        <label for="use_session">{% translate %}Associate with an existing session{% endtranslate %}</label>
-    </div>
-    <div class="form-floating mt-3" x-show="useSession">
-        <input class="form-control" type="text" id="sname" name="sname" placeholder="Session name">
-        <label for="sname">{% translate %}Session name{% endtranslate %}</label>
-        <small class="d-block form-text pt-2 text-muted">
-            {% translate %}
-            The session must exist.
-            This can be used to add players to an existing session.
-            {% endtranslate %}
-        </small>
-    </div>
-</div>
-
-<div x-data="{useLabels: false}">
-    <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="use_labels" name="use_labels" value="1"
-            @click="useLabels = !useLabels">
-        <label for="use_labels">Use labels/Access Codes</label>
-    </div>
-    <div class="form-floating mt-3" x-show="useLabels">
-        <textarea class="form-control h-auto" id="labels" rows="10" name="labels" placeholder="Labels"></textarea>
-        <label for="labels">Labels</label>
-        <small class="d-block form-text pt-2 text-muted">
-            {% translate %}
-            Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.
-            {% endtranslate %}
-        </small>
-    </div>
-</div>
-
-<div x-data="{useCapacity: false}">
-    <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="use_capacity" name="use_capacity" value="1"
-            @click="useCapacity = !useCapacity">
-        <label for="use_capacity">Limit capacity of resulting session</label>
-    </div>
-    <div class="form-floating mt-3" x-show="useCapacity">
-        <input type="number" class="form-control w-auto" id="capacity" name="capacity"
-            placeholder="{% translate %}Maximum players{% endtranslate %}" min="1" value="1">
-        <label for="capacity" class="form-label">{% translate %}Maximum players{% endtranslate %}</label>
-    </div>
-</div>
+{% set editing = false %}
+{% include "RoomSettingsForm.html" %}
 
 <button type="button" class="btn btn-uproot mt-4" onclick="createRoom()">Create room</button>
 
@@ -103,31 +33,36 @@ New room
 
 <script>
     uproot.onStart(() => {
-        renderConfigsApps(uproot.vars.configs, "config-select");
+        const select = renderConfigsApps(uproot.vars.configs, "room-config-select");
+        // Disable by default since checkbox is unchecked
+        select.disabled = true;
     });
 
     function createRoom() {
-        let nameValid = true, labelsValid = true, snameValid = true;
+        let nameValid, nameAvailable, labelsValid = true, snameValid = true;
 
-        // Validate room name
+        // Validate room name format
         nameValid = uproot.isValidToken(I("name").value);
-        nameValid2 = !uproot.vars.rooms_available.includes(I("name").value);
+        // Validate room name doesn't already exist
+        nameAvailable = !uproot.vars.rooms_available.includes(I("name").value);
 
-        // Validate labels if used
-        if (I("use_labels").checked) {
-            const labels = I("labels").value.split("\n").map((a) => a.trim()).filter(l => l.length > 0);
+        // Validate labels if any are entered
+        const labelsValue = I("labels").value.trim();
+        if (labelsValue) {
+            const labels = labelsValue.split("\n").map((a) => a.trim()).filter(l => l.length > 0);
             labelsValid = labels.every(label => label.length <= 128);
         }
 
-        // Validate session name if used
-        if (I("use_session").checked && I("sname").value.trim() !== "") {
-            snameValid = uproot.vars.sessions_available.includes(I("sname").value);
+        // Validate session name if entered
+        const snameValue = I("sname").value.trim();
+        if (snameValue) {
+            snameValid = uproot.vars.sessions_available.includes(snameValue);
         }
 
         if (!nameValid) {
             uproot.error(_("The room name you entered is invalid."));
         }
-        else if (!nameValid) {
+        else if (!nameAvailable) {
             uproot.error(_("The room name you entered already exists."));
         }
         else if (!labelsValid) {
@@ -137,6 +72,11 @@ New room
             uproot.error(_("The session you entered does not exist."));
         }
         else {
+            // Disable config select and uncheck open if not using config
+            if (!I("use_config").checked) {
+                I("configs-apps-select").disabled = true;
+                I("open").checked = false;
+            }
             document.forms[0].submit();
         }
     }

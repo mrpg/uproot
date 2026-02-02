@@ -135,13 +135,15 @@ def here(
     if strict:
         return {
             pid
-            for pid in u.who_online(3.0, sname)
+            for pid in u.who_online(d.HERE_TOLERANCE, sname)
             if (among is None or pid in among) and pid().show_page == show_page
         }
     else:
+        # TODO: Technically speaking, if strict is False, others need not be online.
+
         return {
             pid
-            for pid in u.who_online(3.0, sname)
+            for pid in u.who_online(d.HERE_TOLERANCE, sname)
             if (among is None or pid in among) and pid().show_page >= show_page
         }
 

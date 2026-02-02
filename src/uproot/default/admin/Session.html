@@ -1,15 +1,16 @@
 {% extends "Admin.html" %}
+{% from "Macros.html" import modal, player_count %}
 
 
 {% block titlearea %}
 
-<div class="d-flex justify-content-between my-4">
+<div class="d-flex flex-wrap justify-content-between me-2 my-4">
     <h2 id="uproot-title" class="fw-semibold">
         {% translate %}Session{% endtranslate %}
         <span class="font-monospace">{{ sname }}</span>
     </h2>
     <div>
-        <div class="btn-group ms-2 my-1">
+        <div class="btn-group my-1">
             <a class="btn btn-uproot" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
             <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
             <ul class="dropdown-menu">
@@ -20,7 +21,6 @@
                 {% endif %}
             </ul>
         </div>
-        {#<a class="btn btn-uproot mb-2" href="monitor/">Monitor</a>#}
     </div>
 </div>
 
@@ -30,133 +30,8 @@
 {% block head %}
 
 <style>
-    .btn-group-sm {
-        padding-bottom: 0pt !important;
-        padding-top: 0pt !important;
-        height: 31px;
-    }
-
-    /* Color visited links so that it is clear during debuggin which participat URL one has already opened */
-    .player-url:visited, .player-name .link-subtle:visited {
-        color: var(--bs-uproot) !important;
-    }
-    .player-url:visited:hover, .player-name .link-subtle:visited:hover {
-        color: var(--bs-uproot-dark) !important;
-    }
-
-    /* Tabulator styling for monitor table */
-    #data-table {
-        font-family: var(--bs-font-monospace);
-        height: 100% !important;
-    }
-    #data-table .tabulator-frozen-left {
-        border: 0px;
-    }
-    #data-table .tabulator-row {
-        background-color: white;
-    }
-    #data-table .tabulator-row:hover {
-        background-color: #eeeeee;
-    }
-    #data-table .tabulator-row.tabulator-selected {
-        background-color: var(--bs-uproot-bg-light) !important;
-    }
-
-    .table-sticky-outer {
-        height: 89vh;
-    }
-    .table-sticky-outer-full-width {
-        margin-left: 50%;
-        padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important;
-        width: 99vw;
-        transform: translate(-50%, 0%);
-    }
-
-    .tabulator-col-content, .tabulator-cell {
-        padding: 11px !important;
-    }
-    /* Sticky column styling for Tabulator */
-    .tabulator-col[aria-sort="ascending"] .tabulator-col-content, .tabulator-col[aria-sort="descending"] .tabulator-col-content {
-        background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
-    }
-    .tabulator-cell[tabulator-field="id"], .tabulator-col[tabulator-field="id"] {
-        color: var(--bs-uproot);
-    }
-    .tabulator-cell[tabulator-field="id"], .tabulator-cell[tabulator-field="player"] {
-        font-weight: bolder;
-    }
-    .tabulator-col-content {
-        background-color: var(--bs-uproot-bg-light);
-        border-bottom: 1px solid var(--bs-uproot-border-subtle);
-        border-right: 1px dashed var(--bs-uproot-border-subtle);
-        height: 100%;
-    }
-    .tabulator-cell {
-        border-left: none !important;
-    }
-    .tabulator-col {
-        border-left: none !important;
-    }
-    .tabulator-header {
-        border-bottom: 0px !important;
-    }
-    .tabulator-headers {
-        vertical-align: bottom !important;
-    }
-    /* Sticky row headers for first 4 columns */
-    .tabulator-headers > div:nth-of-type(1),
-    .tabulator-headers > div:nth-of-type(2),
-    .tabulator-headers > div:nth-of-type(3),
-    .tabulator-headers > div:nth-of-type(4) {
-        position: sticky !important;
-        z-index: 99;
-    }
-    .tabulator-row > div:nth-of-type(1),
-    .tabulator-row > div:nth-of-type(2),
-    .tabulator-row > div:nth-of-type(3),
-    .tabulator-row > div:nth-of-type(4) {
-        font-weight: bolder;
-        position: sticky !important;
-        z-index: 97;
-    }
-    /* Position to stick at for column 1 */
-    .tabulator-headers > div:nth-of-type(1),
-    .tabulator-row > div:nth-of-type(1) {
-        left: 0em !important;
-    }
-    /* Position to stick at for column 2 */
-    .tabulator-headers > div:nth-of-type(2),
-    .tabulator-row > div:nth-of-type(2) {
-        left: 2.5em !important;
-    }
-    /* Position to stick at for column 3 */
-    .tabulator-headers > div:nth-of-type(3),
-    .tabulator-row > div:nth-of-type(3) {
-        left: 6em !important;
-    }
-    /* Position to stick at for column 4 */
-    .tabulator-headers > div:nth-of-type(4),
-    .tabulator-row > div:nth-of-type(4) {
-        left: 12em !important;
-    }
-
-    /* Heartbeat animation */
-    .heartbeat {
-        transition: color 0.3s ease;
-    }
-    .heartbeat.active {
-        color: #28a745; /* Bootstrap success green */
-    }
-    .not-yet-implemented {
-        color: red;
-        font-weight: bold;
-    }
-    a .not-yet-implemented {
-        display: none;
-    }
-    a:hover .not-yet-implemented {
-        display: block;
+    #data-table .tabulator-headers div:first-of-type {
+        text-align: center;
     }
 </style>
 
@@ -171,11 +46,11 @@
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
                 {% if session.room is none %}
-                <p class="mb-2">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
+                <p class="mb-2 pt-1">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
                 {% else %}
-                <p class="mb-2">{% translate %}This session is associated with a room.{% endtranslate %}</p>
+                <p class="mb-2 pt-1">{% translate %}This session is associated with a room.{% endtranslate %}</p>
                 <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
-                <p class="mb-2">
+                <p class="mb-2 pt-1">
                     <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Dissociate room and session{% endtranslate %}</button>
                 </p>
                 {% endif %}
@@ -186,33 +61,45 @@
         <div class="card h-100">
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Essential information{% endtranslate %}</h5>
-                <div class="d-flex justify-content-between mb-3">
-                    {% if session.description is none %}
-                    <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
-                    <div>
+                {% if not deployment.PUBLIC_DEMO %}
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Description{% endtranslate %}</h6>
+                        {% if session.description is none %}
                         <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button>
-                    </div>
-                    {% else %}
-                    <div>
-                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Description{% endtranslate %}</h6>
-                        <p class="mb-2">{{ session.description }}</p>
-                    </div>
-                    <div>
+                        {% else %}
                         <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
+                        {% endif %}
                     </div>
+                    {% if session.description %}
+                    <p>{{ session.description }}</p>
                     {% endif %}
                 </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <div>
-                        <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Config{% endtranslate %}</h6>
-                        <p class="font-monospace mb-2">{{ session.config }}</p>
+                {% endif %}
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Settings{% endtranslate %}</h6>
+                        <button type="button" class="btn btn-sm btn-outline-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change{% endtranslate %}</button>
                     </div>
-                    <div>
-                        <a class="btn btn-sm btn-uproot h-auto" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
-                    </div>
+                    {% if session.settings %}
+                    <p>{% translate %}Custom settings{% endtranslate %}</p>
+                    {% else %}
+                    <p class="text-body-tertiary">{% translate %}No settings{% endtranslate %}</p>
+                    {% endif %}
                 </div>
-                <h6 class="fw-semibold mb-2 mt-0 pb-0">{% translate %}Apps{% endtranslate %}</h6>
-                <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
+                {% if session.config %}
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Config{% endtranslate %}</h6>
+                        <a class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
+                    </div>
+                    <p class="font-monospace mb-2">{{ session.config }}</p>
+                </div>
+                {% endif %}
+                <div>
+                    <h6 class="fw-semibold mb-2 pb-0 pt-1">{% translate %}Apps{% endtranslate %}</h6>
+                    <p class="font-monospace mb-2">{{ " → ".join(session.apps) }}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -220,22 +107,17 @@
         <div class="card h-100">
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
-                <div class="d-flex justify-content-between mb-3 mt-3">
-                    <div>
-                        <p class="d-table-row">
-                            <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
-                            <span class="d-table-cell text-end">{{ len(session.players) }}</span>
-                        </p>
-                        <p class="d-table-row">
-                            <span class="d-table-cell pe-4 text-nowrap">{% translate %}Started{% endtranslate %}</span>
-                            <span class="d-table-cell text-end" id="started-count">?</span>
-                        </p>
-                    </div>
-                    <div>
-                        <a class="btn btn-sm btn-uproot" href="#">{% translate %}Add players{% endtranslate %}<span class="not-yet-implemented">Not yet implemented</span></a>  {# TODO #}
-                    </div>
+                <div class="mb-4 mt-3 pt-1">
+                    <p class="d-table-row">
+                        <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
+                        <span class="d-table-cell text-end" x-text="$store.session.totalPlayers"></span>
+                    </p>
+                    <p class="d-table-row">
+                        <span class="d-table-cell pe-4 pt-1 text-nowrap">{% translate %}Started{% endtranslate %}</span>
+                        <span class="d-table-cell pt-1 text-end" x-text="$store.session.startedCount"></span>
+                    </p>
                 </div>
-                <h6 class="fw-semibold mb-2">{% translate %}Player URLs{% endtranslate %}</h6>
+                <h6 class="fw-semibold mb-3">{% translate %}Player URLs{% endtranslate %}</h6>
                 <p class="mb-2">{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>
                     <li>
@@ -246,8 +128,8 @@
                     </li>
                 </ul>
                 {% if len(info) > 0 %}
-                <p class="mb-1">
-                    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#urlModal" data-bs-toggle="modal" type="button">
+                <p class="mb-2">
+                    <button class="btn btn-sm btn-outline-uproot mt-1" data-bs-target="#urlModal" data-bs-toggle="modal" type="button">
                         {% translate %}Show individual URLs{% endtranslate %}
                     </button>
                 </p>
@@ -259,9 +141,9 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Admin settings{% endtranslate %}</h5>
-                <div class="d-grid gap-2">
-                    <button type="button" class="border-white btn btn-outline-uproot btn-sm mb-1 position-relative text-start w-100" onclick="flipTesting()">
-                        <i class="bi bi-toggle-{% if session.testing %}on{% else %}off{% endif %} me-1"></i>
+                <div class="d-grid">
+                    <button type="button" class="border-0 btn btn-outline-uproot btn-sm fs-6 mb-1 position-relative text-start w-100" onclick="flipTesting()">
+                        <i class="bi bi-toggle-{% if session.testing %}on{% else %}off{% endif %} me-2"></i>
                         {% if session.testing %}
                         <b>{% translate %}
                         Testing is enabled. <i class="bi bi-exclamation-triangle-fill ms-1"></i>
@@ -277,7 +159,7 @@
                         data-bs-content="{% if session.testing %}{% translate %}This will hide this session’s testing elements for all except admins.{% endtranslate %}{% else %}{% translate %}This will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
                         onclick="event.stopPropagation()"></i>
                     </button>
-                    <button type="button" class="border-white btn btn-outline-uproot btn-sm position-relative text-start w-100" onclick="flipActive()">
+                    <button type="button" class="border-0 btn btn-outline-uproot btn-sm fs-6 position-relative text-start w-100" onclick="flipActive()">
                         <i class="bi bi-toggle-{% if session.active %}on{% else %}off{% endif %} me-2"></i>
                         {% if session.active %}
                         {% translate %}
@@ -302,43 +184,50 @@
 
 <!-- Player monitor -->
 
-<div class="align-items-center d-flex justify-content-between mb-0 pb-2">
-    <h3 class="fw-semibold me-3 mb-3 mt-2">{% translate %}Player monitor{% endtranslate %}</h3>
-    <button type="button" class="btn btn-outline-uproot" onclick="toggleTableWidth()">
-        <span class="d-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
-        <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
-    </button>
-    <div>
-        <button class="btn btn-outline-uproot mb-3 mt-2" onclick="openMultiview()" type="button">
-            {% translate %}Multiview{% endtranslate %}
-            <i class="bi bi-question-circle"
-                data-bs-toggle="popover"
-                data-bs-trigger="hover"
-                data-bs-content="{% translate %}This opens a new browser tab displaying the current pages of the selected players.{% endtranslate %}"
-                onclick="event.stopPropagation()"></i>
+<div class="align-items-center d-flex flex-wrap justify-content-between mb-2 mt-1 pb-2">
+    <h3 class="flex-grow-1 fw-semibold me-3 mb-3 mt-2">{% translate %}Player monitor{% endtranslate %}</h3>
+    <div class="d-flex flex-grow-1 flex-wrap justify-content-between">
+        <button type="button" class="btn btn-outline-uproot mb-1 me-3" onclick="toggleTableWidth()">
+            <span class="d-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
+            <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
         </button>
-        <div class="btn-group mb-3 ms-2 mt-2">
-            <button type="button" class="btn btn-uproot" onclick="mmodal('manage')">
-                {% translate %}Manage players{% endtranslate %}
-                </button>
-            <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-            <ul class="dropdown-menu">
-                <li>
-                    <span class="dropdown-item" onclick="mmodal('manage')" role="button">
-                        {% translate %}Manage players{% endtranslate %}
-                    </span>
-                </li>
-                <li>
-                    <span class="dropdown-item" onclick="mmodal('insert')" role="button">
-                        {% translate %}Insert fields{% endtranslate %}
-                    </span>
-                </li>
-                <li>
-                    <span class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
-                        {% translate %}Send message{% endtranslate %}
-                    </span>
-                </li>
-            </ul>
+        <div class="align-items-baseline d-flex flex-wrap justify-content-between">
+            <button class="btn btn-outline-uproot mb-1 me-2" onclick="openMultiview()" type="button">
+                {% translate %}Multiview{% endtranslate %}
+                <i class="bi bi-question-circle"
+                    data-bs-toggle="popover"
+                    data-bs-trigger="hover"
+                    data-bs-content="{% translate %}This opens a new browser tab displaying the current pages of the selected players.{% endtranslate %}"
+                    onclick="event.stopPropagation()"></i>
+            </button>
+            <div class="btn-group mb-1">
+                <button type="button" class="btn btn-uproot" onclick="mmodal('manage')">
+                    {% translate %}Manage players{% endtranslate %}
+                    </button>
+                <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('manage')" role="button">
+                            {% translate %}Manage players{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('insert')" role="button">
+                            {% translate %}Insert fields{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
+                            {% translate %}Send message{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('redirect')" role="button">
+                            {% translate %}Redirect to URL{% endtranslate %}
+                        </span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -350,208 +239,97 @@
 </div>
 
 <!-- Modal to manage players -->
-
-<div class="modal fade" id="manage-modal" tabindex="-1" aria-labelledby="manage-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="manage-modalLabel">
-                    {% translate %}
-                    Manage players
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% translate %}You have selected{% endtranslate %}
-                    <b><span class="pcount"></span>
-                    {% translate %}player(s){% endtranslate %}</b>.
-                </p>
-                <div class="mb-1">
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
-                        <label class="form-check-label" for="advance_by_one">
-                            {% translate %}
-                            Advance by one page
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            If the next page is not shown, it will be skipped.
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
-                        <label class="form-check-label" for="reload">
-                            {% translate %}
-                            Reload players’ pages
-                            {% endtranslate %}
-                        </label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="revert_by_one" value="revert_by_one">
-                        <label class="form-check-label" for="revert_by_one">
-                            {% translate %}
-                            Revert by one page
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            If the previous page was not shown, this will return to the current page.
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="manage" id="put_to_end" value="put_to_end">
-                        <label class="form-check-label" for="put_to_end">
-                            {% translate %}
-                            Put to end
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            This terminates the study for the selected player(s).
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="manage" id="mark_dropout" value="mark_dropout">
-                        <label class="form-check-label" for="mark_dropout">
-                            {% translate %}
-                            Mark as dropout
-                            {% endtranslate %}
-                        </label><br>
-                        <span class="form-text text-muted">
-                            {% translate %}
-                            This will run all dropout handlers registered with <code>watch_for_dropout()</code>.
-                            {% endtranslate %}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="actuallyManage()">
-                    {% translate %}
-                    Save changes
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
+{% call modal(_, "manage", title=_("Manage players"), action_text=_("Save changes"), action_handler="actuallyManage()") %}
+{{ player_count(_) }}
+<div class="mb-1">
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
+        <label class="form-check-label" for="advance_by_one">
+            {% translate %}Advance by one page{% endtranslate %}
+        </label><br>
+        <span class="form-text">
+            {% translate %}If the next page is not shown, it will be skipped.{% endtranslate %}
+        </span>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
+        <label class="form-check-label" for="reload">
+            {% translate %}Reload players’ pages{% endtranslate %}
+        </label>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="revert_by_one" value="revert_by_one">
+        <label class="form-check-label" for="revert_by_one">
+            {% translate %}Revert by one page{% endtranslate %}
+        </label><br>
+        <span class="form-text">
+            {% translate %}If the previous page was not shown, this will return to the current page.{% endtranslate %}
+        </span>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="manage" id="put_to_end" value="put_to_end">
+        <label class="form-check-label" for="put_to_end">
+            {% translate %}Put to end{% endtranslate %}
+        </label><br>
+        <span class="form-text">
+            {% translate %}This terminates the study for the selected player(s).{% endtranslate %}
+        </span>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="manage" id="mark_dropout" value="mark_dropout">
+        <label class="form-check-label" for="mark_dropout">
+            {% translate %}Mark as dropout{% endtranslate %}
+        </label><br>
+        <span class="form-text">
+            {% translate %}This will run all dropout handlers registered with <code>watch_for_dropout()</code>.{% endtranslate %}
+        </span>
     </div>
 </div>
+{% endcall %}
 
 <!-- Modal for inserting fields -->
-
-<div class="modal fade" id="insert-modal" tabindex="-1" aria-labelledby="insert-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="insert-modalLabel">
-                    {% translate %}
-                    Insert fields
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% translate %}
-                    You have selected <b><span class="pcount"></span> player(s)</b>.
-                    {% endtranslate %}
-                </p>
-
-                <div class="mb-3">
-                    <textarea class="form-control font-monospace" id="json-input" rows="3">{}</textarea>
-                </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" name="manage" id="reload2" value="reload">
-                    <label class="form-check-label" for="reload2">
-                        {% translate %}
-                        Reload players’ pages
-                        {% endtranslate %}
-                    </label>
-                </div>
-
-                <p>
-                    {% translate %}
-                    Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):
-                    {% endtranslate %}<br>
-                    <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
-                </p>
-
-                <p class="text-muted">
-                    {% translate %}
-                    Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.
-                    {% endtranslate %}
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="actuallyInsert()">
-                    {% translate %}
-                    Insert fields
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
-    </div>
+{% call modal(_, "insert", title=_("Insert fields"), action_text=_("Insert fields"), action_handler="actuallyInsert()") %}
+{{ player_count(_) }}
+<div class="mb-3">
+    <textarea class="form-control font-monospace" id="json-input" rows="3">{}</textarea>
 </div>
+<div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="manage" id="reload2" value="reload">
+    <label class="form-check-label" for="reload2">
+        {% translate %}Reload players' pages{% endtranslate %}
+    </label>
+</div>
+<p>
+    {% translate %}Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):{% endtranslate %}<br>
+    <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
+</p>
+<p class="small text-danger">
+    {% translate %}Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.{% endtranslate %}
+</p>
+{% endcall %}
 
 <!-- Modal for admin to send message to players -->
-
-<div class="modal fade" id="adminmessage_send-modal" tabindex="-1" aria-labelledby="adminmessage_send-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="adminmessage_send-modalLabel">
-                    {% translate %}
-                    Send message
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    {% translate %}
-                    You have selected <b><span class="pcount"></span> player(s)</b>.
-                    {% endtranslate %}
-                </p>
-
-                <div class="mb-3">
-                    <textarea class="form-control" id="adminmsg" rows="3"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-                <button type="button" class="btn btn-danger" onclick="actuallyAdminmessageSend()">
-                    {% translate %}
-                    Send message
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
-    </div>
+{% call modal(_, "adminmessage_send", title=_("Send message"), action_text=_("Send message"), action_handler="actuallyAdminmessageSend()") %}
+{{ player_count(_) }}
+<div class="mb-3">
+    <textarea class="form-control" id="adminmsg" rows="3"></textarea>
 </div>
+{% endcall %}
+
+<!-- Modal for redirect to URL -->
+{% call modal(_, "redirect", title=_("Redirect to URL"), action_text=_("Redirect players"), action_handler="actuallyRedirect()") %}
+{{ player_count(_) }}
+<div class="mb-3">
+    <label for="redirect-url" class="form-label">{% translate %}Target URL{% endtranslate %}</label>
+    <input type="url" class="form-control font-monospace" id="redirect-url" placeholder="https://example.com/">
+    <div class="form-text">{% translate %}URL must start with http:// or https://{% endtranslate %}</div>
+</div>
+{% endcall %}
 
 <!-- Modal for player URLs -->
 
 <div class="modal fade" id="urlModal" tabindex="-1" aria-labelledby="urlModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="border-uproot-light modal-content">
         <div class="border-uproot-light modal-header">
             <h5 class="modal-title" id="urlModalLabel">
@@ -564,11 +342,11 @@
             <table class="table table-sm table-hover">
                 <thead>
                     <tr>
-                        <th class="fw-semibold ps-0">Player ID</th>
-                        <th class="fw-semibold">Player URL</th>
+                        <th class="fw-semibold ps-0">{% translate %}Player ID{% endtranslate %}</th>
+                        <th class="fw-semibold">{% translate %}Player URL{% endtranslate %}</th>
                     </tr>
                 </thead>
-                <tbody x-data="{}">
+                <tbody>
                     {% for key in info %}
                     <tr>
                         <td class="ps-0">{{ loop.index0 }}</td>
@@ -579,17 +357,25 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <ol class="mb-3">
-            </ol>
             {% endif %}
         </div>
         <div class="border-uproot-light modal-footer justify-content-between">
-            <button class="btn btn-outline-uproot btn-sm" onclick="copyURLsToClipboard()" type="button">Copy URLs as plain text</button>
+            <button class="btn btn-outline-uproot btn-sm" onclick="copyURLsToClipboard()" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
             <span class="fw-300 invisible me-3 text-uproot" id="urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
         </div>
         </div>
     </div>
 </div>
+
+<!-- Modal for settings -->
+{% call modal(_, "settings", title=_("Change settings"), action_text=_("Save settings"), action_handler="saveSettings()") %}
+<div class="mb-3">
+    <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
+</div>
+<small class="d-block form-text">
+    {% translate %}Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.{% endtranslate %}
+</small>
+{% endcall %}
 
 {% endblock main %}
 
@@ -597,24 +383,13 @@
 {% block late %}
 
 <script>
-    function disassociate() {
-        uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(uproot.reload);
-    }
-    function flipActive() {
-        uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
-    }
-    function flipTesting() {
-        uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
-    }
-    function setDescription() {
-        uproot.prompt(_("Enter new description:"), {{ session.description | tojson }})
-            .then((newdesc) => uproot.invoke("update_description", uproot.vars.sname, newdesc))
-            .then(uproot.reload);
-    }
-
-    uproot.onStart(() => {
-        var popovers = [].slice.call(document.querySelectorAll("[data-bs-toggle='popover']"))
-        popovers.map(function(el) { return new bootstrap.Popover(el) })
+    // Alpine.js store for session player counts
+    document.addEventListener("alpine:init", () => {
+        Alpine.store("session", {
+            totalPlayers: {{ len(session.players) }},
+            startedCount: "?",
+            selectedCount: 0
+        });
     });
 </script>
 
@@ -622,33 +397,81 @@
 <script src="{{ internalstatic('monitor.js') }}"></script>
 
 <script>
-    function copyURLsToClipboard() {
-        const keys = Object.keys(uproot.vars.info)
-        var text = ""
-        for (const k of keys) {
-            text += `${window.location.origin}${uproot.vars.root}/p/${uproot.vars.sname}/${k}/\n`;
-        };
-        // Copy the text inside the text field
-        navigator.clipboard.writeText(text);
-        I("urls-copied").classList.remove("invisible");
-        setTimeout(function() {
-            I("urls-copied").classList.add("invisible");
-        }, 3000);
-    };
-    var fullWidthTable = false;
-    function toggleTableWidth() {
-        if (fullWidthTable == true) {
-            I("full-width-text").className = "d-block";
-            I("normal-width-text").className = "d-none";
-            I("tableContainer").classList.remove("table-sticky-outer-full-width");
-            fullWidthTable = false;
-        } else {
-            I("full-width-text").className = "d-none";
-            I("normal-width-text").className = "d-block";
-            I("tableContainer").classList.add("table-sticky-outer-full-width");
-            fullWidthTable = true;
+    // ========================================================================
+    // Session Actions
+    // ========================================================================
+
+    function disassociate() {
+        uproot.invoke("disassociate", uproot.vars.room, uproot.vars.sname).then(uproot.reload);
+    }
+
+    function flipActive() {
+        uproot.invoke("flip_active", uproot.vars.sname).then(uproot.reload);
+    }
+
+    function flipTesting() {
+        uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
+    }
+
+    function setDescription() {
+        uproot.prompt(_("Enter new description:"), {{ session.description | tojson }})
+            .then((newdesc) => uproot.invoke("update_description", uproot.vars.sname, newdesc))
+            .then(uproot.reload);
+    }
+
+    function saveSettings() {
+        try {
+            const settings = JSON.parse(uproot.looseJSONtoJSON(I("settings-input").value));
+            uproot.invoke("update_settings", uproot.vars.sname, settings).then(uproot.reload);
+        } catch (error) {
+            uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
         }
     }
+
+    // ========================================================================
+    // URL Utilities
+    // ========================================================================
+
+    function copyURLsToClipboard() {
+        const keys = Object.keys(uproot.vars.info);
+        const text = keys
+            .map(k => `${window.location.origin}${uproot.vars.root}/p/${uproot.vars.sname}/${k}/`)
+            .join("\n");
+
+        navigator.clipboard.writeText(text);
+        I("urls-copied").classList.remove("invisible");
+        setTimeout(() => I("urls-copied").classList.add("invisible"), 3000);
+    }
+
+    // ========================================================================
+    // Table Width Toggle
+    // ========================================================================
+
+    let fullWidthTable = false;
+
+    function toggleTableWidth() {
+        fullWidthTable = !fullWidthTable;
+
+        I("full-width-text").className = fullWidthTable ? "d-none" : "d-block";
+        I("normal-width-text").className = fullWidthTable ? "d-block" : "d-none";
+
+        if (fullWidthTable) {
+            I("tableContainer").classList.add("table-sticky-outer-full-width");
+        } else {
+            I("tableContainer").classList.remove("table-sticky-outer-full-width");
+        }
+    }
+
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
+    uproot.onStart(() => {
+        // Initialize Bootstrap popovers
+        document.querySelectorAll("[data-bs-toggle='popover']").forEach(el => {
+            new bootstrap.Popover(el);
+        });
+    });
 </script>
 
 {% endblock late %}

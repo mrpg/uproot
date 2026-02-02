@@ -5,32 +5,48 @@ import base64
 from collections import namedtuple
 from decimal import Decimal as cu
 from types import EllipsisType
-from typing import Annotated, Any, Awaitable, Callable, Iterable, Sequence, cast
+from typing import (
+    Annotated,
+    Any,
+    Awaitable,
+    Callable,
+    Iterable,
+    Optional,
+    Sequence,
+    cast,
+)
 
 from markupsafe import Markup
 from pydantic import validate_call
 
 import uproot as u
 import uproot.chat
+import uproot.core as c
 import uproot.types as t
 from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
 from uproot.pages import page2path
 from uproot.queries import FieldReferent
 from uproot.queues import enqueue
-from uproot.storage import Player, Storage
+from uproot.storage import Admin, Group, Model, Player, Session, Storage
 
 __all__ = [
     "_",
+    "Admin",
+    "Between",
     "Bracket",
     "chat",
     "combine",
+    "create_group",
+    "create_groups",
     "cu",
     "data_uri",
+    "Group",
     "GroupCreatingWait",
     "GroupIdentifier",
     "live",
     "mark_dropout",
+    "Model",
     "ModelIdentifier",
     "move_to_end",
     "move_to_page",
@@ -41,6 +57,7 @@ __all__ = [
     "others_in_group",
     "others_in_session",
     "Page",
+    "Player",
     "PlayerIdentifier",
     "players",
     "Random",
@@ -50,7 +67,9 @@ __all__ = [
     "safe",
     "send_to",
     "send_to_one",
+    "Session",
     "SessionIdentifier",
+    "Storage",
     "SynchronizingWait",
     "uuid",
     "watch_for_dropout",
@@ -68,6 +87,93 @@ safe = Markup
 SessionIdentifier = t.SessionIdentifier
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
+
+
+def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
+    """Convert an iterable of PlayerLike objects to PlayerIdentifiers."""
+    result: list[t.PlayerIdentifier] = []
+    for m in members:
+        if isinstance(m, t.PlayerIdentifier):
+            result.append(m)
+        elif isinstance(m, Storage):
+            result.append(cast(t.PlayerIdentifier, ~m))
+        else:
+            raise TypeError(
+                f"Member must be Storage or PlayerIdentifier, got {type(m).__name__}"
+            )
+    return result
+
+
+@flexible
+def create_group(
+    session: Storage,
+    members: Iterable[PlayerLike],
+    *,
+    gname: Optional[str] = None,
+    overwrite: bool = False,
+) -> t.GroupIdentifier:
+    """
+    Create a group of players in the given session.
+
+    This provides a simplified interface for creating groups programmatically
+    without using GroupCreatingWait.
+
+    Args:
+        session: The session (Storage or SessionIdentifier).
+        members: Players to group (Storage objects or PlayerIdentifiers).
+        gname: Optional group name (auto-generated if not provided).
+        overwrite: If True, allows reassigning players already in groups.
+
+    Returns:
+        GroupIdentifier for the newly created group.
+
+    Example:
+        # In a page's before() or after() method:
+        gid = create_group(player._uproot_session, [player, other_player])
+
+        # Or with player identifiers:
+        gid = create_group(session, [pid1, pid2, pid3])
+    """
+    member_pids = to_player_ids(members)
+
+    with session:
+        return c.create_group(session, member_pids, gname=gname, overwrite=overwrite)
+
+
+@flexible
+def create_groups(
+    session: Storage,
+    groups: Iterable[Iterable[PlayerLike]],
+    *,
+    overwrite: bool = False,
+) -> list[t.GroupIdentifier]:
+    """
+    Create multiple groups of players in the given session.
+
+    This is a convenience function for creating several groups at once,
+    accepting a list of member lists.
+
+    Args:
+        session: The session (Storage or SessionIdentifier).
+        groups: List of groups, where each group is a list of players.
+        overwrite: If True, allows reassigning players already in groups.
+
+    Returns:
+        List of GroupIdentifiers for the newly created groups.
+
+    Example:
+        # Create two groups of 3 players each:
+        gids = create_groups(session, [[p1, p2, p3], [p4, p5, p6]])
+
+        # Pair up players from a list:
+        pairs = [[players[i], players[i+1]] for i in range(0, len(players), 2)]
+        gids = create_groups(player._uproot_session, pairs)
+    """
+    with session:
+        return [
+            c.create_group(session, to_player_ids(members), overwrite=overwrite)
+            for members in groups
+        ]
 
 
 def live(method: Callable[..., Any]) -> Callable[..., Any]:
@@ -289,6 +395,8 @@ def combine(named_tuples: Sequence[Any]) -> Any:
 
 class Random(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages: list[t.PageLike] = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RandomStart"],
@@ -373,6 +481,8 @@ class Random(t.SmoothOperator):
 
 class Rounds(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike, n: int) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RoundStart"],
@@ -387,14 +497,53 @@ class Rounds(t.SmoothOperator):
 
     @classmethod
     async def next(page, player: Storage) -> None:
+        # Increment overall round counter
         if not hasattr(player, "round") or player.round is None:
             player.round = 1
         else:
             player.round += 1
 
+        # Calculate round_nested by scanning page_order up to current position.
+        # This tracks the round number at each nesting level.
+        # E.g., round_nested = [2, 3] means "outer round 2, inner round 3"
+        depth = 0
+        completed_at_depth: dict[int, int] = {}  # depth -> completed rounds
+        current_at_depth: dict[int, int] = {}  # depth -> current round number
+
+        for i in range(player.show_page):
+            page_name = player.page_order[i]
+            if page_name == "#RoundStart":
+                # Entering a round at this depth
+                current_at_depth[depth] = completed_at_depth.get(depth, 0) + 1
+                depth += 1
+            elif page_name == "#RoundEnd":
+                # Exiting a round - mark it as completed at that depth
+                depth -= 1
+                completed_at_depth[depth] = current_at_depth.get(depth, 0)
+                # Clear deeper levels - they reset when we start a new iteration
+                for d in list(completed_at_depth.keys()):
+                    if d > depth:
+                        del completed_at_depth[d]
+                for d in list(current_at_depth.keys()):
+                    if d > depth:
+                        del current_at_depth[d]
+
+        # We're now at a #RoundStart at the current depth
+        this_round = completed_at_depth.get(depth, 0) + 1
+
+        # Build round_nested: [round at depth 0, round at depth 1, ..., this_round]
+        round_nested = []
+        for d in range(depth):
+            round_nested.append(current_at_depth.get(d, 1))
+        round_nested.append(this_round)
+
+        player.round_nested = round_nested
+
 
 class Repeat(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RepeatStart"],
@@ -435,6 +584,8 @@ class Repeat(t.SmoothOperator):
 
 class Bracket(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
         self.pages = [
             INTERNAL_PAGES["{"],
             *pages,
@@ -443,6 +594,114 @@ class Bracket(t.SmoothOperator):
 
     def expand(self) -> list[t.PageLike]:
         return self.pages
+
+
+class Between(t.SmoothOperator):
+    """
+    A SmoothOperator that randomly selects exactly one of the encompassed pages.
+
+    Between(A, B, C) yields either A, B, or C, randomly selected with equal
+    probability. When used with Bracket groups, each group counts as one option:
+    Between(A, Bracket(B, C), D) picks one of: A, (B and C together), or D.
+    """
+
+    def __init__(self, *pages: t.PageLike) -> None:
+        # Call parent __init__ before setting custom pages
+        super().__init__()
+        self.pages = [
+            INTERNAL_PAGES["{"],
+            INTERNAL_PAGES["BetweenStart"],
+            *pages,
+            INTERNAL_PAGES["BetweenEnd"],
+            INTERNAL_PAGES["}"],
+        ]
+
+    def expand(self) -> list[t.PageLike]:
+        return self.pages
+
+    @classmethod
+    async def start(page, player: Storage) -> None:
+        from random import choice
+
+        # Find the nearest #BetweenStart before our position
+        start_ix = None
+        for i in range(player.show_page, -1, -1):
+            if player.page_order[i] == "#BetweenStart":
+                start_ix = i
+                break
+
+        if start_ix is None:
+            raise RuntimeError("Could not find #BetweenStart")
+
+        # Find the matching #BetweenEnd for this #BetweenStart
+        between_depth = 1
+        end_ix = None
+        for i in range(start_ix + 1, len(player.page_order)):
+            if player.page_order[i] == "#BetweenStart":
+                between_depth += 1
+            elif player.page_order[i] == "#BetweenEnd":
+                between_depth -= 1
+                if between_depth == 0:
+                    end_ix = i
+                    break
+
+        if end_ix is None:
+            raise RuntimeError("Could not find matching #BetweenEnd")
+
+        pages = player.page_order[start_ix + 1 : end_ix]
+
+        # Group pages by brackets (each bracket group is one selectable option)
+        grouped_pages: list[list[str]] = []
+        i = 0
+        while i < len(pages):
+            if pages[i] == "#{":
+                # Find the matching closing bracket
+                bracket_group = ["#{"]
+                bracket_depth = 1
+                i += 1  # Skip the opening bracket
+
+                while i < len(pages) and bracket_depth > 0:
+                    if pages[i] == "#{":
+                        bracket_depth += 1
+                    elif pages[i] == "#}":
+                        bracket_depth -= 1
+
+                    bracket_group.append(pages[i])
+                    i += 1
+
+                if bracket_depth == 0:
+                    grouped_pages.append(bracket_group)
+                else:
+                    raise RuntimeError("Unmatched opening bracket")
+            elif pages[i] == "#}":
+                raise RuntimeError("Unmatched closing bracket")
+            else:
+                grouped_pages.append([pages[i]])
+                i += 1
+
+        if not grouped_pages:
+            # No pages to select from, leave empty
+            player.page_order = (
+                player.page_order[: start_ix + 1] + player.page_order[end_ix:]
+            )
+            return
+
+        # Randomly select exactly one group
+        selected_group = choice(grouped_pages)  # nosec B311
+
+        # Record which page was selected (filter out bracket markers)
+        selected_page = next((p for p in selected_group if p not in ("#{", "#}")), None)
+        if selected_page is not None:
+            if not hasattr(player, "between_showed") or player.between_showed is None:
+                player.between_showed = []
+            player.between_showed = player.between_showed + [selected_page]
+
+        # Replace the content between markers with just the selected page(s)
+        player.page_order = (
+            player.page_order[: start_ix + 1]
+            + selected_group
+            + player.page_order[end_ix:]
+        )
 
 
 INTERNAL_PAGES = {
@@ -475,6 +734,16 @@ INTERNAL_PAGES = {
         "RepeatEnd",
         (t.InternalPage,),
         dict(before_always_once=Repeat.__dict__["continue_maybe"]),
+    ),
+    "BetweenStart": type(
+        "BetweenStart",
+        (t.InternalPage,),
+        dict(after_always_once=Between.__dict__["start"]),
+    ),
+    "BetweenEnd": type(
+        "BetweenEnd",
+        (t.InternalPage,),
+        dict(),
     ),
     "{": type(
         "{",

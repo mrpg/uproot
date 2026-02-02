@@ -21,14 +21,18 @@ function isConsoleError(source, stack) {
 
 function jserrorsSend(message, source = "unknown", lineno = "?", colno = "?", stack = "") {
     if (isConsoleError(source, stack)) return;
-    
+
     const timestamp = new Date().toISOString();
     const locationInfo = source ? ` [${source}:${lineno}:${colno}]` : "";
     const fullMessage = `${message}${locationInfo}`;
 
     if (!jserrorsAlreadyReported.includes(fullMessage)) {
-        jserrorsAlreadyReported.push(fullMessage);  // ignore API failure here
-        return uproot.api("jserrors", fullMessage);
+        jserrorsAlreadyReported.push(fullMessage);
+
+        // Only send if WebSocket is connected, otherwise errors cascade
+        if (uproot.ws?.isConnected) {
+            return uproot.api("jserrors", fullMessage);
+        }
     }
 }
 
