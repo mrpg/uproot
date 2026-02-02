@@ -209,6 +209,7 @@ async def render(
             sname=sname,
             thisis=thisis,
             uname=uname,
+            no_enter=d.NO_ENTER,
         )
         | (metadata if metadata is not None else {})
     )
