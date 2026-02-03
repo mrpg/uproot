@@ -1075,6 +1075,7 @@ FUNS = dict(
     flip_testing=a.flip_testing,
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,
+    praise=a.praise,
     put_to_end=a.put_to_end,
     redirect=a.redirect,
     reload=a.reload,
