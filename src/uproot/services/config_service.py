@@ -59,7 +59,7 @@ async def announcements() -> dict[str, Any]:
 
 async def praise() -> str:
     """Fetch praise message."""
-    PRAISE_URL = "https://max.pm/praise/uproot/"
+    PRAISE_URL = "https://uproot.science/praise/"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(PRAISE_URL) as response:
