@@ -446,6 +446,9 @@ function getSelectedPlayers(col = "player") {
     return monitorState.table.getSelectedRows().map(row => row.getData()[col]);
 }
 
+// Export for use in Session.html
+window.getSelectedPlayers = getSelectedPlayers;
+
 // ============================================================================
 // Multiview
 // ============================================================================

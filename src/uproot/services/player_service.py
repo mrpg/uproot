@@ -6,6 +6,7 @@
 from typing import Any
 
 import uproot as u
+import uproot.chat as chat
 import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
@@ -214,13 +215,103 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
     session_exists(sname, False)
 
     for uname in unames:
-        ptuple = sname, uname
+        pid = t.PlayerIdentifier(sname, uname)
 
-        q.enqueue(
-            ptuple,
-            dict(
-                source="adminmessage",
-                data=msg,
-                event="_uproot_AdminMessaged",
-            ),
-        )
+        with pid() as player:
+            # Create admin chat if it doesn't exist
+            if player._uproot_adminchat is None:
+                player._uproot_adminchat = chat.create_adminchat(pid)
+
+            # Add message to chat (sender=None means admin)
+            chatmsg = chat.add_message(player._uproot_adminchat, None, msg)
+
+            # Queue the message to the player
+            q.enqueue(
+                tuple(pid),
+                dict(
+                    source="adminchat",
+                    data=chat.show_adminchat_msg(
+                        player._uproot_adminchat,
+                        chatmsg,
+                        pid,
+                    ),
+                    event="_uproot_Chatted",
+                ),
+            )
+
+
+async def adminchat_messages(sname: t.Sessionname) -> dict[str, Any]:
+    """Get all admin chat messages for all players in a session."""
+    session_exists(sname, False)
+
+    result: dict[str, list[dict[str, Any]]] = {}
+
+    with s.Session(sname) as session:
+        for pid in session.players:
+            with pid() as player:
+                if player._uproot_adminchat is not None:
+                    msgs = chat.messages(player._uproot_adminchat)
+                    result[pid.uname] = [
+                        chat.show_adminchat_msg(player._uproot_adminchat, msg, None)
+                        for msg in msgs
+                    ]
+
+    return result
+
+
+async def set_adminchat_replies(
+    sname: t.Sessionname, unames: list[str], enabled: bool
+) -> None:
+    """Set whether specific players can reply to admin chat messages."""
+    session_exists(sname, False)
+
+    for uname in unames:
+        pid = t.PlayerIdentifier(sname, uname)
+
+        with pid() as player:
+            player._uproot_adminchat_replies = enabled
+
+            if enabled:
+                # Create admin chat if it doesn't exist
+                if player._uproot_adminchat is None:
+                    player._uproot_adminchat = chat.create_adminchat(pid)
+
+                # Notify the player to show the buddy and chat UI
+                q.enqueue(
+                    tuple(pid),
+                    dict(
+                        source="adminchat",
+                        data=dict(
+                            cname=player._uproot_adminchat.mname,
+                            canReply=True,
+                        ),
+                        event="_uproot_AdminchatEnabled",
+                    ),
+                )
+            else:
+                # Check if chat has any messages
+                has_messages = (
+                    player._uproot_adminchat is not None
+                    and len(chat.messages(player._uproot_adminchat)) > 0
+                )
+
+                # Notify the player
+                q.enqueue(
+                    tuple(pid),
+                    dict(
+                        source="adminchat",
+                        data=dict(
+                            cname=(
+                                player._uproot_adminchat.mname
+                                if player._uproot_adminchat
+                                else None
+                            ),
+                            hasMessages=has_messages,
+                        ),
+                        event="_uproot_AdminchatDisabled",
+                    ),
+                )
+
+                # Clean up if no messages were sent
+                if not has_messages:
+                    player._uproot_adminchat = None

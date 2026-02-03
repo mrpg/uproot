@@ -635,6 +635,13 @@ window.uproot = {
     },
 
     adminMessage(text) {
+        const modalEl = this.I("adminmessage-modal");
+
+        // Don't re-show if already visible
+        if (modalEl.classList.contains("show")) {
+            return;
+        }
+
         const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
             const modal = bootstrap.Modal.getOrCreateInstance(el);
             modal.hide();
@@ -642,7 +649,7 @@ window.uproot = {
             return modal;
         });
 
-        let alertModal = bootstrap.Modal.getOrCreateInstance(this.I("adminmessage-modal"), { "backdrop": "static" });
+        let alertModal = bootstrap.Modal.getOrCreateInstance(modalEl, { "backdrop": "static" });
 
         if (text !== undefined) {
             this.I("adminmessage-modal-body").innerText = text;
@@ -650,7 +657,7 @@ window.uproot = {
 
         alertModal.show();
 
-        this.I("adminmessage-modal").addEventListener("hidden.bs.modal", () => {
+        modalEl.addEventListener("hidden.bs.modal", () => {
             shownModals.forEach(modal => modal.show());
         }, { once: true });
 
@@ -1018,15 +1025,10 @@ window.uproot = {
             }
         },
 
-        create(el, chatId) {
+        create(el, chatId, canReply = true) {
             chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
 
-            el.innerHTML = /* SAFE */ `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
-                <div class="messages-container border rounded bg-white mb-3" role="log" aria-label="Chat messages" aria-live="polite">
-                    <ul class="list-unstyled mb-0 p-0" id="messages-chat-${chatId}">
-                    </ul>
-                </div>
-
+            const inputHtml = canReply ? `
                 <div class="d-flex gap-2">
                     <label for="message-input-chat-${chatId}" class="visually-hidden">${_("Type your message")}</label>
                     <input type="text"
@@ -1035,8 +1037,16 @@ window.uproot = {
                            placeholder="${_("Type your message")}"
                            required
                            autocomplete="off">
-                    <button type="button" class="btn btn-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">Send</button>
+                    <button type="button" class="btn btn-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">${_("Send")}</button>
                 </div>
+            ` : "";
+
+            el.innerHTML = /* SAFE */ `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
+                <div class="messages-container border rounded bg-white mb-3" role="log" aria-label="Chat messages" aria-live="polite">
+                    <ul class="list-unstyled mb-0 p-0" id="messages-chat-${chatId}">
+                    </ul>
+                </div>
+                ${inputHtml}
             </div>`;
 
             const ch = el.children[0];
@@ -1127,7 +1137,7 @@ window.uproot = {
                             colorCls = "text-primary";
                         }
                         else if (msg.sender[0] == "admin") {
-                            senderRepresentation = _("Chat with Research Coordinator");
+                            senderRepresentation = _("Research Coordinator");
                             colorCls = "text-danger";
                         }
 
@@ -1184,8 +1194,25 @@ uproot.onInternalEvent("Received", (event) => {
 
 uproot.onInternalEvent("Chatted", (event) => {
     if (!window.uproot.chat.ignoreChatted) {
+        const msg = event.detail.data;
+
+        // Check if this is an admin chat message (from admin to player)
+        if (msg.sender && msg.sender[0] === "admin") {
+            const chatEl = I(`chat-${msg.cname}`);
+            // If the admin chat UI doesn't exist yet, create it
+            if (!chatEl) {
+                // create() fetches all messages, so don't add this one again
+                uproot.chat.create(I("adminmessage-modal-body"), msg.cname, false);
+                uproot.ensureBuddy();
+                uproot.adminMessage();
+                return;
+            }
+            uproot.ensureBuddy();
+            uproot.adminMessage();
+        }
+
         // This prevents style asyncio.Queue chat messages from being processed
-        window.uproot.chat.messagesFromServer([event.detail.data]);
+        window.uproot.chat.messagesFromServer([msg]);
     }
 });
 
@@ -1193,4 +1220,65 @@ uproot.onInternalEvent("AdminMessaged", (event) => {
     const entry = event.detail;
 
     uproot.adminMessage(entry.data);
+});
+
+uproot.onInternalEvent("AdminchatEnabled", (event) => {
+    const data = event.detail.data;
+    const chatEl = I(`chat-${data.cname}`);
+
+    if (!chatEl) {
+        // Create the chat UI if it doesn't exist
+        uproot.chat.create(I("adminmessage-modal-body"), data.cname, data.canReply);
+    } else if (!chatEl.querySelector(".d-flex.gap-2")) {
+        // Chat exists but no input - add the input area
+        const chatId = uproot.escape(data.cname);
+        const inputHtml = `
+            <div class="d-flex gap-2">
+                <label for="message-input-chat-${chatId}" class="visually-hidden">${_("Type your message")}</label>
+                <input type="text"
+                       id="message-input-chat-${chatId}"
+                       class="form-control"
+                       placeholder="${_("Type your message")}"
+                       required
+                       autocomplete="off">
+                <button type="button" class="btn btn-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">${_("Send")}</button>
+            </div>
+        `;
+        chatEl.insertAdjacentHTML("beforeend", inputHtml);
+        const input = chatEl.querySelector(`#message-input-chat-${chatId}`);
+        if (input) {
+            input.addEventListener("keydown", (e) => uproot.chat.handleChatKeydown(e, chatId));
+        }
+    }
+
+    uproot.ensureBuddy();
+});
+
+uproot.onInternalEvent("AdminchatDisabled", (event) => {
+    const data = event.detail.data;
+
+    if (data.hasMessages) {
+        // Keep chat but remove input area
+        if (data.cname) {
+            const chatEl = I(`chat-${data.cname}`);
+            if (chatEl) {
+                const inputArea = chatEl.querySelector(".d-flex.gap-2");
+                if (inputArea) {
+                    inputArea.remove();
+                }
+            }
+        }
+    } else {
+        // No messages - remove all traces
+        if (data.cname) {
+            const chatEl = I(`chat-${data.cname}`);
+            if (chatEl) {
+                chatEl.remove();
+            }
+        }
+        const buddy = I("uproot-buddy");
+        if (buddy) {
+            buddy.hidden = true;
+        }
+    }
 });

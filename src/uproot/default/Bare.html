@@ -260,7 +260,7 @@
         uproot.chat.ignoreChatted = false;
 
         {% if player is not none and player._uproot_adminchat is not none %}
-        uproot.chat.create(I("adminmessage-modal-body"), {{ player._uproot_adminchat.mname | tojson }});
+        uproot.chat.create(I("adminmessage-modal-body"), {{ player._uproot_adminchat.mname | tojson }}, {{ player.get("_uproot_adminchat_replies", false) | tojson }});
         uproot.ensureBuddy();
         {% endif %}
     });

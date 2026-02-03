@@ -217,13 +217,29 @@
                         </span>
                     </li>
                     <li>
+                        <span class="dropdown-item" onclick="mmodal('redirect')" role="button">
+                            {% translate %}Redirect to URL{% endtranslate %}
+                        </span>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
                         <span class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
                             {% translate %}Send message{% endtranslate %}
                         </span>
                     </li>
                     <li>
-                        <span class="dropdown-item" onclick="mmodal('redirect')" role="button">
-                            {% translate %}Redirect to URL{% endtranslate %}
+                        <span class="dropdown-item" onclick="mmodal('adminchat_view')" role="button">
+                            {% translate %}View chat messages{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="setAdminchatReplies(true)" role="button">
+                            {% translate %}Enable chat replies{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="dropdown-item" onclick="setAdminchatReplies(false)" role="button">
+                            {% translate %}Disable chat replies{% endtranslate %}
                         </span>
                     </li>
                 </ul>
@@ -325,6 +341,24 @@
     <div class="form-text">{% translate %}URL must start with http:// or https://{% endtranslate %}</div>
 </div>
 {% endcall %}
+
+<!-- Modal for viewing admin chat messages -->
+<div class="modal fade" id="adminchat_view-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="border-uproot-light modal-content">
+            <div class="border-uproot-light modal-header">
+                <h5 class="modal-title">{% translate %}Chat messages{% endtranslate %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="adminchat-view-body">
+                <p class="text-muted">{% translate %}Loading...{% endtranslate %}</p>
+            </div>
+            <div class="border-uproot-light modal-footer">
+                <button type="button" class="btn btn-outline-uproot" data-bs-dismiss="modal">{% translate %}Close{% endtranslate %}</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal for player URLs -->
 
@@ -461,6 +495,54 @@
             I("tableContainer").classList.remove("table-sticky-outer-full-width");
         }
     }
+
+    // ========================================================================
+    // Admin Chat Functions
+    // ========================================================================
+
+    function setAdminchatReplies(enabled) {
+        const selected = window.getSelectedPlayers?.() ?? [];
+        if (selected.length === 0) {
+            uproot.error(_("No players selected."));
+            return;
+        }
+        window.invokeFromMonitor("set_adminchat_replies", enabled).then(() => {
+            uproot.alert(enabled ? _("Chat replies enabled.") : _("Chat replies disabled."));
+        });
+    }
+
+    function loadAdminchatMessages() {
+        uproot.invoke("adminchat_messages", uproot.vars.sname).then((data) => {
+            const body = I("adminchat-view-body");
+            if (!data || Object.keys(data).length === 0) {
+                body.innerHTML = `<p class="text-muted">${_("No chat messages.")}</p>`;
+                return;
+            }
+            let html = "";
+            for (const [uname, msgs] of Object.entries(data)) {
+                html += `<h6 class="fw-semibold border-bottom pb-2 mt-3">${uproot.escape(uname)}</h6>`;
+                html += `<ul class="list-unstyled mb-0">`;
+                for (const msg of msgs) {
+                    const time = new Date(1000 * msg.time);
+                    const timeStr = time.toLocaleString();
+                    const senderType = msg.sender[0];
+                    const senderName = senderType === "admin" ? _("Admin") : uproot.escape(msg.sender[1]);
+                    const cls = senderType === "admin" ? "text-danger" : "text-primary";
+                    html += `<li class="mb-2"><span class="${cls} fw-semibold">${senderName}</span> <small class="text-muted">${timeStr}</small><br>${uproot.escape(msg.text)}</li>`;
+                }
+                html += `</ul>`;
+            }
+            body.innerHTML = html;
+        });
+    }
+
+    // Load messages when modal is shown
+    document.addEventListener("DOMContentLoaded", () => {
+        const modal = I("adminchat_view-modal");
+        if (modal) {
+            modal.addEventListener("show.bs.modal", loadAdminchatMessages);
+        }
+    });
 
     // ========================================================================
     // Initialization

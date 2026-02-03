@@ -55,6 +55,40 @@
 ? 'Send message'
 : 'Nachricht senden'
 
+? 'Send'
+: 'Senden'
+
+? 'Enable chat replies'
+: 'Chat-Antworten aktivieren'
+
+? 'Disable chat replies'
+: 'Chat-Antworten deaktivieren'
+
+? 'Chat replies enabled.'
+: 'Chat-Antworten aktiviert.'
+
+? 'Chat replies disabled.'
+: 'Chat-Antworten deaktiviert.'
+
+? 'View chat messages'
+: 'Chat-Nachrichten anzeigen'
+
+? 'Chat messages'
+: 'Chat-Nachrichten'
+
+? 'No chat messages.'
+: 'Keine Chat-Nachrichten.'
+
+
+? 'Admin'
+: 'Admin'
+
+? 'Type your message'
+: 'Ihre Nachricht eingeben'
+
+? 'You'
+: 'Sie'
+
 ? 'Insert fields'
 : 'Felder einfügen'
 
@@ -144,6 +178,9 @@
 
 ? 'Chat with Research Coordinator'
 : 'Chat mit Studienleitung'
+
+? 'Research Coordinator'
+: 'Studienleitung'
 
 ? 'Check for important annoucements'
 : 'Auf wichtige Ankündigungen prüfen'

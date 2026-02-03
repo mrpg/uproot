@@ -131,3 +131,45 @@ def add_message(
 @validate_call
 def exists(chat: ModelIdentifier) -> bool:
     return um.model_exists(chat)
+
+
+# Admin chat functions (one-to-one chat between admin and a single player)
+
+
+@flexible
+@validate_call
+def create_adminchat(pid: PlayerIdentifier) -> ModelIdentifier:
+    """Create a chat for admin-player communication."""
+    session = SessionIdentifier(pid.sname)
+    chat = um.create_model(session, tag="adminchat")
+
+    with um.get_storage(chat) as m:
+        m.players = [pid]
+        m.pseudonyms = {str(pid): pid.uname}
+
+    return chat
+
+
+def show_adminchat_msg(
+    chat: ModelIdentifier,
+    msg: Message,
+    as_viewed_by: Optional[PlayerIdentifier] = None,
+) -> dict[str, Any]:
+    """Format admin chat message for display."""
+    if as_viewed_by is None:  # admin viewing
+        if msg.sender is None:
+            sender_representation = ("admin", "")
+        else:
+            sender_representation = ("other", msg.sender.uname)
+    elif msg.sender is None:
+        sender_representation = ("admin", "")
+    else:
+        sender_representation = ("self", "You")
+
+    return dict(
+        cname=chat.mname,
+        id=msg.id,  # type: ignore[attr-defined]
+        sender=sender_representation,
+        time=msg.time,  # type: ignore[attr-defined]
+        text=msg.text,
+    )

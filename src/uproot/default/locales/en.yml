@@ -55,6 +55,40 @@
 ? 'Send message'
 : 'Send message'
 
+? 'Send'
+: 'Send'
+
+? 'Enable chat replies'
+: 'Enable chat replies'
+
+? 'Disable chat replies'
+: 'Disable chat replies'
+
+? 'Chat replies enabled.'
+: 'Chat replies enabled.'
+
+? 'Chat replies disabled.'
+: 'Chat replies disabled.'
+
+? 'View chat messages'
+: 'View chat messages'
+
+? 'Chat messages'
+: 'Chat messages'
+
+? 'No chat messages.'
+: 'No chat messages.'
+
+
+? 'Admin'
+: 'Admin'
+
+? 'Type your message'
+: 'Type your message'
+
+? 'You'
+: 'You'
+
 ? 'Insert fields'
 : 'Insert fields'
 
@@ -144,6 +178,9 @@
 
 ? 'Chat with Research Coordinator'
 : 'Chat with Research Coordinator'
+
+? 'Research Coordinator'
+: 'Research Coordinator'
 
 ? 'Check for important annoucements'
 : 'Check for important annoucements'

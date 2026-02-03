@@ -1064,6 +1064,7 @@ async def dummy(
 
 
 FUNS = dict(
+    adminchat_messages=a.adminchat_messages,
     adminmessage=a.adminmessage,
     advance_by_one=a.advance_by_one,
     announcements=a.announcements,
@@ -1080,6 +1081,7 @@ FUNS = dict(
     redirect=a.redirect,
     reload=a.reload,
     revert_by_one=a.revert_by_one,
+    set_adminchat_replies=a.set_adminchat_replies,
     update_description=a.update_description,
     update_settings=a.update_settings,
 )
