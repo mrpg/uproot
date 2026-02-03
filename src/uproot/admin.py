@@ -32,6 +32,7 @@ from uproot.services.config_service import (
     config_summary,
     configs,
     displaystr,
+    praise,
 )
 
 # Re-export from data service
@@ -138,4 +139,5 @@ __all__ = [
     "config_summary",
     "configs",
     "displaystr",
+    "praise",
 ]

@@ -55,3 +55,12 @@ async def announcements() -> dict[str, Any]:
     async with aiohttp.ClientSession() as session:
         async with session.get(ANNOUNCEMENTS_URL) as response:
             return cast(dict[str, Any], await response.json(content_type="text/plain"))
+
+
+async def praise() -> str:
+    """Fetch praise message."""
+    PRAISE_URL = "https://max.pm/praise/uproot/"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(PRAISE_URL) as response:
+            return await response.text()

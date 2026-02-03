@@ -486,3 +486,11 @@ function showBibTeX() {
 }
 </code>`);
 }
+
+function praise() {
+    uproot.invoke("praise").then((text) => {
+        const el = document.createElement("p");
+        el.textContent = text;
+        uproot.alert(el.outerHTML);
+    });
+}
