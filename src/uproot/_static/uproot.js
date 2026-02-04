@@ -786,6 +786,26 @@ window.uproot = {
         });
     },
 
+    defaultFormatter(value) {
+        if (value < 0) {
+            return `−${-value}`;
+        }
+        else {
+            return `${value}`;
+        }
+    },
+
+    formatForInterface(fieldname, value) {
+        const formatter = window[`${fieldname}Formatter`];
+
+        if (typeof formatter === "function") {
+            return formatter(value);
+        }
+        else {
+            return this.defaultFormatter(value);
+        }
+    },
+
     nonRequiredRadios() {
         const HOVER_CLASS = "radio-toggle-clear-hover";
         const BOUND_ATTR = "toggleClearBound";
