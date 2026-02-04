@@ -88,15 +88,55 @@
             {% endif %}
             <div class="align-items-center d-flex">
                 {% if field.label_min != "" %}
-                    <span class="me-3 text-end">{{ field.label_min }}</span>
+                    <div class="flex-shrink-0">
+                        {% if not field.hide_popover %}<div style="height: {{ field.popover_height }};"></div>{% endif %}
+                        <div class="me-3 text-end">{{ field.label_min }}</div>
+                    </div>
                 {% endif %}
-                {{ field(class_=" ".join(class_list)) | safe }}
+                <div class="flex-grow-1">
+                    {% if not field.hide_popover %}
+                    <div id="popover-container-{{ field.id }}" style="height: {{ field.popover_height }}; width: 0px;"></div>
+                    {% endif %}
+                    {{ field(class_=" ".join(class_list)) | safe }}
+                </div>
                 {% if field.label_max != "" %}
-                    <span class="ms-3 text-start">{{ field.label_max }}</span>
+                    <div class="flex-shrink-0">
+                        {% if not field.hide_popover %}<div style="height: {{ field.popover_height }};"></div>{% endif %}
+                        <div class="ms-3 text-start">{{ field.label_max }}</div>
+                    </div>
                 {% endif %}
             </div>
             {% if field.description %}
                 <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
+            {% endif %}
+            {% if not field.hide_popover %}
+            <style>
+                .popover-body {
+                    padding-bottom: 0.5rem;
+                    padding-left: 0.75rem;
+                    padding-right: 0.75rem;
+                    padding-top: 0.5rem;
+                }
+            </style>
+            <script>
+                popoverShown["{{ field.id }}"] = false;
+                bsPopovers["{{ field.id }}"] = new bootstrap.Popover(
+                    document.getElementById("popover-container-{{ field.id }}"), {
+                    animation: false,
+                    content: `<span id="popover-content-{{ field.id }}"></span>`,
+                    html: true,
+                    offset: [0, -2.75 * uproot.pxPerRem],  // [h, v] in pixels
+                    placement: "top",
+                    trigger: "manual",
+                    }
+                );
+                document.getElementById("{{ field.id }}").addEventListener("input", () => {
+                    updateInputRangePopover("{{ field.id }}");
+                });  // live while dragging
+                window.addEventListener("resize", () => {
+                    if (uproot.popoverShown["{{ field.id }}"]) updateInputRangePopover("{{ field.id }}");
+                });
+            </script>
             {% endif %}
         {% elif field.type == "EmailField" %}
             {{ field.label(class_="form-label uproot-form-label") }}

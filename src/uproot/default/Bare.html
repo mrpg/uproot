@@ -28,6 +28,36 @@
 
 <script src="{{ internalstatic('uproot.js') }}"></script>
 <script>
+    uproot.pxPerRem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    function countDecimals(str) {
+        const dot = str.indexOf(".");
+        return dot === -1 ? 0 : str.length - dot - 1;
+    };
+    var popoverShown = {};
+    var bsPopovers = {};
+    function updateInputRangePopover(inputRangeName) {
+        const inputRange = document.getElementById(inputRangeName)
+        const min = inputRange.min !== "" ? Number(inputRange.min) : 0;
+        const max = inputRange.max !== "" ? Number(inputRange.max) : 100;
+        const val = Number(inputRange.value);
+        const percent = (val - min) / (max - min);
+        const rangeWidth = inputRange.getBoundingClientRect().width;  // in pixels
+        const thumbRadius = uproot.pxPerRem / 2;  // in pixels; Bootstrap sets the thumb’s border radius to 1rem (= 16px by default)
+        const thumbOffset = thumbRadius + percent * (rangeWidth - 2 * thumbRadius);
+        document.getElementById("popover-container-" + inputRangeName).style.marginLeft = `${thumbOffset}px`;
+        const step = inputRange.step;
+        const numDecimalPlaces = step && step !== "any" ? countDecimals(step) : 2;  
+        //bsPopover.setContent({
+        //  '.popover-body': Number(val).toFixed(numDecimalPlaces),
+        //});
+        if (!popoverShown[inputRangeName]) {
+            bsPopovers[inputRangeName].show();
+            popoverShown[inputRangeName] = true;
+        } else {
+            bsPopovers[inputRangeName].update();
+        };
+        document.getElementById("popover-content-" + inputRangeName).textContent = Number(val).toFixed(numDecimalPlaces).replace("-", "−");
+    };
     uproot.vars = {{ _uproot_js | tojson }};
     {% if noterms is not defined %}
     uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}

@@ -145,13 +145,10 @@
                     <button type="button" class="border-0 btn btn-outline-uproot btn-sm fs-6 mb-1 position-relative text-start w-100" onclick="flipTesting()">
                         <i class="bi bi-toggle-{% if session.testing %}on{% else %}off{% endif %} me-2"></i>
                         {% if session.testing %}
-                        <b>{% translate %}
-                        Testing is enabled. <i class="bi bi-exclamation-triangle-fill ms-1"></i>
-                        {% endtranslate %}</b>
+                        <b>{% translate %}Testing is enabled.{% endtranslate %}
+                        <i class="bi bi-exclamation-triangle-fill ms-1"></i></b>
                         {% else %}
-                        {% translate %}
-                        Testing is disabled.
-                        {% endtranslate %}
+                        {% translate %}Testing is disabled.{% endtranslate %}
                         {% endif %}
                         <i class="bi bi-question-circle position-absolute end-0 me-2"
                         data-bs-toggle="popover"
