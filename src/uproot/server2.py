@@ -1073,6 +1073,7 @@ FUNS = dict(
     fields_from_all=a.fields_from_all,
     flip_active=a.flip_active,
     flip_testing=a.flip_testing,
+    group_players=a.group_players,
     insert_fields=a.insert_fields,
     mark_dropout=a.mark_dropout,
     praise=a.praise,
