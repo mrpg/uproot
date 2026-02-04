@@ -124,6 +124,7 @@ def cli() -> None:
 @click.command(help="Run this uproot project")
 @click.option("--host", "-h", default="127.0.0.1", show_default="127.0.0.1", help="Host")
 @click.option("--port", "-p", default=8000, show_default=8000, help="Port")
+@click.option("--no-enter", default=False, is_flag=True, help="Disable form submission via Enter")
 @click.option("--unsafe", default=False, is_flag=True, help="Run without admin authentication")
 @click.option("--public-demo", default=False, is_flag=True, help="Run a public demo (use with --unsafe)")
 @click.pass_context
@@ -132,6 +133,7 @@ def run(
     ctx: click.Context,
     host: str,
     port: int,
+    no_enter: bool,
     unsafe: bool,
     public_demo: bool,
 ) -> None:
@@ -140,6 +142,7 @@ def run(
 
     d.HOST = host
     d.PORT = port
+    d.NO_ENTER = no_enter
     d.UNSAFE = unsafe
     d.PUBLIC_DEMO = public_demo
 

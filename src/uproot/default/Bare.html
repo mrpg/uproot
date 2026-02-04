@@ -237,6 +237,18 @@
 
         uproot.slidersWithoutAnchoring();
 
+        if (ui.no_enter) {
+            // disable Enter for form submission
+
+            document.querySelectorAll("form").forEach((form) => {
+                form.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
+
         // clear selection feature for non-required radios
 
         uproot.nonRequiredRadios();

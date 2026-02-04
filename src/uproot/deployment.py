@@ -37,6 +37,7 @@ HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: Optional[str] = None
 LOGGER: Any = logging.getLogger("uproot")
+NO_ENTER: bool = False
 ORIGIN: Optional[str] = os.getenv("UPROOT_ORIGIN")
 
 # Auto-detect Heroku app URL if not explicitly set
