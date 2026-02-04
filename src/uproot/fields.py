@@ -159,7 +159,6 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
         label_max: str | None = None,
         min: Number | None = None,
         max: Number | None = None,
-        popover_height: str = "3.25rem",  # Enough to accomodate Bootstrap’s popover with default formatting
         step: Number = 1.0,
         optional: bool = False,
         anchoring: bool = True,
@@ -195,7 +194,6 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
         self.hide_popover = hide_popover
         self.label_min = label_min
         self.label_max = label_max
-        self.popover_height = popover_height
 
         super().__init__(
             label=label,

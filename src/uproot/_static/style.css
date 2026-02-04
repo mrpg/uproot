@@ -292,6 +292,21 @@ div.without-anchoring-overlay {
     font-family: monospace;
 }
 
+/* Slider popover styles (requires JS initialization via slidersWithPopovers) */
+.uproot-slider-popover-wrapper {
+    flex-grow: 1;
+}
+.uproot-slider-popover-container {
+    height: 3.25rem;
+    width: 0;
+}
+.uproot-slider-popover-spacer {
+    height: 3.25rem;
+}
+.uproot-slider-popover-wrapper .popover-body {
+    padding: 0.5rem 0.75rem;
+}
+
 /* Radio toggle-clear styles (requires JS initialization via nonRequiredRadios) */
 .radio-toggle-enabled .form-check.radio-toggle-clear-hover > .form-check-label {
     color: var(--bs-dark-bg-subtle);

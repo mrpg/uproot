@@ -806,6 +806,78 @@ window.uproot = {
         }
     },
 
+    slidersWithPopovers() {
+        const pxPerRem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const wrappers = document.querySelectorAll(".uproot-slider-popover-wrapper");
+
+        wrappers.forEach((wrapper) => {
+            const slider = wrapper.querySelector("input[type='range']");
+            if (!slider) return;
+
+            const container = wrapper.querySelector(".uproot-slider-popover-container");
+            if (!container) return;
+
+            const fieldName = slider.name || slider.id;
+            const flexContainer = wrapper.parentElement;
+
+            // Format min/max labels
+            const minLabel = flexContainer?.querySelector(".uproot-slider-label-min");
+            const maxLabel = flexContainer?.querySelector(".uproot-slider-label-max");
+
+            if (minLabel?.dataset.raw) {
+                minLabel.textContent = this.formatForInterface(fieldName, Number(minLabel.dataset.raw));
+            }
+            if (maxLabel?.dataset.raw) {
+                maxLabel.textContent = this.formatForInterface(fieldName, Number(maxLabel.dataset.raw));
+            }
+
+            let popoverShown = false;
+            let bsPopover = null;
+
+            // Create content span for popover
+            const contentId = `popover-content-${slider.id}`;
+            bsPopover = new bootstrap.Popover(container, {
+                animation: false,
+                content: `<span id="${contentId}"></span>`,
+                html: true,
+                offset: [0, -2.75 * pxPerRem],
+                placement: "top",
+                trigger: "manual",
+            });
+
+            const updatePopover = () => {
+                const min = slider.min !== "" ? Number(slider.min) : 0;
+                const max = slider.max !== "" ? Number(slider.max) : 100;
+                const val = Number(slider.value);
+                const percent = (val - min) / (max - min);
+                const rangeWidth = slider.getBoundingClientRect().width;
+                const thumbRadius = pxPerRem / 2;
+                const thumbOffset = thumbRadius + percent * (rangeWidth - 2 * thumbRadius);
+
+                container.style.marginLeft = `${thumbOffset}px`;
+
+                const formattedValue = this.formatForInterface(slider.name || slider.id, val);
+
+                if (!popoverShown) {
+                    bsPopover.show();
+                    popoverShown = true;
+                } else {
+                    bsPopover.update();
+                }
+
+                const contentEl = document.getElementById(contentId);
+                if (contentEl) {
+                    contentEl.textContent = formattedValue;
+                }
+            };
+
+            slider.addEventListener("input", updatePopover);
+            window.addEventListener("resize", () => {
+                if (popoverShown) updatePopover();
+            });
+        });
+    },
+
     nonRequiredRadios() {
         const HOVER_CLASS = "radio-toggle-clear-hover";
         const BOUND_ATTR = "toggleClearBound";
