@@ -303,7 +303,7 @@ div.without-anchoring-overlay {
 .uproot-slider-popover-spacer {
     height: 3.25rem;
 }
-.uproot-slider-popover-wrapper .popover-body {
+.popover-body {
     padding: 0.5rem 0.75rem;
 }
 
