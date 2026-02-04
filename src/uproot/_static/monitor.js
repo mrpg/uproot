@@ -651,3 +651,35 @@ window.actuallyRedirect = function() {
         uproot.alert("The action has completed.");
     });
 };
+
+window.actuallyGroup = function() {
+    const action = uproot.selectedValue("group_action");
+
+    if (!action) {
+        return uproot.error(_("No action selected."));
+    }
+
+    const groupSize = parseInt(I("group-size")?.value ?? "2", 10);
+    const shuffle = !!I("group-shuffle")?.checked;
+    const reload = !!I("group-reload")?.checked;
+
+    if (action === "by_size" && (isNaN(groupSize) || groupSize < 1)) {
+        return uproot.error(_("Group size must be at least 1."));
+    }
+
+    window.bootstrap?.Modal.getOrCreateInstance(I("group-modal")).hide();
+    window.invokeFromMonitor("group_players", { action, group_size: groupSize, shuffle, reload })
+        .then((result) => {
+            loadExtraData();
+            if (result.groups_created) {
+                uproot.alert(_("Created #n# group(s).").replace("#n#", result.groups_created));
+            } else if (result.players_reset !== undefined) {
+                uproot.alert(_("Reset group assignment for #n# player(s).").replace("#n#", result.players_reset));
+            } else {
+                uproot.alert(_("The action has completed."));
+            }
+        })
+        .catch((err) => {
+            uproot.error(err.message || _("An error occurred."));
+        });
+};

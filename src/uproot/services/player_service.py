@@ -224,3 +224,103 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
                 event="_uproot_AdminMessaged",
             ),
         )
+
+
+async def group_players(
+    sname: t.Sessionname,
+    unames: list[str],
+    action: str,
+    group_size: int = 1,
+    shuffle: bool = False,
+    reload: bool = False,
+) -> dict[str, Any]:
+    """
+    Manage player group assignments.
+
+    Actions:
+        - "same_group": Put all selected players in the same group
+        - "reset": Remove group assignments from selected players
+        - "by_size": Create groups of specified size
+
+    Args:
+        sname: Session name
+        unames: List of player usernames
+        action: One of "same_group", "reset", "by_size"
+        group_size: Size of groups when action is "by_size"
+        shuffle: Whether to shuffle players before grouping (for "by_size")
+        reload: Whether to reload player pages after grouping
+
+    Returns:
+        Result dict with info about created/modified groups
+    """
+    import random
+
+    import uproot.core as c
+
+    session_exists(sname, False)
+
+    sid = t.SessionIdentifier(sname)
+    pids = [t.PlayerIdentifier(sname, uname) for uname in unames]
+
+    # Shuffle players if requested
+    if shuffle:
+        random.shuffle(pids)
+
+    result: dict[str, Any] = {"action": action, "players": unames}
+
+    with sid() as session:
+        if action == "same_group":
+            # Put all selected players in the same group
+            gid = c.create_group(session, pids, overwrite=True)
+            result["groups_created"] = 1
+            result["group_name"] = gid.gname
+
+        elif action == "reset":
+            # Remove group assignments from selected players
+            reset_count = 0
+            for pid in pids:
+                with pid() as player:
+                    if player._uproot_group is not None:
+                        player._uproot_group = None
+                        player.member_id = None
+                        reset_count += 1
+            result["players_reset"] = reset_count
+
+        elif action == "by_size":
+            # Create groups of specified size
+            if group_size < 1:
+                raise ValueError("Group size must be at least 1")
+            if len(pids) % group_size != 0:
+                raise ValueError(
+                    f"Number of selected players ({len(pids)}) "
+                    f"must be divisible by group size ({group_size})"
+                )
+
+            groups_created = []
+            for i in range(0, len(pids), group_size):
+                group_pids = pids[i : i + group_size]
+                gid = c.create_group(session, group_pids, overwrite=True)
+                groups_created.append(gid.gname)
+
+            result["groups_created"] = len(groups_created)
+            result["group_names"] = groups_created
+
+        else:
+            raise ValueError(f"Unknown action: {action}")
+
+    # Optionally reload player pages
+    if reload:
+        for uname in unames:
+            ptuple = sname, uname
+            q.enqueue(
+                ptuple,
+                dict(
+                    source="admin",
+                    kind="action",
+                    payload=dict(
+                        action="reload",
+                    ),
+                ),
+            )
+
+    return result

@@ -226,6 +226,11 @@
                             {% translate %}Redirect to URL{% endtranslate %}
                         </span>
                     </li>
+                    <li>
+                        <span class="dropdown-item" onclick="mmodal('group')" role="button">
+                            {% translate %}Group players{% endtranslate %}
+                        </span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -323,6 +328,48 @@
     <label for="redirect-url" class="form-label">{% translate %}Target URL{% endtranslate %}</label>
     <input type="url" class="form-control font-monospace" id="redirect-url" placeholder="https://example.com/">
     <div class="form-text">{% translate %}URL must start with http:// or https://{% endtranslate %}</div>
+</div>
+{% endcall %}
+
+<!-- Modal for grouping players -->
+{% call modal(_, "group", title=_("Group players"), action_text=_("Apply grouping"), action_handler="actuallyGroup()") %}
+{{ player_count(_) }}
+<div class="mb-1">
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="group_action" id="group_same" value="same_group">
+        <label class="form-check-label" for="group_same">
+            {% translate %}Put all selected players in the same group{% endtranslate %}
+        </label>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="radio" name="group_action" id="group_reset" value="reset">
+        <label class="form-check-label" for="group_reset">
+            {% translate %}Reset group assignment for selected players{% endtranslate %}
+        </label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="radio" name="group_action" id="group_by_size" value="by_size">
+        <label class="form-check-label" for="group_by_size">
+            {% translate %}Create groups of size{% endtranslate %}:
+        </label>
+    </div>
+    <div class="ms-4 mb-3">
+        <input type="number" class="form-control form-control-sm" id="group-size" value="2" min="1" style="width: 80px;" onclick="I('group_by_size').checked = true;">
+        <div class="form-text">{% translate %}Number of selected players must be divisible by group size.{% endtranslate %}</div>
+    </div>
+    <div class="form-check mb-3 ms-4">
+        <input class="form-check-input" type="checkbox" id="group-shuffle" value="shuffle">
+        <label class="form-check-label" for="group-shuffle">
+            {% translate %}Shuffle players before grouping{% endtranslate %}
+        </label>
+    </div>
+</div>
+<hr>
+<div class="form-check">
+    <input class="form-check-input" type="checkbox" id="group-reload" value="reload">
+    <label class="form-check-label" for="group-reload">
+        {% translate %}Reload players' pages{% endtranslate %}
+    </label>
 </div>
 {% endcall %}
 
