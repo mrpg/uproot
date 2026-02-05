@@ -58,7 +58,7 @@ Needless to say, step (1) only needs to be done once, and step (2) only when cre
 ```bibtex
  @unpublished{uproot,
   author = {Grossmann, Max~R.~P. and Gerhardt, Holger},
-  title = {uproot: An Experimental Framework with a~Focus on Performance, Flexibility, and Ease of Use},
+  title = {uproot: A Software Framework for Behavioral Experiments},
   year = {2026},
   note = {Unpublished manuscript}
 }
