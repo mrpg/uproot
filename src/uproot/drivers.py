@@ -10,7 +10,6 @@ queries (%s or ?) to prevent SQL injection. The f-strings are safe in this conte
 """
 
 import sqlite3
-import threading
 import time
 from abc import ABC
 from contextlib import contextmanager
@@ -90,7 +89,6 @@ class Memory(DBDriver):
     def __init__(self) -> None:
         # Nested structure: namespace -> field -> list of values
         self.log: dict[str, dict[str, list[t.Value]]] = {}
-        self._lock = threading.RLock()
 
     def test_connection(self) -> None:
         pass
@@ -102,72 +100,66 @@ class Memory(DBDriver):
         return None
 
     def dump(self) -> Iterator[bytes]:
-        with self._lock:
-            for namespace, fields in self.log.items():
-                for field, values in fields.items():
-                    for v in values:
-                        yield msgpack.packb(
-                            {
-                                "namespace": namespace,
-                                "field": field,
-                                "value": encode(v.data),
-                                "created_at": v.time,
-                                "context": v.context,
-                            }
-                        )
+        for namespace, fields in self.log.items():
+            for field, values in fields.items():
+                for v in values:
+                    yield msgpack.packb(
+                        {
+                            "namespace": namespace,
+                            "field": field,
+                            "value": encode(v.data),
+                            "created_at": v.time,
+                            "context": v.context,
+                        }
+                    )
 
     def reset(self) -> None:
-        with self._lock:
-            self.log.clear()
+        self.log.clear()
 
     def restore(self, msgpack_stream: Iterator[bytes]) -> None:
-        with self._lock:
-            unpacker = msgpack.Unpacker(msgpack_stream, raw=False)
-            for row_dict in unpacker:
-                namespace, field = row_dict["namespace"], row_dict["field"]
-                value = decode(row_dict["value"])
-                time = row_dict["created_at"]
-                context = row_dict["context"]
+        unpacker = msgpack.Unpacker(msgpack_stream, raw=False)
+        for row_dict in unpacker:
+            namespace, field = row_dict["namespace"], row_dict["field"]
+            value = decode(row_dict["value"])
+            time = row_dict["created_at"]
+            context = row_dict["context"]
 
-                if namespace not in self.log:
-                    self.log[namespace] = {}
-                if field not in self.log[namespace]:
-                    self.log[namespace][field] = []
-
-                self.log[namespace][field].append(
-                    t.Value(time, value is None, value, context)
-                )
-
-                # Special handling for player lists
-                if field == "players" and namespace.startswith("session/"):
-                    self.log[namespace][field] = self.log[namespace][field][-1:]
-
-    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
-        with self._lock:
             if namespace not in self.log:
                 self.log[namespace] = {}
             if field not in self.log[namespace]:
                 self.log[namespace][field] = []
 
-            self.log[namespace][field].append(t.Value(self.now, False, data, context))
+            self.log[namespace][field].append(
+                t.Value(time, value is None, value, context)
+            )
 
             # Special handling for player lists
             if field == "players" and namespace.startswith("session/"):
                 self.log[namespace][field] = self.log[namespace][field][-1:]
 
-    def delete(self, namespace: str, field: str, context: str) -> None:
-        with self._lock:
-            if namespace not in self.log or field not in self.log[namespace]:
-                raise AttributeError(f"Key not found: ({namespace}, {field})")
+    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
+        if namespace not in self.log:
+            self.log[namespace] = {}
+        if field not in self.log[namespace]:
+            self.log[namespace][field] = []
 
-            self.log[namespace][field].append(t.Value(self.now, True, None, context))
+        self.log[namespace][field].append(t.Value(self.now, False, data, context))
+
+        # Special handling for player lists
+        if field == "players" and namespace.startswith("session/"):
+            self.log[namespace][field] = self.log[namespace][field][-1:]
+
+    def delete(self, namespace: str, field: str, context: str) -> None:
+        if namespace not in self.log or field not in self.log[namespace]:
+            raise AttributeError(f"Key not found: ({namespace}, {field})")
+
+        self.log[namespace][field].append(t.Value(self.now, True, None, context))
 
     def history_all(self) -> Iterator[tuple[str, str, t.Value]]:
-        with self._lock:
-            for namespace, fields in self.log.items():
-                for field, values in fields.items():
-                    for value in values:
-                        yield namespace, field, value
+        for namespace, fields in self.log.items():
+            for field, values in fields.items():
+                for value in values:
+                    yield namespace, field, value
 
 
 class PostgreSQL(DBDriver):
@@ -201,7 +193,6 @@ class PostgreSQL(DBDriver):
         self._last_batch_time = time.time()
         self._batch_size = 100
         self._batch_timeout = 0.1
-        self._lock = threading.RLock()
 
     def _process_batch(self, conn: Any, cur: Any) -> None:
         """Process accumulated batch inserts."""
@@ -228,12 +219,11 @@ class PostgreSQL(DBDriver):
 
     def close(self) -> None:
         """Close the connection pool and wait for all worker threads to stop."""
-        with self._lock:
-            # Flush any pending operations before closing
-            if self._batch_inserts and hasattr(self, "pool") and self.pool:
-                with self.pool.connection() as conn:
-                    with conn.transaction(), conn.cursor() as cur:
-                        self._process_batch(conn, cur)
+        # Flush any pending operations before closing
+        if self._batch_inserts and hasattr(self, "pool") and self.pool:
+            with self.pool.connection() as conn:
+                with conn.transaction(), conn.cursor() as cur:
+                    self._process_batch(conn, cur)
 
         if hasattr(self, "pool") and self.pool:
             self.pool.close(timeout=5.0)
@@ -284,12 +274,11 @@ class PostgreSQL(DBDriver):
                 )
 
     def dump(self) -> Iterator[bytes]:
-        with self._lock:
-            # Flush pending operations before dump
-            if self._batch_inserts:
-                with self.pool.connection() as conn:
-                    with conn.transaction(), conn.cursor() as cur:
-                        self._process_batch(conn, cur)
+        # Flush pending operations before dump
+        if self._batch_inserts:
+            with self.pool.connection() as conn:
+                with conn.transaction(), conn.cursor() as cur:
+                    self._process_batch(conn, cur)
 
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
@@ -308,12 +297,11 @@ class PostgreSQL(DBDriver):
                     )
 
     def restore(self, msgpack_stream: Iterator[bytes]) -> None:
-        with self._lock:
-            # Flush any pending operations first
-            if self._batch_inserts:
-                with self.pool.connection() as conn:
-                    with conn.transaction(), conn.cursor() as cur:
-                        self._process_batch(conn, cur)
+        # Flush any pending operations first
+        if self._batch_inserts:
+            with self.pool.connection() as conn:
+                with conn.transaction(), conn.cursor() as cur:
+                    self._process_batch(conn, cur)
 
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
@@ -375,42 +363,30 @@ class PostgreSQL(DBDriver):
                     )
 
     def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
-        with self._lock:
-            # Special handling for player lists - these need immediate processing
-            if field == "players" and namespace.startswith("session/"):
-                # Flush any pending batches first
-                if self._batch_inserts:
-                    with self.pool.connection() as conn:
-                        with conn.transaction(), conn.cursor() as cur:
-                            self._process_batch(conn, cur)
-
+        # Special handling for player lists - these need immediate processing
+        if field == "players" and namespace.startswith("session/"):
+            # Flush any pending batches first
+            if self._batch_inserts:
                 with self.pool.connection() as conn:
                     with conn.transaction(), conn.cursor() as cur:
+                        self._process_batch(conn, cur)
+
+            with self.pool.connection() as conn:
+                with conn.transaction(), conn.cursor() as cur:
+                    cur.execute(
+                        f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",  # nosec B608
+                        (encode(data), self.now, context, namespace, field),
+                    )
+                    if cur.rowcount == 0:
                         cur.execute(
-                            f"UPDATE uproot{self.tblextra}_values SET value = %s, created_at = %s, context = %s WHERE namespace = %s AND field = %s",  # nosec B608
-                            (encode(data), self.now, context, namespace, field),
+                            f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",  # nosec B608
+                            (namespace, field, encode(data), self.now, context),
                         )
-                        if cur.rowcount == 0:
-                            cur.execute(
-                                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (%s, %s, %s, %s, %s)",  # nosec B608
-                                (namespace, field, encode(data), self.now, context),
-                            )
-            else:
-                # Normal append-only operations - batch these
-                self._batch_inserts.append(
-                    (namespace, field, encode(data), self.now, context)
-                )
-
-                # Process batch if it's time to flush
-                if self._should_flush_batch():
-                    with self.pool.connection() as conn:
-                        with conn.transaction(), conn.cursor() as cur:
-                            self._process_batch(conn, cur)
-
-    def delete(self, namespace: str, field: str, context: str) -> None:
-        with self._lock:
-            # Delete operations are batched too
-            self._batch_inserts.append((namespace, field, None, self.now, context))
+        else:
+            # Normal append-only operations - batch these
+            self._batch_inserts.append(
+                (namespace, field, encode(data), self.now, context)
+            )
 
             # Process batch if it's time to flush
             if self._should_flush_batch():
@@ -418,13 +394,22 @@ class PostgreSQL(DBDriver):
                     with conn.transaction(), conn.cursor() as cur:
                         self._process_batch(conn, cur)
 
+    def delete(self, namespace: str, field: str, context: str) -> None:
+        # Delete operations are batched too
+        self._batch_inserts.append((namespace, field, None, self.now, context))
+
+        # Process batch if it's time to flush
+        if self._should_flush_batch():
+            with self.pool.connection() as conn:
+                with conn.transaction(), conn.cursor() as cur:
+                    self._process_batch(conn, cur)
+
     def history_all(self) -> Iterator[tuple[str, str, t.Value]]:
-        with self._lock:
-            # Flush pending operations before reading history
-            if self._batch_inserts:
-                with self.pool.connection() as conn:
-                    with conn.transaction(), conn.cursor() as cur:
-                        self._process_batch(conn, cur)
+        # Flush pending operations before reading history
+        if self._batch_inserts:
+            with self.pool.connection() as conn:
+                with conn.transaction(), conn.cursor() as cur:
+                    self._process_batch(conn, cur)
 
         with self.pool.connection() as conn:
             with conn.transaction(), conn.cursor() as cur:
@@ -451,7 +436,6 @@ class Sqlite3(DBDriver):
         )
         self.database = database
         self.tblextra = tblextra
-        self._lock = threading.RLock()
         self._connection: Optional[sqlite3.Connection] = None
         self._batch_inserts: list[tuple[Any, ...]] = []
         self._last_batch_time = time.time()
@@ -505,12 +489,11 @@ class Sqlite3(DBDriver):
 
     def close(self) -> None:
         """Close database connection and flush any pending batches."""
-        with self._lock:
-            if self._connection:
-                if self._batch_inserts:
-                    self._process_batch(self._connection)
-                self._connection.close()
-                self._connection = None
+        if self._connection:
+            if self._batch_inserts:
+                self._process_batch(self._connection)
+            self._connection.close()
+            self._connection = None
 
     def test_connection(self) -> None:
         conn = self._get_connection()
@@ -533,169 +516,163 @@ class Sqlite3(DBDriver):
         return result
 
     def reset(self) -> None:
-        with self._lock:
-            # Flush any pending operations first
-            if self._batch_inserts:
-                self._process_batch(self._get_connection())
+        # Flush any pending operations first
+        if self._batch_inserts:
+            self._process_batch(self._get_connection())
 
-            conn = self._get_connection()
-            conn.execute(f"DROP TABLE IF EXISTS uproot{self.tblextra}_values")
-            conn.execute(f"""
-                CREATE TABLE uproot{self.tblextra}_values (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    namespace TEXT NOT NULL,
-                    field TEXT NOT NULL,
-                    value BLOB,
-                    created_at REAL NOT NULL,
-                    context TEXT NOT NULL
-                )
-                """)
-            # Create unique index for efficient upserts on players field in session namespaces
-            conn.execute(
-                f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players' AND namespace LIKE 'session/%'"
+        conn = self._get_connection()
+        conn.execute(f"DROP TABLE IF EXISTS uproot{self.tblextra}_values")
+        conn.execute(f"""
+            CREATE TABLE uproot{self.tblextra}_values (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                namespace TEXT NOT NULL,
+                field TEXT NOT NULL,
+                value BLOB,
+                created_at REAL NOT NULL,
+                context TEXT NOT NULL
             )
-            conn.commit()
+            """)
+        # Create unique index for efficient upserts on players field in session namespaces
+        conn.execute(
+            f"CREATE UNIQUE INDEX uproot{self.tblextra}_players_idx ON uproot{self.tblextra}_values (namespace, field) WHERE field = 'players' AND namespace LIKE 'session/%'"
+        )
+        conn.commit()
 
     def dump(self) -> Iterator[bytes]:
-        with self._lock:
-            # Flush pending operations before dump
+        # Flush pending operations before dump
+        if self._batch_inserts:
+            self._process_batch(self._get_connection())
+
+        conn = self._get_connection()
+        cursor = conn.execute(
+            f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values"  # nosec B608
+        )
+        for namespace, field, value, created_at, context in cursor:
+            yield msgpack.packb(
+                {
+                    "namespace": namespace,
+                    "field": field,
+                    "value": value,
+                    "created_at": created_at,
+                    "context": context,
+                }
+            )
+
+    def restore(self, msgpack_stream: Iterator[bytes]) -> None:
+        # Flush any pending operations first
+        if self._batch_inserts:
+            self._process_batch(self._get_connection())
+
+        conn = self._get_connection()
+        unpacker = msgpack.Unpacker(msgpack_stream, raw=False)
+
+        # Use batched inserts for restore as well
+        batch = []
+        upsert_batch = []
+
+        for row_dict in unpacker:
+            namespace = row_dict["namespace"]
+            field = row_dict["field"]
+
+            # Special handling for player lists - replace existing value, don't create history
+            if field == "players" and namespace.startswith("session/"):
+                upsert_batch.append(
+                    (
+                        row_dict["value"],
+                        row_dict["created_at"],
+                        row_dict["context"],
+                        namespace,
+                        field,
+                        namespace,
+                        field,
+                        row_dict["value"],
+                        row_dict["created_at"],
+                        row_dict["context"],
+                    )
+                )
+            else:
+                batch.append(
+                    (
+                        namespace,
+                        field,
+                        row_dict["value"],
+                        row_dict["created_at"],
+                        row_dict["context"],
+                    )
+                )
+
+        # Execute batched operations
+        if upsert_batch:
+            # Handle upserts for players field
+            for values in upsert_batch:
+                cursor = conn.execute(
+                    f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",  # nosec B608
+                    values[:5],
+                )
+                if cursor.rowcount == 0:
+                    conn.execute(
+                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
+                        values[5:],
+                    )
+
+        if batch:
+            conn.executemany(
+                f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
+                batch,
+            )
+
+        conn.commit()
+
+    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
+        # Special handling for player lists - these need immediate processing
+        if field == "players" and namespace.startswith("session/"):
+            # Flush any pending batches first
             if self._batch_inserts:
                 self._process_batch(self._get_connection())
 
             conn = self._get_connection()
             cursor = conn.execute(
-                f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values"  # nosec B608
+                f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",  # nosec B608
+                (encode(data), self.now, context, namespace, field),
             )
-            for namespace, field, value, created_at, context in cursor:
-                yield msgpack.packb(
-                    {
-                        "namespace": namespace,
-                        "field": field,
-                        "value": value,
-                        "created_at": created_at,
-                        "context": context,
-                    }
-                )
-
-    def restore(self, msgpack_stream: Iterator[bytes]) -> None:
-        with self._lock:
-            # Flush any pending operations first
-            if self._batch_inserts:
-                self._process_batch(self._get_connection())
-
-            conn = self._get_connection()
-            unpacker = msgpack.Unpacker(msgpack_stream, raw=False)
-
-            # Use batched inserts for restore as well
-            batch = []
-            upsert_batch = []
-
-            for row_dict in unpacker:
-                namespace = row_dict["namespace"]
-                field = row_dict["field"]
-
-                # Special handling for player lists - replace existing value, don't create history
-                if field == "players" and namespace.startswith("session/"):
-                    upsert_batch.append(
-                        (
-                            row_dict["value"],
-                            row_dict["created_at"],
-                            row_dict["context"],
-                            namespace,
-                            field,
-                            namespace,
-                            field,
-                            row_dict["value"],
-                            row_dict["created_at"],
-                            row_dict["context"],
-                        )
-                    )
-                else:
-                    batch.append(
-                        (
-                            namespace,
-                            field,
-                            row_dict["value"],
-                            row_dict["created_at"],
-                            row_dict["context"],
-                        )
-                    )
-
-            # Execute batched operations
-            if upsert_batch:
-                # Handle upserts for players field
-                for values in upsert_batch:
-                    cursor = conn.execute(
-                        f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",  # nosec B608
-                        values[:5],
-                    )
-                    if cursor.rowcount == 0:
-                        conn.execute(
-                            f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
-                            values[5:],
-                        )
-
-            if batch:
-                conn.executemany(
+            if cursor.rowcount == 0:
+                conn.execute(
                     f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
-                    batch,
+                    (namespace, field, encode(data), self.now, context),
                 )
-
             conn.commit()
-
-    def insert(self, namespace: str, field: str, data: Any, context: str) -> None:
-        with self._lock:
-            # Special handling for player lists - these need immediate processing
-            if field == "players" and namespace.startswith("session/"):
-                # Flush any pending batches first
-                if self._batch_inserts:
-                    self._process_batch(self._get_connection())
-
-                conn = self._get_connection()
-                cursor = conn.execute(
-                    f"UPDATE uproot{self.tblextra}_values SET value = ?, created_at = ?, context = ? WHERE namespace = ? AND field = ?",  # nosec B608
-                    (encode(data), self.now, context, namespace, field),
-                )
-                if cursor.rowcount == 0:
-                    conn.execute(
-                        f"INSERT INTO uproot{self.tblextra}_values (namespace, field, value, created_at, context) VALUES (?, ?, ?, ?, ?)",  # nosec B608
-                        (namespace, field, encode(data), self.now, context),
-                    )
-                conn.commit()
-            else:
-                # Normal append-only operations - batch these
-                self._batch_inserts.append(
-                    (namespace, field, encode(data), self.now, context)
-                )
-
-                # Process batch if it's time to flush
-                if self._should_flush_batch():
-                    self._process_batch(self._get_connection())
-
-    def delete(self, namespace: str, field: str, context: str) -> None:
-        with self._lock:
-            # Delete operations are batched too
-            self._batch_inserts.append((namespace, field, None, self.now, context))
+        else:
+            # Normal append-only operations - batch these
+            self._batch_inserts.append(
+                (namespace, field, encode(data), self.now, context)
+            )
 
             # Process batch if it's time to flush
             if self._should_flush_batch():
                 self._process_batch(self._get_connection())
 
+    def delete(self, namespace: str, field: str, context: str) -> None:
+        # Delete operations are batched too
+        self._batch_inserts.append((namespace, field, None, self.now, context))
+
+        # Process batch if it's time to flush
+        if self._should_flush_batch():
+            self._process_batch(self._get_connection())
+
     def history_all(self) -> Iterator[tuple[str, str, t.Value]]:
-        with self._lock:
-            # Flush pending operations before reading history
-            if self._batch_inserts:
-                self._process_batch(self._get_connection())
+        # Flush pending operations before reading history
+        if self._batch_inserts:
+            self._process_batch(self._get_connection())
 
-            conn = self._get_connection()
-            cursor = conn.execute(
-                f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",  # nosec B608
+        conn = self._get_connection()
+        cursor = conn.execute(
+            f"SELECT namespace, field, value, created_at, context FROM uproot{self.tblextra}_values ORDER BY created_at ASC",  # nosec B608
+        )
+
+        for namespace, field, value, created_at, context in cursor:
+            yield namespace, field, t.Value(
+                created_at,
+                value is None,
+                decode(value) if value is not None else None,
+                context,
             )
-
-            for namespace, field, value, created_at, context in cursor:
-                yield namespace, field, t.Value(
-                    created_at,
-                    value is None,
-                    decode(value) if value is not None else None,
-                    context,
-                )

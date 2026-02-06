@@ -214,9 +214,13 @@ class Storage:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> Literal[False]:
+        # Always decrement context counter, even on exception
+        self.__contexts__ -= 1
+
+        # Only flush if no exception occurred
         if exc_type is None:
             self.flush()
-            self.__contexts__ -= 1
+
         # Clear field cache when exiting context to ensure fresh values next time
         self.__field_cache__.clear()
 

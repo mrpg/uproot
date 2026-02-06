@@ -6,7 +6,6 @@ This file exposes an internal API that end users MUST NOT rely upon. Rely upon s
 """
 
 import copy
-import threading
 from time import time
 from typing import TYPE_CHECKING, Any, Optional, Sequence, Union, cast
 
@@ -22,7 +21,6 @@ if TYPE_CHECKING:
     from uproot.storage import Storage
 
 MEMORY_HISTORY: dict[str, Any] = {}
-LOCK = threading.RLock()
 
 
 def safe_deepcopy(value: Any) -> Any:
@@ -84,48 +82,44 @@ def field_history_since(
     field: str,
     since: float,
 ) -> list[Value]:
-    with LOCK:
-        current = get_namespace(namespace)
-        if not current or not isinstance(current, dict) or field not in current:
-            return []
+    current = get_namespace(namespace)
+    if not current or not isinstance(current, dict) or field not in current:
+        return []
 
-        values = current[field]
-        if hasattr(values, "__iter__") and hasattr(values, "bisect_right"):
-            # Use binary search to find first entry after 'since'
-            search_val = Value(since, True, None, "")
-            start_idx = values.bisect_right(search_val)
-            return list(values[start_idx:])
-        else:
-            # Fallback for non-SortedList (shouldn't happen with current implementation)
-            return [v for v in values if cast(float, v.time) > since]
+    values = current[field]
+    if hasattr(values, "__iter__") and hasattr(values, "bisect_right"):
+        # Use binary search to find first entry after 'since'
+        search_val = Value(since, True, None, "")
+        start_idx = values.bisect_right(search_val)
+        return list(values[start_idx:])
+    else:
+        # Fallback for non-SortedList (shouldn't happen with current implementation)
+        return [v for v in values if cast(float, v.time) > since]
 
 
 def load_database_into_memory() -> None:
     """Load the entire database history into memory at startup for faster access."""
     global MEMORY_HISTORY
 
-    with LOCK:
-        MEMORY_HISTORY.clear()
+    MEMORY_HISTORY.clear()
 
-        # Load complete history using history_all with empty prefix to get everything
-        for dbns, field, value in DATABASE.history_all():
-            namespace = dbns2tuple(dbns)
+    # Load complete history using history_all with empty prefix to get everything
+    for dbns, field, value in DATABASE.history_all():
+        namespace = dbns2tuple(dbns)
 
-            # Get or create the nested dictionary for this namespace
-            nested_dict = get_namespace(namespace, create=True)
+        # Get or create the nested dictionary for this namespace
+        nested_dict = get_namespace(namespace, create=True)
 
-            if nested_dict is not None and field not in nested_dict:
-                nested_dict[field] = SortedList(key=lambda v: v.time)
+        if nested_dict is not None and field not in nested_dict:
+            nested_dict[field] = SortedList(key=lambda v: v.time)
 
-            # Add to history
-            if nested_dict is not None:
-                nested_dict[field].add(value)
+        # Add to history
+        if nested_dict is not None:
+            nested_dict[field].add(value)
 
 
 def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
-    """Get current value from last history entry.
-    NOTE: Assumes caller holds LOCK.
-    """
+    """Get current value from last history entry."""
     current = get_namespace(namespace)
     if (
         current
@@ -179,207 +173,196 @@ def db_request(
         case "insert", _, _ if isinstance(context, str):
             DATABASE.insert(tuple2dbns(namespace), key, value, context)
             # Update in-memory data
-            with LOCK:
-                # Get or create the nested dictionary for this namespace
-                nested_dict = get_namespace(namespace, create=True)
+            # Get or create the nested dictionary for this namespace
+            nested_dict = get_namespace(namespace, create=True)
 
-                if nested_dict is not None and key not in nested_dict:
-                    nested_dict[key] = SortedList(key=lambda v: v.time)
+            if nested_dict is not None and key not in nested_dict:
+                nested_dict[key] = SortedList(key=lambda v: v.time)
 
-                # Add to history with current timestamp
-                new_value = Value(DATABASE.now, False, safe_deepcopy(value), context)
+            # Add to history with current timestamp
+            new_value = Value(DATABASE.now, False, safe_deepcopy(value), context)
 
-                # Special handling for player lists - replace entire history like database does
-                if nested_dict is not None:
-                    if key == "players" and namespace[0] == "session":
-                        nested_dict[key] = SortedList([new_value], key=lambda v: v.time)
-                    else:
-                        nested_dict[key].add(new_value)
+            # Special handling for player lists - replace entire history like database does
+            if nested_dict is not None:
+                if key == "players" and namespace[0] == "session":
+                    nested_dict[key] = SortedList([new_value], key=lambda v: v.time)
+                else:
+                    nested_dict[key].add(new_value)
 
-                if namespace[0] in ("session", "player", "group", "model"):
-                    set_fieldchange(
-                        namespace,
-                        key,
-                        new_value,
-                    )
+            if namespace[0] in ("session", "player", "group", "model"):
+                set_fieldchange(
+                    namespace,
+                    key,
+                    new_value,
+                )
 
             rval = value
 
         case "delete", _, None if isinstance(context, str):
             DATABASE.delete(tuple2dbns(namespace), key, context)
             # Update in-memory data
-            with LOCK:
-                # Add tombstone to history
-                nested_dict = get_namespace(namespace, create=True)
-                if nested_dict is not None and key not in nested_dict:
-                    nested_dict[key] = SortedList(key=lambda v: v.time)
+            # Add tombstone to history
+            nested_dict = get_namespace(namespace, create=True)
+            if nested_dict is not None and key not in nested_dict:
+                nested_dict[key] = SortedList(key=lambda v: v.time)
 
-                tombstone = Value(DATABASE.now, True, None, context)
-                if nested_dict is not None:
-                    nested_dict[key].add(tombstone)
+            tombstone = Value(DATABASE.now, True, None, context)
+            if nested_dict is not None:
+                nested_dict[key].add(tombstone)
 
-                if namespace[0] in ("session", "player", "group", "model"):
-                    set_fieldchange(
-                        namespace,
-                        key,
-                        tombstone,
-                    )
+            if namespace[0] in ("session", "player", "group", "model"):
+                set_fieldchange(
+                    namespace,
+                    key,
+                    tombstone,
+                )
 
         # READ-ONLY - Use in-memory data exclusively
         case "get", _, None:
-            with LOCK:
-                rval = get_current_value(namespace, key)
+            rval = get_current_value(namespace, key)
 
         case "get_field_history", _, None:
-            with LOCK:
-                current = get_namespace(namespace)
-                if current and isinstance(current, dict) and key in current:
-                    rval = current[key]
-                else:
-                    rval = SortedList(key=lambda v: v.time)
+            current = get_namespace(namespace)
+            if current and isinstance(current, dict) and key in current:
+                rval = current[key]
+            else:
+                rval = SortedList(key=lambda v: v.time)
 
         case "fields", "", None:
-            with LOCK:
-                current = get_namespace(namespace)
-                if current and isinstance(current, dict):
-                    # Return only fields that have current (non-tombstone) values
-                    rval = []
-                    for field in current.keys():
-                        if (
-                            hasattr(current[field], "__iter__")
-                            and current[field]
-                            and not current[field][-1].unavailable
-                        ):
-                            rval.append(field)
-                else:
-                    rval = SortedList(key=lambda v: v.time)
+            current = get_namespace(namespace)
+            if current and isinstance(current, dict):
+                # Return only fields that have current (non-tombstone) values
+                rval = []
+                for field in current.keys():
+                    if (
+                        hasattr(current[field], "__iter__")
+                        and current[field]
+                        and not current[field][-1].unavailable
+                    ):
+                        rval.append(field)
+            else:
+                rval = SortedList(key=lambda v: v.time)
 
         case "has_fields", "", None:
-            with LOCK:
-                current = get_namespace(namespace)
-                if current and isinstance(current, dict):
-                    # Check if any field has current (non-tombstone) values
-                    rval = any(
-                        hasattr(values, "__iter__")
-                        and values
-                        and not values[-1].unavailable
-                        for values in current.values()
-                    )
-                else:
-                    rval = False
+            current = get_namespace(namespace)
+            if current and isinstance(current, dict):
+                # Check if any field has current (non-tombstone) values
+                rval = any(
+                    hasattr(values, "__iter__")
+                    and values
+                    and not values[-1].unavailable
+                    for values in current.values()
+                )
+            else:
+                rval = False
 
         case "history", "", None:
-            with LOCK:
-                current = get_namespace(namespace)
-                rval = current if current and isinstance(current, dict) else {}
+            current = get_namespace(namespace)
+            rval = current if current and isinstance(current, dict) else {}
 
         case "get_within_context", _, None if isinstance(extra, dict):
             # WITHIN-ADJACENT
             # This code should stay algorithmically close to latest() in viewdata.js.
 
             ctx = extra
-            with LOCK:
-                ns_ = get_namespace(namespace)
+            ns_ = get_namespace(namespace)
 
-                if not ns_ or not isinstance(ns_, dict) or key not in ns_:
+            if not ns_ or not isinstance(ns_, dict) or key not in ns_:
+                raise AttributeError(
+                    f"No value found for {key} within the specified context in namespace {namespace}"
+                )
+
+            # Verify all context fields exist
+            for cf in ctx:
+                if cf not in ns_:
                     raise AttributeError(
                         f"No value found for {key} within the specified context in namespace {namespace}"
                     )
 
-                # Verify all context fields exist
-                for cf in ctx:
-                    if cf not in ns_:
-                        raise AttributeError(
-                            f"No value found for {key} within the specified context in namespace {namespace}"
+            # Collect all changes
+            changes = []
+
+            for field in set([key] + list(ctx.keys())):
+                if field in ns_:
+                    for val in ns_[field]:
+                        changes.append(
+                            {
+                                "time": cast(float, val.time),
+                                "field": field,
+                                "unavailable": val.unavailable,
+                                "data": val.data,
+                            }
                         )
 
-                # Collect all changes
-                changes = []
+            # Sort by time (just to be safe)
+            changes.sort(key=lambda x: x["time"])
 
-                for field in set([key] + list(ctx.keys())):
-                    if field in ns_:
-                        for val in ns_[field]:
-                            changes.append(
-                                {
-                                    "time": cast(float, val.time),
-                                    "field": field,
-                                    "unavailable": val.unavailable,
-                                    "data": val.data,
-                                }
+            # Build state evolution
+            current_state = {}
+            latest_valid_state = None
+
+            for change in changes:
+                # Update current state with timestamp info
+                current_state[change["field"]] = {
+                    "unavailable": change["unavailable"],
+                    "data": change["data"],
+                    "time": change["time"],
+                }
+
+                # Check if all conditions are met
+                all_conditions_met = True
+
+                if ctx:
+                    for cond_field, cond_value in ctx.items():
+                        if (
+                            cond_field not in current_state
+                            or current_state[cond_field]["unavailable"]
+                            or current_state[cond_field]["data"] != cond_value
+                        ):
+                            all_conditions_met = False
+                            break
+
+                # Update latest valid state whenever conditions are met
+                # (matches viewdata.js approach: always update on condition match)
+                if all_conditions_met:
+                    latest_valid_state = copy.deepcopy(current_state)
+
+            # After loop: check if we found any valid state
+            if latest_valid_state is None:
+                raise AttributeError(
+                    f"No value found for {key} within the specified context in namespace {namespace}"
+                )
+
+            # Check if requested key exists and is available
+            if key not in latest_valid_state or latest_valid_state[key]["unavailable"]:
+                raise AttributeError(
+                    f"No value found for {key} within the specified context in namespace {namespace}"
+                )
+
+            # Apply temporal ordering constraint: for non-context fields,
+            # context fields must be set before or at the same time as the target field
+            # (this matches viewdata.js: filter after finding latest state)
+            if ctx and key not in ctx:
+                target_time = latest_valid_state[key]["time"]
+                for cond_field in ctx.keys():
+                    if cond_field in latest_valid_state:
+                        context_time = latest_valid_state[cond_field]["time"]
+                        if context_time > target_time:
+                            raise AttributeError(
+                                f"No value found for {key} within the specified context in namespace {namespace}"
                             )
 
-                # Sort by time (just to be safe)
-                changes.sort(key=lambda x: x["time"])
+            # Get the final data value
+            result_data = latest_valid_state[key]["data"]
 
-                # Build state evolution
-                current_state = {}
-                latest_valid_state = None
+            # If the value is None, treat it as not found (raise AttributeError)
+            # This is consistent with the semantics that None means "no value"
+            if result_data is None:
+                raise AttributeError(
+                    f"No value found for {key} within the specified context in namespace {namespace}"
+                )
 
-                for change in changes:
-                    # Update current state with timestamp info
-                    current_state[change["field"]] = {
-                        "unavailable": change["unavailable"],
-                        "data": change["data"],
-                        "time": change["time"],
-                    }
-
-                    # Check if all conditions are met
-                    all_conditions_met = True
-
-                    if ctx:
-                        for cond_field, cond_value in ctx.items():
-                            if (
-                                cond_field not in current_state
-                                or current_state[cond_field]["unavailable"]
-                                or current_state[cond_field]["data"] != cond_value
-                            ):
-                                all_conditions_met = False
-                                break
-
-                    # Update latest valid state whenever conditions are met
-                    # (matches viewdata.js approach: always update on condition match)
-                    if all_conditions_met:
-                        latest_valid_state = copy.deepcopy(current_state)
-
-                # After loop: check if we found any valid state
-                if latest_valid_state is None:
-                    raise AttributeError(
-                        f"No value found for {key} within the specified context in namespace {namespace}"
-                    )
-
-                # Check if requested key exists and is available
-                if (
-                    key not in latest_valid_state
-                    or latest_valid_state[key]["unavailable"]
-                ):
-                    raise AttributeError(
-                        f"No value found for {key} within the specified context in namespace {namespace}"
-                    )
-
-                # Apply temporal ordering constraint: for non-context fields,
-                # context fields must be set before or at the same time as the target field
-                # (this matches viewdata.js: filter after finding latest state)
-                if ctx and key not in ctx:
-                    target_time = latest_valid_state[key]["time"]
-                    for cond_field in ctx.keys():
-                        if cond_field in latest_valid_state:
-                            context_time = latest_valid_state[cond_field]["time"]
-                            if context_time > target_time:
-                                raise AttributeError(
-                                    f"No value found for {key} within the specified context in namespace {namespace}"
-                                )
-
-                # Get the final data value
-                result_data = latest_valid_state[key]["data"]
-
-                # If the value is None, treat it as not found (raise AttributeError)
-                # This is consistent with the semantics that None means "no value"
-                if result_data is None:
-                    raise AttributeError(
-                        f"No value found for {key} within the specified context in namespace {namespace}"
-                    )
-
-                rval = result_data
+            rval = result_data
 
         # ERROR
         case _, _, _:
