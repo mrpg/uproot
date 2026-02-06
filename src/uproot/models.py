@@ -33,7 +33,7 @@ from uproot.types import (
 T = TypeVar("T")
 
 # Return type for entry queries: (id, time, entry)
-StoredEntry = tuple[UUID, Optional[float], T]
+StoredEntry = tuple[UUID, float, T]
 
 
 class Entry(type):
@@ -255,7 +255,7 @@ def add_raw_entry(
 
 def _parse_stored_entry(
     data: Any,
-    time: Optional[float],
+    time: float,
     as_type: Type[T],
 ) -> StoredEntry[T]:
     """Parse stored [id, entry_dict] format into (id, time, entry) tuple."""
@@ -286,7 +286,11 @@ def get_entries(
         with get_storage(mid) as storage:
             for value in storage.__history__().get("entry", []):
                 if not value.unavailable:
-                    retval.append(_parse_stored_entry(value.data, value.time, as_type))
+                    retval.append(
+                        _parse_stored_entry(
+                            value.data, cast(float, value.time), as_type
+                        )
+                    )
 
         return retval
     except Exception as e:
@@ -374,7 +378,7 @@ def filter_entries(
                     entry = as_type(**entry_data)
 
                     if _entry_matches(entry, predicate, field_filters):
-                        retval.append((entry_id, value.time, entry))
+                        retval.append((entry_id, cast(float, value.time), entry))
 
         return retval
     except Exception as e:
@@ -398,18 +402,16 @@ def get_latest_entry(
     Raises:
         ValueError: If no entry exists or model access fails
     """
-    try:
-        with get_storage(mid) as storage:
-            if not hasattr(storage, "entry"):
-                raise ValueError(f"No entries found in model {mid}")
+    with get_storage(mid) as storage:
+        if not hasattr(storage, "entry"):
+            raise ValueError(f"No entries found in model {mid}")
 
-            entry_id_str, entry_data = storage.entry
-            return (UUID(entry_id_str), None, as_type(**entry_data))
+        value = storage.__history__()["entry"][-1]
 
-    except ValueError:
-        raise
-    except Exception as e:
-        raise ValueError(f"Failed to get latest entry from model {mid}: {e}") from e
+        if not value.unavailable:
+            return _parse_stored_entry(value.data, cast(float, value.time), as_type)
+        else:
+            raise ValueError(f"Model {mid} contains illegal tombstone entry")
 
 
 @validate_call

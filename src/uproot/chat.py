@@ -110,7 +110,7 @@ def add_player(
 
 
 @validate_call
-def messages(chat: ModelIdentifier) -> list[tuple[UUID, Optional[float], Message]]:
+def messages(chat: ModelIdentifier) -> list[tuple[UUID, float, Message]]:
     return um.get_entries(chat, Message)
 
 

@@ -353,7 +353,7 @@ def test_get_latest_entry(model_and_player):
     assert latest["score"] == 95.0
     assert latest["level"] == "hard"
     assert eid == last_id
-    assert etime is None  # Time is None for current state
+    assert etime is not None
 
 
 # Error handling tests
