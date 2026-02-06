@@ -35,6 +35,7 @@ requirements.txt
 *.swp
 Thumbs.db
 .tox/
+uv.lock
 .venv/
 venv/
 .vscode
