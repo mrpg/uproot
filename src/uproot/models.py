@@ -294,15 +294,15 @@ def get_entries(
 
 
 def _entry_matches(
-    entry_dict: dict[str, Any],
-    predicate: Optional[Callable[..., bool]],
+    entry: T,
+    predicate: Optional[Callable[[T], bool]],
     field_filters: dict[str, Any],
 ) -> bool:
     """Check if an entry matches the given filters and predicate."""
     # Check callable predicate first (more flexible)
     if predicate is not None:
         try:
-            if not predicate(**entry_dict):
+            if not predicate(entry):
                 return False
         except Exception:
             # If predicate fails, entry doesn't match
@@ -310,7 +310,10 @@ def _entry_matches(
 
     # Check field equality filters
     for field_name, expected_value in field_filters.items():
-        if field_name not in entry_dict or entry_dict[field_name] != expected_value:
+        try:
+            if getattr(entry, field_name) != expected_value:
+                return False
+        except AttributeError:
             return False
 
     return True
@@ -321,7 +324,7 @@ def filter_entries(
     as_type: Type[T],
     *,
     id: Optional[UUID] = None,
-    predicate: Optional[Callable[..., bool]] = None,
+    predicate: Optional[Callable[[T], bool]] = None,
     **field_filters: Any,
 ) -> list[StoredEntry[T]]:
     """
@@ -331,7 +334,7 @@ def filter_entries(
         mid: The model identifier
         as_type: Type to convert entries to
         id: Optional UUID to filter by entry id
-        predicate: Optional callable predicate that receives entry fields as kwargs
+        predicate: Optional callable that receives the entry object and returns bool
         **field_filters: Field name/value pairs for exact matching
 
     Returns:
@@ -347,7 +350,7 @@ def filter_entries(
         # Filter by predicate
         high_scores = filter_entries(
             mid, EntryType,
-            predicate=lambda **kwargs: kwargs['score'] > 100
+            predicate=lambda entry: entry.score > 100
         )
 
         # Filter by entry id
@@ -368,8 +371,10 @@ def filter_entries(
                     if id is not None and entry_id != id:
                         continue
 
-                    if _entry_matches(entry_data, predicate, field_filters):
-                        retval.append((entry_id, value.time, as_type(**entry_data)))
+                    entry = as_type(**entry_data)
+
+                    if _entry_matches(entry, predicate, field_filters):
+                        retval.append((entry_id, value.time, entry))
 
         return retval
     except Exception as e:

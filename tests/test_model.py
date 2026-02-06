@@ -278,10 +278,10 @@ def test_filter_entries_by_field(model_and_player):
     mod.add_entry(mid, pid, PlayerEntry, score=85.0, level="hard")
 
     # Filter by level
-    hard_entries = list(mod.filter_entries(mid, dict, level="hard"))
+    hard_entries = list(mod.filter_entries(mid, PlayerEntry, level="hard"))
     assert len(hard_entries) == 2
-    for eid, etime, edata in hard_entries:
-        assert edata["level"] == "hard"
+    for eid, etime, entry in hard_entries:
+        assert entry.level == "hard"
 
 
 def test_filter_entries_by_predicate(model_and_player):
@@ -294,11 +294,11 @@ def test_filter_entries_by_predicate(model_and_player):
 
     # Filter by score > 80
     high_scores = list(
-        mod.filter_entries(mid, dict, predicate=lambda **kwargs: kwargs["score"] > 80.0)
+        mod.filter_entries(mid, PlayerEntry, predicate=lambda entry: entry.score > 80.0)
     )
     assert len(high_scores) == 2
-    for eid, etime, edata in high_scores:
-        assert edata["score"] > 80.0
+    for eid, etime, entry in high_scores:
+        assert entry.score > 80.0
 
 
 def test_filter_entries_combined(model_and_player):
@@ -313,15 +313,15 @@ def test_filter_entries_combined(model_and_player):
     filtered = list(
         mod.filter_entries(
             mid,
-            dict,
-            predicate=lambda **kwargs: kwargs["score"] > 80.0,
+            PlayerEntry,
+            predicate=lambda entry: entry.score > 80.0,
             level="hard",
         )
     )
     assert len(filtered) == 1
-    eid, etime, edata = filtered[0]
-    assert edata["score"] == 90.0
-    assert edata["level"] == "hard"
+    eid, etime, entry = filtered[0]
+    assert entry.score == 90.0
+    assert entry.level == "hard"
 
 
 def test_filter_entries_by_id(model_and_player):
@@ -382,11 +382,11 @@ def test_filter_entries_bad_predicate(model_and_player):
 
     mod.add_entry(mid, pid, PlayerEntry, score=90.0, level="hard")
 
-    def bad_predicate(**kwargs):
+    def bad_predicate(entry):
         raise Exception("Predicate error")
 
     # Should not raise - bad predicates cause entries to not match
-    filtered = list(mod.filter_entries(mid, dict, predicate=bad_predicate))
+    filtered = list(mod.filter_entries(mid, PlayerEntry, predicate=bad_predicate))
     assert len(filtered) == 0
 
 
@@ -410,7 +410,7 @@ def test_multiple_entries_performance(model_and_player):
         assert isinstance(eid, UUID)
 
     # Filter some
-    level_0_entries = list(mod.filter_entries(mid, dict, level="level_0"))
+    level_0_entries = list(mod.filter_entries(mid, PlayerEntry, level="level_0"))
     assert len(level_0_entries) == 20  # Every 5th entry
 
 
