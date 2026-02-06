@@ -964,7 +964,7 @@ window.uproot = {
             });
         };
 
-        document.querySelectorAll("input[type='radio']:not([required])").forEach((radio) => {
+        document.querySelectorAll("input[type='radio'][data-uproot-radio]:not([required])").forEach((radio) => {
             if (radio.dataset[BOUND_ATTR] === "1") return;
             radio.dataset[BOUND_ATTR] = "1";
 

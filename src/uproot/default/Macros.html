@@ -50,7 +50,7 @@
                 </td>
                 {% for subfield in field_ %}
                     <td class="text-center likert-cell" onclick="this.children[0].click()">
-                        {{ subfield(class_="form-check-input") }}
+                        {{ subfield(class_="form-check-input", data_uproot_radio="") }}
                     </td>
                 {% endfor %}
             </tr>
@@ -148,7 +148,7 @@
                     <td class="text-end pe-3 ps-0">{{ field.label_min }}</td>
                     {% for subfield in field %}
                         <td class="text-center likert-cell" onclick="this.children[0].click()">
-                            {{ subfield(class_="form-check-input") }}
+                            {{ subfield(class_="form-check-input", data_uproot_radio="") }}
                         </td>
                     {% endfor %}
                     <td class="text-start pe-0 ps-3">{{ field.label_max }}</td>
@@ -165,7 +165,7 @@
                     {% set _ = div_class_list.append(field.render_kw.get("class")) %}
                 {% endif %}
                 <div class="{{ ' '.join(div_class_list) }}">
-                    {{ subfield(class_="form-check-input") }}
+                    {{ subfield(class_="form-check-input", data_uproot_radio="") }}
                     {{ subfield.label(class_="form-check-label") }}
                 </div>
             {% endfor %}
