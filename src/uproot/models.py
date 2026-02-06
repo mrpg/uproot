@@ -59,6 +59,7 @@ class Entry(type):
             )
 
         new_class = super().__new__(cls, name, bases, namespace)
+
         return validated_dataclass(
             new_class,  # type: ignore[arg-type]
             frozen=True,
@@ -79,16 +80,11 @@ def create_model(
 
     Returns:
         The identifier of the newly created model
-
-    Raises:
-        RuntimeError: If model creation fails
     """
-    try:
-        with session() as s:
-            mid = c.create_model(s, data=dict(tag=tag))
-        return mid
-    except Exception as e:
-        raise RuntimeError(f"Failed to create model: {e}") from e
+    with session() as s:
+        mid = c.create_model(s, data=dict(tag=tag))
+
+    return mid
 
 
 def get_storage(mid: ModelIdentifier) -> s.Storage:
@@ -100,17 +96,13 @@ def get_storage(mid: ModelIdentifier) -> s.Storage:
 
     Returns:
         The storage instance
-
-    Raises:
-        ValueError: If model doesn't exist or access fails
     """
-    try:
-        storage = mid()
-        if not storage:
-            raise ValueError(f"Model {mid} not found")
-        return storage
-    except Exception as e:
-        raise ValueError(f"Failed to access model {mid}: {e}") from e
+    storage = mid()
+
+    if not storage:
+        raise ValueError(f"Model {mid} not found")
+
+    return storage
 
 
 @flexible
@@ -132,43 +124,33 @@ def auto_add_entry(
 
     Returns:
         The UUID assigned to the stored entry
-
-    Raises:
-        ValueError: If entry creation fails
-        RuntimeError: If adding to model fails
     """
-    try:
-        auto_fields: dict[str, Any] = {}
+    auto_fields: dict[str, Any] = {}
 
-        # Auto-fill identifier fields based on type annotations
-        for field_name, field_type in getattr(
-            entry_type, "__annotations__", {}
-        ).items():
-            if inspect.isclass(field_type) and issubclass(field_type, Identifier):
-                if field_type == PlayerIdentifier:
-                    auto_fields[field_name] = pid
-                elif field_type == SessionIdentifier:
-                    with pid() as player:
-                        auto_fields[field_name] = player.session
-                elif field_type == GroupIdentifier:
-                    with pid() as player:
-                        auto_fields[field_name] = player.group
-                elif field_type == ModelIdentifier:
-                    auto_fields[field_name] = mid
-                else:
-                    raise ValueError(f"Unsupported identifier type: {field_type}")
+    # Auto-fill identifier fields based on type annotations
+    for field_name, field_type in getattr(entry_type, "__annotations__", {}).items():
+        if inspect.isclass(field_type) and issubclass(field_type, Identifier):
+            if field_type == PlayerIdentifier:
+                auto_fields[field_name] = pid
+            elif field_type == SessionIdentifier:
+                with pid() as player:
+                    auto_fields[field_name] = player.session
+            elif field_type == GroupIdentifier:
+                with pid() as player:
+                    auto_fields[field_name] = player.group
+            elif field_type == ModelIdentifier:
+                auto_fields[field_name] = mid
+            else:
+                raise ValueError(f"Unsupported identifier type: {field_type}")
 
-        # Merge auto-filled and user-provided fields
-        all_fields = auto_fields | other_fields
+    # Merge auto-filled and user-provided fields
+    all_fields = auto_fields | other_fields
 
-        # Create the entry instance
-        new_entry = entry_type(**all_fields)
+    # Create the entry instance
+    new_entry = entry_type(**all_fields)
 
-        # Add it to the model and return the UUID
-        return add_raw_entry(mid, new_entry)
-
-    except Exception as e:
-        raise ValueError(f"Failed to auto-add entry: {e}") from e
+    # Add it to the model and return the UUID
+    return add_raw_entry(mid, new_entry)
 
 
 def add_entry(
@@ -191,9 +173,6 @@ def add_entry(
 
     Returns:
         The UUID assigned to the stored entry
-
-    Raises:
-        ValueError: If entry creation or adding fails
 
     Example:
         entry_id = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
@@ -276,25 +255,17 @@ def get_entries(
 
     Returns:
         List of (id, time, entry) tuples
-
-    Raises:
-        ValueError: If model access fails
     """
-    try:
-        retval: list[StoredEntry[T]] = []
+    retval: list[StoredEntry[T]] = []
 
-        with get_storage(mid) as storage:
-            for value in storage.__history__().get("entry", []):
-                if not value.unavailable:
-                    retval.append(
-                        _parse_stored_entry(
-                            value.data, cast(float, value.time), as_type
-                        )
-                    )
+    with get_storage(mid) as storage:
+        for value in storage.__history__().get("entry", []):
+            if not value.unavailable:
+                retval.append(
+                    _parse_stored_entry(value.data, cast(float, value.time), as_type)
+                )
 
-        return retval
-    except Exception as e:
-        raise ValueError(f"Failed to get entries from model {mid}: {e}") from e
+    return retval
 
 
 def _entry_matches(
@@ -344,9 +315,6 @@ def filter_entries(
     Returns:
         List of matching (id, time, entry) tuples
 
-    Raises:
-        ValueError: If model access fails
-
     Examples:
         # Filter by field value
         entries = filter_entries(mid, EntryType, player_id=123)
@@ -360,29 +328,24 @@ def filter_entries(
         # Filter by entry id
         specific = filter_entries(mid, EntryType, id=some_uuid)
     """
-    try:
-        retval: list[StoredEntry[T]] = []
+    retval: list[StoredEntry[T]] = []
 
-        with get_storage(mid) as storage:
-            for value in storage.__history__().get("entry", []):
-                if not value.unavailable:
-                    entry_id_str, entry_data = cast(
-                        tuple[str, dict[str, Any]], value.data
-                    )
-                    entry_id = UUID(entry_id_str)
+    with get_storage(mid) as storage:
+        for value in storage.__history__().get("entry", []):
+            if not value.unavailable:
+                entry_id_str, entry_data = cast(tuple[str, dict[str, Any]], value.data)
+                entry_id = UUID(entry_id_str)
 
-                    # Filter by id if specified
-                    if id is not None and entry_id != id:
-                        continue
+                # Filter by id if specified
+                if id is not None and entry_id != id:
+                    continue
 
-                    entry = as_type(**entry_data)
+                entry = as_type(**entry_data)
 
-                    if _entry_matches(entry, predicate, field_filters):
-                        retval.append((entry_id, cast(float, value.time), entry))
+                if _entry_matches(entry, predicate, field_filters):
+                    retval.append((entry_id, cast(float, value.time), entry))
 
-        return retval
-    except Exception as e:
-        raise ValueError(f"Failed to filter entries from model {mid}: {e}") from e
+    return retval
 
 
 def get_latest_entry(
@@ -417,7 +380,7 @@ def get_latest_entry(
 @validate_call
 def get_field(mid: ModelIdentifier, field_name: str) -> Any:
     """
-    Get a specific field value from the model's latest entry.
+    Get a specific field value from the model.
 
     Args:
         mid: The model identifier
@@ -425,22 +388,9 @@ def get_field(mid: ModelIdentifier, field_name: str) -> Any:
 
     Returns:
         The field value
-
-    Raises:
-        AttributeError: If field doesn't exist
-        ValueError: If model access fails
     """
-    try:
-        with get_storage(mid) as storage:
-            if not hasattr(storage, field_name):
-                raise AttributeError(f"Field '{field_name}' not found in model {mid}")
-            return getattr(storage, field_name)
-    except AttributeError:
-        raise
-    except Exception as e:
-        raise ValueError(
-            f"Failed to get field '{field_name}' from model {mid}: {e}"
-        ) from e
+    with get_storage(mid) as storage:
+        return getattr(storage, field_name)
 
 
 @validate_call
