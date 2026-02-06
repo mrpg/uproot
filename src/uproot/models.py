@@ -15,7 +15,7 @@ from typing import (
 )
 from uuid import UUID
 
-from pydantic import Field, validate_call
+from pydantic import validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
 
 import uproot.core as c
@@ -30,15 +30,18 @@ from uproot.types import (
     uuid,
 )
 
-E = TypeVar("E")
 T = TypeVar("T")
-EntryType = TypeVar("EntryType")
+
+# Return type for entry queries: (id, time, entry)
+StoredEntry = tuple[UUID, Optional[float], T]
 
 
 class Entry(type):
     """
-    Metaclass for model entries. Automatically adds time field and creates
-    immutable pydantic dataclasses.
+    Metaclass for model entries. Creates immutable pydantic dataclasses.
+
+    The 'id' field name is reserved - entries are assigned UUIDs by the
+    storage layer, returned alongside entries in query results.
     """
 
     def __new__(
@@ -50,38 +53,16 @@ class Entry(type):
     ) -> Type[Any]:
         annotations = namespace.get("__annotations__", {})
 
-        # Always add time field, prevent user override
-        if "time" in annotations:
-            raise ValueError(
-                f"Class {name} cannot define 'time' field - it's automatically added by Entry metaclass"
-            )
-
-        # Always add id field, prevent user override
         if "id" in annotations:
             raise ValueError(
-                f"Class {name} cannot define 'id' field - it's automatically added by Entry metaclass"
+                f"Class {name} cannot define 'id' field - it's reserved for storage"
             )
-
-        annotations["time"] = Optional[float]
-        namespace["time"] = Field(
-            default_factory=lambda: None,
-            exclude=True,
-            repr=False,
-        )
-
-        annotations["id"] = UUID
-        namespace["id"] = Field(
-            default_factory=uuid,
-            exclude=True,
-        )
-
-        namespace["__annotations__"] = annotations
 
         new_class = super().__new__(cls, name, bases, namespace)
         return validated_dataclass(
             new_class,  # type: ignore[arg-type]
             frozen=True,
-        )  # this does not have arbitrary_types_allowed=True on purpose
+        )
 
 
 @flexible
@@ -139,7 +120,7 @@ def auto_add_entry(
     pid: PlayerIdentifier,
     entry_type: Any,
     **other_fields: Any,
-) -> Any:
+) -> UUID:
     """
     Automatically create and add an entry with auto-filled identifier fields.
 
@@ -150,7 +131,7 @@ def auto_add_entry(
         **other_fields: Additional fields to set on the entry
 
     Returns:
-        The created entry instance
+        The UUID assigned to the stored entry
 
     Raises:
         ValueError: If entry creation fails
@@ -183,10 +164,8 @@ def auto_add_entry(
         # Create the entry instance
         new_entry = entry_type(**all_fields)
 
-        # Add it to the model
-        add_raw_entry(mid, new_entry)
-
-        return new_entry
+        # Add it to the model and return the UUID
+        return add_raw_entry(mid, new_entry)
 
     except Exception as e:
         raise ValueError(f"Failed to auto-add entry: {e}") from e
@@ -197,7 +176,7 @@ def add_entry(
     pid: PlayerIdentifier,
     entry_type: Any,
     **other_fields: Any,
-) -> Any:
+) -> UUID:
     """
     Add an entry to the model with auto-filling of identifier fields.
 
@@ -211,13 +190,13 @@ def add_entry(
         **other_fields: Additional fields to set on the entry
 
     Returns:
-        The created entry instance
+        The UUID assigned to the stored entry
 
     Raises:
         ValueError: If entry creation or adding fails
 
     Example:
-        offer = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
+        entry_id = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
     """
     if isinstance(pid, s.Storage):
         # We don't use @flexible here because it cannot handle Unions (neither can Max)
@@ -230,17 +209,19 @@ def add_entry(
 def add_raw_entry(
     mid: ModelIdentifier,
     entry: Union[dict[str, Any], Any],
-) -> None:
+) -> UUID:
     """
     Add a raw entry to the model without auto-filling identifier fields.
 
     Use this when you need direct control over all fields or when adding
-    non-Entry objects (like plain dicts). The time field is always filtered out
-    since it's managed by the storage system.
+    non-Entry objects (like plain dicts).
 
     Args:
         mid: The model identifier to add the entry to
         entry: The entry to add (dataclass instance or dict)
+
+    Returns:
+        The UUID assigned to the stored entry
 
     Raises:
         ValueError: If entry format is invalid or adding to model fails
@@ -264,27 +245,28 @@ def add_raw_entry(
             f"Entry keys must be valid Python identifiers. Invalid keys: {invalid_keys}"
         )
 
-    # Always filter out time field since it's managed by the storage system
-    filtered_entry = {k: v for k, v in entry_dict.items() if k != "time"}
-
-    # Store the entry
+    # Generate UUID and store as [id, entry_dict]
+    entry_id = uuid()
     with get_storage(mid) as storage:
-        setattr(storage, "entry", filtered_entry)
+        setattr(storage, "entry", [str(entry_id), entry_dict])
+
+    return entry_id
 
 
-def _with_time(
-    rawentry: dict[str, Any],
+def _parse_stored_entry(
+    data: Any,
     time: Optional[float],
     as_type: Type[T],
-) -> T:
-    """Create an instance with time field added."""
-    return as_type(**(dict(time=time) | rawentry))
+) -> StoredEntry[T]:
+    """Parse stored [id, entry_dict] format into (id, time, entry) tuple."""
+    entry_id, entry_dict = data
+    return (UUID(entry_id), time, as_type(**entry_dict))
 
 
 def get_entries(
     mid: ModelIdentifier,
     as_type: Type[T],
-) -> list[T]:
+) -> list[StoredEntry[T]]:
     """
     Get all entries from a model.
 
@@ -293,19 +275,18 @@ def get_entries(
         as_type: Type to convert entries to
 
     Returns:
-        List of entries with timestamps
+        List of (id, time, entry) tuples
 
     Raises:
         ValueError: If model access fails
     """
     try:
-        retval = []
+        retval: list[StoredEntry[T]] = []
 
         with get_storage(mid) as storage:
             for value in storage.__history__().get("entry", []):
                 if not value.unavailable:
-                    entry_data = cast(dict[str, Any], value.data)
-                    retval.append(_with_time(entry_data, value.time, as_type))
+                    retval.append(_parse_stored_entry(value.data, value.time, as_type))
 
         return retval
     except Exception as e:
@@ -339,20 +320,22 @@ def filter_entries(
     mid: ModelIdentifier,
     as_type: Type[T],
     *,
+    id: Optional[UUID] = None,
     predicate: Optional[Callable[..., bool]] = None,
     **field_filters: Any,
-) -> list[T]:
+) -> list[StoredEntry[T]]:
     """
     Filter entries from a model based on predicate and field values.
 
     Args:
         mid: The model identifier
         as_type: Type to convert entries to
+        id: Optional UUID to filter by entry id
         predicate: Optional callable predicate that receives entry fields as kwargs
         **field_filters: Field name/value pairs for exact matching
 
     Returns:
-        List of matching entries with timestamps
+        List of matching (id, time, entry) tuples
 
     Raises:
         ValueError: If model access fails
@@ -367,23 +350,26 @@ def filter_entries(
             predicate=lambda **kwargs: kwargs['score'] > 100
         )
 
-        # Combine field filter and predicate
-        active_high_scores = filter_entries(
-            mid, EntryType,
-            predicate=lambda **kwargs: kwargs['score'] > 100,
-            status="active"
-        )
+        # Filter by entry id
+        specific = filter_entries(mid, EntryType, id=some_uuid)
     """
     try:
-        retval = []
+        retval: list[StoredEntry[T]] = []
 
         with get_storage(mid) as storage:
             for value in storage.__history__().get("entry", []):
                 if not value.unavailable:
-                    entry_data = cast(dict[str, Any], value.data)
+                    entry_id_str, entry_data = cast(
+                        tuple[str, dict[str, Any]], value.data
+                    )
+                    entry_id = UUID(entry_id_str)
+
+                    # Filter by id if specified
+                    if id is not None and entry_id != id:
+                        continue
 
                     if _entry_matches(entry_data, predicate, field_filters):
-                        retval.append(_with_time(entry_data, value.time, as_type))
+                        retval.append((entry_id, value.time, as_type(**entry_data)))
 
         return retval
     except Exception as e:
@@ -393,7 +379,7 @@ def filter_entries(
 def get_latest_entry(
     mid: ModelIdentifier,
     as_type: Type[T],
-) -> T:
+) -> StoredEntry[T]:
     """
     Get the most recent entry from a model.
 
@@ -402,7 +388,7 @@ def get_latest_entry(
         as_type: Type to convert entry to
 
     Returns:
-        The latest entry (without timestamp since it's the current state)
+        The latest entry as (id, None, entry) tuple (time is None for current state)
 
     Raises:
         ValueError: If no entry exists or model access fails
@@ -412,8 +398,8 @@ def get_latest_entry(
             if not hasattr(storage, "entry"):
                 raise ValueError(f"No entries found in model {mid}")
 
-            entry_data = cast(dict[str, Any], storage.entry)
-            return _with_time(entry_data, None, as_type)
+            entry_id_str, entry_data = storage.entry
+            return (UUID(entry_id_str), None, as_type(**entry_data))
 
     except ValueError:
         raise

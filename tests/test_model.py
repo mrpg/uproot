@@ -109,8 +109,6 @@ def test_entry_creation():
     entry = SimpleEntry(value=42, message="test")
     assert entry.value == 42
     assert entry.message == "test"
-    assert hasattr(entry, "time")
-    assert entry.time is None
 
 
 def test_entry_is_immutable():
@@ -122,15 +120,13 @@ def test_entry_is_immutable():
         entry.value = 100
 
 
-def test_entry_with_time():
-    """Test entry with automatic time field."""
+def test_entry_no_id_field():
+    """Test that entries cannot define their own 'id' field."""
+    with pytest.raises(ValueError, match="cannot define 'id' field"):
 
-    class TimedEntry(metaclass=mod.Entry):
-        value: int
-
-    entry = TimedEntry(value=42)
-    assert entry.value == 42
-    assert entry.time is None  # Time is automatically added by metaclass
+        class BadEntry(metaclass=mod.Entry):
+            id: int  # This should raise
+            value: int
 
 
 # Add entry tests
@@ -139,13 +135,20 @@ def test_add_raw_entry_simple(model_and_player):
     mid, pid = model_and_player
 
     entry = SimpleEntry(value=123, message="raw test")
-    mod.add_raw_entry(mid, entry)
+    entry_id = mod.add_raw_entry(mid, entry)
+
+    # add_raw_entry now returns UUID
+    from uuid import UUID
+
+    assert isinstance(entry_id, UUID)
 
     # Verify it was added by checking we can get entries
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    assert entries[0]["value"] == 123
-    assert entries[0]["message"] == "raw test"
+    eid, etime, edata = entries[0]
+    assert edata["value"] == 123
+    assert edata["message"] == "raw test"
+    assert eid == entry_id
 
 
 def test_add_raw_entry_with_dict(model_and_player):
@@ -153,21 +156,34 @@ def test_add_raw_entry_with_dict(model_and_player):
     mid, pid = model_and_player
 
     entry_dict = {"x": 42, "y": "hello"}
-    mod.add_raw_entry(mid, entry_dict)
+    entry_id = mod.add_raw_entry(mid, entry_dict)
+
+    from uuid import UUID
+
+    assert isinstance(entry_id, UUID)
 
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    assert entries[0]["x"] == 42
-    assert entries[0]["y"] == "hello"
+    eid, etime, edata = entries[0]
+    assert edata["x"] == 42
+    assert edata["y"] == "hello"
 
 
 def test_auto_add_entry(model_and_player):
     """Test auto-adding entry with identifier filling."""
     mid, pid = model_and_player
 
-    entry = mod.auto_add_entry(mid, pid, PlayerEntry, score=95.5, level="hard")
+    from uuid import UUID
 
-    assert entry is not None
+    entry_id = mod.auto_add_entry(mid, pid, PlayerEntry, score=95.5, level="hard")
+
+    # auto_add_entry now returns UUID
+    assert isinstance(entry_id, UUID)
+
+    # Verify via get_entries
+    entries = list(mod.get_entries(mid, PlayerEntry))
+    assert len(entries) == 1
+    eid, etime, entry = entries[0]
     assert entry.pid == pid
     assert entry.score == 95.5
     assert entry.level == "hard"
@@ -177,9 +193,17 @@ def test_smart_add_entry_auto_mode(model_and_player):
     """Test smart add_entry in auto-filling mode."""
     mid, pid = model_and_player
 
-    entry = mod.add_entry(mid, pid, PlayerEntry, score=88.8, level="medium")
+    from uuid import UUID
 
-    assert entry is not None
+    entry_id = mod.add_entry(mid, pid, PlayerEntry, score=88.8, level="medium")
+
+    # add_entry now returns UUID
+    assert isinstance(entry_id, UUID)
+
+    # Verify via get_entries
+    entries = list(mod.get_entries(mid, PlayerEntry))
+    assert len(entries) == 1
+    eid, etime, entry = entries[0]
     assert entry.pid == pid
     assert entry.score == 88.8
     assert entry.level == "medium"
@@ -189,15 +213,18 @@ def test_smart_add_entry_raw_mode(model_and_player):
     """Test add_raw_entry function."""
     mid, pid = model_and_player
 
+    from uuid import UUID
+
     entry = PlayerEntry(pid=pid, score=77.7, level="easy")
     result = mod.add_raw_entry(mid, entry)
 
-    assert result is None  # add_raw_entry returns None
+    assert isinstance(result, UUID)  # add_raw_entry returns UUID
 
     # Verify it was added
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    assert entries[0]["score"] == 77.7
+    eid, etime, edata = entries[0]
+    assert edata["score"] == 77.7
 
 
 # Query tests
@@ -220,9 +247,12 @@ def test_get_entries_with_data(model_and_player):
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 2
 
-    # Check entries have timestamps
-    for entry in entries:
-        assert "time" in entry
+    # Check entries are tuples with (id, time, data)
+    for eid, etime, edata in entries:
+        from uuid import UUID
+
+        assert isinstance(eid, UUID)
+        assert etime is not None  # Should have timestamp from history
 
 
 def test_get_entries_with_type(model_and_player):
@@ -233,8 +263,9 @@ def test_get_entries_with_type(model_and_player):
 
     entries = list(mod.get_entries(mid, PlayerEntry))
     assert len(entries) == 1
-    assert isinstance(entries[0], PlayerEntry)
-    assert entries[0].score == 95.0
+    eid, etime, entry = entries[0]
+    assert isinstance(entry, PlayerEntry)
+    assert entry.score == 95.0
 
 
 def test_filter_entries_by_field(model_and_player):
@@ -249,8 +280,8 @@ def test_filter_entries_by_field(model_and_player):
     # Filter by level
     hard_entries = list(mod.filter_entries(mid, dict, level="hard"))
     assert len(hard_entries) == 2
-    for entry in hard_entries:
-        assert entry["level"] == "hard"
+    for eid, etime, edata in hard_entries:
+        assert edata["level"] == "hard"
 
 
 def test_filter_entries_by_predicate(model_and_player):
@@ -266,8 +297,8 @@ def test_filter_entries_by_predicate(model_and_player):
         mod.filter_entries(mid, dict, predicate=lambda **kwargs: kwargs["score"] > 80.0)
     )
     assert len(high_scores) == 2
-    for entry in high_scores:
-        assert entry["score"] > 80.0
+    for eid, etime, edata in high_scores:
+        assert edata["score"] > 80.0
 
 
 def test_filter_entries_combined(model_and_player):
@@ -288,8 +319,24 @@ def test_filter_entries_combined(model_and_player):
         )
     )
     assert len(filtered) == 1
-    assert filtered[0]["score"] == 90.0
-    assert filtered[0]["level"] == "hard"
+    eid, etime, edata = filtered[0]
+    assert edata["score"] == 90.0
+    assert edata["level"] == "hard"
+
+
+def test_filter_entries_by_id(model_and_player):
+    """Test filtering entries by id."""
+    mid, pid = model_and_player
+
+    id1 = mod.add_entry(mid, pid, PlayerEntry, score=90.0, level="hard")
+    id2 = mod.add_entry(mid, pid, PlayerEntry, score=75.5, level="medium")
+
+    # Filter by specific id
+    filtered = list(mod.filter_entries(mid, PlayerEntry, id=id1))
+    assert len(filtered) == 1
+    eid, etime, entry = filtered[0]
+    assert eid == id1
+    assert entry.score == 90.0
 
 
 def test_get_latest_entry(model_and_player):
@@ -299,12 +346,14 @@ def test_get_latest_entry(model_and_player):
     # Add entries in sequence
     mod.add_entry(mid, pid, PlayerEntry, score=80.0, level="easy")
     mod.add_entry(mid, pid, PlayerEntry, score=90.0, level="medium")
-    mod.add_entry(mid, pid, PlayerEntry, score=95.0, level="hard")
+    last_id = mod.add_entry(mid, pid, PlayerEntry, score=95.0, level="hard")
 
-    latest = mod.get_latest_entry(mid, dict)
+    eid, etime, latest = mod.get_latest_entry(mid, dict)
     # Latest should be the last one added
     assert latest["score"] == 95.0
     assert latest["level"] == "hard"
+    assert eid == last_id
+    assert etime is None  # Time is None for current state
 
 
 # Error handling tests
@@ -353,6 +402,12 @@ def test_multiple_entries_performance(model_and_player):
     # Query all
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 100
+
+    # Verify they are tuples
+    for eid, etime, edata in entries:
+        from uuid import UUID
+
+        assert isinstance(eid, UUID)
 
     # Filter some
     level_0_entries = list(mod.filter_entries(mid, dict, level="level_0"))

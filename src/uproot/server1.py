@@ -566,7 +566,8 @@ async def ws(
                     mid = t.ModelIdentifier(sname, mname)
 
                     if chat.exists(mid) and pid in (pp := chat.players(mid)):
-                        msg = chat.add_message(mid, pid, msgtext)
+                        msg_id = chat.add_message(mid, pid, msgtext)
+                        msg = chat.Message(sender=pid, text=msgtext)  # type: ignore[call-arg]
 
                         for p in pp:
                             q.enqueue(
@@ -575,6 +576,8 @@ async def ws(
                                     source="chat",
                                     data=chat.show_msg(
                                         mid,
+                                        msg_id,
+                                        d.DATABASE.now,  # HACK: approximate time
                                         msg,
                                         p,
                                     ),
@@ -598,7 +601,8 @@ async def ws(
 
                     if chat.exists(mid) and pid in (pp := chat.players(mid)):
                         invoke_response = [
-                            chat.show_msg(mid, msg, pid) for msg in chat.messages(mid)
+                            chat.show_msg(mid, msg_id, msg_time, msg, pid)
+                            for msg_id, msg_time, msg in chat.messages(mid)
                         ]
                     else:
                         d.LOGGER.warning(

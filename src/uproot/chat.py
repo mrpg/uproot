@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from typing import Any, Optional, cast
+from uuid import UUID
 
 from pydantic import validate_call
 
@@ -26,6 +27,8 @@ class Message(metaclass=um.Entry):
 
 def show_msg(
     chat: ModelIdentifier,
+    id: UUID,
+    time: Optional[float],
     msg: Message,
     as_viewed_by: Optional[PlayerIdentifier] = None,
 ) -> dict[str, Any]:
@@ -53,9 +56,9 @@ def show_msg(
 
     return dict(
         cname=chat.mname,
-        id=msg.id,  # type: ignore[attr-defined]
+        id=id,
         sender=sender_representation,
-        time=msg.time,  # type: ignore[attr-defined]
+        time=time,
         text=msg.text,
     )
 
@@ -107,7 +110,7 @@ def add_player(
 
 
 @validate_call
-def messages(chat: ModelIdentifier) -> list[Message]:
+def messages(chat: ModelIdentifier) -> list[tuple[UUID, Optional[float], Message]]:
     return um.get_entries(chat, Message)
 
 
@@ -117,15 +120,11 @@ def add_message(
     chat: ModelIdentifier,
     sender: Optional[PlayerIdentifier],
     msgtext: str,
-) -> Message:
-    from uproot.deployment import DATABASE
-
-    um.add_raw_entry(
+) -> UUID:
+    return um.add_raw_entry(
         chat,
         dict(sender=sender, text=msgtext),
     )
-
-    return Message(sender, msgtext, time=DATABASE.now)  # type: ignore
 
 
 @validate_call
