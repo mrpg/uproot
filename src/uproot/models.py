@@ -245,6 +245,7 @@ def _parse_stored_entry(
 def get_entries(
     mid: ModelIdentifier,
     as_type: Type[T],
+    subset: slice = slice(None),
 ) -> list[StoredEntry[T]]:
     """
     Get all entries from a model.
@@ -259,7 +260,7 @@ def get_entries(
     retval: list[StoredEntry[T]] = []
 
     with get_storage(mid) as storage:
-        for value in storage.__history__().get("entry", []):
+        for value in storage.__history__().get("entry", [])[subset]:
             if not value.unavailable:
                 retval.append(
                     _parse_stored_entry(value.data, cast(float, value.time), as_type)
