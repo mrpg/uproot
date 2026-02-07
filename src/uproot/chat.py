@@ -17,7 +17,7 @@ from uproot.types import (
     token_unchecked,
 )
 
-COLLISIONS: tuple[dict[str, str], dict[str, str]] = dict(), dict()
+COLLISIONS: tuple[dict[str, str], dict[str, str]] = {}, {}
 
 
 class Message(metaclass=um.Entry):
@@ -54,13 +54,13 @@ def show_msg(
     else:
         sender_representation = ("other", anonymized)
 
-    return dict(
-        cname=chat.mname,
-        id=id,
-        sender=sender_representation,
-        time=time,
-        text=msg.text,
-    )
+    return {
+        "cname": chat.mname,
+        "id": id,
+        "sender": sender_representation,
+        "time": time,
+        "text": msg.text,
+    }
 
 
 def anonymize(s: str) -> str:
@@ -82,8 +82,8 @@ def create(session: SessionIdentifier) -> ModelIdentifier:
     chat = um.create_model(session, tag="chat")
 
     with um.get_storage(chat) as m:
-        m.players = list()
-        m.pseudonyms = dict()
+        m.players = []
+        m.pseudonyms = {}
 
     return chat
 
@@ -123,7 +123,7 @@ def add_message(
 ) -> UUID:
     return um.add_raw_entry(
         chat,
-        dict(sender=sender, text=msgtext),
+        {"sender": sender, "text": msgtext},
     )
 
 

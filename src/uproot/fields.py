@@ -21,7 +21,7 @@ def type_coercer(choices: list[tuple[Any, str] | Any]) -> Callable[[str], Any]:
 
             submission = str(coded_as)
 
-            if chosen == submission or chosen == coded_as:
+            if chosen in (submission, coded_as):
                 return coded_as
 
         raise ValueError("Invalid choice")
@@ -582,20 +582,20 @@ class BoundedChoiceValidator:
                 raise wtforms.validators.ValidationError(
                     "Please select at least one option."
                 )
-            else:
-                raise wtforms.validators.ValidationError(
-                    f"Please select at least {self.min} options."
-                )
+
+            raise wtforms.validators.ValidationError(
+                f"Please select at least {self.min} options."
+            )
 
         if self.max is not None and count > self.max:
             if self.max == 1:
                 raise wtforms.validators.ValidationError(
                     "Please select at most one option."
                 )
-            else:
-                raise wtforms.validators.ValidationError(
-                    f"Please select at most {self.max} options."
-                )
+
+            raise wtforms.validators.ValidationError(
+                f"Please select at most {self.max} options."
+            )
 
 
 class BoundedChoiceField(wtforms.fields.SelectMultipleField):

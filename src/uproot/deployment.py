@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 logging.basicConfig(level=logging.INFO)
 
-ADMINS: dict[str, str | EllipsisType] = dict()
+ADMINS: dict[str, str | EllipsisType] = {}
 API_KEYS: set[str] = set()
 DATABASE: uproot.drivers.DBDriver = uproot.drivers.Memory()
 
@@ -31,7 +31,7 @@ if not os.getenv("UPROOT_DATABASE"):
 else:
     DBENV = os.getenv("UPROOT_DATABASE", "sqlite3")
 
-DEFAULT_ROOMS: list["RoomType"] = list()
+DEFAULT_ROOMS: list["RoomType"] = []
 HERE_TOLERANCE: float = 5.0
 HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
@@ -48,16 +48,16 @@ if ORIGIN is None:
 
 PATH: str = os.getcwd()
 PORT: int = 8000
-PROJECT_METADATA: dict[str, Any] = dict()
+PROJECT_METADATA: dict[str, Any] = {}
 PUBLIC_DEMO: bool = False
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
 UNSAFE: bool = False
-UVICORN_KWARGS: dict[str, Any] = dict(
-    reload=False,
-    log_level="info",
-)
+UVICORN_KWARGS: dict[str, Any] = {
+    "reload": False,
+    "log_level": "info",
+}
 
 if DBENV == "sqlite3":
     DATABASE = uproot.drivers.Sqlite3(
@@ -83,7 +83,7 @@ def project_metadata(uproot: str, *args: Any, **kwargs: Any) -> None:
     """This function intends to check for incompatibilities in the future."""
     global PROJECT_METADATA
 
-    PROJECT_METADATA |= dict(uproot=uproot)
+    PROJECT_METADATA |= {"uproot": uproot}
     PROJECT_METADATA |= kwargs
 
 

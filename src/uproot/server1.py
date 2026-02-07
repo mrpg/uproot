@@ -76,7 +76,7 @@ async def index(request: Request) -> RedirectResponse:
 async def enqueue(
     request: Request,
     queue: str,
-    bauth: None = Depends(a.require_bearer_token),
+    _bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     path = tuple(queue.strip("/").split("/"))
 
@@ -116,7 +116,7 @@ async def show_page(
     form = None
     formdata = None
     custom_errors: list[str] = []
-    metadata = dict()
+    metadata = {}
 
     if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
         await ensure_awaitable(
@@ -187,7 +187,7 @@ async def show_page(
                 proceed = True
             else:  # any other page - need to validate
                 form, valid, custom_errors = await validate(page, player, formdata)
-                stealth_fields: dict[str, Any] = dict()
+                stealth_fields: dict[str, Any] = {}
 
                 for stealth in cast(
                     Iterable[str],
@@ -430,7 +430,7 @@ async def sessionwide(
                     request,
                     None,
                     path2page("RoomFull.html"),
-                    metadata=dict(called_from="session"),
+                    metadata={"called_from": "session"},
                 ),
                 status_code=423,
             )
@@ -478,19 +478,19 @@ async def ws(
         or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
-    tasks = dict()
+    tasks = {}
     background_tasks: set[asyncio.Task[Any]] = set()
-    args: dict[str, dict[str, Any]] = dict(
-        from_queue=dict(
-            pid=pid,
-        ),
-        from_websocket=dict(
-            websocket=websocket,
-        ),
-        timer=dict(
-            interval=30.0,
-        ),
-    )
+    args: dict[str, dict[str, Any]] = {
+        "from_queue": {
+            "pid": pid,
+        },
+        "from_websocket": {
+            "websocket": websocket,
+        },
+        "timer": {
+            "interval": 30.0,
+        },
+    }
 
     async def process_websocket_message(result: dict[str, Any]) -> None:
         u.set_online(pid)
@@ -572,17 +572,17 @@ async def ws(
                         for p in pp:
                             q.enqueue(
                                 tuple(p),
-                                dict(
-                                    source="chat",
-                                    data=chat.show_msg(
+                                {
+                                    "source": "chat",
+                                    "data": chat.show_msg(
                                         mid,
                                         msg_id,
                                         d.DATABASE.now,  # HACK: approximate time
                                         msg,
                                         p,
                                     ),
-                                    event="_uproot_Chatted",
-                                ),
+                                    "event": "_uproot_Chatted",
+                                },
                             )
 
                         invoke_respond = False
@@ -617,14 +617,14 @@ async def ws(
         if invoke_respond:
             await websocket.send_bytes(
                 orjson.dumps(
-                    dict(
-                        kind="invoke",
-                        payload=dict(
-                            data=invoke_response,
-                            future=result["future"],
-                            error=invoke_exception,
-                        ),
-                    )
+                    {
+                        "kind": "invoke",
+                        "payload": {
+                            "data": invoke_response,
+                            "future": result["future"],
+                            "error": invoke_exception,
+                        },
+                    }
                 )
             )
 
@@ -659,23 +659,23 @@ async def ws(
                         } if isinstance(kind_, str) and isinstance(payload_, dict):
                             await websocket.send_bytes(
                                 orjson.dumps(
-                                    dict(
-                                        kind=kind_,
-                                        payload=payload_,
-                                        source="admin",
-                                    )
+                                    {
+                                        "kind": kind_,
+                                        "payload": payload_,
+                                        "source": "admin",
+                                    }
                                 )
                             )
                         case _:
                             await websocket.send_bytes(
                                 orjson.dumps(
-                                    dict(
-                                        kind="queue",
-                                        payload=dict(
-                                            u=u_,
-                                            entry=entry,
-                                        ),
-                                    )
+                                    {
+                                        "kind": "queue",
+                                        "payload": {
+                                            "u": u_,
+                                            "entry": entry,
+                                        },
+                                    }
                                 )
                             )
                 elif fname == "from_websocket":
@@ -858,7 +858,7 @@ async def app_queries(
     request: Request,
     appname: str,
     sname: t.Sessionname,
-    bauth: None = Depends(a.require_bearer_token),
+    _bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
     if appname not in u.APPS:
         raise HTTPException(status_code=400, detail="Invalid app")

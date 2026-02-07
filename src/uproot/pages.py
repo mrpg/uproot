@@ -32,7 +32,7 @@ from uproot.types import (
 
 if TYPE_CHECKING:
     from fastapi import FastAPI, Request
-    from fastapi.datastructures import FormData
+    from starlette.datastructures import FormData
 
 BUILTINS = {
     fname: getattr(builtins, fname)
@@ -81,15 +81,15 @@ def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
 
 def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
     if page is not None:
-        return dict(
-            internalstatic=static_factory(),
-            projectstatic=static_factory("_project"),
-            appstatic=static_factory(page.__module__),
-        )
-    else:
-        return dict(
-            internalstatic=static_factory(),
-        )
+        return {
+            "internalstatic": static_factory(),
+            "projectstatic": static_factory("_project"),
+            "appstatic": static_factory(page.__module__),
+        }
+
+    return {
+        "internalstatic": static_factory(),
+    }
 
 
 async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
@@ -99,8 +99,8 @@ async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
 
     if fields is not None:
         return type("FormOnPage", (BaseForm,), fields)
-    else:
-        raise ValueError
+
+    raise ValueError
 
 
 def timeout_reached(page: type[Page], player: Storage, tol: float) -> bool:
@@ -141,7 +141,7 @@ def exported_constants(app: Any) -> dict[str, Any]:
 
 
 async def render(
-    server: "FastAPI",
+    _server: "FastAPI",
     request: "Request",
     player: Optional[Storage],
     page: type[Page],
@@ -199,25 +199,25 @@ async def render(
         player=player,
     )
 
-    internal = dict(
-        _uproot_internal=dict(
-            C=exported_constants(app),
-            is_admin=is_admin,
-            key=key,
-            language=language,
-            root=d.ROOT,
-            sname=sname,
-            thisis=thisis,
-            uname=uname,
-            no_enter=d.NO_ENTER,
-        )
+    internal = {
+        "_uproot_internal": {
+            "C": exported_constants(app),
+            "is_admin": is_admin,
+            "key": key,
+            "language": language,
+            "root": d.ROOT,
+            "sname": sname,
+            "thisis": thisis,
+            "uname": uname,
+            "no_enter": d.NO_ENTER,
+        }
         | (metadata if metadata is not None else {})
-    )
+    }
     jsvars = (
         cast(
             dict[str, Any],
             await ensure_awaitable(
-                optional_call, page, "jsvars", default_return=dict(), player=player
+                optional_call, page, "jsvars", default_return={}, player=player
             ),
         )
         | internal
@@ -228,27 +228,27 @@ async def render(
             cast(
                 dict[str, Any],
                 await ensure_awaitable(
-                    optional_call, page, "context", default_return=dict(), player=player
+                    optional_call, page, "context", default_return={}, player=player
                 ),
             )
             | BUILTINS
-            | dict(
-                app=app,
-                app_or_default=app_or_default,
-                C=getattr(app, "C", {}),
-                form=form,
-                JSON_TERMS=i18n.json(cast(i18n.ISO639, language)),
-                _=lambda s: i18n.lookup(s, language),
-                page=page,
-                part=part,
-                player=player,
-                session=session,
-                show2path=show2path,
-                _uproot_errors=custom_errors,
-                _uproot_js=jsvars,
-                _uproot_testing=sname is not None
+            | {
+                "app": app,
+                "app_or_default": app_or_default,
+                "C": getattr(app, "C", {}),
+                "form": form,
+                "JSON_TERMS": i18n.json(cast(i18n.ISO639, language)),
+                "_": lambda s: i18n.lookup(s, language),
+                "page": page,
+                "part": part,
+                "player": player,
+                "session": session,
+                "show2path": show2path,
+                "_uproot_errors": custom_errors,
+                "_uproot_js": jsvars,
+                "_uproot_testing": sname is not None
                 and (is_admin or getattr(session, "testing", False)),
-            )
+            }
             | function_context(page)
             | internal
         )
@@ -277,31 +277,31 @@ async def render_error(
         or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
-    internal = dict(
-        _uproot_internal=dict(
-            sname=sname,
-            uname=uname,
-            root=d.ROOT,
-            language=d.LANGUAGE,
-            is_admin=is_admin,
-        ),
-    )
+    internal = {
+        "_uproot_internal": {
+            "sname": sname,
+            "uname": uname,
+            "root": d.ROOT,
+            "language": d.LANGUAGE,
+            "is_admin": is_admin,
+        },
+    }
 
     context = (
         BUILTINS
-        | dict(
-            JSON_TERMS=i18n.json(d.LANGUAGE),
-            _uproot_errors=None,
-            _uproot_js=internal,  # not a huge fan of this construction
-        )
+        | {
+            "JSON_TERMS": i18n.json(d.LANGUAGE),
+            "_uproot_errors": None,
+            "_uproot_js": internal,  # not a huge fan of this construction
+        }
         | function_context(None)
         | internal
-        | dict(
-            player=player,
-            session=session,
-            show2path=show2path,
-            _uproot_testing=session is not None and (is_admin or session.testing),
-        )
+        | {
+            "player": player,
+            "session": session,
+            "show2path": show2path,
+            "_uproot_testing": session is not None and (is_admin or session.testing),
+        }
     )
 
     # the following builds some info about the exception for admins
@@ -313,28 +313,28 @@ async def render_error(
 
         for frame in tb_list:
             stack_frames.append(
-                dict(
-                    filename=frame.filename,
-                    function=frame.name,
-                    lineno=frame.lineno,
-                    code=frame.line,
-                )
+                {
+                    "filename": frame.filename,
+                    "function": frame.name,
+                    "lineno": frame.lineno,
+                    "code": frame.line,
+                }
             )
 
         # Get local variables from the last frame (where error occurred)
         if exc.__traceback__ is not None:
             last_frame = exc.__traceback__.tb_frame
-            local_vars = dict((k, repr(v)) for k, v in last_frame.f_locals.items())
+            local_vars = {k: repr(v) for k, v in last_frame.f_locals.items()}
         else:
-            local_vars = dict()
+            local_vars = {}
 
-        context |= dict(
-            error_message=str(exc),
-            exception_type=type(exc).__name__,
-            traceback=traceback.format_exc(),
-            stack_frames=stack_frames,
-            local_vars=local_vars,
-        )
+        context |= {
+            "error_message": str(exc),
+            "exception_type": type(exc).__name__,
+            "traceback": traceback.format_exc(),
+            "stack_frames": stack_frames,
+            "local_vars": local_vars,
+        }
 
     d.LOGGER.error(traceback.format_exc())
 
@@ -344,11 +344,11 @@ async def render_error(
 def truepath(page: type[Page]) -> str:
     if InternalPage in page.__mro__ and hasattr(page, "show") and not page.show:
         return f"#{page.__name__}"
-    else:
-        if not hasattr(page, "template"):
-            return f"{page.__module__}/{page.__name__}.html"
-        else:
-            return page.template
+
+    if not hasattr(page, "template"):
+        return f"{page.__module__}/{page.__name__}.html"
+
+    return page.template
 
 
 def page2path(page: type[Page]) -> str:
@@ -356,11 +356,10 @@ def page2path(page: type[Page]) -> str:
         if page.__module__ == "uproot.types":
             # This is a true uproot-core-defined InternalPage
             return f"#{page.__name__}"
-        else:
-            # E.g., landing pages and StartApp
-            return f"{page.__module__}/#{page.__name__}"
-    else:
-        return f"{page.__module__}/{page.__name__}"
+        # E.g., landing pages and StartApp
+        return f"{page.__module__}/#{page.__name__}"
+
+    return f"{page.__module__}/{page.__name__}"
 
 
 def path2page(path: str) -> type[Page]:
@@ -368,20 +367,22 @@ def path2page(path: str) -> type[Page]:
 
     if isinstance(target_page, tuple):
         return cast(type[Page], getattr(u.APPS[target_page[0]], target_page[1]))
-    else:
-        return target_page
+
+    return target_page
 
 
 @validate_call
 def show2path(page_order: list[str], show_page: int) -> str:
     if show_page == -1:
         return "Initialize.html"
-    elif 0 <= show_page < len(page_order):
+
+    if 0 <= show_page < len(page_order):
         return page_order[show_page]
-    elif cast(str, len(page_order) == show_page):
+
+    if len(page_order) == show_page:
         return "End.html"
-    else:
-        raise ValueError(show_page)
+
+    raise ValueError(show_page)
 
 
 async def validate(
@@ -434,8 +435,8 @@ def unixtime2datetime_filter(epoch: float, precise: bool = False) -> str:
 
     if precise:
         return dt.strftime("%Y-%m-%d %H:%M:%S.%f")
-    else:
-        return dt.strftime("%H:%M:%S.%f")[:-3]
+
+    return dt.strftime("%H:%M:%S.%f")[:-3]
 
 
 def type_filter(x: Any) -> str:

@@ -84,7 +84,7 @@ def create_model(
         The identifier of the newly created model
     """
     with materialize(sid) as s:
-        mid = c.create_model(s, data=dict(tag=tag))
+        mid = c.create_model(s, data={"tag": tag})
 
     return mid
 

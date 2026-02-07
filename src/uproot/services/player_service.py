@@ -21,12 +21,12 @@ async def info_online(sname: t.Sessionname) -> dict[t.Username, Any]:
         else {}
     )
 
-    return dict(
-        info={
+    return {
+        "info": {
             k: (v["id"], v["page_order"], v["show_page"]) for k, v in rawinfo.items()
         },
-        online=online,
-    )
+        "online": online,
+    }
 
 
 async def fields_from_all(
@@ -34,7 +34,7 @@ async def fields_from_all(
     fields: list[str],
 ) -> dict[t.Username, dict[str, Any]]:
     """Get specified fields from all players in a session."""
-    retval: dict[t.Username, dict[str, Any]] = dict()
+    retval: dict[t.Username, dict[str, Any]] = {}
 
     with s.Session(sname) as session:
         if not session:
@@ -42,7 +42,7 @@ async def fields_from_all(
 
         for pid in session.players:
             with t.materialize(pid) as player:
-                retval[pid.uname] = dict()
+                retval[pid.uname] = {}
 
                 for field in fields:
                     retval[pid.uname][field] = player.get(field)
@@ -67,13 +67,13 @@ async def insert_fields(
             if reload:
                 q.enqueue(
                     tuple(pid),
-                    dict(
-                        source="admin",
-                        kind="action",
-                        payload=dict(
-                            action="reload",
-                        ),
-                    ),
+                    {
+                        "source": "admin",
+                        "kind": "action",
+                        "payload": {
+                            "action": "reload",
+                        },
+                    },
                 )
 
 
@@ -101,13 +101,13 @@ async def advance_by_one(
 
                 q.enqueue(
                     tuple(pid),
-                    dict(
-                        source="admin",
-                        kind="action",
-                        payload=dict(
-                            action="reload",
-                        ),
-                    ),
+                    {
+                        "source": "admin",
+                        "kind": "action",
+                        "payload": {
+                            "action": "reload",
+                        },
+                    },
                 )
 
     return await info_online(sname)
@@ -128,13 +128,13 @@ async def put_to_end(
 
                 q.enqueue(
                     tuple(pid),
-                    dict(
-                        source="admin",
-                        kind="action",
-                        payload=dict(
-                            action="reload",
-                        ),
-                    ),
+                    {
+                        "source": "admin",
+                        "kind": "action",
+                        "payload": {
+                            "action": "reload",
+                        },
+                    },
                 )
 
     return await info_online(sname)
@@ -155,13 +155,13 @@ async def revert_by_one(
 
                 q.enqueue(
                     tuple(pid),
-                    dict(
-                        source="admin",
-                        kind="action",
-                        payload=dict(
-                            action="reload",
-                        ),
-                    ),
+                    {
+                        "source": "admin",
+                        "kind": "action",
+                        "payload": {
+                            "action": "reload",
+                        },
+                    },
                 )
 
     return await info_online(sname)
@@ -176,13 +176,13 @@ async def reload(sname: t.Sessionname, unames: list[str]) -> None:
 
         q.enqueue(
             ptuple,
-            dict(
-                source="admin",
-                kind="action",
-                payload=dict(
-                    action="reload",
-                ),
-            ),
+            {
+                "source": "admin",
+                "kind": "action",
+                "payload": {
+                    "action": "reload",
+                },
+            },
         )
 
 
@@ -198,14 +198,14 @@ async def redirect(sname: t.Sessionname, unames: list[str], url: str) -> None:
 
         q.enqueue(
             ptuple,
-            dict(
-                source="admin",
-                kind="action",
-                payload=dict(
-                    action="redirect",
-                    url=url,
-                ),
-            ),
+            {
+                "source": "admin",
+                "kind": "action",
+                "payload": {
+                    "action": "redirect",
+                    "url": url,
+                },
+            },
         )
 
 
@@ -218,11 +218,11 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
 
         q.enqueue(
             ptuple,
-            dict(
-                source="adminmessage",
-                data=msg,
-                event="_uproot_AdminMessaged",
-            ),
+            {
+                "source": "adminmessage",
+                "data": msg,
+                "event": "_uproot_AdminMessaged",
+            },
         )
 
 
@@ -314,13 +314,13 @@ async def group_players(
             ptuple = sname, uname
             q.enqueue(
                 ptuple,
-                dict(
-                    source="admin",
-                    kind="action",
-                    payload=dict(
-                        action="reload",
-                    ),
-                ),
+                {
+                    "source": "admin",
+                    "kind": "action",
+                    "payload": {
+                        "action": "reload",
+                    },
+                },
             )
 
     return result

@@ -13,8 +13,8 @@ def resolve(referent: Union["FieldReferent", Any], obj: Any) -> Any:
             current = getattr(current, field)
 
         return current
-    else:
-        return referent
+
+    return referent
 
 
 class Comparison:
@@ -37,18 +37,18 @@ class Comparison:
     def __call__(self, obj: Any = None) -> bool:
         if self.op == ">":
             return cast(bool, resolve(self.lhs, obj) > resolve(self.rhs, obj))
-        elif self.op == ">=":
+        if self.op == ">=":
             return cast(bool, resolve(self.lhs, obj) >= resolve(self.rhs, obj))
-        elif self.op == "<":
+        if self.op == "<":
             return cast(bool, resolve(self.lhs, obj) < resolve(self.rhs, obj))
-        elif self.op == "<=":
+        if self.op == "<=":
             return cast(bool, resolve(self.lhs, obj) <= resolve(self.rhs, obj))
-        elif self.op == "==":
+        if self.op == "==":
             return cast(bool, resolve(self.lhs, obj) == resolve(self.rhs, obj))
-        elif self.op == "!=":
+        if self.op == "!=":
             return cast(bool, resolve(self.lhs, obj) != resolve(self.rhs, obj))
-        else:
-            raise NotImplementedError
+
+        raise NotImplementedError
 
 
 class FieldReferent:

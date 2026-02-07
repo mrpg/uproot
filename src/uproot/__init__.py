@@ -30,52 +30,52 @@ MANUAL_DROPOUTS: set[PlayerIdentifier] = set()
 WATCH: set[tuple[PlayerIdentifier, float, str, str]] = set()
 
 APPS: "ModuleManager"
-CONFIGS: dict[str, list[str]] = dict()
-CONFIGS_PPATHS: dict[str, list[str]] = dict()
-CONFIGS_EXTRA: dict[str, Any] = dict()
+CONFIGS: dict[str, list[str]] = {}
+CONFIGS_PPATHS: dict[str, list[str]] = {}
+CONFIGS_EXTRA: dict[str, Any] = {}
 PAGES: dict[str, Union[tuple[str, str], type[Page]]] = {
     "Initialize.html": type(
         "Initialize",
         (InternalPage,),
-        dict(
-            show=True,
-            template="Initialize.html",
-        ),
+        {
+            "show": True,
+            "template": "Initialize.html",
+        },
     ),
     "JustPOST.html": type(
         "JustPOST",
         (InternalPage,),
-        dict(
-            show=True,
-            template="JustPOST.html",
-        ),
+        {
+            "show": True,
+            "template": "JustPOST.html",
+        },
     ),
     "RoomHello.html": type(
         "RoomHello",
         (InternalPage,),
-        dict(
-            show=True,
-            template="RoomHello.html",
-        ),
+        {
+            "show": True,
+            "template": "RoomHello.html",
+        },
     ),
     "RoomFull.html": type(
         "RoomFull",
         (InternalPage,),
-        dict(
-            show=True,
-            template="RoomFull.html",
-        ),
+        {
+            "show": True,
+            "template": "RoomFull.html",
+        },
     ),
     "End.html": type(
         "End",
         (InternalPage,),
-        dict(
-            show=True,
-            template="End.html",
-            before_always_once=classmethod(
+        {
+            "show": True,
+            "template": "End.html",
+            "before_always_once": classmethod(
                 lambda page, player: setattr(player, "app", None)
             ),  # See Lundh's rules: https://docs.python.org/3/howto/functional.html …
-        ),
+        },
     ),
 }
 

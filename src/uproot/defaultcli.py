@@ -155,7 +155,7 @@ def api_command(
         print(f"Error: Connection failed: {e}", file=sys.stderr)
         sys.exit(1)
 
-    if isinstance(result, dict) or isinstance(result, list):
+    if isinstance(result, (dict, list)):
         print(orjson.dumps(result, option=orjson.OPT_INDENT_2).decode())
     else:
         print(result)

@@ -57,7 +57,11 @@ async def roommain(
                         request,
                         None,
                         path2page("RoomHello.html"),
-                        metadata=dict(roomname=roomname, needlabel=True, bad=False),
+                        metadata={
+                            "roomname": roomname,
+                            "needlabel": True,
+                            "bad": False,
+                        },
                     ),
                 )
             elif not ur.validate(room, label) and not bad:
@@ -72,7 +76,7 @@ async def roommain(
                         request,
                         None,
                         path2page("RoomHello.html"),
-                        metadata=dict(roomname=roomname, needlabel=True, bad=True),
+                        metadata={"roomname": roomname, "needlabel": True, "bad": True},
                     ),
                 )
 
@@ -85,7 +89,7 @@ async def roommain(
                     request,
                     None,
                     path2page("RoomHello.html"),
-                    metadata=dict(roomname=roomname, needlabel=False),
+                    metadata={"roomname": roomname, "needlabel": False},
                 ),
             )
 
@@ -162,7 +166,7 @@ async def roommain(
                     request,
                     None,
                     path2page("RoomFull.html"),
-                    metadata=dict(called_from="room"),
+                    metadata={"called_from": "room"},
                 ),
                 status_code=423,
             )
@@ -196,18 +200,18 @@ async def ws(
     await websocket.accept()
 
     pid = t.PlayerIdentifier(f"^{roomname}", local_context)
-    tasks = dict()
-    args: dict[str, dict[str, Any]] = dict(
-        from_websocket=dict(
-            websocket=websocket,
-        ),
-        subscribe_to_room=dict(
-            roomname=roomname,
-        ),
-        timer=dict(
-            interval=30.0,
-        ),
-    )
+    tasks = {}
+    args: dict[str, dict[str, Any]] = {
+        "from_websocket": {
+            "websocket": websocket,
+        },
+        "subscribe_to_room": {
+            "roomname": roomname,
+        },
+        "timer": {
+            "interval": 30.0,
+        },
+    }
 
     for jj in j.ROOM_JOBS:
         tasks[asyncio.create_task(cast(Any, jj)(**args[jj.__name__]))] = (
@@ -231,15 +235,15 @@ async def ws(
 
                     await websocket.send_bytes(
                         orjson.dumps(
-                            dict(
-                                kind="event",
-                                payload=dict(
-                                    event="RoomLabelProvided",
-                                    detail=dict(
-                                        label=local_context,
-                                    ),
-                                ),
-                            )
+                            {
+                                "kind": "event",
+                                "payload": {
+                                    "event": "RoomLabelProvided",
+                                    "detail": {
+                                        "label": local_context,
+                                    },
+                                },
+                            }
                         )
                     )
 
@@ -248,29 +252,29 @@ async def ws(
                         # Respond to hello to maintain heartbeat
                         await websocket.send_bytes(
                             orjson.dumps(
-                                dict(
-                                    kind="invoke",
-                                    payload=dict(
-                                        future=result.get("future"),
-                                        error=False,
-                                        data=None,
-                                    ),
-                                )
+                                {
+                                    "kind": "invoke",
+                                    "payload": {
+                                        "future": result.get("future"),
+                                        "error": False,
+                                        "data": None,
+                                    },
+                                }
                             )
                         )
                     # Otherwise ignore messages (for now)
                 elif fname == "subscribe_to_room":
                     await websocket.send_bytes(
                         orjson.dumps(
-                            dict(
-                                kind="event",
-                                payload=dict(
-                                    event="RoomStarted",
-                                    detail=dict(
-                                        label=local_context,
-                                    ),
-                                ),
-                            )
+                            {
+                                "kind": "event",
+                                "payload": {
+                                    "event": "RoomStarted",
+                                    "detail": {
+                                        "label": local_context,
+                                    },
+                                },
+                            }
                         )
                     )
                 elif fname == "timer":

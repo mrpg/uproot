@@ -36,7 +36,7 @@ def everything_from_session(
     """Extract all data from a session."""
     # Go ahead… https://www.youtube.com/watch?v=2WhHW8zD620
 
-    matches: dict[tuple[str, ...], Any] = dict()
+    matches: dict[tuple[str, ...], Any] = {}
     sname = str(sname)
 
     for lvl1_k, lvl1_v in cache.MEMORY_HISTORY.items():
@@ -80,11 +80,11 @@ async def everything_from_session_display(
 
     sname = str(sname)
     search_val = t.Value(since_epoch, True, None, "")
-    retval: dict[str, dict[str, list[DisplayValue]]] = dict()
+    retval: dict[str, dict[str, list[DisplayValue]]] = {}
     last_update: float = since_epoch
 
     for uname, fields in cache.MEMORY_HISTORY.get("player", {}).get(sname, {}).items():
-        retval[uname] = dict()
+        retval[uname] = {}
 
         for field, values in fields.items():
             from_ix = values.bisect_right(search_val)
@@ -230,15 +230,15 @@ def page_times(sname: t.Sessionname) -> str:
                         times[-1]["left"] = show_page.time
 
                     times.append(
-                        dict(
-                            sname=sname,
-                            uname=uname,
-                            show_page=show_page.data,
-                            page_name=page_name,
-                            entered=show_page.time,
-                            left=None,
-                            context=show_page.context,
-                        )
+                        {
+                            "sname": sname,
+                            "uname": uname,
+                            "show_page": show_page.data,
+                            "page_name": page_name,
+                            "entered": show_page.time,
+                            "left": None,
+                            "context": show_page.context,
+                        }
                     )
                     one_row = True
 

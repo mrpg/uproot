@@ -23,10 +23,10 @@ def create_admin(admin: s.Storage) -> None:
         admin._uproot_key = t.uuid()
 
     if not hasattr(admin, "sessions"):
-        admin.sessions = list()
+        admin.sessions = []
 
     if not hasattr(admin, "rooms"):
-        admin.rooms = dict()
+        admin.rooms = {}
 
 
 def create_session(
@@ -54,9 +54,9 @@ def create_session(
         session.name = sname
         session.config = config
         session.description = None
-        session.groups = list()
-        session.models = list()
-        session.players = list()
+        session.groups = []
+        session.models = []
+        session.players = []
         session.packages = {
             dist.metadata["name"]: dist.version
             for dist in importlib.metadata.distributions()
@@ -177,7 +177,7 @@ def initialize_player(
         player._uproot_key = t.uuid()
         player._uproot_part = 0
         player._uproot_session = t.SessionIdentifier(pid.sname)
-        player._uproot_timeouts_until = dict()
+        player._uproot_timeouts_until = {}
 
         if data is not None:
             for k, v in data.items():
@@ -257,7 +257,7 @@ def create_players(
 
     pids = [t.PlayerIdentifier(sname, uname) for uname in unames_]
 
-    rval: list[t.PlayerIdentifier] = list()
+    rval: list[t.PlayerIdentifier] = []
 
     for startid, (pid, d_) in enumerate(zip(pids, data_), len(session.players)):
         initialize_player(pid, startid, config, data=d_)

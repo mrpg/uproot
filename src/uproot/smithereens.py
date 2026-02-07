@@ -177,7 +177,7 @@ def create_groups(
 
 
 def live(method: Callable[..., Any]) -> Callable[..., Any]:
-    wrapped = t.timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore[call-overload]
+    wrapped = t.timed(validate_call(method, config={"arbitrary_types_allowed": True}))  # type: ignore[call-overload]
     newmethod = classmethod(wrapped)
 
     newmethod.__func__.__live__ = True  # type: ignore[attr-defined]
@@ -198,12 +198,12 @@ def send_to_one(
     if where is ... or recipient.show_page == where:
         enqueue(
             tuple(t.identify(recipient)),
-            dict(
-                source="send_to",
-                constraint=None if where is ... else where,
-                data=data,
-                event=event,
-            ),
+            {
+                "source": "send_to",
+                "constraint": None if where is ... else where,
+                "data": data,
+                "event": event,
+            },
         )
 
 
@@ -298,13 +298,13 @@ def players(
 def reload(player: Storage) -> None:
     enqueue(
         (player._uproot_session, player.name),
-        dict(
-            source="admin",
-            kind="action",
-            payload=dict(
-                action="reload",
-            ),
-        ),
+        {
+            "source": "admin",
+            "kind": "action",
+            "payload": {
+                "action": "reload",
+            },
+        },
     )
 
 
@@ -345,7 +345,7 @@ def watch_for_dropout(
     )
 
     if not hasattr(player, "_uproot_watch"):
-        player._uproot_watch = list()
+        player._uproot_watch = []
 
     player._uproot_watch.append(triplet)
 
@@ -706,51 +706,51 @@ INTERNAL_PAGES = {
     "RandomStart": type(
         "RandomStart",
         (t.InternalPage,),
-        dict(after_always_once=Random.__dict__["start"]),
+        {"after_always_once": Random.__dict__["start"]},
     ),
     "RandomEnd": type(
         "RandomEnd",
         (t.InternalPage,),
-        dict(),
+        {},
     ),
     "RoundStart": type(
         "RoundStart",
         (t.InternalPage,),
-        dict(before_always_once=Rounds.__dict__["next"]),
+        {"before_always_once": Rounds.__dict__["next"]},
     ),
     "RoundEnd": type(
         "RoundEnd",
         (t.InternalPage,),
-        dict(),
+        {},
     ),
     "RepeatStart": type(
         "RepeatStart",
         (t.InternalPage,),
-        dict(before_always_once=Repeat.__dict__["next"]),
+        {"before_always_once": Repeat.__dict__["next"]},
     ),
     "RepeatEnd": type(
         "RepeatEnd",
         (t.InternalPage,),
-        dict(before_always_once=Repeat.__dict__["continue_maybe"]),
+        {"before_always_once": Repeat.__dict__["continue_maybe"]},
     ),
     "BetweenStart": type(
         "BetweenStart",
         (t.InternalPage,),
-        dict(after_always_once=Between.__dict__["start"]),
+        {"after_always_once": Between.__dict__["start"]},
     ),
     "BetweenEnd": type(
         "BetweenEnd",
         (t.InternalPage,),
-        dict(),
+        {},
     ),
     "{": type(
         "{",
         (t.InternalPage,),
-        dict(),
+        {},
     ),
     "}": type(
         "}",
         (t.InternalPage,),
-        dict(),
+        {},
     ),
 }

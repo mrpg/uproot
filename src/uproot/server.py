@@ -259,9 +259,9 @@ def post_app_import(app: Any) -> Any:
             )
 
 
-@validate_call(config=dict(arbitrary_types_allowed=True))
+@validate_call(config={"arbitrary_types_allowed": True})
 def load_config(
-    server: FastAPI,
+    _server: FastAPI,
     config: str,
     apps: list[str],
     *,
@@ -273,12 +273,12 @@ def load_config(
     if not hasattr(u, "APPS"):
         u.APPS = ModuleManager(post_app_import)
 
-    u.CONFIGS[config] = list()
-    u.CONFIGS_PPATHS[config] = list()
-    u.CONFIGS_EXTRA[config] = dict(
-        multiple_of=multiple_of,
-        settings=settings or {},
-    )
+    u.CONFIGS[config] = []
+    u.CONFIGS_PPATHS[config] = []
+    u.CONFIGS_EXTRA[config] = {
+        "multiple_of": multiple_of,
+        "settings": settings or {},
+    }
 
     for appname in apps:
         first_add = False
@@ -292,7 +292,7 @@ def load_config(
             first_add = True
 
             u.CONFIGS[f"~{appname}"] = [appname]
-            u.CONFIGS_PPATHS[f"~{appname}"] = list()
+            u.CONFIGS_PPATHS[f"~{appname}"] = []
 
         u.CONFIGS[config].append(appname)
 

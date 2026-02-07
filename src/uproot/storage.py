@@ -91,10 +91,10 @@ class Storage:
         object.__setattr__(self, "name", namespace[-1])
         object.__setattr__(self, "__namespace__", namespace)
         object.__setattr__(self, "__contexts__", 0)
-        object.__setattr__(self, "__accessed_fields__", dict())
-        object.__setattr__(self, "__field_cache__", dict())
+        object.__setattr__(self, "__accessed_fields__", {})
+        object.__setattr__(self, "__field_cache__", {})
         object.__setattr__(self, "__explicitly_set__", set())
-        object.__setattr__(self, "__assigned_values__", dict())
+        object.__setattr__(self, "__assigned_values__", {})
         object.__setattr__(self, "__virtual__", virtual or DEFAULT_VIRTUAL)
 
     def __hash__(self) -> int:
@@ -196,8 +196,8 @@ class Storage:
     def __exit__(
         self,
         exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
+        _exc_val: BaseException | None,
+        _exc_tb: TracebackType | None,
     ) -> Literal[False]:
         # Always decrement context counter, even on exception
         self.__contexts__ -= 1
@@ -344,10 +344,10 @@ def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Stora
         raise AttributeError
 
 
-DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
-    session=lambda p: materialize(p._uproot_session),
-    group=virtual_group,
-    player=virtual_player,
-    along=lambda p: (lambda field: within.along(p, field)),
-    within=lambda p: (lambda **context: within(p, **context)),
-)
+DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = {
+    "session": lambda p: materialize(p._uproot_session),
+    "group": virtual_group,
+    "player": virtual_player,
+    "along": lambda p: (lambda field: within.along(p, field)),
+    "within": lambda p: (lambda **context: within(p, **context)),
+}

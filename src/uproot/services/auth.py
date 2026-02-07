@@ -17,7 +17,7 @@ import uproot.storage as s
 import uproot.types as t
 
 # Module-level state for admin credentials
-ADMINS: dict[str, str | EllipsisType] = dict()
+ADMINS: dict[str, str | EllipsisType] = {}
 ADMINS_HASH: Optional[str] = None
 ADMINS_SECRET_KEY: Optional[str] = None
 
@@ -238,32 +238,36 @@ def from_cookie(uauth: str | None) -> dict[str, str]:
     Returns dict with 'user' and 'token' keys, or empty strings if invalid.
     """
     if not uauth:
-        return dict(
-            user="", token=""
-        )  # nosec B106 - Empty strings for auth failure, not actual credentials
+        return {
+            "user": "",
+            "token": "",  # nosec B105
+        }
     try:
         serializer = get_serializer()
         active_tokens = get_active_tokens()
 
         # Verify token is in active set and not expired
         if uauth not in active_tokens:
-            return dict(
-                user="", token=""
-            )  # nosec B106 - Empty strings for auth failure, not actual credentials
+            return {
+                "user": "",
+                "token": "",  # nosec B105
+            }
 
         # Verify token signature and expiration (24 hours)
         data = serializer.loads(uauth, max_age=86400)
 
         if not isinstance(data, dict) or "user" not in data:
-            return dict(
-                user="", token=""
-            )  # nosec B106 - Empty strings for auth failure, not actual credentials
+            return {
+                "user": "",
+                "token": "",  # nosec B105
+            }
 
-        return dict(user=data["user"], token=uauth)
+        return {"user": data["user"], "token": uauth}
     except (BadSignature, SignatureExpired):
-        return dict(
-            user="", token=""
-        )  # nosec B106 - Empty strings for auth failure, not actual credentials
+        return {
+            "user": "",
+            "token": "",  # nosec B105
+        }
 
 
 def verify_auth_token(user: str, token: str) -> Optional[str]:

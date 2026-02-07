@@ -48,14 +48,14 @@ def room(
             if len(label) > 128:
                 raise ValueError("Room labels must be no longer than 128 characters")
 
-    return dict(
-        name=name,
-        config=config,
-        labels=labels,
-        capacity=capacity,
-        open=open,
-        sname=sname,
-    )
+    return {
+        "name": name,
+        "config": config,
+        "labels": labels,
+        "capacity": capacity,
+        "open": open,
+        "sname": sname,
+    }
 
 
 def freejoin(room: RoomType) -> bool:
@@ -75,31 +75,32 @@ def labels_file(filename: str) -> set[str]:
 def constrain_label(label: Any) -> str:
     if not isinstance(label, str):
         return ""
-    else:
-        if valid_token(label[:128]):
-            return label[:128]
+
+    if valid_token(label[:128]):
+        return label[:128]
+
+    newlabel = ""
+
+    for ch in label:
+        if ch in TOKEN_CHARS:
+            newlabel += ch
         else:
-            newlabel = ""
+            newlabel += "_"
 
-            for ch in label:
-                if ch in TOKEN_CHARS:
-                    newlabel += ch
-                else:
-                    newlabel += "_"
+        if len(newlabel) >= 128:
+            break
 
-                if len(newlabel) >= 128:
-                    break
-
-            return newlabel
+    return newlabel
 
 
 def validate(room: RoomType, label: str) -> bool:
     if freejoin(room):
         return True
-    elif room["labels"] is not None:
+
+    if room["labels"] is not None:
         return label != "" and label in room["labels"]
-    else:
-        return True
+
+    return True
 
 
 def start(roomname: str) -> None:

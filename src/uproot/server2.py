@@ -90,28 +90,28 @@ async def render(
     context_nojson: Optional[dict[str, Any]] = None,
 ) -> str:
     if context is None:
-        context = dict()
+        context = {}
 
     if context_nojson is None:
-        context_nojson = dict()
+        context_nojson = {}
 
-    context |= dict(
-        language=d.LANGUAGE,
-        root=d.ROOT,
-    )
+    context |= {
+        "language": d.LANGUAGE,
+        "root": d.ROOT,
+    }
 
     intermediate_context = (
         context
         | BUILTINS
-        | dict(
-            deployment=d,
-            internalstatic=static_factory(),
-            JSON_TERMS=i18n.json(d.LANGUAGE),
-            _=lambda s: i18n.lookup(s, d.LANGUAGE),
-            _uproot_errors=None,
-            _uproot_internal=context,
-            _uproot_js=context,
-        )
+        | {
+            "deployment": d,
+            "internalstatic": static_factory(),
+            "JSON_TERMS": i18n.json(d.LANGUAGE),
+            "_": lambda s: i18n.lookup(s, d.LANGUAGE),
+            "_uproot_errors": None,
+            "_uproot_internal": context,
+            "_uproot_js": context,
+        }
     )
 
     return await ENV.get_template(ppath).render_async(
@@ -124,7 +124,7 @@ async def render(
 
 async def auth_required(request: Request) -> dict[str, Any]:
     if d.UNSAFE:
-        return dict()
+        return {}
 
     uauth = request.cookies.get("uauth")
     if not uauth:
@@ -164,15 +164,15 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 
     await websocket.accept()
 
-    tasks = dict()
-    args: dict[str, dict[str, Any]] = dict(
-        from_websocket=dict(
-            websocket=websocket,
-        ),
-        timer=dict(
-            interval=30.0,
-        ),
-    )
+    tasks = {}
+    args: dict[str, dict[str, Any]] = {
+        "from_websocket": {
+            "websocket": websocket,
+        },
+        "timer": {
+            "interval": 30.0,
+        },
+    }
 
     for jj in j.ADMIN_JOBS:
         fun = cast(Any, jj)
@@ -200,7 +200,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             },
                         } if isinstance(sname, str):
                             newfname = "subscribe_to_attendance"
-                            args[newfname] = dict(sname=sname)
+                            args[newfname] = {"sname": sname}
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_attendance(**args[newfname])
@@ -219,7 +219,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             fields, (list, type(None))
                         ):
                             newfname = "subscribe_to_fieldchange"
-                            args[newfname] = dict(sname=sname, fields=fields)
+                            args[newfname] = {"sname": sname, "fields": fields}
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_fieldchange(**args[newfname])
@@ -254,13 +254,13 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 
                             await websocket.send_bytes(
                                 orjson.dumps(
-                                    dict(
-                                        kind="invoke",
-                                        payload=dict(
-                                            data=retval,
-                                            future=result["future"],
-                                        ),
-                                    )
+                                    {
+                                        "kind": "invoke",
+                                        "payload": {
+                                            "data": retval,
+                                            "future": result["future"],
+                                        },
+                                    }
                                 )
                             )
                         case _:
@@ -282,30 +282,30 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 
                     await websocket.send_bytes(
                         orjson.dumps(
-                            dict(
-                                kind="event",
-                                payload=dict(
-                                    event="Attended",
-                                    detail=dict(
-                                        uname=pid.uname,
-                                        info=info,
-                                        online=u.find_online(pid),
-                                    ),
-                                ),
-                            )
+                            {
+                                "kind": "event",
+                                "payload": {
+                                    "event": "Attended",
+                                    "detail": {
+                                        "uname": pid.uname,
+                                        "info": info,
+                                        "online": u.find_online(pid),
+                                    },
+                                },
+                            }
                         )
                     )
                 elif fname == "subscribe_to_fieldchange":
                     if result is not None:
                         await websocket.send_bytes(
                             orjson.dumps(
-                                dict(
-                                    kind="event",
-                                    payload=dict(
-                                        event="FieldChanged",
-                                        detail=result,
-                                    ),
-                                )
+                                {
+                                    "kind": "event",
+                                    "payload": {
+                                        "event": "FieldChanged",
+                                        "detail": result,
+                                    },
+                                }
                             )
                         )
                 elif fname == "timer":
@@ -339,7 +339,7 @@ async def login_get(
     except HTTPException:
         pass
 
-    response = HTMLResponse(await render("Login.html", dict(bad=bad)))
+    response = HTMLResponse(await render("Login.html", {"bad": bad}))
 
     if bad:
         response.status_code = 401
@@ -428,7 +428,7 @@ def logout(
     return response
 
 
-@validate_call(config=dict(arbitrary_types_allowed=True))
+@validate_call(config={"arbitrary_types_allowed": True})
 def set_auth_cookie(
     response: Response,
     token: str,
@@ -457,15 +457,15 @@ async def dashboard(
     return HTMLResponse(
         await render(
             "Dashboard.html",
-            dict(
-                configs=a.configs(),
-                rooms=a.rooms(),
-                sessions={
+            {
+                "configs": a.configs(),
+                "rooms": a.rooms(),
+                "sessions": {
                     sname: sinfo
                     for sname, sinfo in a.sessions().items()
                     if sinfo["active"]
                 },  # To avoid clutter, Dashboard shows active sessions only
-            ),
+            },
         )
     )
 
@@ -483,10 +483,10 @@ async def rooms(
     return HTMLResponse(
         await render(
             "Rooms.html",
-            dict(
-                rooms=a.rooms(),
-                sessions=a.sessions(),
-            ),
+            {
+                "rooms": a.rooms(),
+                "sessions": a.sessions(),
+            },
         )
     )
 
@@ -503,11 +503,11 @@ async def new_room(
         return HTMLResponse(
             await render(
                 "RoomsNew.html",
-                dict(
-                    configs=a.configs(),
-                    rooms_available=[*admin.rooms.keys()],
-                    sessions_available=admin.sessions,
-                ),
+                {
+                    "configs": a.configs(),
+                    "rooms_available": [*admin.rooms.keys()],
+                    "sessions_available": admin.sessions,
+                },
             )
         )
 
@@ -567,12 +567,12 @@ async def roommain(
         return HTMLResponse(
             await render(
                 "Room.html",
-                dict(
-                    roomname=roomname,
-                    room=admin.rooms[roomname],
-                    configs=a.configs(),
-                    configs_extra=u.CONFIGS_EXTRA,
-                )
+                {
+                    "roomname": roomname,
+                    "room": admin.rooms[roomname],
+                    "configs": a.configs(),
+                    "configs_extra": u.CONFIGS_EXTRA,
+                }
                 | await a.info_online(f"^{roomname}"),
             )
         )
@@ -710,9 +710,9 @@ async def sessions(
     return HTMLResponse(
         await render(
             "Sessions.html",
-            dict(
-                sessions=a.sessions(),
-            ),
+            {
+                "sessions": a.sessions(),
+            },
         )
     )
 
@@ -728,10 +728,10 @@ async def new_session(
     return HTMLResponse(
         await render(
             "SessionsNew.html",
-            dict(
-                configs=a.configs(),
-                configs_extra=u.CONFIGS_EXTRA,
-            ),
+            {
+                "configs": a.configs(),
+                "configs_extra": u.CONFIGS_EXTRA,
+            },
         )
     )
 
@@ -789,8 +789,8 @@ async def sessionmain(
         return HTMLResponse(
             await render(
                 "Session.html",
-                dict(sname=sname, room=session.room) | await a.info_online(sname),
-                dict(session=session, has_digest=bool(a.get_digest(sname))),
+                {"sname": sname, "room": session.room} | await a.info_online(sname),
+                {"session": session, "has_digest": bool(a.get_digest(sname))},
             )
         )
 
@@ -803,7 +803,7 @@ async def session_data(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    return HTMLResponse(await render("SessionData.html", dict(sname=sname)))
+    return HTMLResponse(await render("SessionData.html", {"sname": sname}))
 
 
 # Particular session: page times
@@ -837,7 +837,7 @@ async def session_digest(
     available = a.get_digest(sname)
     ensure(bool(available), ValueError, "No digest available")
 
-    html = dict()
+    html = {}
 
     with Session(sname) as session:
         for appname in available:
@@ -848,7 +848,7 @@ async def session_digest(
             )
 
             if not isinstance(rval, dict):
-                data = dict(data=rval)
+                data = {"data": rval}
             else:
                 data = rval
 
@@ -862,14 +862,14 @@ async def session_digest(
             context = (
                 data
                 | BUILTINS
-                | dict(
-                    __panic__=True,
-                    session=session,
-                    internalstatic=static_factory(),
-                    projectstatic=static_factory("_project"),
-                    appstatic=static_factory(appname),
-                    C=getattr(app, "C", {}),
-                )
+                | {
+                    "__panic__": True,
+                    "session": session,
+                    "internalstatic": static_factory(),
+                    "projectstatic": static_factory("_project"),
+                    "appstatic": static_factory(appname),
+                    "C": getattr(app, "C", {}),
+                }
             )
 
             html[appname] = Markup(  # nosec B704 - trusted template output
@@ -877,7 +877,7 @@ async def session_digest(
             )
 
     return HTMLResponse(
-        await render("SessionDigest.html", dict(sname=sname, subhtml=html))
+        await render("SessionDigest.html", {"sname": sname, "subhtml": html})
     )
 
 
@@ -926,7 +926,7 @@ async def session_viewdata(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    return HTMLResponse(await render("SessionViewdata.html", dict(sname=sname)))
+    return HTMLResponse(await render("SessionViewdata.html", {"sname": sname}))
 
 
 # Particular session: view multiple players’ screens
@@ -952,11 +952,11 @@ async def session_multiview(
         return HTMLResponse(
             await render(
                 "SessionMultiview.html",
-                dict(
-                    sname=sname,
-                    labels=labels,
-                    unames=unames,
-                ),
+                {
+                    "sname": sname,
+                    "labels": labels,
+                    "unames": unames,
+                },
             )
         )
 
@@ -970,7 +970,7 @@ async def status(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     dbsize_bytes = d.DATABASE.size()
-    missing: dict[str, Any] = dict()
+    missing: dict[str, Any] = {}
 
     dbsize = None
     if dbsize_bytes is not None:
@@ -978,7 +978,7 @@ async def status(
 
     for term, lang in sorted(i18n.MISSING):
         if term not in missing:
-            missing[term] = list()
+            missing[term] = []
         missing[term].append(lang)
 
     sessions = a.get_active_auth_sessions()
@@ -987,24 +987,24 @@ async def status(
         return HTMLResponse(
             await render(
                 "Status.html",
-                dict(
-                    dbsize=dbsize,
-                    missing=missing,
-                    sessions=sessions,
-                    versions=dict(
-                        uproot=u.__version__,
-                        python=sys.version,
-                    ),
-                ),
-                dict(
-                    packages=SortedDict(
+                {
+                    "dbsize": dbsize,
+                    "missing": missing,
+                    "sessions": sessions,
+                    "versions": {
+                        "uproot": u.__version__,
+                        "python": sys.version,
+                    },
+                },
+                {
+                    "packages": SortedDict(
                         {
                             dist.metadata["name"]: dist.version
                             for dist in importlib.metadata.distributions()
                         }
                     ).items(),
-                    environ=SortedDict(os.environ),
-                ),
+                    "environ": SortedDict(os.environ),
+                },
             )
         )
     else:
@@ -1063,24 +1063,24 @@ async def dummy(
 # Functions
 
 
-FUNS = dict(
-    adminmessage=a.adminmessage,
-    advance_by_one=a.advance_by_one,
-    announcements=a.announcements,
-    delete_room=a.delete_room,
-    disassociate=a.disassociate,
-    everything_from_session_display=a.everything_from_session_display,
-    fields_from_all=a.fields_from_all,
-    flip_active=a.flip_active,
-    flip_testing=a.flip_testing,
-    group_players=a.group_players,
-    insert_fields=a.insert_fields,
-    mark_dropout=a.mark_dropout,
-    praise=a.praise,
-    put_to_end=a.put_to_end,
-    redirect=a.redirect,
-    reload=a.reload,
-    revert_by_one=a.revert_by_one,
-    update_description=a.update_description,
-    update_settings=a.update_settings,
-)
+FUNS = {
+    "adminmessage": a.adminmessage,
+    "advance_by_one": a.advance_by_one,
+    "announcements": a.announcements,
+    "delete_room": a.delete_room,
+    "disassociate": a.disassociate,
+    "everything_from_session_display": a.everything_from_session_display,
+    "fields_from_all": a.fields_from_all,
+    "flip_active": a.flip_active,
+    "flip_testing": a.flip_testing,
+    "group_players": a.group_players,
+    "insert_fields": a.insert_fields,
+    "mark_dropout": a.mark_dropout,
+    "praise": a.praise,
+    "put_to_end": a.put_to_end,
+    "redirect": a.redirect,
+    "reload": a.reload,
+    "revert_by_one": a.revert_by_one,
+    "update_description": a.update_description,
+    "update_settings": a.update_settings,
+}

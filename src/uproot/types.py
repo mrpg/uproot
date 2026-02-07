@@ -405,7 +405,7 @@ def tokens(not_in: list[str] | Bunch, n: int) -> list[str]:
         not_in = cast(Bunch, not_in)
         not_in = [el.uname for el in not_in]
 
-    rval: list[str] = list()
+    rval: list[str] = []
 
     for _ in range(n):
         t = None
@@ -583,7 +583,7 @@ def timed(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def internal_live(method: Callable[..., Any]) -> Callable[..., Any]:
-    wrapped = timed(validate_call(method, config=dict(arbitrary_types_allowed=True)))  # type: ignore[call-overload]
+    wrapped = timed(validate_call(method, config={"arbitrary_types_allowed": True}))  # type: ignore[call-overload]
     newmethod = classmethod(wrapped)
 
     newmethod.__func__.__live__ = True  # type: ignore[attr-defined]

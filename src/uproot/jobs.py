@@ -107,7 +107,7 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
 
 def synchronize_rooms(app: FastAPI, admin: s.Storage) -> None:
     if not hasattr(admin, "rooms"):
-        admin.rooms = dict()
+        admin.rooms = {}
 
     for room in d.DEFAULT_ROOMS:
         if room["name"] not in admin.rooms:
@@ -173,7 +173,7 @@ def try_group(player: s.Storage, show_page: int, group_size: int) -> Optional[st
         return None
 
     # Verification that players are still valid and ungrouped
-    valid_members = list()
+    valid_members = []
     for pid in same_page:
         add_to_valid = False
 

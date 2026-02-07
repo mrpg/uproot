@@ -31,25 +31,25 @@ def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
 def sessions() -> dict[str, dict[str, Any]]:
     """Get all sessions with their stats."""
     if d.PUBLIC_DEMO:
-        return dict()
+        return {}
 
-    stats = dict()
+    stats = {}
 
     with s.Admin() as admin:
         snames = admin.sessions
 
     for sname in snames:
         with s.Session(sname) as session:
-            stats[sname] = dict(
-                sname=session.name,  # Exactly equal to sname
-                created=session.__history__()["_uproot_session"][0].time,
-                active=session.active,
-                config=session.config,
-                room=session.room,
-                description=session.description,
-                n_players=len(session.players),
-                n_groups=len(session.groups),
-            )
+            stats[sname] = {
+                "sname": session.name,  # Exactly equal to sname
+                "created": session.__history__()["_uproot_session"][0].time,
+                "active": session.active,
+                "config": session.config,
+                "room": session.room,
+                "description": session.description,
+                "n_players": len(session.players),
+                "n_groups": len(session.groups),
+            }
 
     return stats
 

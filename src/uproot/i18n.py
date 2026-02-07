@@ -32,8 +32,8 @@ LOCALES_DIR = os.path.join(
 )
 
 MISSING: set[tuple[str, ISO639]] = set()
-TERMS: dict[str, dict[ISO639, str]] = dict()
-JSON: dict[ISO639, str] = dict()
+TERMS: dict[str, dict[ISO639, str]] = {}
+JSON: dict[ISO639, str] = {}
 
 
 class TranslateLoader(BaseLoader):
@@ -117,13 +117,12 @@ def json(target: ISO639) -> str:
     return JSON[target]
 
 
-def load(yaml_path: str, default_language: ISO639 = "en") -> None:
+def load(yaml_path: str) -> None:
     """
     Load translation terms from YAML files or directory.
 
     Args:
         yaml_path: Path to directory containing YAML files, or path to a single YAML file
-        default_language: The language to use as the key (uproot default is English)
     """
     global TERMS, LANGUAGES
 

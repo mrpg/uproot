@@ -34,18 +34,18 @@ def displaystr(s: str) -> str:
 
 def configs() -> dict[str, SortedDict[str, str]]:
     """Get all configurations organized by type."""
-    return dict(
-        configs=SortedDict(
+    return {
+        "configs": SortedDict(
             {
                 c: displaystr(config_summary(c))
                 for c in u.CONFIGS
                 if not c.startswith("~")
             }
         ),
-        apps=SortedDict(
+        "apps": SortedDict(
             {c: displaystr(config_summary(c)) for c in u.CONFIGS if c.startswith("~")}
         ),
-    )
+    }
 
 
 async def announcements() -> dict[str, Any]:

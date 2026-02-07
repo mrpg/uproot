@@ -7,8 +7,8 @@ from typing import Any, AsyncGenerator, Iterable, Iterator, Optional, cast
 
 import orjson as json
 
-import uproot.cache as cache
 import uproot.deployment as d
+from uproot import cache
 from uproot.constraints import ensure
 from uproot.stable import _encode
 from uproot.types import Value
@@ -17,8 +17,8 @@ from uproot.types import Value
 def value2json(data: Any, unavailable: bool = False) -> str:
     if unavailable:
         return d.UNAVAILABLE_EQUIVALENT
-    else:
-        return _encode(data)[1].decode("utf-8")  # This is guaranteed to work
+
+    return _encode(data)[1].decode("utf-8")  # This is guaranteed to work
 
 
 def json2csv(js: str) -> str:
@@ -29,12 +29,14 @@ def json2csv(js: str) -> str:
     """
     if js == "null":
         return ""
-    elif js.startswith('"') and js.endswith('"'):
+
+    if js.startswith('"') and js.endswith('"'):
         return cast(str, json.loads(js))  # strings will be properly escaped below
-    elif js == "true" or js == "false":
+
+    if js in ("true", "false"):
         return js.upper()
-    else:
-        return js
+
+    return js
 
 
 def partial_matrix(
@@ -203,15 +205,14 @@ def latest(
                 seen_combinations[""] = state_snapshot
 
         # Yield all tracked combinations
-        for state in seen_combinations.values():
-            yield state
+        yield from seen_combinations.values()
 
 
 def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     rows = list(rows)
 
     buffer = StringIO()
-    csvfields: dict[str, None] = dict()
+    csvfields: dict[str, None] = {}
 
     for row in rows:
         csvfields.update(dict.fromkeys(row.keys()))

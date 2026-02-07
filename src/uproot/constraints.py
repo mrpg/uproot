@@ -30,13 +30,13 @@ def return_or_raise(
 ) -> Any:
     if predicate(value):
         return value
-    else:
-        if msg:
-            msg = "Constraint violation: " + msg
-        else:
-            msg = "Constraint violation"
 
-        raise exctype(msg)
+    if msg:
+        msg = "Constraint violation: " + msg
+    else:
+        msg = "Constraint violation"
+
+    raise exctype(msg)
 
 
 def ensure(

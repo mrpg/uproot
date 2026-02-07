@@ -92,9 +92,9 @@ def field_history_since(
         search_val = Value(since, True, None, "")
         start_idx = values.bisect_right(search_val)
         return list(values[start_idx:])
-    else:
-        # Fallback for non-SortedList (shouldn't happen with current implementation)
-        return [v for v in values if cast(float, v.time) > since]
+
+    # Fallback for non-SortedList (shouldn't happen with current implementation)
+    return [v for v in values if cast(float, v.time) > since]
 
 
 def load_database_into_memory() -> None:
