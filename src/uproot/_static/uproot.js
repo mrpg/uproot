@@ -736,7 +736,7 @@ window.uproot = {
             wrapper.style.cssText = `
                 position: relative;
                 display: inline-block;
-                width: ${sliderRect.width || computedStyle.width}px;
+                width: 100%;
                 height: ${sliderRect.height || computedStyle.height}px;
             `;
 

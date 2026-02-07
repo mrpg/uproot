@@ -90,7 +90,9 @@
                 {% if field.label_min is defined and field.label_min != "" %}
                     <div class="flex-shrink-0">
                         {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
-                        <div class="me-3 text-end uproot-slider-label-min" data-raw="{{ field.validators[1].min }}">{{ field.label_min }}</div>
+                        <div class="me-3 text-end uproot-slider-label-min{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].min }}">
+                            {{ field.label_min }}
+                        </div>
                     </div>
                 {% endif %}
                 <div class="{% if field.hide_popover is defined and not field.hide_popover %}uproot-slider-popover-wrapper{% else %}flex-grow-1{% endif %}">
@@ -102,7 +104,9 @@
                 {% if field.label_max is defined and field.label_max != "" %}
                     <div class="flex-shrink-0">
                         {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
-                        <div class="ms-3 text-start uproot-slider-label-max" data-raw="{{ field.validators[1].max }}">{{ field.label_max }}</div>
+                        <div class="ms-3 text-start uproot-slider-label-max{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].max }}">
+                            {{ field.label_max }}
+                        </div>
                     </div>
                 {% endif %}
             </div>

@@ -157,6 +157,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
         label: str = "",
         label_min: str | None = None,
         label_max: str | None = None,
+        label_max_min_class_suffix: str = "-custom",
         min: Number | None = None,
         max: Number | None = None,
         step: Number = 1.0,
@@ -179,6 +180,8 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
                 wtforms.validators.NumberRange(min=min, max=max),
             ]
 
+        if label_min is None and label_max is None:
+            label_max_min_class_suffix = ""
         if label_min is None:
             label_min = str(min)
         if label_max is None:
@@ -194,6 +197,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
         self.hide_popover = hide_popover
         self.label_min = label_min
         self.label_max = label_max
+        self.label_max_min_class_suffix = label_max_min_class_suffix
 
         super().__init__(
             label=label,
