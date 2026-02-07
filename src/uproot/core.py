@@ -46,6 +46,8 @@ def create_session(
             "Session name already exists",
         )
 
+    sid = t.SessionIdentifier(sname)
+
     with s.Session(sname) as session:
         session.active = True
         session.apps = u.CONFIGS[config]
@@ -61,13 +63,14 @@ def create_session(
         }
         session.room = None
         session.settings = settings
+        session.sid = sid
         session.testing = False
         session._uproot_secret = t.token_unchecked(8)
         session._uproot_session = t.identify(session)
 
         admin.sessions.append(sname)
 
-    return t.SessionIdentifier(sname)
+    return sid
 
 
 def finalize_session(sid: t.SessionIdentifier) -> None:
@@ -101,6 +104,7 @@ def create_model(
 
     with s.Model(*mid) as model:
         model.id = len(session.models)
+        model.mid = mid
         model._uproot_session = t.identify(session)
 
         if data is not None:
@@ -132,6 +136,7 @@ def create_group(
     session.groups.append(gname)
 
     with t.materialize(gid) as group:
+        group.gid = gid
         group.id = len(session.groups)
         group.players = list(members)
         group._uproot_session = t.identify(session)
@@ -163,6 +168,7 @@ def initialize_player(
         player.label = ""  # Automatically assigned by a room
         player.page_order = u.CONFIGS_PPATHS[config]
         player.payoff = Decimal("0")
+        player.pid = pid
         player.show_page = -1
         player.started = False
         player._uproot_adminchat = None
