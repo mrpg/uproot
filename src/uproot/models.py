@@ -27,6 +27,7 @@ from uproot.types import (
     ModelIdentifier,
     PlayerIdentifier,
     SessionIdentifier,
+    identify,
     uuid,
 )
 
@@ -179,7 +180,7 @@ def add_entry(
     """
     if isinstance(pid, s.Storage):
         # We don't use @flexible here because it cannot handle Unions (neither can Max)
-        pid = ~pid  # type: ignore[assignment]
+        pid = identify(pid)  # type: ignore[assignment]
 
     return auto_add_entry(mid, pid, entry_type, **other_fields)
 

@@ -12,10 +12,7 @@ from uproot.constraints import ensure, valid_token
 from uproot.stable import IMMUTABLE_TYPES
 from uproot.types import (
     GroupIdentifier,
-    Identifier,
-    ModelIdentifier,
     PlayerIdentifier,
-    SessionIdentifier,
     Sessionname,
     Username,
     Value,
@@ -98,19 +95,6 @@ class Storage:
         object.__setattr__(self, "__explicitly_set__", set())
         object.__setattr__(self, "__assigned_values__", dict())
         object.__setattr__(self, "__virtual__", virtual or DEFAULT_VIRTUAL)
-
-    def __invert__(self) -> Identifier:
-        match self.__namespace__[0]:
-            case "session":
-                return SessionIdentifier(*self.__namespace__[1:])
-            case "player":
-                return PlayerIdentifier(*self.__namespace__[1:])
-            case "group":
-                return GroupIdentifier(*self.__namespace__[1:])
-            case "model":
-                return ModelIdentifier(*self.__namespace__[1:])
-            case _:
-                raise NotImplementedError
 
     def __hash__(self) -> int:
         return hash(self.__namespace__)

@@ -19,6 +19,7 @@ from uproot.types import (
     Username,
     Value,
     ensure_awaitable,
+    identify,
     optional_call,
 )
 
@@ -173,7 +174,7 @@ def try_group(player: s.Storage, show_page: int, group_size: int) -> Optional[st
     for pid in same_page:
         add_to_valid = False
 
-        if pid == ~player:
+        if pid == identify(player):
             add_to_valid = player._uproot_group is None
         else:
             add_to_valid = pid()._uproot_group is None

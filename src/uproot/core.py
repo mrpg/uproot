@@ -63,7 +63,7 @@ def create_session(
         session.settings = settings
         session.testing = False
         session._uproot_secret = t.token_unchecked(8)
-        session._uproot_session = ~session
+        session._uproot_session = t.identify(session)
 
         admin.sessions.append(sname)
 
@@ -101,7 +101,7 @@ def create_model(
 
     with s.Model(*mid) as model:
         model.id = len(session.models)
-        model._uproot_session = ~session
+        model._uproot_session = t.identify(session)
 
         if data is not None:
             for k, v in data.items():
@@ -134,7 +134,7 @@ def create_group(
     with gid() as group:
         group.id = len(session.groups)
         group.players = list(members)
-        group._uproot_session = ~session
+        group._uproot_session = t.identify(session)
 
         for i, pid in enumerate(members):
             with pid() as player:

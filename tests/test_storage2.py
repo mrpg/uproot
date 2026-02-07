@@ -137,14 +137,14 @@ def test_storage_equality():
 def test_identifier_conversion():
     sid, pid = setup()
 
-    # Test ~ operator
+    # Test identify() function
     session = s.Session("test")
-    session_id = ~session
+    session_id = t.identify(session)
     assert type(session_id) is t.SessionIdentifier
     assert session_id.sname == "test"
 
     player = s.Player("test", "user")
-    player_id = ~player
+    player_id = t.identify(player)
     assert type(player_id) is t.PlayerIdentifier
     assert player_id.sname == "test"
     assert player_id.uname == "user"

@@ -82,9 +82,8 @@ class SessionIdentifier(str, Identifier):
         yield from (self.sname,)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        from uproot.storage import Session
-
-        return Session(*self, **kwargs)
+        # TODO: Deprecate
+        return materialize(self, **kwargs)
 
 
 @validated_dataclass(frozen=True)
@@ -96,9 +95,8 @@ class PlayerIdentifier(Identifier):
         yield from (self.sname, self.uname)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        from uproot.storage import Player
-
-        return Player(*self, **kwargs)
+        # TODO: Deprecate
+        return materialize(self, **kwargs)
 
 
 @validated_dataclass(frozen=True)
@@ -110,9 +108,8 @@ class GroupIdentifier(Identifier):
         yield from (self.sname, self.gname)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        from uproot.storage import Group
-
-        return Group(self.sname, self.gname, **kwargs)
+        # TODO: Deprecate
+        return materialize(self, **kwargs)
 
 
 @validated_dataclass(frozen=True)
@@ -124,9 +121,40 @@ class ModelIdentifier(Identifier):
         yield from (self.sname, self.mname)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        from uproot.storage import Model
+        # TODO: Deprecate
+        return materialize(self, **kwargs)
 
-        return Model(self.sname, self.mname, **kwargs)
+
+def identify(storage: "Storage") -> Identifier:
+    """Convert a Storage object to its corresponding Identifier."""
+    match storage.__namespace__[0]:
+        case "session":
+            return SessionIdentifier(*storage.__namespace__[1:])
+        case "player":
+            return PlayerIdentifier(*storage.__namespace__[1:])
+        case "group":
+            return GroupIdentifier(*storage.__namespace__[1:])
+        case "model":
+            return ModelIdentifier(*storage.__namespace__[1:])
+        case _:
+            raise NotImplementedError
+
+
+def materialize(identifier: Identifier, **kwargs: Any) -> "Storage":
+    """Convert an Identifier to its corresponding Storage object."""
+    from uproot.storage import Group, Model, Player, Session
+
+    match identifier:
+        case SessionIdentifier():
+            return Session(*identifier, **kwargs)
+        case PlayerIdentifier():
+            return Player(*identifier, **kwargs)
+        case GroupIdentifier():
+            return Group(*identifier, **kwargs)
+        case ModelIdentifier():
+            return Model(*identifier, **kwargs)
+        case _:
+            raise NotImplementedError
 
 
 def ensure_local_logger() -> Any:
@@ -631,7 +659,7 @@ class GroupCreatingWait(InternalPage):
         for pid in all_here:
             cgroup = None
 
-            if pid == ~player:
+            if pid == identify(player):
                 cgroup = player._uproot_group
             else:
                 with pid() as player_:

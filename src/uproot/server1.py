@@ -334,7 +334,7 @@ async def show_page(
     ) is not None:
         metadata["remaining_seconds"] = to
 
-    pid = cast(t.PlayerIdentifier, ~player)
+    pid = cast(t.PlayerIdentifier, t.identify(player))
 
     u.set_online(pid)
 
@@ -471,7 +471,7 @@ async def ws(
 ) -> None:
     await websocket.accept()
 
-    pid = cast(t.PlayerIdentifier, ~player)
+    pid = cast(t.PlayerIdentifier, t.identify(player))
     data = a.from_cookie(uauth)
     is_admin = (
         d.UNSAFE

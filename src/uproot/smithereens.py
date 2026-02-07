@@ -96,7 +96,7 @@ def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
         if isinstance(m, t.PlayerIdentifier):
             result.append(m)
         elif isinstance(m, Storage):
-            result.append(cast(t.PlayerIdentifier, ~m))
+            result.append(cast(t.PlayerIdentifier, t.identify(m)))
         else:
             raise TypeError(
                 f"Member must be Storage or PlayerIdentifier, got {type(m).__name__}"
@@ -197,7 +197,7 @@ def send_to_one(
 
     if where is ... or recipient.show_page == where:
         enqueue(
-            tuple(~recipient),
+            tuple(t.identify(recipient)),
             dict(
                 source="send_to",
                 constraint=None if where is ... else where,
@@ -243,7 +243,7 @@ def notify(
 
 @flexible
 def others_in_session(player: Storage) -> t.StorageBunch:
-    pid = ~player
+    pid = t.identify(player)
 
     with player._uproot_session() as s:
         bunch = s.players
@@ -253,7 +253,7 @@ def others_in_session(player: Storage) -> t.StorageBunch:
 
 @flexible
 def others_in_group(player: Storage) -> t.StorageBunch:
-    pid = ~player
+    pid = t.identify(player)
 
     with player.group as g:
         bunch = g.players
@@ -327,7 +327,7 @@ def move_to_end(player: Storage, reload_: bool = True) -> None:
 
 @flexible
 def mark_dropout(player: Storage) -> None:
-    pid = cast(t.PlayerIdentifier, ~player)
+    pid = cast(t.PlayerIdentifier, t.identify(player))
 
     u.MANUAL_DROPOUTS.add(pid)
 
@@ -351,7 +351,7 @@ def watch_for_dropout(
 
     player._uproot_watch.append(triplet)
 
-    u.WATCH.add((cast(t.PlayerIdentifier, ~player), *triplet))
+    u.WATCH.add((cast(t.PlayerIdentifier, t.identify(player)), *triplet))
 
 
 def data_uri(data: bytes) -> str:
