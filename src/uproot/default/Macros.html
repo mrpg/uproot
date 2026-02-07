@@ -87,21 +87,21 @@
                 {% set _ = class_list.append("without-anchoring") %}
             {% endif %}
             <div class="align-items-center d-flex">
-                {% if field.label_min != "" %}
+                {% if field.label_min is defined and field.label_min != "" %}
                     <div class="flex-shrink-0">
-                        {% if not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
+                        {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
                         <div class="me-3 text-end uproot-slider-label-min" data-raw="{{ field.validators[1].min }}">{{ field.label_min }}</div>
                     </div>
                 {% endif %}
-                <div class="{% if not field.hide_popover %}uproot-slider-popover-wrapper{% else %}flex-grow-1{% endif %}">
-                    {% if not field.hide_popover %}
+                <div class="{% if field.hide_popover is defined and not field.hide_popover %}uproot-slider-popover-wrapper{% else %}flex-grow-1{% endif %}">
+                    {% if field.hide_popover is defined and not field.hide_popover %}
                     <div class="uproot-slider-popover-container"></div>
                     {% endif %}
                     {{ field(class_=" ".join(class_list)) | safe }}
                 </div>
-                {% if field.label_max != "" %}
+                {% if field.label_max is defined and field.label_max != "" %}
                     <div class="flex-shrink-0">
-                        {% if not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
+                        {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
                         <div class="ms-3 text-start uproot-slider-label-max" data-raw="{{ field.validators[1].max }}">{{ field.label_max }}</div>
                     </div>
                 {% endif %}
