@@ -41,6 +41,7 @@ from uproot.queries import Comparison, FieldReferent
 ALPHANUMERIC: str = ascii_lowercase + digits
 TOKEN_SPARSITY: float = 1_000_000
 LOGGER: Any = None
+RAISE_ON_DEPRECATION: bool = False
 
 if TYPE_CHECKING:
     from uproot.storage import Storage
@@ -82,7 +83,9 @@ class SessionIdentifier(str, Identifier):
         yield from (self.sname,)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        # TODO: Deprecate
+        if RAISE_ON_DEPRECATION:
+            raise RuntimeError("SessionIdentifier.__call__ is deprecated.")
+
         return materialize(self, **kwargs)
 
 
@@ -95,7 +98,9 @@ class PlayerIdentifier(Identifier):
         yield from (self.sname, self.uname)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        # TODO: Deprecate
+        if RAISE_ON_DEPRECATION:
+            raise RuntimeError("PlayerIdentifier.__call__ is deprecated.")
+
         return materialize(self, **kwargs)
 
 
@@ -108,7 +113,9 @@ class GroupIdentifier(Identifier):
         yield from (self.sname, self.gname)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        # TODO: Deprecate
+        if RAISE_ON_DEPRECATION:
+            raise RuntimeError("GroupIdentifier.__call__ is deprecated.")
+
         return materialize(self, **kwargs)
 
 
@@ -121,7 +128,9 @@ class ModelIdentifier(Identifier):
         yield from (self.sname, self.mname)
 
     def __call__(self, **kwargs: Any) -> "Storage":
-        # TODO: Deprecate
+        if RAISE_ON_DEPRECATION:
+            raise RuntimeError("ModelIdentifier.__call__ is deprecated.")
+
         return materialize(self, **kwargs)
 
 
