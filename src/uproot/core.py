@@ -71,7 +71,7 @@ def create_session(
 
 
 def finalize_session(sid: t.SessionIdentifier) -> None:
-    with sid() as session:
+    with t.materialize(sid) as session:
         for appname in session.apps:
             app = u.APPS[appname]
 
@@ -131,13 +131,13 @@ def create_group(
 
     session.groups.append(gname)
 
-    with gid() as group:
+    with t.materialize(gid) as group:
         group.id = len(session.groups)
         group.players = list(members)
         group._uproot_session = t.identify(session)
 
         for i, pid in enumerate(members):
-            with pid() as player:
+            with t.materialize(pid) as player:
                 ensure(
                     overwrite or player._uproot_group is None,
                     RuntimeError,
@@ -157,7 +157,7 @@ def initialize_player(
     *,
     data: Optional[dict[str, Any]] = None,
 ) -> None:
-    with pid() as player:
+    with t.materialize(pid) as player:
         player.app = None
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
@@ -266,7 +266,7 @@ def create_players(
 
 def find_free_slot(session: s.Storage) -> Optional[t.PlayerIdentifier]:
     for pid in session.players:
-        with pid() as player:
+        with t.materialize(pid) as player:
             if not player.get("started", True):
                 return cast(t.PlayerIdentifier, pid)
 

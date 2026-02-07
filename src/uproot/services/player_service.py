@@ -41,7 +41,7 @@ async def fields_from_all(
             return retval
 
         for pid in session.players:
-            with pid() as player:
+            with t.materialize(pid) as player:
                 retval[pid.uname] = dict()
 
                 for field in fields:
@@ -60,7 +60,7 @@ async def insert_fields(
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             for k, v in fields.items():
                 setattr(player, k, v)
 
@@ -95,7 +95,7 @@ async def advance_by_one(
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             if -1 < player.show_page < len(player.page_order):
                 player.show_page += 1
 
@@ -122,7 +122,7 @@ async def put_to_end(
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             if player.show_page < len(player.page_order):
                 player.show_page = len(player.page_order)
 
@@ -149,7 +149,7 @@ async def revert_by_one(
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             if -1 < player.show_page <= len(player.page_order):
                 player.show_page -= 1
 
@@ -268,7 +268,7 @@ async def group_players(
 
     result: dict[str, Any] = {"action": action, "players": unames}
 
-    with sid() as session:
+    with t.materialize(sid) as session:
         if action == "same_group":
             # Put all selected players in the same group
             gid = c.create_group(session, pids, overwrite=True)
@@ -279,7 +279,7 @@ async def group_players(
             # Remove group assignments from selected players
             reset_count = 0
             for pid in pids:
-                with pid() as player:
+                with t.materialize(pid) as player:
                     if player._uproot_group is not None:
                         player._uproot_group = None
                         player.member_id = None

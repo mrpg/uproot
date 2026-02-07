@@ -671,7 +671,7 @@ class GroupCreatingWait(InternalPage):
             if pid == identify(player):
                 cgroup = player._uproot_group
             else:
-                with pid() as player_:
+                with materialize(pid) as player_:
                     cgroup = player_._uproot_group
 
             if cgroup is None:

@@ -271,7 +271,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                     pid = t.PlayerIdentifier(sname, result)
 
                     if not sname.startswith("^"):
-                        with pid() as p:
+                        with t.materialize(pid) as p:
                             info = (
                                 p.id,
                                 p.page_order,
@@ -643,7 +643,7 @@ async def new_session_in_room(
         if nogrow:
             admin.rooms[roomname]["capacity"] = nplayers
 
-    with sid() as session:
+    with t.materialize(sid) as session:
         session.room = roomname
 
         c.create_players(
@@ -762,7 +762,7 @@ async def new_session2(
             settings=settings_parsed,
         )
 
-    with sid() as session:
+    with t.materialize(sid) as session:
         c.create_players(
             session,
             n=nplayers,
@@ -943,7 +943,7 @@ async def session_multiview(
         unames = []
 
         for i, pid in enumerate(session.players):
-            with pid() as player:
+            with t.materialize(pid) as player:
                 ensure(player.id == i)
 
                 unames.append(player.name)

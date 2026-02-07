@@ -21,6 +21,7 @@ import uproot.cache as cache
 import uproot.core as c
 import uproot.deployment as d
 import uproot.storage as s
+import uproot.types as t
 
 # Define type categories for testing
 IMMUTABLE_TYPES = (
@@ -51,7 +52,7 @@ def setup_fresh_database():
         c.create_admin(admin)
         sid = c.create_session(admin, "test")
 
-    with sid() as session:
+    with t.materialize(sid) as session:
         pid = c.create_player(session)
 
     return sid, pid
@@ -65,14 +66,14 @@ class TestMemoryDatabaseConsistency:
         sid, pid = setup_fresh_database()
 
         # Create complex history across multiple namespaces
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.stage1 = "initial"
             player.data = [1, 2, 3]
             player.complex_nested = {
                 "level1": {"level2": ["deep", "data", {"level3": "value"}]}
             }
 
-        with sid() as session:
+        with t.materialize(sid) as session:
             session.config = {"version": 1, "features": ["a", "b"]}
             session.players = ["player1"]
 
@@ -81,12 +82,12 @@ class TestMemoryDatabaseConsistency:
             admin.metrics = {"uptime": 3600, "users": 42}
 
         # Verify all data is accessible and correct
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.stage1 == "initial"
             assert player.data == [1, 2, 3]
             assert player.complex_nested["level1"]["level2"][2]["level3"] == "value"
 
-        with sid() as session:
+        with t.materialize(sid) as session:
             assert session.config["version"] == 1
             assert "a" in session.config["features"]
             assert session.players == ["player1"]
@@ -103,13 +104,13 @@ class TestMemoryDatabaseConsistency:
         operations = []
         for i in range(10):
             pre_time = time.time()
-            with pid() as player:
+            with t.materialize(pid) as player:
                 setattr(player, f"timestamp_test_{i}", f"value_{i}")
             post_time = time.time()
             operations.append((pre_time, post_time, i))
 
         # Verify all data is accessible in correct order
-        with pid() as player:
+        with t.materialize(pid) as player:
             for _, _, i in operations:
                 value = getattr(player, f"timestamp_test_{i}")
                 assert value == f"value_{i}"
@@ -118,14 +119,14 @@ class TestMemoryDatabaseConsistency:
         """Verify player list updates work correctly."""
         sid, _ = setup_fresh_database()
 
-        with sid() as session:
+        with t.materialize(sid) as session:
             # Multiple player updates should work correctly
             session.players = ["player1"]
             session.players = ["player1", "player2"]
             session.players = ["player2", "player3", "player4"]
 
         # Verify final state is correct
-        with sid() as session:
+        with t.materialize(sid) as session:
             assert session.players == ["player2", "player3", "player4"]
             assert len(session.players) == 3
             assert "player2" in session.players
@@ -136,7 +137,7 @@ class TestMemoryDatabaseConsistency:
         """Verify field deletion works correctly."""
         sid, pid = setup_fresh_database()
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.temp_field = "to_be_deleted"
             assert player.temp_field == "to_be_deleted"
 
@@ -148,12 +149,12 @@ class TestMemoryDatabaseConsistency:
                 _ = player.temp_field
 
         # Field should remain deleted across contexts
-        with pid() as player:
+        with t.materialize(pid) as player:
             with pytest.raises(AttributeError):
                 _ = player.temp_field
 
         # Can recreate the field
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.temp_field = "recreated"
             assert player.temp_field == "recreated"
 
@@ -173,7 +174,7 @@ class TestDeepModificationDetection:
             "metadata": {"version": 1, "tags": ["important", "test", "nested"]},
         }
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.complex_data = complex_data
 
             # Modify deeply nested data
@@ -182,7 +183,7 @@ class TestDeepModificationDetection:
             player.complex_data["new_key"] = "added_value"
 
         # Verify modifications were detected and saved
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert len(player.complex_data["users"][0]["scores"]) == 4
             assert player.complex_data["users"][0]["scores"][-1] == 92
             assert "modified" in player.complex_data["metadata"]["tags"]
@@ -193,27 +194,27 @@ class TestDeepModificationDetection:
         sid, pid = setup_fresh_database()
 
         # First context: establish data
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.evolving_list = [1, 2, 3]
 
         # Second context: modify
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.evolving_list.extend([4, 5])
 
         # Third context: modify again
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.evolving_list.insert(0, 0)
             player.evolving_list.pop()
 
         # Fourth context: verify all modifications persisted
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.evolving_list == [0, 1, 2, 3, 4]
 
     def test_modification_detection_with_object_identity(self):
         """Test that object identity is preserved for modification detection."""
         sid, pid = setup_fresh_database()
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.shared_list = [1, 2, 3]
 
             # Get same object multiple times
@@ -231,7 +232,7 @@ class TestDeepModificationDetection:
             assert len(list2) == 4
 
         # Verify modification was saved
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.shared_list == [1, 2, 3, 4]
 
     def test_modification_baseline_reset_per_context(self):
@@ -241,13 +242,13 @@ class TestDeepModificationDetection:
         original_data = {"count": 0, "items": []}
 
         # Context 1: Set initial data
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.baseline_test = copy.deepcopy(original_data)
             player.baseline_test["count"] = 5
             player.baseline_test["items"] = ["a", "b"]
 
         # Context 2: Should start with fresh baseline from saved state
-        with pid() as player:
+        with t.materialize(pid) as player:
             # Verify we have the saved state
             assert player.baseline_test["count"] == 5
             assert player.baseline_test["items"] == ["a", "b"]
@@ -257,7 +258,7 @@ class TestDeepModificationDetection:
             player.baseline_test["items"].append("c")
 
         # Context 3: Verify all modifications persisted correctly
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.baseline_test["count"] == 10
             assert player.baseline_test["items"] == ["a", "b", "c"]
 
@@ -265,7 +266,7 @@ class TestDeepModificationDetection:
         """Test different handling of immutable vs mutable types."""
         sid, pid = setup_fresh_database()
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             # Immutable assignment creates new value
             player.immutable_counter = 1
             player.immutable_counter = 2  # This creates new entry
@@ -275,7 +276,7 @@ class TestDeepModificationDetection:
             player.mutable_list.append(2)  # This modifies existing object
 
         # Verify final states are correct
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.immutable_counter == 2
             assert player.mutable_list == [1, 2]
 
@@ -288,19 +289,19 @@ class TestContextManagerSemantics:
         sid, pid = setup_fresh_database()
 
         # Set up test data
-        pid().int_val = 42
-        pid().float_val = 3.14159
-        pid().str_val = "hello"
-        pid().tuple_val = (1, 2, 3)
-        pid().bytes_val = b"binary"
-        pid().bool_val = True
-        pid().complex_val = 1 + 2j
-        pid().none_val = None
-        pid().decimal_val = Decimal("99.99")
-        pid().frozenset_val = frozenset([1, 2, 3])
+        t.materialize(pid).int_val = 42
+        t.materialize(pid).float_val = 3.14159
+        t.materialize(pid).str_val = "hello"
+        t.materialize(pid).tuple_val = (1, 2, 3)
+        t.materialize(pid).bytes_val = b"binary"
+        t.materialize(pid).bool_val = True
+        t.materialize(pid).complex_val = 1 + 2j
+        t.materialize(pid).none_val = None
+        t.materialize(pid).decimal_val = Decimal("99.99")
+        t.materialize(pid).frozenset_val = frozenset([1, 2, 3])
 
         # All should be accessible without context manager
-        player = pid()
+        player = t.materialize(pid)
         assert player.int_val == 42
         assert player.float_val == 3.14159
         assert player.str_val == "hello"
@@ -317,14 +318,14 @@ class TestContextManagerSemantics:
         sid, pid = setup_fresh_database()
 
         # Set up mutable data
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.list_val = [1, 2, 3]
             player.dict_val = {"key": "value"}
             player.set_val = {1, 2, 3}
             player.bytearray_val = bytearray(b"mutable")
 
         # All should require context manager for access
-        player = pid()
+        player = t.materialize(pid)
 
         with pytest.raises(TypeError, match="context manager"):
             _ = player.list_val
@@ -342,11 +343,11 @@ class TestContextManagerSemantics:
         """Test that nested context managers are properly handled."""
         sid, pid = setup_fresh_database()
 
-        with pid() as outer_player:
+        with t.materialize(pid) as outer_player:
             outer_player.data = [1, 2, 3]
 
             # Same object in nested context should work
-            with pid() as inner_player:
+            with t.materialize(pid) as inner_player:
                 inner_player.more_data = [4, 5, 6]
                 assert inner_player.data == [1, 2, 3]
                 assert inner_player.more_data == [4, 5, 6]
@@ -360,7 +361,7 @@ class TestContextManagerSemantics:
 
         # Exception during context should not save modifications
         try:
-            with pid() as player:
+            with t.materialize(pid) as player:
                 player.exception_test = [1, 2, 3]
                 player.exception_test.append(4)
                 raise ValueError("Intentional test exception")
@@ -368,7 +369,7 @@ class TestContextManagerSemantics:
             pass
 
         # Assignment should be saved, but in-place modification should not (no flush on exception)
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.exception_test == [
                 1,
                 2,
@@ -380,13 +381,13 @@ class TestContextManagerSemantics:
         sid, pid = setup_fresh_database()
 
         # Context 1: Set and modify data
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.isolation_test = {"shared": [1, 2]}
             shared_ref = player.isolation_test["shared"]
             shared_ref.append(3)
 
         # Context 2: Should get fresh cache with saved modifications
-        with pid() as player:
+        with t.materialize(pid) as player:
             # This should be a different object reference but same data
             fresh_ref = player.isolation_test["shared"]
             assert fresh_ref == [1, 2, 3]
@@ -395,7 +396,7 @@ class TestContextManagerSemantics:
             fresh_ref.append(4)
 
         # Context 3: Verify modifications from context 2
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.isolation_test["shared"] == [1, 2, 3, 4]
 
 
@@ -407,7 +408,7 @@ class TestConcurrencyAndAsyncSafety:
         sid, pid = setup_fresh_database()
 
         # Create multiple instances pointing to same player
-        player1 = pid()
+        player1 = t.materialize(pid)
 
         # Extract actual player info from the first instance
         namespace = player1.__namespace__
@@ -435,7 +436,7 @@ class TestConcurrencyAndAsyncSafety:
 
         # Rapid context switching with data modifications
         for i in range(100):
-            with pid() as player:
+            with t.materialize(pid) as player:
                 if not hasattr(player, "rapid_test"):
                     player.rapid_test = []
                 player.rapid_test.append(i)
@@ -445,7 +446,7 @@ class TestConcurrencyAndAsyncSafety:
                 assert player.rapid_test[-1] == i
 
         # Final verification
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert len(player.rapid_test) == 100
             assert player.rapid_test == list(range(100))
 
@@ -456,7 +457,7 @@ class TestConcurrencyAndAsyncSafety:
         # Create many large objects
         large_objects = []
         for i in range(50):
-            with pid() as player:
+            with t.materialize(pid) as player:
                 # Create large data structure
                 large_data = {f"key_{j}": [x for x in range(1000)] for j in range(10)}
                 setattr(player, f"large_object_{i}", large_data)
@@ -466,7 +467,7 @@ class TestConcurrencyAndAsyncSafety:
         gc.collect()
 
         # Verify data integrity after memory pressure
-        with pid() as player:
+        with t.materialize(pid) as player:
             for i in range(50):
                 obj = getattr(player, f"large_object_{i}")
                 assert len(obj) == 10
@@ -481,7 +482,7 @@ class TestConcurrencyAndAsyncSafety:
         sid, pid = setup_fresh_database()
 
         # Test weakref behavior with simple objects
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.weakref_test = []
             for i in range(10):
                 sublist = [i] * 100
@@ -491,7 +492,7 @@ class TestConcurrencyAndAsyncSafety:
         gc.collect()
 
         # Data should be preserved regardless of garbage collection
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert len(player.weakref_test) == 10
             for i, sublist in enumerate(player.weakref_test):
                 assert sublist == [i] * 100
@@ -504,7 +505,7 @@ class TestErrorHandlingAndEdgeCases:
         """Test handling of malformed or corrupted data."""
         sid, pid = setup_fresh_database()
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             # Test with various edge case values
             player.empty_list = []
             player.empty_dict = {}
@@ -513,7 +514,7 @@ class TestErrorHandlingAndEdgeCases:
             player.nested_empty = {"a": [], "b": {}}
 
         # All should work correctly
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.empty_list == []
             assert player.empty_dict == {}
             assert player.zero_values == [0, 0.0, "", False, None]
@@ -524,7 +525,7 @@ class TestErrorHandlingAndEdgeCases:
         """Test proper error propagation for non-existent attributes."""
         sid, pid = setup_fresh_database()
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             with pytest.raises(AttributeError):
                 _ = player.nonexistent_field
 
@@ -533,7 +534,7 @@ class TestErrorHandlingAndEdgeCases:
         sid, pid = setup_fresh_database()
 
         for cycle in range(10):
-            with pid() as player:
+            with t.materialize(pid) as player:
                 # Create field
                 player.cycle_test = {"cycle": cycle, "data": list(range(cycle))}
                 assert player.cycle_test["cycle"] == cycle
@@ -546,7 +547,7 @@ class TestErrorHandlingAndEdgeCases:
                     _ = player.cycle_test
 
         # Final verification - field should not exist
-        with pid() as player:
+        with t.materialize(pid) as player:
             with pytest.raises(AttributeError):
                 _ = player.cycle_test
 
@@ -554,7 +555,7 @@ class TestErrorHandlingAndEdgeCases:
         """Test interactions with virtual fields."""
         sid, pid = setup_fresh_database()
 
-        player = pid()
+        player = t.materialize(pid)
 
         # Virtual fields should work without context
         session_ref = player.session
@@ -569,13 +570,13 @@ class TestErrorHandlingAndEdgeCases:
         sid, pid = setup_fresh_database()
 
         # Test with properly initialized object
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.initialization_test = "success"
             # Manually call flush to test it works
             player.flush()
 
         # Verify it worked
-        with pid() as player:
+        with t.materialize(pid) as player:
             assert player.initialization_test == "success"
 
 
@@ -589,7 +590,7 @@ class TestPerformanceAndScalability:
         field_count = 1000
         start_time = time.time()
 
-        with pid() as player:
+        with t.materialize(pid) as player:
             for i in range(field_count):
                 setattr(player, f"field_{i:04d}", f"value_{i}")
 
@@ -597,7 +598,7 @@ class TestPerformanceAndScalability:
 
         # Access all fields
         start_time = time.time()
-        with pid() as player:
+        with t.materialize(pid) as player:
             for i in range(field_count):
                 value = getattr(player, f"field_{i:04d}")
                 assert value == f"value_{i}"
@@ -623,7 +624,7 @@ class TestPerformanceAndScalability:
         current["deepest"] = "treasure"
 
         start_time = time.time()
-        with pid() as player:
+        with t.materialize(pid) as player:
             player.deep_nested = nested
 
             # Navigate to deepest level
@@ -638,7 +639,7 @@ class TestPerformanceAndScalability:
         modification_time = time.time() - start_time
 
         # Verify modification persisted
-        with pid() as player:
+        with t.materialize(pid) as player:
             current = player.deep_nested
             for i in range(depth):
                 current = current[f"level_{i}"]
@@ -652,14 +653,14 @@ class TestPerformanceAndScalability:
         sid, pid = setup_fresh_database()
 
         # Create significant amount of cached data
-        with pid() as player:
+        with t.materialize(pid) as player:
             for i in range(100):
                 large_list = list(range(1000))  # Smaller for compatibility
                 setattr(player, f"memory_test_{i}", large_list)
 
         # Access all data multiple times to test efficiency
         for _ in range(5):
-            with pid() as player:
+            with t.materialize(pid) as player:
                 for i in range(100):
                     data = getattr(player, f"memory_test_{i}")
                     assert len(data) == 1000
@@ -680,12 +681,12 @@ class TestAdvancedStorageScenarios:
         # Create multiple players
         players = []
         for i in range(5):
-            with sid() as session:
+            with t.materialize(sid) as session:
                 pid = c.create_player(session)  # Use standard player creation
                 players.append(pid)
 
         # Initialize game state
-        with sid() as session:
+        with t.materialize(sid) as session:
             session.game_state = {
                 "phase": "setup",
                 "round": 0,
@@ -694,7 +695,7 @@ class TestAdvancedStorageScenarios:
             }
 
             for i, pid in enumerate(players):
-                with pid() as player:
+                with t.materialize(pid) as player:
                     player.character = {
                         "name": f"Hero_{i}",
                         "level": 1,
@@ -705,13 +706,13 @@ class TestAdvancedStorageScenarios:
 
         # Simulate game rounds
         for round_num in range(10):
-            with sid() as session:
+            with t.materialize(sid) as session:
                 session.game_state["round"] = round_num
                 session.game_state["phase"] = "action"
 
                 # Each player takes actions
                 for i, pid in enumerate(players):
-                    with pid() as player:
+                    with t.materialize(pid) as player:
                         # Level up occasionally
                         if round_num % 3 == 0:
                             player.character["level"] += 1
@@ -735,7 +736,7 @@ class TestAdvancedStorageScenarios:
                 session.game_state["phase"] = "complete"
 
         # Verify final game state
-        with sid() as session:
+        with t.materialize(sid) as session:
             assert session.game_state["round"] == 9
             assert session.game_state["phase"] == "complete"
             assert len(session.game_state["events"]) == 10
@@ -743,7 +744,7 @@ class TestAdvancedStorageScenarios:
 
         # Verify all players have correct final state
         for i, pid in enumerate(players):
-            with pid() as player:
+            with t.materialize(pid) as player:
                 assert player.character["level"] == 5  # level ups
                 assert player.character["health"] == 140  # health from level ups
                 assert len(player.character["inventory"]) == 10
@@ -755,7 +756,7 @@ class TestAdvancedStorageScenarios:
         sid, pid = setup_fresh_database()
 
         # Initialize document
-        with pid() as editor:
+        with t.materialize(pid) as editor:
             editor.document = {
                 "content": [],
                 "revision": 0,
@@ -769,7 +770,7 @@ class TestAdvancedStorageScenarios:
         for session_num in range(20):
             author = authors[session_num % len(authors)]
 
-            with pid() as editor:
+            with t.materialize(pid) as editor:
                 # Add author to list if not present
                 if author not in editor.document["authors"]:
                     editor.document["authors"].append(author)
@@ -809,7 +810,7 @@ class TestAdvancedStorageScenarios:
                     editor.document["change_log"].append(edit_change)
 
         # Verify final document state
-        with pid() as editor:
+        with t.materialize(pid) as editor:
             doc = editor.document
             assert len(doc["content"]) == 20
             assert doc["revision"] >= 20  # At least 20 additions
@@ -827,7 +828,7 @@ class TestAdvancedStorageScenarios:
         sid, pid = setup_fresh_database()
 
         # Initialize analytics data
-        with pid() as dashboard:
+        with t.materialize(pid) as dashboard:
             dashboard.analytics = {
                 "page_views": {},
                 "user_actions": {},
@@ -844,7 +845,7 @@ class TestAdvancedStorageScenarios:
         import random
 
         for minute in range(60):  # One hour of data
-            with pid() as dashboard:
+            with t.materialize(pid) as dashboard:
                 # Update page views
                 pages = ["home", "dashboard", "profile", "settings", "help"]
                 for page in pages:
@@ -903,7 +904,7 @@ class TestAdvancedStorageScenarios:
                     }
 
         # Verify final analytics state
-        with pid() as dashboard:
+        with t.materialize(pid) as dashboard:
             analytics = dashboard.analytics
 
             # Check all pages have data

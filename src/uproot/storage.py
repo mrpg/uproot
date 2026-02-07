@@ -17,6 +17,7 @@ from uproot.types import (
     Username,
     Value,
     context,
+    materialize,
 )
 
 VALID_TRAIL0: tuple[str, ...] = ("admin", "session", "player", "group", "model")
@@ -318,7 +319,7 @@ def virtual_group(
             if isinstance(glike, str):
                 return Group(storage.name, glike)
             elif isinstance(glike, GroupIdentifier) and glike.sname == storage.name:
-                return glike()
+                return materialize(glike)
             else:
                 raise TypeError
 
@@ -334,7 +335,7 @@ def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Stora
             if isinstance(plike, str):
                 return Player(storage.name, plike)
             elif isinstance(plike, PlayerIdentifier) and plike.sname == storage.name:
-                return plike()
+                return materialize(plike)
             else:
                 raise TypeError
 
@@ -344,7 +345,7 @@ def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Stora
 
 
 DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = dict(
-    session=lambda p: p._uproot_session(),
+    session=lambda p: materialize(p._uproot_session),
     group=virtual_group,
     player=virtual_player,
     along=lambda p: (lambda field: within.along(p, field)),

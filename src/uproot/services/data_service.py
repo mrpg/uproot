@@ -14,6 +14,8 @@ from typing import (
     cast,
 )
 
+from sortedcontainers import SortedList
+
 import uproot.cache as cache
 import uproot.data as data
 import uproot.storage as s
@@ -188,7 +190,7 @@ def page_times(sname: t.Sessionname) -> str:
         for pid in session.players:
             uname = pid.uname
 
-            with pid() as player:
+            with t.materialize(pid) as player:
                 one_row = False
                 history = player.__history__()
                 last_order = None
@@ -205,7 +207,9 @@ def page_times(sname: t.Sessionname) -> str:
                     # after any existing entries with equal time (using the list's key function).
                     # So (idx - 1) gives the last entry with time <= show_page.time.
                     if page_orders:
-                        idx = page_orders.bisect_key_right(show_page.time)
+                        idx = cast(SortedList, page_orders).bisect_key_right(
+                            show_page.time
+                        )
                         if idx > 0:
                             last_order = page_orders[idx - 1].data
 

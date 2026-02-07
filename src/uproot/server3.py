@@ -148,7 +148,7 @@ async def roommain(
             else:
                 pid = c.create_player(session)
 
-                with pid() as player:
+                with t.materialize(pid) as player:
                     player.started = True
                     player.label = label
 

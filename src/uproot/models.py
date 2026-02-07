@@ -28,6 +28,7 @@ from uproot.types import (
     PlayerIdentifier,
     SessionIdentifier,
     identify,
+    materialize,
     uuid,
 )
 
@@ -70,7 +71,7 @@ class Entry(type):
 @flexible
 @validate_call
 def create_model(
-    session: SessionIdentifier, *, tag: Optional[str] = None
+    sid: SessionIdentifier, *, tag: Optional[str] = None
 ) -> ModelIdentifier:
     """
     Create a new model in the given session.
@@ -82,7 +83,7 @@ def create_model(
     Returns:
         The identifier of the newly created model
     """
-    with session() as s:
+    with materialize(sid) as s:
         mid = c.create_model(s, data=dict(tag=tag))
 
     return mid
@@ -98,7 +99,7 @@ def get_storage(mid: ModelIdentifier) -> s.Storage:
     Returns:
         The storage instance
     """
-    storage = mid()
+    storage = materialize(mid)
 
     if not storage:
         raise ValueError(f"Model {mid} not found")
@@ -134,10 +135,10 @@ def auto_add_entry(
             if field_type == PlayerIdentifier:
                 auto_fields[field_name] = pid
             elif field_type == SessionIdentifier:
-                with pid() as player:
+                with materialize(pid) as player:
                     auto_fields[field_name] = player.session
             elif field_type == GroupIdentifier:
-                with pid() as player:
+                with materialize(pid) as player:
                     auto_fields[field_name] = player.group
             elif field_type == ModelIdentifier:
                 auto_fields[field_name] = mid

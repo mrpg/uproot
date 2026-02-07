@@ -79,13 +79,6 @@ class TestIdentifierClasses:
         assert sid.sname == "test_session"
         assert list(sid) == ["test_session"]
 
-    @patch("uproot.storage.Session")
-    def test_session_identifier_call(self, mock_session):
-        """Test SessionIdentifier __call__ method."""
-        sid = SessionIdentifier("test_session")
-        result = sid(some_param="value")
-        mock_session.assert_called_once_with("test_session", some_param="value")
-
     def test_player_identifier(self):
         """Test PlayerIdentifier functionality."""
         pid = PlayerIdentifier(sname="session", uname="user")
@@ -93,13 +86,6 @@ class TestIdentifierClasses:
         assert pid.uname == "user"
         assert list(pid) == ["session", "user"]
         assert str(pid) == "user"
-
-    @patch("uproot.storage.Player")
-    def test_player_identifier_call(self, mock_player):
-        """Test PlayerIdentifier __call__ method."""
-        pid = PlayerIdentifier(sname="session", uname="user")
-        result = pid(some_param="value")
-        mock_player.assert_called_once_with("session", "user", some_param="value")
 
     def test_group_identifier(self):
         """Test GroupIdentifier functionality."""
@@ -109,13 +95,6 @@ class TestIdentifierClasses:
         assert list(gid) == ["session", "group"]
         assert str(gid) == "group"
 
-    @patch("uproot.storage.Group")
-    def test_group_identifier_call(self, mock_group):
-        """Test GroupIdentifier __call__ method."""
-        gid = GroupIdentifier(sname="session", gname="group")
-        result = gid(some_param="value")
-        mock_group.assert_called_once_with("session", "group", some_param="value")
-
     def test_model_identifier(self):
         """Test ModelIdentifier functionality."""
         mid = ModelIdentifier(sname="session", mname="model")
@@ -123,13 +102,6 @@ class TestIdentifierClasses:
         assert mid.mname == "model"
         assert list(mid) == ["session", "model"]
         assert str(mid) == "model"
-
-    @patch("uproot.storage.Model")
-    def test_model_identifier_call(self, mock_model):
-        """Test ModelIdentifier __call__ method."""
-        mid = ModelIdentifier(sname="session", mname="model")
-        result = mid(some_param="value")
-        mock_model.assert_called_once_with("session", "model", some_param="value")
 
 
 class TestOptionalCallOnce:

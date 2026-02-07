@@ -23,7 +23,7 @@ def setup():
         c.create_admin(admin)
         sid = c.create_session(admin, "test")
 
-    with sid() as session:
+    with t.materialize(sid) as session:
         pid = c.create_player(session)
 
     return sid, pid
@@ -50,14 +50,14 @@ def test_field_access():
     sid, pid = setup()
 
     # Set and get field
-    pid().x = 42
+    t.materialize(pid).x = 42
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         assert player.x == 42
 
     # Field doesn't exist
     try:
-        with pid() as player:
+        with t.materialize(pid) as player:
             _ = player.nonexistent
 
         assert False, "Should raise AttributeError"
@@ -68,7 +68,7 @@ def test_field_access():
 def test_field_update_context():
     sid, pid = setup()
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         player.y = -42
         assert player.y == -42
 
@@ -79,15 +79,15 @@ def test_field_update_context():
 def test_field_deletion():
     sid, pid = setup()
 
-    pid().to_delete = "value"
+    t.materialize(pid).to_delete = "value"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         assert player.to_delete == "value"
 
-    del pid().to_delete
+    del t.materialize(pid).to_delete
 
     try:
-        with pid() as player:
+        with t.materialize(pid) as player:
             value = player.to_delete
 
         assert False, f"Should raise AttributeError after deletion, but got: {value}"
@@ -98,11 +98,11 @@ def test_field_deletion():
 def test_fields_method():
     sid, pid = setup()
 
-    pid().field1 = 1
-    pid().field2 = 2
-    pid().field3 = 3
+    t.materialize(pid).field1 = 1
+    t.materialize(pid).field2 = 2
+    t.materialize(pid).field3 = 3
 
-    fields = pid().__fields__()
+    fields = t.materialize(pid).__fields__()
     assert type(fields) is list
     assert "field1" in fields
     assert "field2" in fields
@@ -117,8 +117,8 @@ def test_bool_method():
     assert not empty_player
 
     # Storage with fields should be truthy
-    pid().some_field = "value"
-    assert pid()
+    t.materialize(pid).some_field = "value"
+    assert t.materialize(pid)
 
 
 def test_storage_equality():
@@ -154,11 +154,11 @@ def test_history():
     sid, pid = setup()
 
     # Set field multiple times
-    pid().counter = 1
-    pid().counter = 2
-    pid().counter = 3
+    t.materialize(pid).counter = 1
+    t.materialize(pid).counter = 2
+    t.materialize(pid).counter = 3
 
-    history = pid().__history__()
+    history = t.materialize(pid).__history__()
     assert "counter" in history
 
     # History should contain values for counter field
@@ -170,11 +170,11 @@ def test_within_basic():
     sid, pid = setup()
 
     # Set up data with different contexts
-    pid().score = 10
-    pid().level = 1
+    t.materialize(pid).score = 10
+    t.materialize(pid).level = 1
 
     # Access within specific context
-    with pid() as player:
+    with t.materialize(pid) as player:
         within_ctx = player.within(score=10)
         assert within_ctx.score == 10
         assert within_ctx.level == 1
@@ -184,10 +184,10 @@ def test_within_context_conditions_not_met():
     """Test context where the specified conditions are never satisfied."""
     sid, pid = setup()
 
-    pid().x = 1
-    pid().y = 1  # Set y to 1, but we'll look for y=2
+    t.materialize(pid).x = 1
+    t.materialize(pid).y = 1  # Set y to 1, but we'll look for y=2
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Context condition y=2 is never satisfied (y is actually 1)
         within_ctx = player.within(y=2)
         # When context conditions aren't met, field access raises AttributeError
@@ -199,11 +199,11 @@ def test_along_iteration():
     sid, pid = setup()
 
     # Create history for a field
-    pid().state = "init"
-    pid().state = "running"
-    pid().state = "complete"
+    t.materialize(pid).state = "init"
+    t.materialize(pid).state = "running"
+    t.materialize(pid).state = "complete"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         states = []
         contexts = []
 
@@ -222,14 +222,14 @@ def test_list_assignment_then_append():
     sid, pid = setup()
 
     # Assign a list and then append to it within the same context
-    with pid() as player:
+    with t.materialize(pid) as player:
         player.my_list = [1, 2, 3]
         player.my_list.append(4)
         # At this point, player.my_list should be [1, 2, 3, 4]
         assert player.my_list == [1, 2, 3, 4]
 
     # Verify that the appended value was actually persisted
-    with pid() as player:
+    with t.materialize(pid) as player:
         assert player.my_list == [
             1,
             2,
@@ -243,16 +243,16 @@ def test_no_double_flush_for_assigned_unchanged_values():
     sid, pid = setup()
 
     # Track history count before
-    initial_history = pid().__history__()
+    initial_history = t.materialize(pid).__history__()
     initial_count = len(initial_history.get("unchanged_value", []))
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Assign a value but don't modify it further
         player.unchanged_value = "test"
         # Don't modify player.unchanged_value - flush should not create additional entry
 
     # Check that only the assignment created a history entry, not the flush
-    final_history = pid().__history__()
+    final_history = t.materialize(pid).__history__()
     final_count = len(final_history.get("unchanged_value", []))
 
     # Should have exactly one new entry from the assignment
@@ -266,11 +266,11 @@ def test_within_single_context_field():
     sid, pid = setup()
 
     # Set up current values
-    pid().score = 100
-    pid().level = 2
-    pid().extra_data = "current"
+    t.materialize(pid).score = 100
+    t.materialize(pid).level = 2
+    t.materialize(pid).extra_data = "current"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Single context field matching current value - this works
         within_ctx = player.within(score=100)
         assert within_ctx.score == 100
@@ -283,10 +283,10 @@ def test_within_multiple_context_fields_current_values():
     sid, pid = setup()
 
     # Set up values that are all current
-    pid().score = 100
-    pid().level = 5
+    t.materialize(pid).score = 100
+    t.materialize(pid).level = 5
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Multiple context fields should all match when they're all currently set
         within_ctx = player.within(score=100, level=5)
 
@@ -299,10 +299,10 @@ def test_within_context_mismatch():
     """Test context where the specified value never existed."""
     sid, pid = setup()
 
-    pid().score = 100
-    pid().level = 5
+    t.materialize(pid).score = 100
+    t.materialize(pid).level = 5
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Context that doesn't match any historical values (score=200 never existed)
         within_ctx = player.within(score=200)
         # When context conditions are never satisfied, all field access returns None
@@ -313,10 +313,10 @@ def test_within_context_mismatch():
 def test_within_empty_context():
     sid, pid = setup()
 
-    pid().score = 100
-    pid().level = 5
+    t.materialize(pid).score = 100
+    t.materialize(pid).level = 5
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Empty context should work like normal access
         within_ctx = player.within()
         assert within_ctx.score == 100
@@ -326,10 +326,10 @@ def test_within_empty_context():
 def test_within_none_value_context():
     sid, pid = setup()
 
-    pid().score = None
-    pid().level = 5
+    t.materialize(pid).score = None
+    t.materialize(pid).level = 5
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Context matching None value
         within_ctx = player.within(score=None)
         expect_attribute_error(within_ctx, "score")
@@ -340,9 +340,9 @@ def test_within_context_with_nonexistent_field():
     """Test context with non-existent field returns None for all field access."""
     sid, pid = setup()
 
-    pid().real_field = "exists"
+    t.materialize(pid).real_field = "exists"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Using non-existent field in context should work gracefully
         within_ctx = player.within(nonexistent_field="value")
 
@@ -356,13 +356,13 @@ def test_within_complex_data_types():
     sid, pid = setup()
 
     # Set up values with complex data types
-    pid().scores = [10, 20, 30, 40]
-    pid().metadata = {"level": 2, "difficulty": "hard"}
-    pid().player_title = (
+    t.materialize(pid).scores = [10, 20, 30, 40]
+    t.materialize(pid).metadata = {"level": 2, "difficulty": "hard"}
+    t.materialize(pid).player_title = (
         "champion"  # Use player_title instead of name (which is auto-generated)
     )
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test with complex list as context field
         within_ctx = player.within(scores=[10, 20, 30, 40])
         assert within_ctx.scores == [10, 20, 30, 40]
@@ -383,16 +383,16 @@ def test_within_historical_values_works():
     sid, pid = setup()
 
     # Create history
-    pid().phase = "A"
-    pid().data = "data_A1"
+    t.materialize(pid).phase = "A"
+    t.materialize(pid).data = "data_A1"
 
-    pid().phase = "B"
-    pid().data = "data_B1"
+    t.materialize(pid).phase = "B"
+    t.materialize(pid).data = "data_B1"
 
-    pid().phase = "A"  # Back to phase A
-    pid().data = "data_A2"
+    t.materialize(pid).phase = "A"  # Back to phase A
+    t.materialize(pid).data = "data_A2"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test with current value
         within_ctx_current = player.within(phase="A")
         assert within_ctx_current.phase == "A"
@@ -411,11 +411,11 @@ def test_within_multiple_context_fields_simultaneous():
     sid, pid = setup()
 
     # Set up values that were all current at the same time
-    pid().field_a = "value_a"
-    pid().field_b = "value_b"
-    pid().field_c = "value_c"
+    t.materialize(pid).field_a = "value_a"
+    t.materialize(pid).field_b = "value_b"
+    t.materialize(pid).field_c = "value_c"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Single context field should work
         within_ctx_single = player.within(field_a="value_a")
         assert within_ctx_single.field_a == "value_a"
@@ -434,10 +434,10 @@ def test_within_multiple_context_fields_simultaneous():
 def test_within_type_sensitivity():
     sid, pid = setup()
 
-    pid().number_field = 42
-    pid().string_field = "42"
+    t.materialize(pid).number_field = 42
+    t.materialize(pid).string_field = "42"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test type-sensitive matching
         within_ctx = player.within(number_field=42)
         assert within_ctx.number_field == 42
@@ -452,13 +452,13 @@ def test_within_boolean_context():
     """Test within with boolean values as context fields."""
     sid, pid = setup()
 
-    pid().enabled = True
-    pid().disabled = False
-    pid().player_tag = (
+    t.materialize(pid).enabled = True
+    t.materialize(pid).disabled = False
+    t.materialize(pid).player_tag = (
         "veteran"  # Use player_tag instead of name (which is auto-generated)
     )
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Boolean context with True value
         within_ctx = player.within(enabled=True)
         assert within_ctx.enabled is True
@@ -478,14 +478,14 @@ def test_within_chaining_and_along_integration():
     sid, pid = setup()
 
     # Set up history
-    pid().state = "init"
-    pid().counter = 1
-    pid().state = "running"
-    pid().counter = 2
-    pid().state = "complete"
-    pid().counter = 3
+    t.materialize(pid).state = "init"
+    t.materialize(pid).counter = 1
+    t.materialize(pid).state = "running"
+    t.materialize(pid).counter = 2
+    t.materialize(pid).state = "complete"
+    t.materialize(pid).counter = 3
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test along method returns within contexts
         states = []
         within_contexts = []
@@ -509,13 +509,13 @@ def test_within_chaining_and_along_integration():
 def test_within_edge_cases():
     sid, pid = setup()
 
-    pid().zero_value = 0
-    pid().empty_string = ""
-    pid().empty_list = []
-    pid().empty_dict = {}
-    pid().regular_field = "normal"
+    t.materialize(pid).zero_value = 0
+    t.materialize(pid).empty_string = ""
+    t.materialize(pid).empty_list = []
+    t.materialize(pid).empty_dict = {}
+    t.materialize(pid).regular_field = "normal"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test with "falsy" values
         within_ctx = player.within(zero_value=0)
         assert within_ctx.zero_value == 0
@@ -538,11 +538,11 @@ def test_within_binary_search_correctness():
 
     # Create large history (1000 entries)
     for i in range(1000):
-        pid().counter = i
-        pid().phase = f"phase_{i // 100}"  # Changes every 100 iterations
-        pid().data = f"data_{i}"
+        t.materialize(pid).counter = i
+        t.materialize(pid).phase = f"phase_{i // 100}"  # Changes every 100 iterations
+        t.materialize(pid).data = f"data_{i}"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test correctness with current values (last iteration): counter=999, phase=phase_9
         within_ctx = player.within(phase="phase_9")
         result = within_ctx.data
@@ -570,18 +570,18 @@ def test_within_complex_interleaved_updates():
 
     for i in range(50):  # Reduced from 100 for clearer test logic
         if i % 13 == 0:
-            pid().mode = f"mode_{i // 13}"
+            t.materialize(pid).mode = f"mode_{i // 13}"
         if i % 11 == 0:
-            pid().level = i // 11
+            t.materialize(pid).level = i // 11
         if i % 7 == 0:
-            pid().status = f"status_{i // 7}"
+            t.materialize(pid).status = f"status_{i // 7}"
         if i % 17 == 0:
-            pid().special_marker = f"marker_{i}"
+            t.materialize(pid).special_marker = f"marker_{i}"
             special_markers.append(f"marker_{i}")
 
-        pid().tick = i
+        t.materialize(pid).tick = i
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test current value access
         within_ctx = player.within(tick=49)  # Last tick value
         assert within_ctx.tick == 49
@@ -603,15 +603,15 @@ def test_within_boundary_conditions():
     sid, pid = setup()
 
     # Test with None values, empty containers, and edge data
-    pid().none_field = None
-    pid().zero_field = 0
-    pid().empty_string = ""
-    pid().empty_list = []
-    pid().empty_dict = {}
-    pid().false_field = False
-    pid().regular_field = "normal"
+    t.materialize(pid).none_field = None
+    t.materialize(pid).zero_field = 0
+    t.materialize(pid).empty_string = ""
+    t.materialize(pid).empty_list = []
+    t.materialize(pid).empty_dict = {}
+    t.materialize(pid).false_field = False
+    t.materialize(pid).regular_field = "normal"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test context with None
         within_ctx1 = player.within(none_field=None)
         expect_attribute_error(within_ctx1, "none_field")
@@ -638,15 +638,15 @@ def test_within_realistic_gaming_scenario():
     sid, pid = setup()
 
     # Simulate realistic gaming state progression
-    pid().player_name = "TestPlayer"
-    pid().level = 5
-    pid().hp = 80
-    pid().mp = 50
-    pid().location = "dungeon_level_3"
-    pid().equipment = {"weapon": "sword", "armor": "chainmail"}
-    pid().status_effects = ["poison", "blessed"]
+    t.materialize(pid).player_name = "TestPlayer"
+    t.materialize(pid).level = 5
+    t.materialize(pid).hp = 80
+    t.materialize(pid).mp = 50
+    t.materialize(pid).location = "dungeon_level_3"
+    t.materialize(pid).equipment = {"weapon": "sword", "armor": "chainmail"}
+    t.materialize(pid).status_effects = ["poison", "blessed"]
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Test context queries with different field types
         within_ctx1 = player.within(level=5)
         assert within_ctx1.level == 5
@@ -682,27 +682,27 @@ def test_within_advanced_historical_scenarios():
     sid, pid = setup()
 
     # Create complex history with multiple state changes
-    pid().game_state = "menu"
-    pid().player_action = "start_game"
-    pid().timestamp = 1000
+    t.materialize(pid).game_state = "menu"
+    t.materialize(pid).player_action = "start_game"
+    t.materialize(pid).timestamp = 1000
 
-    pid().game_state = "playing"
-    pid().player_action = "move_north"
-    pid().timestamp = 2000
+    t.materialize(pid).game_state = "playing"
+    t.materialize(pid).player_action = "move_north"
+    t.materialize(pid).timestamp = 2000
 
-    pid().game_state = "combat"
-    pid().player_action = "attack"
-    pid().timestamp = 3000
+    t.materialize(pid).game_state = "combat"
+    t.materialize(pid).player_action = "attack"
+    t.materialize(pid).timestamp = 3000
 
-    pid().game_state = "playing"
-    pid().player_action = "move_south"
-    pid().timestamp = 4000
+    t.materialize(pid).game_state = "playing"
+    t.materialize(pid).player_action = "move_south"
+    t.materialize(pid).timestamp = 4000
 
-    pid().game_state = "inventory"
-    pid().player_action = "use_potion"
-    pid().timestamp = 5000
+    t.materialize(pid).game_state = "inventory"
+    t.materialize(pid).player_action = "use_potion"
+    t.materialize(pid).timestamp = 5000
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Can look up any historical game state
         menu_ctx = player.within(game_state="menu")
         assert menu_ctx.game_state == "menu"
@@ -732,11 +732,11 @@ def test_within_carryover_values():
     sid, pid = setup()
 
     # Scenario: field1 set before context conditions are met
-    pid().field1 = 42  # t=0: field1 is set to 42
-    pid().ctx1 = 1  # t=1: ctx1 is set to 1
-    pid().ctx2 = 2  # t=2: ctx2 is set to 2 (context now satisfied)
+    t.materialize(pid).field1 = 42  # t=0: field1 is set to 42
+    t.materialize(pid).ctx1 = 1  # t=1: ctx1 is set to 1
+    t.materialize(pid).ctx2 = 2  # t=2: ctx2 is set to 2 (context now satisfied)
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # With temporal ordering constraint, field1 was set before context fields
         within_ctx = player.within(ctx1=1, ctx2=2)
 
@@ -756,20 +756,20 @@ def test_within_multiple_context_windows():
     sid, pid = setup()
 
     # First context window
-    pid().field1 = 42
-    pid().ctx1 = 1
-    pid().ctx2 = 2  # Context satisfied: field1=42
+    t.materialize(pid).field1 = 42
+    t.materialize(pid).ctx1 = 1
+    t.materialize(pid).ctx2 = 2  # Context satisfied: field1=42
 
     # Break the context
-    pid().ctx1 = 0  # Context no longer satisfied
+    t.materialize(pid).ctx1 = 0  # Context no longer satisfied
 
     # Change field1 while context is broken
-    pid().field1 = 100
+    t.materialize(pid).field1 = 100
 
     # Restore context - creates second context window
-    pid().ctx1 = 1  # Context satisfied again: field1=100
+    t.materialize(pid).ctx1 = 1  # Context satisfied again: field1=100
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # With temporal constraint, field1=100 was set before ctx1 was restored
         within_ctx = player.within(ctx1=1, ctx2=2)
         expect_attribute_error(
@@ -783,11 +783,11 @@ def test_within_context_never_satisfied():
     """Test within behavior when context conditions are never satisfied."""
     sid, pid = setup()
 
-    pid().field1 = 42
-    pid().ctx1 = 1
-    pid().ctx2 = 3  # ctx2=3, but we'll look for ctx2=2
+    t.materialize(pid).field1 = 42
+    t.materialize(pid).ctx1 = 1
+    t.materialize(pid).ctx2 = 3  # ctx2=3, but we'll look for ctx2=2
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Context ctx1=1, ctx2=2 is never satisfied
         within_ctx = player.within(ctx1=1, ctx2=2)
         expect_attribute_error(
@@ -809,16 +809,16 @@ def test_within_context_changes_back_single_field():
     sid, pid = setup()
 
     # First context window: ctx1=1
-    pid().ctx1 = 1  # t=0
-    pid().field1 = 42  # t=1: field1 recorded during first ctx1=1 period
+    t.materialize(pid).ctx1 = 1  # t=0
+    t.materialize(pid).field1 = 42  # t=1: field1 recorded during first ctx1=1 period
 
     # Context changes
-    pid().ctx1 = 2  # t=2: context no longer ctx1=1
+    t.materialize(pid).ctx1 = 2  # t=2: context no longer ctx1=1
 
     # Second context window: ctx1=1 (changes back)
-    pid().ctx1 = 1  # t=3: context returns to ctx1=1
+    t.materialize(pid).ctx1 = 1  # t=3: context returns to ctx1=1
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Query for ctx1=1 should only consider the LATEST ctx1=1 window (at t=3)
         # field1=42 was set during the first ctx1=1 window (at t=1)
         # At t=3, ctx1 was set at t=3, field1 was set at t=1
@@ -835,17 +835,17 @@ def test_within_context_changes_back_with_new_data():
     sid, pid = setup()
 
     # First context window
-    pid().ctx1 = 1  # t=0
-    pid().field1 = 42  # t=1: old data from first window
+    t.materialize(pid).ctx1 = 1  # t=0
+    t.materialize(pid).field1 = 42  # t=1: old data from first window
 
     # Context changes
-    pid().ctx1 = 2  # t=2
+    t.materialize(pid).ctx1 = 2  # t=2
 
     # Second context window with new data
-    pid().ctx1 = 1  # t=3: context returns to ctx1=1
-    pid().field1 = 100  # t=4: NEW data set during second ctx1=1 window
+    t.materialize(pid).ctx1 = 1  # t=3: context returns to ctx1=1
+    t.materialize(pid).field1 = 100  # t=4: NEW data set during second ctx1=1 window
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         within_ctx = player.within(ctx1=1)
         # field1=100 was set at t=4, ctx1 was set at t=3
         # Since ctx1 time (3) < field1 time (4), field1 should be included
@@ -858,19 +858,19 @@ def test_within_context_changes_back_multiple_fields():
     sid, pid = setup()
 
     # First context window
-    pid().ctx1 = 1  # t=0
-    pid().ctx2 = 2  # t=1
-    pid().field1 = 42  # t=2: data from first window
-    pid().field2 = 100  # t=3: more data from first window
+    t.materialize(pid).ctx1 = 1  # t=0
+    t.materialize(pid).ctx2 = 2  # t=1
+    t.materialize(pid).field1 = 42  # t=2: data from first window
+    t.materialize(pid).field2 = 100  # t=3: more data from first window
 
     # Break context
-    pid().ctx1 = 5  # t=4
+    t.materialize(pid).ctx1 = 5  # t=4
 
     # Restore context
-    pid().ctx1 = 1  # t=5: ctx1 back to 1 (ctx2 still 2)
-    pid().field3 = 200  # t=6: new data in restored context
+    t.materialize(pid).ctx1 = 1  # t=5: ctx1 back to 1 (ctx2 still 2)
+    t.materialize(pid).field3 = 200  # t=6: new data in restored context
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         within_ctx = player.within(ctx1=1, ctx2=2)
 
         # field1 and field2 were set before the latest ctx1 restoration
@@ -892,24 +892,24 @@ def test_within_complex_temporal_scenarios():
     sid, pid = setup()
 
     # Complex scenario with multiple field changes and context windows
-    pid().base_value = "initial"
-    pid().counter = 0
+    t.materialize(pid).base_value = "initial"
+    t.materialize(pid).counter = 0
 
-    pid().state = "A"
-    pid().mode = 1
-    pid().counter = 1  # Context: state=A, mode=1, counter=1, base_value="initial"
+    t.materialize(pid).state = "A"
+    t.materialize(pid).mode = 1
+    t.materialize(pid).counter = 1  # Context: state=A, mode=1, counter=1, base_value="initial"
 
-    pid().base_value = "updated"
-    pid().counter = 2  # Context: state=A, mode=1, counter=2, base_value="updated"
+    t.materialize(pid).base_value = "updated"
+    t.materialize(pid).counter = 2  # Context: state=A, mode=1, counter=2, base_value="updated"
 
-    pid().state = "B"  # Break context
-    pid().counter = 3
+    t.materialize(pid).state = "B"  # Break context
+    t.materialize(pid).counter = 3
 
-    pid().state = "A"  # Restore context (state set at this point)
-    pid().counter = 4  # Context: state=A, mode=1, counter=4
-    pid().base_value = "final"  # Set AFTER context restoration
+    t.materialize(pid).state = "A"  # Restore context (state set at this point)
+    t.materialize(pid).counter = 4  # Context: state=A, mode=1, counter=4
+    t.materialize(pid).base_value = "final"  # Set AFTER context restoration
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Find state when state=A and mode=1 were both true
         within_ctx = player.within(state="A", mode=1)
 
@@ -925,9 +925,9 @@ def test_within_complex_temporal_scenarios():
 def test_within_string_representations():
     sid, pid = setup()
 
-    pid().test_field = "value"
+    t.materialize(pid).test_field = "value"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         within_ctx = player.within(test_field="value")
 
         # Test that within object behaves reasonably
@@ -942,19 +942,19 @@ def test_within_multiple_context_fields_temporal_logic():
     sid, pid = setup()
 
     # Create a temporal sequence where context conditions are satisfied at different times
-    pid().field_a = "value_a1"
-    pid().field_b = "value_b1"
-    pid().target = "target1"
+    t.materialize(pid).field_a = "value_a1"
+    t.materialize(pid).field_b = "value_b1"
+    t.materialize(pid).target = "target1"
 
     # Change field_a, breaking the context
-    pid().field_a = "value_a2"
-    pid().target = "target2"
+    t.materialize(pid).field_a = "value_a2"
+    t.materialize(pid).target = "target2"
 
     # Restore field_a - this creates a NEW context window for field_a="value_a1", field_b="value_b1"
-    pid().field_a = "value_a1"  # Context restored here (latest establishment point)
+    t.materialize(pid).field_a = "value_a1"  # Context restored here (latest establishment point)
     # target was last set BEFORE this restoration, so it won't be visible with temporal constraint
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Context field_a="value_a1", field_b="value_b1" is restored at the point where field_a is set back
         # Since target was set BEFORE field_a was restored, target is NOT visible (temporal constraint)
         within_ctx1 = player.within(field_a="value_a1", field_b="value_b1")
@@ -964,19 +964,19 @@ def test_within_multiple_context_fields_temporal_logic():
         expect_attribute_error(within_ctx1, "target")
 
     # Now test with data set AFTER context restoration
-    pid().target = "target4"  # Set after field_a restoration
+    t.materialize(pid).target = "target4"  # Set after field_a restoration
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         within_ctx2 = player.within(field_a="value_a1", field_b="value_b1")
         assert (
             within_ctx2.target == "target4"
         )  # Now visible because set after context restoration
 
     # Change field_b, creating a different context
-    pid().field_b = "value_b2"
-    pid().target = "target3"
+    t.materialize(pid).field_b = "value_b2"
+    t.materialize(pid).target = "target3"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Context field_a="value_a1", field_b="value_b2" is satisfied currently
         within_ctx3 = player.within(field_a="value_a1", field_b="value_b2")
         assert within_ctx3.field_a == "value_a1"
@@ -988,10 +988,10 @@ def test_within_context_field_does_not_exist():
     """Test within behavior when a context field was never set."""
     sid, pid = setup()
 
-    pid().existing_field = "value"
+    t.materialize(pid).existing_field = "value"
     # never_set_field is never set
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Context with a field that was never set should work gracefully
         within_ctx = player.within(never_set_field="any_value")
 
@@ -1004,10 +1004,10 @@ def test_within_empty_context_equivalence():
     """Test that empty context behaves like normal field access."""
     sid, pid = setup()
 
-    pid().field1 = "value1"
-    pid().field2 = "value2"
+    t.materialize(pid).field1 = "value1"
+    t.materialize(pid).field2 = "value2"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Empty context should be equivalent to normal access
         within_ctx = player.within()
 
@@ -1025,19 +1025,19 @@ def test_along_with_temporal_constraints():
 
     # Create a sequence where context field changes multiple times
     # and we have data associated with each context value
-    pid().level = 1
-    pid().score = 100  # score set when level=1
+    t.materialize(pid).level = 1
+    t.materialize(pid).score = 100  # score set when level=1
 
-    pid().level = 2
-    pid().score = 200  # score set when level=2
+    t.materialize(pid).level = 2
+    t.materialize(pid).score = 200  # score set when level=2
 
-    pid().level = 1  # level changes back to 1
-    pid().hp = 50  # hp set when level=1 (second time)
+    t.materialize(pid).level = 1  # level changes back to 1
+    t.materialize(pid).hp = 50  # hp set when level=1 (second time)
 
-    pid().level = 3
-    pid().score = 300  # score set when level=3
+    t.materialize(pid).level = 3
+    t.materialize(pid).score = 300  # score set when level=3
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         # Iterate through level history using .along()
         level_contexts = {}
         for level_value, within_ctx in player.along("level"):
@@ -1067,19 +1067,19 @@ def test_along_with_multiple_context_changes():
     sid, pid = setup()
 
     # Create alternating pattern: A -> B -> A -> B
-    pid().state = "A"
-    pid().data1 = "a1"
+    t.materialize(pid).state = "A"
+    t.materialize(pid).data1 = "a1"
 
-    pid().state = "B"
-    pid().data2 = "b1"
+    t.materialize(pid).state = "B"
+    t.materialize(pid).data2 = "b1"
 
-    pid().state = "A"
-    pid().data3 = "a2"
+    t.materialize(pid).state = "A"
+    t.materialize(pid).data3 = "a2"
 
-    pid().state = "B"
-    pid().data4 = "b2"
+    t.materialize(pid).state = "B"
+    t.materialize(pid).data4 = "b2"
 
-    with pid() as player:
+    with t.materialize(pid) as player:
         state_contexts = {}
         for state_value, within_ctx in player.along("state"):
             # Store the latest context for each state value

@@ -20,6 +20,7 @@ import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
 import uproot.rooms as r
+import uproot.types as t
 from uproot.storage import Admin, Session
 
 router = APIRouter(prefix=f"{d.ROOT}/admin/api/v1")
@@ -189,7 +190,7 @@ async def create_session(
             settings=settings_parsed,
         )
 
-    with sid() as session:
+    with t.materialize(sid) as session:
         c.create_players(
             session,
             n=body.n_players,
@@ -657,7 +658,7 @@ async def create_session_in_room(
         if body.no_grow:
             admin.rooms[roomname]["capacity"] = body.n_players
 
-    with sid() as session:
+    with t.materialize(sid) as session:
         session.room = roomname
 
         c.create_players(

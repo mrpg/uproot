@@ -20,6 +20,7 @@ from uproot.types import (
     Value,
     ensure_awaitable,
     identify,
+    materialize,
     optional_call,
 )
 
@@ -77,7 +78,7 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
             else:
                 u.set_offline(pid)
 
-                with pid() as player:
+                with materialize(pid) as player:
                     player._uproot_dropout = True
 
                     if player.show_page != len(player.page_order):
@@ -137,7 +138,8 @@ def here(
         return {
             pid
             for pid in u.who_online(d.HERE_TOLERANCE, sname)
-            if (among is None or pid in among) and pid().show_page == show_page
+            if (among is None or pid in among)
+            and materialize(pid).show_page == show_page
         }
     else:
         # TODO: Technically speaking, if strict is False, others need not be online.
@@ -145,7 +147,8 @@ def here(
         return {
             pid
             for pid in u.who_online(d.HERE_TOLERANCE, sname)
-            if (among is None or pid in among) and pid().show_page >= show_page
+            if (among is None or pid in among)
+            and materialize(pid).show_page >= show_page
         }
 
 
@@ -177,7 +180,7 @@ def try_group(player: s.Storage, show_page: int, group_size: int) -> Optional[st
         if pid == identify(player):
             add_to_valid = player._uproot_group is None
         else:
-            add_to_valid = pid()._uproot_group is None
+            add_to_valid = materialize(pid)._uproot_group is None
 
         if add_to_valid:
             valid_members.append(pid)
