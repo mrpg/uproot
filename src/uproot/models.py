@@ -180,7 +180,6 @@ def add_entry(
         entry_id = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
     """
     if isinstance(pid, s.Storage):
-        # We don't use @flexible here because it cannot handle Unions (neither can Max)
         pid = identify(pid)  # type: ignore[assignment]
 
     return auto_add_entry(mid, pid, entry_type, **other_fields)

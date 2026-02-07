@@ -326,9 +326,7 @@ def move_to_end(player: Storage, reload_: bool = True) -> None:
 
 
 @flexible
-def mark_dropout(player: Storage) -> None:
-    pid = cast(t.PlayerIdentifier, t.identify(player))
-
+def mark_dropout(pid: t.PlayerIdentifier) -> None:
     u.MANUAL_DROPOUTS.add(pid)
 
 

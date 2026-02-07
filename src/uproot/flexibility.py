@@ -3,6 +3,7 @@
 
 from functools import wraps
 from inspect import signature
+from types import UnionType
 from typing import (
     Any,
     Callable,
@@ -11,6 +12,8 @@ from typing import (
     TypeAlias,
     TypeVar,
     Union,
+    get_args,
+    get_origin,
     get_type_hints,
 )
 
@@ -52,6 +55,24 @@ class TypeRegistry:
         if converter:
             return converter(value)
         raise TypeError(f"No converter from {from_type} to {to_type}")
+
+    def try_convert_for_union(self, value: Any, union_args: tuple[type, ...]) -> Any:
+        """Try to convert value to match one of the union member types."""
+        value_type = type(value)
+
+        # If value already matches a union member directly, no conversion needed
+        if value_type in union_args:
+            return value
+
+        # Check if value's type is equivalent to any union member
+        for target_type in union_args:
+            equivalent_types = self.get_equivalent_types(target_type)
+            if value_type in equivalent_types:
+                # Convert to the target type that's in the union
+                return self.convert(value, value_type, target_type)
+
+        # No conversion possible
+        return value
 
 
 _registry = TypeRegistry()
@@ -113,16 +134,30 @@ _registry.register_equivalence(
 
 
 def flexible(func: Callable[P1, T]) -> Callable[P2, T]:
+    # Cache signature and type hints at decoration time
+    sig = signature(func)
+    hints = get_type_hints(func)
+
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        sig = signature(func)
-        hints = get_type_hints(func)
         bound = sig.bind(*args, **kwargs)
         bound.apply_defaults()
 
         for param_name, value in bound.arguments.items():
-            if param_name in hints:
-                expected_type = hints[param_name]
+            if param_name not in hints:
+                continue
+
+            expected_type = hints[param_name]
+            origin = get_origin(expected_type)
+
+            # Handle Union types (both typing.Union and X | Y syntax)
+            if origin is Union or isinstance(expected_type, UnionType):
+                union_args = get_args(expected_type)
+                bound.arguments[param_name] = _registry.try_convert_for_union(
+                    value, union_args
+                )
+            else:
+                # Original non-Union logic
                 equivalent_types = _registry.get_equivalent_types(expected_type)
 
                 if len(equivalent_types) > 1:
