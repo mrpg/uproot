@@ -64,7 +64,7 @@ class within:
 
 
 class Storage:
-    __slots__ = (
+    _INTERNAL_ATTRS = (
         "__accessed_fields__",
         "__contexts__",
         "__field_cache__",
@@ -73,7 +73,6 @@ class Storage:
         "name",
         "__namespace__",
         "__virtual__",
-        "__weakref__",
     )
 
     def __init__(
@@ -107,11 +106,14 @@ class Storage:
             "Attribute name must be a valid identifier",
         )
 
+        if name == "__class__":
+            return object.__setattr__(self, name, value)
+
         if name == "name" or (name.startswith("__") and name.endswith("__")):
             ensure(
-                name in self.__slots__,
+                name in Storage._INTERNAL_ATTRS,
                 AttributeError,
-                f"Attribute '{name}' not in __slots__",
+                f"Attribute '{name}' is not an internal attribute",
             )
             return object.__setattr__(self, name, value)
 
@@ -153,6 +155,21 @@ class Storage:
             name.startswith("__") and name.endswith("__")
         ):
             return object.__getattribute__(self, name)
+
+        # Check for descriptors (e.g. properties) defined on subclasses
+        cls = type(self)
+
+        if cls is not Storage:
+            for klass in cls.__mro__:
+                if klass is Storage:
+                    break
+                if name in klass.__dict__:
+                    attr = klass.__dict__[name]
+
+                    if hasattr(attr, "__get__"):
+                        return attr.__get__(self, cls)
+
+                    return attr
 
         accessed_fields = object.__getattribute__(self, "__accessed_fields__")
         field_cache = object.__getattribute__(self, "__field_cache__")
