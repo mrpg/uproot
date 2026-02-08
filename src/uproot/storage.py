@@ -122,6 +122,21 @@ class Storage:
         if name in virtual:
             raise AttributeError(f"Cannot assign to virtual field '{name}'")
 
+        cls = type(self)
+
+        if cls is not Storage:
+            for klass in cls.__mro__:
+                if klass is Storage:
+                    break
+                if name in klass.__dict__:
+                    attr = klass.__dict__[name]
+
+                    if hasattr(attr, "__set__"):
+                        attr.__set__(self, value)
+                        return
+
+                    raise AttributeError(f"Cannot assign to '{name}'")
+
         newval = db_request(
             self,
             "insert",
