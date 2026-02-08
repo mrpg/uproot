@@ -80,9 +80,15 @@
 }
 
 /* Dedicated classes for switching to sans-serif and serif font */
-/* Adapted from https://tailwindcss.com/docs/font-family */
+/* Adapted from https://tailwindcss.com/docs/font-family, extending Bootstrap’s default fonts  */
 :root {
-    --bs-font-serif: ui-serif, "Times New Roman", Times, Cambria, Georgia, serif;
+    --bs-font-math: "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", math, serif;
+    --bs-font-monospace: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Mono", "Source Code Pro", "Fira Mono", "Droid Sans Mono", Consolas, "Courier New", monospace;
+    --bs-font-serif: ui-serif, "New York", "Noto Serif", "Liberation Serif", "Times New Roman", Times, Cambria, Georgia, serif;
+}
+/* Class for formulas in math font */
+.font-math {
+    font-family: var(--bs-font-math);
 }
 .font-sans-serif {
     font-family: var(--bs-font-sans-serif);
