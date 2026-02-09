@@ -110,13 +110,8 @@
 
 /* Extending Bootstrap’s default fonts */
 :root {
-    --bs-font-monospace: "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --bs-font-math: "IBM Plex Math", "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", math, serif;
+    /* No change to --bs-font-monospace, since "Cascadia Mono" is already included at position 1. */
     --bs-font-sans-serif: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --bs-font-serif: "IBM Plex Serif", ui-serif, "Times New Roman", Times, Cambria, Georgia, serif;
-    --bs-font-math: "IBM Plex Math", "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", serif;
-}
-
-/* Class for formulas in math font */
-.font-math {
-    font-family: var(--bs-font-math);
+    --bs-font-serif: "IBM Plex Serif", ui-serif, "New York", "Noto Serif", "Liberation Serif", "Times New Roman", Times, Cambria, Georgia, serif;
 }
