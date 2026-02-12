@@ -62,8 +62,6 @@ from uproot.storage import (
 from uproot.types import ensure_awaitable, optional_call, optional_call_once
 from uproot.utils import safe_redirect
 
-PROCESSED_FUTURES: deque[str] = deque(maxlen=8 * 1024)
-PROCESSED_FUTURES_LOCK = asyncio.Lock()
 router = APIRouter(prefix=d.ROOT)
 
 
@@ -478,6 +476,7 @@ async def ws(
         or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
     )
 
+    processed_futures: deque[str] = deque(maxlen=8 * 1024)
     tasks = {}
     background_tasks: set[asyncio.Task[Any]] = set()
     args: dict[str, dict[str, Any]] = {
@@ -495,11 +494,10 @@ async def ws(
     async def process_websocket_message(result: dict[str, Any]) -> None:
         u.set_online(pid)
 
-        async with PROCESSED_FUTURES_LOCK:
-            if "future" in result and result["future"] in PROCESSED_FUTURES:
-                return
-            elif "future" in result:
-                PROCESSED_FUTURES.append(result["future"])
+        if "future" in result and result["future"] in processed_futures:
+            return
+        elif "future" in result:
+            processed_futures.append(result["future"])
 
         invoke_respond = True
         invoke_response: Any = None
