@@ -3,6 +3,8 @@
 
 """Room operations service."""
 
+from typing import Any, cast
+
 from fastapi import HTTPException
 from sortedcontainers import SortedDict
 
@@ -28,13 +30,13 @@ def room_exists(roomname: str, raise_http: bool = True) -> None:
                 raise ValueError("Invalid room")
 
 
-def rooms() -> SortedDict[str, dict]:
+def rooms() -> SortedDict[str, dict[str, Any]]:
     """Get all rooms."""
     if d.PUBLIC_DEMO:
         return SortedDict()
 
     with s.Admin() as admin:
-        return SortedDict(admin.rooms)
+        return SortedDict(cast(dict[str, Any], admin.rooms))
 
 
 async def disassociate(roomname: str, sname: t.Sessionname) -> None:

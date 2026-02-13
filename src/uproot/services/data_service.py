@@ -207,7 +207,7 @@ def page_times(sname: t.Sessionname) -> str:
                     # after any existing entries with equal time (using the list's key function).
                     # So (idx - 1) gives the last entry with time <= show_page.time.
                     if page_orders:
-                        idx = cast(SortedList, page_orders).bisect_key_right(
+                        idx = cast(SortedList[t.Value], page_orders).bisect_key_right(  # type: ignore[attr-defined]
                             show_page.time
                         )
                         if idx > 0:
