@@ -7,13 +7,20 @@ Compatibility layer that delegates to appendmuch Store.
 
 from typing import TYPE_CHECKING, Any, Optional, Sequence, Union
 
+import appendmuch
+
 if TYPE_CHECKING:
     from appendmuch import Store
 
     from uproot.storage import Storage
 
+
 STORE: Optional["Store"] = None
 MEMORY_HISTORY: dict[str, Any] = {}
+
+dbns2tuple = appendmuch.dbns2tuple
+flatten = appendmuch.flatten
+tuple2dbns = appendmuch.tuple2dbns
 
 
 def set_store(store: "Store") -> None:
