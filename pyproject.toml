@@ -20,7 +20,6 @@ dependencies = [
     "fastapi==0.128.6",
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
-    "msgpack==1.1.2",
     "orjson==3.11.7",
     "pydantic==2.12.5",
     "strictyaml==1.7.3",
@@ -77,8 +76,7 @@ skip = ["tests", "build", "dist", ".venv", "venv"]
 
 [project.optional-dependencies]
 pg = [
-    "psycopg==3.3.2",
-    "psycopg-pool==3.3.0",
+    "appendmuch[pg] @ git+https://github.com/mrpg/appendmuch.git@master",
 ]
 dev = [
     "bandit==1.9.3",
@@ -150,8 +148,6 @@ DEP002 = [
     # Runtime dependencies not directly imported
     "python-multipart",  # Required by FastAPI for form data
     "websockets",  # Required for WebSocket support
-    # Optional/docs dependencies
-    "psycopg",
 ]
 DEP003 = [
     "uproot",  # Internal package imports
