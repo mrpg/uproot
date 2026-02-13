@@ -52,7 +52,7 @@ CODEC.register(
 CODEC.register(
     list,
     132,
-    lambda d: jd(d),
+    jd,
     lambda r: t.Bunch(t.PlayerIdentifier(**el) for el in jl(r)),
     mutable=True,
     predicate=lambda d: d and all(isinstance(el, t.PlayerIdentifier) for el in d),
