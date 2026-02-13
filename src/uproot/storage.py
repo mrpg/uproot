@@ -29,8 +29,8 @@ class Storage(appendmuch.Storage):
         self,
         *namespace: str,
         virtual: dict[str, Callable[["Storage"], Any]] | None = None,
-        store: Any | None = None,
     ) -> None:
+        from uproot.deployment import STORE
 
         ensure(
             all(type(t) is str and valid_token(t) for t in namespace),
@@ -41,7 +41,7 @@ class Storage(appendmuch.Storage):
 
         super().__init__(
             *namespace,
-            store=store,
+            store=STORE,
             virtual=virtual if virtual is not None else DEFAULT_VIRTUAL,
         )
 

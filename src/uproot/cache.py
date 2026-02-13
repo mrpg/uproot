@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Any, Optional, Sequence, Union
 
 import appendmuch
 
+from uproot.constraints import ensure_not_none
+
 if TYPE_CHECKING:
     from appendmuch import Store
 
@@ -30,18 +32,20 @@ def set_store(store: "Store") -> None:
 
 
 def safe_deepcopy(value: Any) -> Any:
-    assert STORE is not None
-    from appendmuch.utils import safe_deepcopy as sd
+    if ensure_not_none(STORE):
+        from appendmuch.utils import safe_deepcopy as sd
 
-    return sd(value, STORE.codec.immutable_types())
+        return sd(value, STORE.codec.immutable_types())
 
 
 def get_namespace(
     namespace: tuple[str, ...],
     create: bool = False,
 ) -> Optional[dict[str, Any]]:
-    assert STORE is not None
-    return STORE.get_namespace(namespace, create)
+    if ensure_not_none(STORE):
+        return STORE.get_namespace(namespace, create)
+
+    return None  # unreachable
 
 
 def field_history_since(
@@ -49,18 +53,20 @@ def field_history_since(
     field: str,
     since: float,
 ) -> list[Any]:
-    assert STORE is not None
-    return STORE.field_history_since(namespace, field, since)
+    if ensure_not_none(STORE):
+        return STORE.field_history_since(namespace, field, since)
+
+    return []  # unreachable
 
 
 def load_database_into_memory() -> None:
-    assert STORE is not None
-    STORE.load()
+    if ensure_not_none(STORE):
+        STORE.load()
 
 
 def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
-    assert STORE is not None
-    return STORE.get_current_value(namespace, field)
+    if ensure_not_none(STORE):
+        return STORE.get_current_value(namespace, field)
 
 
 def db_request(
@@ -80,5 +86,5 @@ def db_request(
         ]
     ] = None,
 ) -> Any:
-    assert STORE is not None
-    return STORE.db_request(caller, action, key, value, ctx=context, extra=extra)
+    if ensure_not_none(STORE):
+        return STORE.db_request(caller, action, key, value, ctx=context, extra=extra)
