@@ -37,6 +37,8 @@ def safe_deepcopy(value: Any) -> Any:
 
         return sd(value, STORE.codec.immutable_types())
 
+    return value  # unreachable
+
 
 def get_namespace(
     namespace: tuple[str, ...],
