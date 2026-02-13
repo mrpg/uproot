@@ -32,6 +32,7 @@ from typing import (
     overload,
 )
 
+import appendmuch
 from pydantic import validate_call
 from pydantic.dataclasses import dataclass as validated_dataclass
 
@@ -50,20 +51,14 @@ T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
 
+Value = appendmuch.Value
+
 MaybeAwaitable: TypeAlias = Union[T, Awaitable[T]]
 Sessionname: TypeAlias = str
 Username: TypeAlias = str
 PageLike: TypeAlias = Union[type["Page"], "SmoothOperator"]
 PlayerType: TypeAlias = Annotated["Storage", "Player"]
 Bunch: TypeAlias = list["PlayerIdentifier"]
-
-
-@validated_dataclass(frozen=True)
-class Value:
-    time: Optional[float] = None
-    unavailable: bool = True
-    data: Optional[Any] = None
-    context: str = ""
 
 
 class Identifier(ABC):
