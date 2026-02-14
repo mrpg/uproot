@@ -897,10 +897,14 @@ def test_within_complex_temporal_scenarios():
 
     t.materialize(pid).state = "A"
     t.materialize(pid).mode = 1
-    t.materialize(pid).counter = 1  # Context: state=A, mode=1, counter=1, base_value="initial"
+    t.materialize(pid).counter = (
+        1  # Context: state=A, mode=1, counter=1, base_value="initial"
+    )
 
     t.materialize(pid).base_value = "updated"
-    t.materialize(pid).counter = 2  # Context: state=A, mode=1, counter=2, base_value="updated"
+    t.materialize(pid).counter = (
+        2  # Context: state=A, mode=1, counter=2, base_value="updated"
+    )
 
     t.materialize(pid).state = "B"  # Break context
     t.materialize(pid).counter = 3
@@ -951,7 +955,9 @@ def test_within_multiple_context_fields_temporal_logic():
     t.materialize(pid).target = "target2"
 
     # Restore field_a - this creates a NEW context window for field_a="value_a1", field_b="value_b1"
-    t.materialize(pid).field_a = "value_a1"  # Context restored here (latest establishment point)
+    t.materialize(pid).field_a = (
+        "value_a1"  # Context restored here (latest establishment point)
+    )
     # target was last set BEFORE this restoration, so it won't be visible with temporal constraint
 
     with t.materialize(pid) as player:
