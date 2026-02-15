@@ -288,49 +288,49 @@ class TestStorageBunch:
     def test_each_single_key_simplify_true(self):
         """Test each method with single key and simplify=True."""
         storage1 = self.create_mock_storage("ns1")
-        storage1.name = "Alice"
+        storage1.name_ = "Alice"
         storage2 = self.create_mock_storage("ns2")
-        storage2.name = "Bob"
+        storage2.name_ = "Bob"
 
         bunch = StorageBunch([storage1, storage2])
-        result = bunch.each("name", simplify=True)
+        result = bunch.each("name_", simplify=True)
 
         assert result == ["Alice", "Bob"]
 
     def test_each_multiple_keys(self):
         """Test each method with multiple keys (default behavior)."""
         storage1 = self.create_mock_storage("ns1")
-        storage1.name = "Alice"
+        storage1.name_ = "Alice"
         storage1.age = 25
         storage2 = self.create_mock_storage("ns2")
-        storage2.name = "Bob"
+        storage2.name_ = "Bob"
         storage2.age = 30
 
         bunch = StorageBunch([storage1, storage2])
-        result = bunch.each("name", "age")
+        result = bunch.each("name_", "age")
 
         assert len(result) == 2
-        assert result[0].name == "Alice"
+        assert result[0].name_ == "Alice"
         assert result[0].age == 25
-        assert result[1].name == "Bob"
+        assert result[1].name_ == "Bob"
         assert result[1].age == 30
 
     def test_each_multiple_keys_simplify_false(self):
         """Test each method with multiple keys and simplify=False."""
         storage1 = self.create_mock_storage("ns1")
-        storage1.name = "Alice"
+        storage1.name_ = "Alice"
         storage1.age = 25
         storage2 = self.create_mock_storage("ns2")
-        storage2.name = "Bob"
+        storage2.name_ = "Bob"
         storage2.age = 30
 
         bunch = StorageBunch([storage1, storage2])
-        result = bunch.each("name", "age", simplify=False)
+        result = bunch.each("name_", "age", simplify=False)
 
         assert len(result) == 2
-        assert result[0].name == "Alice"
+        assert result[0].name_ == "Alice"
         assert result[0].age == 25
-        assert result[1].name == "Bob"
+        assert result[1].name_ == "Bob"
         assert result[1].age == 30
 
     def test_each_key_with_dots_raises_error(self):

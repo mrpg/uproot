@@ -6,8 +6,11 @@ This file intends to provide (1) a simple replacement for raw `assert`s and (2) 
 """
 
 import string
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TypeVar
 
+from typing_extensions import TypeIs
+
+T = TypeVar("T")
 TOKEN_CHARS = set(string.ascii_letters + string.digits + "-._")
 
 
@@ -51,3 +54,10 @@ def ensure(
             msg = "Constraint violation"
 
         raise exctype(msg)
+
+
+def ensure_not_none(val: T | None) -> TypeIs[T]:
+    if val is None:
+        raise AssertionError(f"{val!r} was None")
+
+    return True

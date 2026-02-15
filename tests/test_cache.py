@@ -26,7 +26,7 @@ def test_tuple2dbns():
 
 
 def test_dbns2tuple():
-    assert dbns2tuple("") == ("",)
+    assert dbns2tuple("") == ()
     assert dbns2tuple("single") == ("single",)
     assert dbns2tuple("first/second") == ("first", "second")
     assert dbns2tuple("a/b/c/d") == ("a", "b", "c", "d")

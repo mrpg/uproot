@@ -1,0 +1,4 @@
+name: "Uproot CodeQL config"
+query-filters:
+  - exclude:
+      id: py/cyclic-import

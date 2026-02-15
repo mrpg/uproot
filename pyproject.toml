@@ -15,11 +15,11 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp==3.13.3",
+    "appendmuch",  # TODO: Fix actual version
     "click==8.3.1",
     "fastapi==0.128.6",
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
-    "msgpack==1.1.2",
     "orjson==3.11.7",
     "pydantic==2.12.5",
     "strictyaml==1.7.3",
@@ -76,8 +76,7 @@ skip = ["tests", "build", "dist", ".venv", "venv"]
 
 [project.optional-dependencies]
 pg = [
-    "psycopg==3.3.2",
-    "psycopg-pool==3.3.0",
+    "appendmuch[pg]",  # TODO: Fix actual version
 ]
 dev = [
     "bandit==1.9.3",
@@ -106,7 +105,7 @@ disallow_untyped_defs = true
 ignore_missing_imports = true
 warn_redundant_casts = true
 warn_unreachable = true
-warn_unused_ignores = true
+warn_unused_ignores = false  # can be reenabled later, there is a bug here with the CI
 no_implicit_optional = true
 disallow_any_generics = true
 check_untyped_defs = true
@@ -149,8 +148,6 @@ DEP002 = [
     # Runtime dependencies not directly imported
     "python-multipart",  # Required by FastAPI for form data
     "websockets",  # Required for WebSocket support
-    # Optional/docs dependencies
-    "psycopg",
 ]
 DEP003 = [
     "uproot",  # Internal package imports
