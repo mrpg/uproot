@@ -426,10 +426,10 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         if (key == null) return;
 
         const item = createElement("div",
-            "align-items-center bg-transparent d-flex justify-content-between list-group-item p-0"
+            "align-items-start bg-transparent d-flex justify-content-between list-group-item px-0 py-1"
         );
 
-        const content = createElement("div", "");
+        const content = createElement("div", "flex-grow-1 overflow-x-auto");
         const displayKey = key.startsWith("~") ? key.substring(1) : key;
 
         const title = createElement("div", "font-monospace fw-semibold h5 my-2", {
@@ -454,11 +454,11 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
 
         item.appendChild(content);
 
-        const detailsLink = createElement("a", "btn btn-sm btn-outline-uproot btn-launch", {
+        const detailsLink = createElement("a", "btn btn-sm btn-outline-uproot btn-launch flex-grow-0", {
             href: newSessionUrl(key),
             title: _("New session")
         });
-        detailsLink.innerHTML = `<span class="font-bi fs-3">&#xF4FA;</span>`; // SAFE
+        detailsLink.innerHTML = `<span class="font-bi">&#xF4FA;</span>`; // SAFE
         item.appendChild(detailsLink);
 
         listGroup.appendChild(item);
