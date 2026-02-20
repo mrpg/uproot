@@ -223,7 +223,7 @@ async def show_page(
                                 "handle_stealth_fields",
                                 default_return=[],
                                 player=player,
-                                **stealth_fields,
+                                data=form.data,
                             )
                             if isinstance(stealth_errors, str):
                                 stealth_errors = [stealth_errors]
