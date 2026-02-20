@@ -163,6 +163,7 @@ def initialize_player(
 ) -> None:
     with t.materialize(pid) as player:
         player.app = None
+        player.config = config
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
         player.page_order = u.CONFIGS_PPATHS[config]
