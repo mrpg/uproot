@@ -146,7 +146,9 @@ footer a {
 }
 .btn-launch {
     border: none;
-    font-size: 2em;
+    font-size: 1.5em;
+    padding-bottom: 0.05rem !important;
+    padding-top: 0.15rem !important;
 }
 
 .sort-indicator {
