@@ -141,37 +141,48 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Admin settings{% endtranslate %}</h5>
-                <div class="d-grid">
-                    <button type="button" class="border-0 btn btn-outline-uproot btn-sm fs-6 mb-1 position-relative text-start w-100" onclick="flipTesting()">
-                        <i class="bi bi-toggle-{% if session.testing %}on{% else %}off{% endif %} me-2"></i>
+                <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2">
+                    <p class="mb-1">
                         {% if session.testing %}
-                        <b>{% translate %}Testing is enabled.{% endtranslate %}
-                        <i class="bi bi-exclamation-triangle-fill ms-1"></i></b>
+                        <b class="text-uproot"><i class="bi bi-exclamation-triangle-fill text-uproot"></i>
+                            {% translate %}Testing is enabled.{% endtranslate %}
+                        </b>
                         {% else %}
                         {% translate %}Testing is disabled.{% endtranslate %}
                         {% endif %}
-                        <i class="bi bi-question-circle position-absolute end-0 me-2"
+                    </p>
+                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0"
                         data-bs-toggle="popover"
                         data-bs-trigger="hover"
-                        data-bs-content="{% if session.testing %}{% translate %}This will hide this session’s testing elements for all except admins.{% endtranslate %}{% else %}{% translate %}This will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
-                        onclick="event.stopPropagation()"></i>
-                    </button>
-                    <button type="button" class="border-0 btn btn-outline-uproot btn-sm fs-6 position-relative text-start w-100" onclick="flipActive()">
-                        <i class="bi bi-toggle-{% if session.active %}on{% else %}off{% endif %} me-2"></i>
-                        {% if session.active %}
-                        {% translate %}
-                        Session is active.
-                        {% endtranslate %}
+                        data-bs-content="{% if session.testing %}{% translate %}Toggling this will hide this session’s testing elements for everyone except admins.{% endtranslate %}{% else %}{% translate %}Toggling this will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
+                        onclick="flipTesting()"
+                        type="button">
+                        {% if session.testing %}
+                        <i class="bi bi-toggle-on"></i>
                         {% else %}
-                        {% translate %}
-                        Session is inactive.
-                        {% endtranslate %}
+                        <i class="bi bi-toggle-off"></i>
                         {% endif %}
-                        <i class="bi bi-question-circle position-absolute end-0 me-2"
+                    </button>
+                </div>
+                <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                    <p class="mb-1">
+                        {% if session.active %}
+                        {% translate %}Session is active.{% endtranslate %}
+                        {% else %}
+                        <span class="text-body-tertiary">{% translate %}Session is inactive.{% endtranslate %}</span>
+                        {% endif %}
+                    </p>
+                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
                         data-bs-toggle="popover"
                         data-bs-trigger="hover"
-                        data-bs-content="{% if session.active %}{% translate %}This has purely cosmetical consequences: It moves this session to the “Inactive sessions” section on the “Sessions” page.{% endtranslate %}{% else %}{% translate %}This has purely cosmetical consequences: It moves this session to the “Active sessions” section on the “Sessions” page.{% endtranslate %}{% endif %}"
-                        onclick="event.stopPropagation()"></i>
+                        data-bs-content="{% translate %}Toggling this has purely cosmetical consequences:{% endtranslate %} {% if session.active %}{% translate %}It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”{% endtranslate %}{% else %}{% translate %}It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”{% endtranslate %}{% endif %}"
+                        onclick="flipActive()"
+                        type="button">
+                        {% if session.active %}
+                        <i class="bi bi-toggle-on"></i>
+                        {% else %}
+                        <i class="bi bi-toggle-off"></i>
+                        {% endif %}
                     </button>
                 </div>
             </div>

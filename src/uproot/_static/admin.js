@@ -411,6 +411,7 @@ function renderConfigsApps(data, containerId) {
 
 function renderConfigsAppsCards(data, containerId, groupKey) {
     const container = I(containerId);
+    container.innerHTML = "";  // SAFE
     if (!data[groupKey]) return;
 
     const card = createElement("div", "card mb-3");

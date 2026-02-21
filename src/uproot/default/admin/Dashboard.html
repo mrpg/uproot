@@ -20,7 +20,11 @@ Dashboard
             {% endtranslate %}
         </h3>
         {% if not deployment.PUBLIC_DEMO %}
-        <div class="col mb-4" id="rooms-container"></div>
+        <div class="col mb-4" id="rooms-container">
+            <span class="text-body-tertiary">{% translate %}
+            No rooms defined at this time.
+            {% endtranslate %}</span>
+        </div>
         {% else %}
         {% include "PublicDemo.html" %}
         {% endif %}
@@ -32,7 +36,11 @@ Dashboard
             {% endtranslate %}
         </h3>
         {% if not deployment.PUBLIC_DEMO %}
-        <div class="col mb-4" id="sessions-container"></div>
+        <div class="col mb-4" id="sessions-container">
+            <span class="text-body-tertiary">{% translate %}
+            No active sessions at this time.
+            {% endtranslate %}</span>
+        </div>
         {% else %}
         {% include "PublicDemo.html" %}
         {% endif %}
@@ -46,7 +54,11 @@ Dashboard
             Configs
             {% endtranslate %}
         </h3>
-        <div class="mb-4" id="configs-container"></div>
+        <div class="mb-4" id="configs-container">
+            <span class="text-body-tertiary">{% translate %}
+            No configs defined at this time.
+            {% endtranslate %}</span>
+        </div>
     </div>
     <div class="col-12 col-lg-6">
         <h3 class="mb-3 mt-4">
@@ -54,7 +66,11 @@ Dashboard
             Apps
             {% endtranslate %}
         </h3>
-        <div class="mb-4" id="apps-container"></div>
+        <div class="mb-4" id="apps-container">
+            <span class="text-body-tertiary">{% translate %}
+            No apps defined at this time.
+            {% endtranslate %}</span>
+        </div>
     </div>
 </div>
 
