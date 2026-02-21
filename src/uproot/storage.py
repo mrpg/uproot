@@ -42,33 +42,13 @@ class Storage(appendmuch.Storage):
         super().__init__(
             *namespace,
             store=STORE,
-            virtual=virtual if virtual is not None else DEFAULT_VIRTUAL,
+            virtual=virtual if virtual is not None else {},
         )
 
     def __repr__(self) -> str:
         if len(self.__namespace__) == 1:
             return f"{self.__namespace__[0].capitalize()}()"
         return f"{self.__namespace__[0].capitalize()}(*{repr(self.__namespace__[1:])})"
-
-
-def Admin() -> Storage:
-    return Storage("admin")
-
-
-def Session(sname: Sessionname) -> Storage:
-    return Storage("session", str(sname))
-
-
-def Group(sname: Sessionname, gname: str) -> Storage:
-    return Storage("group", str(sname), gname)
-
-
-def Player(sname: Sessionname, uname: Username) -> Storage:
-    return Storage("player", str(sname), str(uname))
-
-
-def Model(sname: Sessionname, mname: str) -> Storage:
-    return Storage("model", str(sname), mname)
 
 
 def virtual_group(
@@ -110,10 +90,64 @@ def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Stora
         raise AttributeError
 
 
-DEFAULT_VIRTUAL: dict[str, Callable[["Storage"], Any]] = {
-    "session": lambda p: materialize(p._uproot_session),
-    "group": virtual_group,
-    "player": virtual_player,
-    "along": lambda p: (lambda field: within.along(p, field)),
-    "within": lambda p: (lambda **ctx: within(p, **ctx)),
-}
+def Admin() -> Storage:
+    return Storage(
+        "admin",
+        virtual={
+            "along": lambda s: (lambda field: within.along(s, field)),
+            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+        },
+    )
+
+
+def Session(sname: Sessionname) -> Storage:
+    return Storage(
+        "session",
+        str(sname),
+        virtual={
+            "group": virtual_group,
+            "player": virtual_player,
+            "along": lambda s: (lambda field: within.along(s, field)),
+            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+        },
+    )
+
+
+def Group(sname: Sessionname, gname: str) -> Storage:
+    return Storage(
+        "group",
+        str(sname),
+        gname,
+        virtual={
+            "session": lambda s: materialize(s._uproot_session),
+            "along": lambda s: (lambda field: within.along(s, field)),
+            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+        },
+    )
+
+
+def Player(sname: Sessionname, uname: Username) -> Storage:
+    return Storage(
+        "player",
+        str(sname),
+        str(uname),
+        virtual={
+            "session": lambda s: materialize(s._uproot_session),
+            "group": virtual_group,
+            "along": lambda s: (lambda field: within.along(s, field)),
+            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+        },
+    )
+
+
+def Model(sname: Sessionname, mname: str) -> Storage:
+    return Storage(
+        "model",
+        str(sname),
+        mname,
+        virtual={
+            "session": lambda s: materialize(s._uproot_session),
+            "along": lambda s: (lambda field: within.along(s, field)),
+            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+        },
+    )
