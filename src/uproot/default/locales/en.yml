@@ -400,12 +400,6 @@
 ? 'This creates a complete machine-readable record of all data.'
 : 'This creates a complete machine-readable record of all data.'
 
-? 'This has purely cosmetical consequences: It moves this session to the ‘Active sessions’ section on the ‘Sessions’ page.'
-: 'This has purely cosmetical consequences: It moves this session to the ‘Active sessions’ section on the ‘Sessions’ page.'
-
-? 'This has purely cosmetical consequences: It moves this session to the ‘Inactive sessions’ section on the ‘Sessions’ page.'
-: 'This has purely cosmetical consequences: It moves this session to the ‘Inactive sessions’ section on the ‘Sessions’ page.'
-
 ? 'This opens a new browser tab displaying the current pages of the selected players.'
 : 'This opens a new browser tab displaying the current pages of the selected players.'
 

@@ -400,12 +400,6 @@
 ? 'This creates a complete machine-readable record of all data.'
 : 'Esto crea un registro completo legible por máquina de todos los datos.'
 
-? 'This has purely cosmetical consequences: It moves this session to the ‘Active sessions’ section on the ‘Sessions’ page.'
-: 'Esto tiene consecuencias puramente estéticas: Mueve esta sesión a la sección "Sesiones activas" en la página "Sesiones".'
-
-? 'This has purely cosmetical consequences: It moves this session to the ‘Inactive sessions’ section on the ‘Sessions’ page.'
-: 'Esto tiene consecuencias puramente estéticas: Mueve esta sesión a la sección "Sesiones inactivas" en la página "Sesiones".'
-
 ? 'This opens a new browser tab displaying the current pages of the selected players.'
 : 'Esto abre una nueva pestaña del navegador mostrando las páginas actuales de los jugadores seleccionados.'
 
