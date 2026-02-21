@@ -48,7 +48,12 @@ class ModuleManager:
         return module_name in self.modules
 
     def start_watching(self) -> None:
-        self.observer.start()
+        try:
+            self.observer.start()
+        except OSError:
+            d.LOGGER.warning(
+                "Cannot watch for changes in apps; do you have a lot of apps?"
+            )
 
     def stop_watching(self) -> None:
         self.observer.stop()
