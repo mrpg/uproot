@@ -243,6 +243,13 @@ def notify(
 
 @flexible
 def others_in_session(player: Storage) -> t.StorageBunch:
+    # TODO: Remove (issue #179)
+    t.ensure_local_logger()
+    t.LOGGER.warning(
+        "others_in_session(obj) will soon be deprecated. "
+        "You can soon use obj.others_in_session directly."
+    )
+
     pid = t.identify(player)
 
     with player._uproot_session() as s:
@@ -253,6 +260,13 @@ def others_in_session(player: Storage) -> t.StorageBunch:
 
 @flexible
 def others_in_group(player: Storage) -> t.StorageBunch:
+    # TODO: Remove (issue #179)
+    t.ensure_local_logger()
+    t.LOGGER.warning(
+        "others_in_group(obj) will soon be deprecated. "
+        "You can soon use obj.others_in_group directly."
+    )
+
     pid = t.identify(player)
 
     with player.group as g:
@@ -263,6 +277,13 @@ def others_in_group(player: Storage) -> t.StorageBunch:
 
 @flexible
 def other_in_group(player: Storage) -> Storage:
+    # TODO: Remove (issue #179)
+    t.ensure_local_logger()
+    t.LOGGER.warning(
+        "other_in_group(obj) will soon be deprecated. "
+        "You can soon use obj.other_in_group directly."
+    )
+
     others = others_in_group(player)
 
     ensure(len(others) == 1, ValueError, "Expected exactly one other player in group")
@@ -272,6 +293,13 @@ def other_in_group(player: Storage) -> Storage:
 
 @flexible
 def other_in_session(player: Storage) -> Storage:
+    # TODO: Remove (issue #179)
+    t.ensure_local_logger()
+    t.LOGGER.warning(
+        "other_in_session(obj) will soon be deprecated. "
+        "You can soon use obj.other_in_session directly."
+    )
+
     others = others_in_session(player)
 
     ensure(len(others) == 1, ValueError, "Expected exactly one other player in session")
@@ -282,6 +310,13 @@ def other_in_session(player: Storage) -> Storage:
 def players(
     arg: Annotated[Storage, "Session or Group object"] | list[t.PlayerIdentifier],
 ) -> t.StorageBunch:
+    # TODO: Remove (issue #179)
+    t.ensure_local_logger()
+    t.LOGGER.warning(
+        "players(obj) will soon be deprecated. "
+        "You can soon use obj.players directly."
+    )
+
     if isinstance(arg, list):
         return t.StorageBunch([Player(*pid) for pid in arg])
     elif isinstance(arg, Storage) and arg.__namespace__[0] in ("session", "group"):
