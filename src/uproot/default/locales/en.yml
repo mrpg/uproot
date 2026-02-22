@@ -58,12 +58,6 @@
 ? 'Insert fields'
 : 'Insert fields'
 
-? 'Reload page'
-: 'Reload page'
-
-? 'You have selected <b><span class="pcount"></span> player(s)</b>.'
-: 'You have selected <b><span class="pcount"></span> player(s)</b>.'
-
 ? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
 : 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
 
@@ -79,26 +73,8 @@
 ? 'Revert by one page'
 : 'Revert by one page'
 
-? 'Manage subjects'
-: 'Manage subjects'
-
-? 'Select subjects'
-: 'Select subjects'
-
-? 'Select all'
-: 'Select all'
-
-? 'Deselect all'
-: 'Deselect all'
-
 ? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
 : 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
-
-? 'View session details'
-: 'View session details'
-
-? 'Actions'
-: 'Actions'
 
 ? 'Active logins'
 : 'Active logins'
@@ -109,9 +85,6 @@
 ? 'Add'
 : 'Add'
 
-? 'Add players'
-: 'Add players'
-
 ? 'Admin area'
 : 'Admin area'
 
@@ -120,9 +93,6 @@
 
 ? 'Apps'
 : 'Apps'
-
-? 'Ascertaining which labels are ‘online’ is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were ‘recently seen.’'
-: 'Ascertaining which labels are ‘online’ is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were ‘recently seen.’'
 
 ? 'Associated config'
 : 'Associated config'
@@ -178,9 +148,6 @@
 ? 'Description'
 : 'Description'
 
-? 'Disable testing'
-: 'Disable testing'
-
 ? 'Dissociate room and session'
 : 'Dissociate room and session'
 
@@ -192,9 +159,6 @@
 
 ? 'Download database dump'
 : 'Download database dump'
-
-? 'Enable testing'
-: 'Enable testing'
 
 ? 'Essential information'
 : 'Essential information'
@@ -229,9 +193,6 @@
 ? 'If the previous page was not shown, this will return to the current page.'
 : 'If the previous page was not shown, this will return to the current page.'
 
-? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
-: 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
-
 ? 'Individual player URLs'
 : 'Individual player URLs'
 
@@ -261,15 +222,6 @@
 
 ? 'Manage players'
 : 'Manage players'
-
-? 'Mark as active'
-: 'Mark as active'
-
-? 'Mark as inactive'
-: 'Mark as inactive'
-
-? 'Monitor'
-: 'Monitor'
 
 ? 'Multiview'
 : 'Multiview'
@@ -418,12 +370,6 @@
 ? 'This room is not associated with a particular config'
 : 'This room is not associated with a particular config'
 
-? 'This room’s capacity is infinite.'
-: 'This room’s capacity is infinite.'
-
-? 'This room’s capacity is {{ room.capacity }}.'
-: 'This room’s capacity is {{ room.capacity }}.'
-
 ? 'This session is associated with a room.'
 : 'This session is associated with a room.'
 
@@ -433,14 +379,8 @@
 ? 'This terminates the study for the selected player(s).'
 : 'This terminates the study for the selected player(s).'
 
-? 'This will hide this session’s testing elements for all except admins.'
-: 'This will hide this session’s testing elements for all except admins.'
-
 ? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
 : 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
-
-? 'This will show this session’s testing elements for everyone.'
-: 'This will show this session’s testing elements for everyone.'
 
 ? 'Total'
 : 'Total'
@@ -471,3 +411,444 @@
 
 ? 'You have selected'
 : 'You have selected'
+
+? ' and '
+: ' and '
+
+? ', '
+: ', '
+
+? '<i>AdminDigest.html</i> must not extend <i>Base.html</i> or <i>Bare.html</i>. It must <i>only</i> have a <i>main</i> block.'
+: '<i>AdminDigest.html</i> must not extend <i>Base.html</i> or <i>Bare.html</i>. It must <i>only</i> have a <i>main</i> block.'
+
+? 'Add grouping variable'
+: 'Add grouping variable'
+
+? 'Admin settings'
+: 'Admin settings'
+
+? 'An error occurred.'
+: 'An error occurred.'
+
+? 'An internal server error has occurred.'
+: 'An internal server error has occurred.'
+
+? 'Announcement for your version'
+: 'Announcement for your version'
+
+? 'Apply grouping'
+: 'Apply grouping'
+
+? 'Apply reasonable filters'
+: 'Apply reasonable filters'
+
+? 'Associate with a particular config'
+: 'Associate with a particular config'
+
+? 'Associate with an existing session'
+: 'Associate with an existing session'
+
+? 'Beginning of Part {{ part }}'
+: 'Beginning of Part {{ part }}'
+
+? 'CSV is the better choice for spreadsheet applications.'
+: 'CSV is the better choice for spreadsheet applications.'
+
+? 'Change settings'
+: 'Change settings'
+
+? 'Click again to unselect.'
+: 'Click again to unselect.'
+
+? 'Click “Next” to proceed to Part {{ part }}.'
+: 'Click “Next” to proceed to Part {{ part }}.'
+
+? 'Closed'
+: 'Closed'
+
+? 'Connection Lost'
+: 'Connection Lost'
+
+? 'Connection with server lost. Please check your internet connection.'
+: 'Connection with server lost. Please check your internet connection.'
+
+? 'Copy URLs as plain text'
+: 'Copy URLs as plain text'
+
+? 'Create groups of size'
+: 'Create groups of size'
+
+? 'Created'
+: 'Created'
+
+? 'Created #n# group(s).'
+: 'Created #n# group(s).'
+
+? 'Custom settings'
+: 'Custom settings'
+
+? 'Delete room'
+: 'Delete room'
+
+? 'Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”'
+: 'Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”'
+
+? 'Digest'
+: 'Digest'
+
+? 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
+: 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
+
+? 'Enter new description:'
+: 'Enter new description:'
+
+? 'Environment variables'
+: 'Environment variables'
+
+? 'Example Title'
+: 'Example Title'
+
+? 'Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.'
+: 'Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.'
+
+? 'File type'
+: 'File type'
+
+? 'Filters'
+: 'Filters'
+
+? 'Format'
+: 'Format'
+
+? 'General announcement'
+: 'General announcement'
+
+? 'Get help'
+: 'Get help'
+
+? 'Group players'
+: 'Group players'
+
+? 'Group size must be at least 1.'
+: 'Group size must be at least 1.'
+
+? 'Grouping variable'
+: 'Grouping variable'
+
+? 'Groups'
+: 'Groups'
+
+? 'Hide testing elements'
+: 'Hide testing elements'
+
+? "If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session."
+: "If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session."
+
+? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
+: "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
+
+? 'Inactive sessions'
+: 'Inactive sessions'
+
+? 'Individual label URLs'
+: 'Individual label URLs'
+
+? 'Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.'
+: 'Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.'
+
+? 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.'
+: 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.'
+
+? 'Internal Server Error'
+: 'Internal Server Error'
+
+? 'It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”'
+: 'It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”'
+
+? 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
+: 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
+
+? 'JSON is recommended for analysis.'
+: 'JSON is recommended for analysis.'
+
+? 'Keep this page open and watch it at all times.'
+: 'Keep this page open and watch it at all times.'
+
+? 'Label'
+: 'Label'
+
+? 'Last changed'
+: 'Last changed'
+
+? 'Latest'
+: 'Latest'
+
+? 'Latest &times; Field(s)'
+: 'Latest &times; Field(s)'
+
+? 'Log in as admin to view more information on this page.'
+: 'Log in as admin to view more information on this page.'
+
+? 'Main data'
+: 'Main data'
+
+? 'Maximum players'
+: 'Maximum players'
+
+? 'Multi View'
+: 'Multi View'
+
+? 'No action selected.'
+: 'No action selected.'
+
+? 'No active sessions at this time.'
+: 'No active sessions at this time.'
+
+? 'No apps defined at this time.'
+: 'No apps defined at this time.'
+
+? 'No configs defined at this time.'
+: 'No configs defined at this time.'
+
+? 'No more spots available'
+: 'No more spots available'
+
+? 'No players selected.'
+: 'No players selected.'
+
+? 'No rooms defined at this time.'
+: 'No rooms defined at this time.'
+
+? 'No settings'
+: 'No settings'
+
+? 'Number of selected players must be divisible by group size.'
+: 'Number of selected players must be divisible by group size.'
+
+? 'OK'
+: 'OK'
+
+? 'One or more labels exceed the maximum length of 128 characters.'
+: 'One or more labels exceed the maximum length of 128 characters.'
+
+? "One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify."
+: "One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify."
+
+? 'One row per player showing their final state: just the last/current value of every field.'
+: 'One row per player showing their final state: just the last/current value of every field.'
+
+? 'Only rooms defined in your <code class="fs-6">main.py</code> file will be automatically recreated after a database reset.'
+: 'Only rooms defined in your <code class="fs-6">main.py</code> file will be automatically recreated after a database reset.'
+
+? 'Other data'
+: 'Other data'
+
+? 'Page times'
+: 'Page times'
+
+? 'Player ID'
+: 'Player ID'
+
+? 'Please enter your Access Code.'
+: 'Please enter your Access Code.'
+
+? 'Please keep this page open.'
+: 'Please keep this page open.'
+
+? 'Please note that a room created this way will disappear when you reset the database.'
+: 'Please note that a room created this way will disappear when you reset the database.'
+
+? 'Pre-formatted citation'
+: 'Pre-formatted citation'
+
+? 'Put all selected players in the same group'
+: 'Put all selected players in the same group'
+
+? 'Raw event log where every single change to any field becomes its own row.'
+: 'Raw event log where every single change to any field becomes its own row.'
+
+? 'Redirect players'
+: 'Redirect players'
+
+? 'Redirect to URL'
+: 'Redirect to URL'
+
+? 'Regrettably, this study has reached capacity.'
+: 'Regrettably, this study has reached capacity.'
+
+? 'Reload'
+: 'Reload'
+
+? 'Remove'
+: 'Remove'
+
+? 'Report a bug'
+: 'Report a bug'
+
+? 'Reset group assignment for #n# player(s).'
+: 'Reset group assignment for #n# player(s).'
+
+? 'Reset group assignment for selected players'
+: 'Reset group assignment for selected players'
+
+? 'Room name'
+: 'Room name'
+
+? 'Room settings'
+: 'Room settings'
+
+? 'Save'
+: 'Save'
+
+? 'Save settings'
+: 'Save settings'
+
+? 'Session is active.'
+: 'Session is active.'
+
+? 'Session is inactive.'
+: 'Session is inactive.'
+
+? 'Session name'
+: 'Session name'
+
+? 'Settings'
+: 'Settings'
+
+? 'Shuffle players before grouping'
+: 'Shuffle players before grouping'
+
+? 'Sparse'
+: 'Sparse'
+
+? 'Start this config immediately'
+: 'Start this config immediately'
+
+? 'Submit praise'
+: 'Submit praise'
+
+? 'Target URL'
+: 'Target URL'
+
+? 'Testing is disabled.'
+: 'Testing is disabled.'
+
+? 'Testing is enabled.'
+: 'Testing is enabled.'
+
+? 'The action has completed.'
+: 'The action has completed.'
+
+? 'The number of players you entered is invalid.'
+: 'The number of players you entered is invalid.'
+
+? 'The player names you entered are invalid.'
+: 'The player names you entered are invalid.'
+
+? 'The room name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'The room name must only use the following characters: <code>A-Za-z0-9-._</code>'
+
+? 'The room name you entered already exists.'
+: 'The room name you entered already exists.'
+
+? 'The room name you entered is invalid.'
+: 'The room name you entered is invalid.'
+
+? 'The session must exist. This can be used to add players to an existing session.'
+: 'The session must exist. This can be used to add players to an existing session.'
+
+? 'The session name you entered is invalid.'
+: 'The session name you entered is invalid.'
+
+? 'The session you entered does not exist.'
+: 'The session you entered does not exist.'
+
+? 'The settings you entered cannot be properly encoded as JSON.'
+: 'The settings you entered cannot be properly encoded as JSON.'
+
+? 'This page will advance automatically.'
+: 'This page will advance automatically.'
+
+? "This room’s capacity is infinite."
+: "This room’s capacity is infinite."
+
+? "This room’s capacity is {{ room.capacity }}."
+: "This room’s capacity is {{ room.capacity }}."
+
+? 'To edit room settings, first dissociate the session from this room.'
+: 'To edit room settings, first dissociate the session from this room.'
+
+? 'Toggling this has purely cosmetical consequences:'
+: 'Toggling this has purely cosmetical consequences:'
+
+? 'Toggling this will hide this session’s testing elements for everyone except admins.'
+: 'Toggling this will hide this session’s testing elements for everyone except admins.'
+
+? 'Toggling this will show this session’s testing elements for everyone.'
+: 'Toggling this will show this session’s testing elements for everyone.'
+
+? 'Too many players selected (#n#). The maximum number of players that can be displayed in multiview is #m#.'
+: 'Too many players selected (#n#). The maximum number of players that can be displayed in multiview is #m#.'
+
+? 'Type'
+: 'Type'
+
+? 'Type your message'
+: 'Type your message'
+
+? 'URL'
+: 'URL'
+
+? 'URL must start with http:// or https://'
+: 'URL must start with http:// or https://'
+
+? 'Ultra Long'
+: 'Ultra Long'
+
+? 'Unknown'
+: 'Unknown'
+
+? 'Unset or deleted'
+: 'Unset or deleted'
+
+? 'Variable'
+: 'Variable'
+
+? 'View digest'
+: 'View digest'
+
+? 'You'
+: 'You'
+
+? 'You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.'
+: 'You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.'
+
+? 'You are running version #i_am#. The current version is #recommended#.'
+: 'You are running version #i_am#. The current version is #recommended#.'
+
+? 'You cannot create a session with #n1# players but #n2# player names.'
+: 'You cannot create a session with #n1# players but #n2# player names.'
+
+? 'Your version appears to be up to date.'
+: 'Your version appears to be up to date.'
+
+? 'Your version is outdated. Please update as soon as possible.'
+: 'Your version is outdated. Please update as soon as possible.'
+
+? 'e.g.,'
+: 'e.g.,'
+
+? 'free join'
+: 'free join'
+
+? 'unset'
+: 'unset'
+
+? 'uproot docs'
+: 'uproot docs'
+
+? 'uproot examples'
+: 'uproot examples'
+
+? 'uproot on GitHub'
+: 'uproot on GitHub'

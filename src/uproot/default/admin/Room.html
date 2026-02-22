@@ -108,15 +108,15 @@ Room
                 <label for="nogrow">Set room capacity to number of players</label>
                 <small class="d-block form-text pt-2">
                     {% translate %}
-                    If this box is unchecked, the room's capacity will not be changed. This means that new room entrants can grow the session.
+                    If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.
                     {% endtranslate %}
                     {% if room.capacity is none %}
                     {% translate %}
-                    This room's capacity is infinite.
+                    This room’s capacity is infinite.
                     {% endtranslate %}
                     {% else %}
                     {% translate %}
-                    This room's capacity is {{ room.capacity }}.
+                    This room’s capacity is {{ room.capacity }}.
                     {% endtranslate %}
                     {% endif %}
                 </small>

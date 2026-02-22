@@ -58,12 +58,6 @@
 ? 'Insert fields'
 : 'Insertar campos'
 
-? 'Reload page'
-: 'Recargar página'
-
-? 'You have selected <b><span class="pcount"></span> player(s)</b>.'
-: 'Ha seleccionado <b><span class="pcount"></span> sujeto(s)</b>.'
-
 ? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
 : 'Insertar campos no se considera una buena práctica. Use esta función solo cuando esté probando o en emergencias. Las inserciones manuales de campos se registran irrevocablemente como tales en la base de datos.'
 
@@ -79,26 +73,8 @@
 ? 'Revert by one page'
 : 'Retroceder una página'
 
-? 'Manage subjects'
-: 'Gestionar sujetos'
-
-? 'Select subjects'
-: 'Seleccionar sujetos'
-
-? 'Select all'
-: 'Seleccionar todo'
-
-? 'Deselect all'
-: 'Deseleccionar todo'
-
 ? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
 : 'Por favor ingrese un <i>objeto</i> JSON válido. Por ejemplo, esto inserta los campos <code>foo</code> (un entero) y <code>bar</code> (una lista):'
-
-? 'View session details'
-: 'Ver detalles de la sesión'
-
-? 'Actions'
-: 'Acciones'
 
 ? 'Active logins'
 : 'Inicios de sesión activos'
@@ -109,9 +85,6 @@
 ? 'Add'
 : 'Añadir'
 
-? 'Add players'
-: 'Añadir jugadores'
-
 ? 'Admin area'
 : 'Área de administración'
 
@@ -120,9 +93,6 @@
 
 ? 'Apps'
 : 'Apps'
-
-? 'Ascertaining which labels are ‘online’ is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were ‘recently seen.’'
-: 'Determinar qué etiquetas están "en línea" no es una ciencia exacta. En su lugar, uproot utiliza varias heurísticas y algoritmos para hacer una estimación aproximada de qué etiquetas fueron "vistas recientemente".'
 
 ? 'Associated config'
 : 'Configuración asociada'
@@ -178,9 +148,6 @@
 ? 'Description'
 : 'Descripción'
 
-? 'Disable testing'
-: 'Deshabilitar pruebas'
-
 ? 'Dissociate room and session'
 : 'Desasociar sala y sesión'
 
@@ -192,9 +159,6 @@
 
 ? 'Download database dump'
 : 'Descargar volcado de base de datos'
-
-? 'Enable testing'
-: 'Habilitar pruebas'
 
 ? 'Essential information'
 : 'Información esencial'
@@ -229,9 +193,6 @@
 ? 'If the previous page was not shown, this will return to the current page.'
 : 'Si la página anterior no se mostró, esto regresará a la página actual.'
 
-? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
-: 'Si esta casilla no está marcada, la capacidad de la sala no será cambiada. Esto significa que los nuevos participantes pueden hacer crecer la sesión.'
-
 ? 'Individual player URLs'
 : 'URLs individuales de jugadores'
 
@@ -261,15 +222,6 @@
 
 ? 'Manage players'
 : 'Gestionar jugadores'
-
-? 'Mark as active'
-: 'Marcar como activa'
-
-? 'Mark as inactive'
-: 'Marcar como inactiva'
-
-? 'Monitor'
-: 'Monitor'
 
 ? 'Multiview'
 : 'Vista múltiple'
@@ -418,12 +370,6 @@
 ? 'This room is not associated with a particular config'
 : 'Esta sala no está asociada con una configuración particular'
 
-? 'This room’s capacity is infinite.'
-: 'La capacidad de esta sala es infinita.'
-
-? 'This room’s capacity is {{ room.capacity }}.'
-: 'La capacidad de esta sala es {{ room.capacity }}.'
-
 ? 'This session is associated with a room.'
 : 'Esta sesión está asociada con una sala.'
 
@@ -433,14 +379,8 @@
 ? 'This terminates the study for the selected player(s).'
 : 'Esto termina el estudio para el/los sujeto(s) seleccionado(s).'
 
-? 'This will hide this session’s testing elements for all except admins.'
-: 'Esto ocultará los elementos de prueba de esta sesión para todos excepto administradores.'
-
 ? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
 : 'Esto ejecutará todos los manejadores de abandono registrados con <code>watch_for_dropout()</code>.'
-
-? 'This will show this session’s testing elements for everyone.'
-: 'Esto mostrará los elementos de prueba de esta sesión para todos.'
 
 ? 'Total'
 : 'Total'
@@ -471,3 +411,444 @@
 
 ? 'You have selected'
 : 'Ha seleccionado'
+
+? ' and '
+: ' y '
+
+? ', '
+: ', '
+
+? '<i>AdminDigest.html</i> must not extend <i>Base.html</i> or <i>Bare.html</i>. It must <i>only</i> have a <i>main</i> block.'
+: '<i>AdminDigest.html</i> no debe extender <i>Base.html</i> ni <i>Bare.html</i>. Solo debe tener un bloque <i>main</i>.'
+
+? 'Add grouping variable'
+: 'Añadir variable de agrupación'
+
+? 'Admin settings'
+: 'Configuración de administración'
+
+? 'An error occurred.'
+: 'Ha ocurrido un error.'
+
+? 'An internal server error has occurred.'
+: 'Ha ocurrido un error interno del servidor.'
+
+? 'Announcement for your version'
+: 'Anuncio para su versión'
+
+? 'Apply grouping'
+: 'Aplicar agrupación'
+
+? 'Apply reasonable filters'
+: 'Aplicar filtros razonables'
+
+? 'Associate with a particular config'
+: 'Asociar con una configuración particular'
+
+? 'Associate with an existing session'
+: 'Asociar con una sesión existente'
+
+? 'Beginning of Part {{ part }}'
+: 'Inicio de la Parte {{ part }}'
+
+? 'CSV is the better choice for spreadsheet applications.'
+: 'CSV es la mejor opción para aplicaciones de hojas de cálculo.'
+
+? 'Change settings'
+: 'Cambiar configuración'
+
+? 'Click again to unselect.'
+: 'Haga clic de nuevo para deseleccionar.'
+
+? 'Click “Next” to proceed to Part {{ part }}.'
+: 'Haga clic en «Siguiente» para continuar a la Parte {{ part }}.'
+
+? 'Closed'
+: 'Cerrada'
+
+? 'Connection Lost'
+: 'Conexión perdida'
+
+? 'Connection with server lost. Please check your internet connection.'
+: 'Conexión con el servidor perdida. Por favor verifique su conexión a internet.'
+
+? 'Copy URLs as plain text'
+: 'Copiar URLs como texto plano'
+
+? 'Create groups of size'
+: 'Crear grupos de tamaño'
+
+? 'Created'
+: 'Creada'
+
+? 'Created #n# group(s).'
+: '#n# grupo(s) creado(s).'
+
+? 'Custom settings'
+: 'Configuración personalizada'
+
+? 'Delete room'
+: 'Eliminar sala'
+
+? 'Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”'
+: 'Determinar qué etiquetas están «en línea» no es una ciencia exacta. En su lugar, uproot utiliza diversas heurísticas y algoritmos para estimar qué etiquetas fueron «vistas recientemente.»'
+
+? 'Digest'
+: 'Resumen'
+
+? 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
+: 'Cada fila representa un cambio, con cada campo posible como su propia columna: la mayoría de las celdas están vacías, y solo los campos que realmente cambiaron en ese momento se completan.'
+
+? 'Enter new description:'
+: 'Ingrese nueva descripción:'
+
+? 'Environment variables'
+: 'Variables de entorno'
+
+? 'Example Title'
+: 'Título de ejemplo'
+
+? 'Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.'
+: 'Excluye, renombra o transforma campos internos de uproot para proporcionar datos más limpios enfocados en variables experimentales y respuestas de los participantes.'
+
+? 'File type'
+: 'Tipo de archivo'
+
+? 'Filters'
+: 'Filtros'
+
+? 'Format'
+: 'Formato'
+
+? 'General announcement'
+: 'Anuncio general'
+
+? 'Get help'
+: 'Obtener ayuda'
+
+? 'Group players'
+: 'Agrupar jugadores'
+
+? 'Group size must be at least 1.'
+: 'El tamaño del grupo debe ser al menos 1.'
+
+? 'Grouping variable'
+: 'Variable de agrupación'
+
+? 'Groups'
+: 'Grupos'
+
+? 'Hide testing elements'
+: 'Ocultar elementos de prueba'
+
+? "If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session."
+: 'Si esta casilla no está marcada, la capacidad de la sala no se cambiará. Esto significa que nuevos participantes pueden ampliar la sesión.'
+
+? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
+: "Si encuentra uproot útil, por favor <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cítelo</a> en publicaciones académicas."
+
+? 'Inactive sessions'
+: 'Sesiones inactivas'
+
+? 'Individual label URLs'
+: 'URLs individuales de etiquetas'
+
+? 'Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.'
+: 'La entrada se evalúa como una expresión JavaScript. Puede usar comentarios, cálculos, variables, etc. El resultado debe ser serializable como JSON.'
+
+? 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.'
+: 'Inserte una etiqueta por línea de texto. Cada etiqueta no debe tener más de 128 caracteres y solo debe usar los siguientes caracteres: <code>A-Za-z0-9-._</code> Las etiquetas restringen el acceso a la sala a jugadores con etiquetas coincidentes.'
+
+? 'Internal Server Error'
+: 'Error interno del servidor'
+
+? 'It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”'
+: 'Mueve esta sesión a la sección «Sesiones activas» en la página «Sesiones» y la muestra en el «Panel de control.»'
+
+? 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
+: 'Mueve esta sesión a la sección «Sesiones inactivas» en la página «Sesiones» y la oculta del «Panel de control.»'
+
+? 'JSON is recommended for analysis.'
+: 'JSON es recomendado para el análisis.'
+
+? 'Keep this page open and watch it at all times.'
+: 'Mantenga esta página abierta y obsérvela en todo momento.'
+
+? 'Label'
+: 'Etiqueta'
+
+? 'Last changed'
+: 'Último cambio'
+
+? 'Latest'
+: 'Más reciente'
+
+? 'Latest &times; Field(s)'
+: 'Más reciente &times; Campo(s)'
+
+? 'Log in as admin to view more information on this page.'
+: 'Inicie sesión como administrador para ver más información en esta página.'
+
+? 'Main data'
+: 'Datos principales'
+
+? 'Maximum players'
+: 'Máximo de jugadores'
+
+? 'Multi View'
+: 'Vista múltiple'
+
+? 'No action selected.'
+: 'Ninguna acción seleccionada.'
+
+? 'No active sessions at this time.'
+: 'No hay sesiones activas en este momento.'
+
+? 'No apps defined at this time.'
+: 'No hay apps definidas en este momento.'
+
+? 'No configs defined at this time.'
+: 'No hay configuraciones definidas en este momento.'
+
+? 'No more spots available'
+: 'No hay más plazas disponibles'
+
+? 'No players selected.'
+: 'Ningún jugador seleccionado.'
+
+? 'No rooms defined at this time.'
+: 'No hay salas definidas en este momento.'
+
+? 'No settings'
+: 'Sin configuración'
+
+? 'Number of selected players must be divisible by group size.'
+: 'El número de jugadores seleccionados debe ser divisible por el tamaño del grupo.'
+
+? 'OK'
+: 'OK'
+
+? 'One or more labels exceed the maximum length of 128 characters.'
+: 'Una o más etiquetas exceden la longitud máxima de 128 caracteres.'
+
+? "One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify."
+: 'Una fila por jugador por agrupación especificada (como por ronda): muestra cuál era el estado de cada participante al final de cada ronda, condición u otra agrupación que especifique.'
+
+? 'One row per player showing their final state: just the last/current value of every field.'
+: 'Una fila por jugador mostrando su estado final: solo el último/actual valor de cada campo.'
+
+? 'Only rooms defined in your <code class="fs-6">main.py</code> file will be automatically recreated after a database reset.'
+: 'Solo las salas definidas en su archivo <code class="fs-6">main.py</code> se recrearán automáticamente después de un reinicio de base de datos.'
+
+? 'Other data'
+: 'Otros datos'
+
+? 'Page times'
+: 'Tiempos de página'
+
+? 'Player ID'
+: 'ID del jugador'
+
+? 'Please enter your Access Code.'
+: 'Por favor ingrese su Código de Acceso.'
+
+? 'Please keep this page open.'
+: 'Por favor mantenga esta página abierta.'
+
+? 'Please note that a room created this way will disappear when you reset the database.'
+: 'Tenga en cuenta que una sala creada de esta manera desaparecerá cuando reinicie la base de datos.'
+
+? 'Pre-formatted citation'
+: 'Cita preformateada'
+
+? 'Put all selected players in the same group'
+: 'Poner a todos los jugadores seleccionados en el mismo grupo'
+
+? 'Raw event log where every single change to any field becomes its own row.'
+: 'Registro de eventos sin procesar donde cada cambio individual a cualquier campo se convierte en su propia fila.'
+
+? 'Redirect players'
+: 'Redirigir jugadores'
+
+? 'Redirect to URL'
+: 'Redirigir a URL'
+
+? 'Regrettably, this study has reached capacity.'
+: 'Lamentablemente, este estudio ha alcanzado su capacidad.'
+
+? 'Reload'
+: 'Recargar'
+
+? 'Remove'
+: 'Eliminar'
+
+? 'Report a bug'
+: 'Reportar un error'
+
+? 'Reset group assignment for #n# player(s).'
+: 'Asignación de grupo restablecida para #n# jugador(es).'
+
+? 'Reset group assignment for selected players'
+: 'Restablecer asignación de grupo para jugadores seleccionados'
+
+? 'Room name'
+: 'Nombre de la sala'
+
+? 'Room settings'
+: 'Configuración de la sala'
+
+? 'Save'
+: 'Guardar'
+
+? 'Save settings'
+: 'Guardar configuración'
+
+? 'Session is active.'
+: 'La sesión está activa.'
+
+? 'Session is inactive.'
+: 'La sesión está inactiva.'
+
+? 'Session name'
+: 'Nombre de la sesión'
+
+? 'Settings'
+: 'Configuración'
+
+? 'Shuffle players before grouping'
+: 'Mezclar jugadores antes de agrupar'
+
+? 'Sparse'
+: 'Disperso'
+
+? 'Start this config immediately'
+: 'Iniciar esta configuración inmediatamente'
+
+? 'Submit praise'
+: 'Enviar elogio'
+
+? 'Target URL'
+: 'URL de destino'
+
+? 'Testing is disabled.'
+: 'Las pruebas están deshabilitadas.'
+
+? 'Testing is enabled.'
+: 'Las pruebas están habilitadas.'
+
+? 'The action has completed.'
+: 'La acción se ha completado.'
+
+? 'The number of players you entered is invalid.'
+: 'El número de jugadores ingresado no es válido.'
+
+? 'The player names you entered are invalid.'
+: 'Los nombres de jugadores ingresados no son válidos.'
+
+? 'The room name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'El nombre de la sala solo debe usar los siguientes caracteres: <code>A-Za-z0-9-._</code>'
+
+? 'The room name you entered already exists.'
+: 'El nombre de sala ingresado ya existe.'
+
+? 'The room name you entered is invalid.'
+: 'El nombre de sala ingresado no es válido.'
+
+? 'The session must exist. This can be used to add players to an existing session.'
+: 'La sesión debe existir. Esto se puede usar para añadir jugadores a una sesión existente.'
+
+? 'The session name you entered is invalid.'
+: 'El nombre de sesión ingresado no es válido.'
+
+? 'The session you entered does not exist.'
+: 'La sesión ingresada no existe.'
+
+? 'The settings you entered cannot be properly encoded as JSON.'
+: 'La configuración ingresada no puede ser codificada correctamente como JSON.'
+
+? 'This page will advance automatically.'
+: 'Esta página avanzará automáticamente.'
+
+? "This room’s capacity is infinite."
+: 'La capacidad de esta sala es infinita.'
+
+? "This room’s capacity is {{ room.capacity }}."
+: 'La capacidad de esta sala es {{ room.capacity }}.'
+
+? 'To edit room settings, first dissociate the session from this room.'
+: 'Para editar la configuración de la sala, primero desasocie la sesión de esta sala.'
+
+? 'Toggling this has purely cosmetical consequences:'
+: 'Alternar esto tiene consecuencias puramente cosméticas:'
+
+? 'Toggling this will hide this session’s testing elements for everyone except admins.'
+: 'Alternar esto ocultará los elementos de prueba de esta sesión para todos excepto los administradores.'
+
+? 'Toggling this will show this session’s testing elements for everyone.'
+: 'Alternar esto mostrará los elementos de prueba de esta sesión para todos.'
+
+? 'Too many players selected (#n#). The maximum number of players that can be displayed in multiview is #m#.'
+: 'Demasiados jugadores seleccionados (#n#). El número máximo de jugadores que se pueden mostrar en vista múltiple es #m#.'
+
+? 'Type'
+: 'Tipo'
+
+? 'Type your message'
+: 'Escriba su mensaje'
+
+? 'URL'
+: 'URL'
+
+? 'URL must start with http:// or https://'
+: 'La URL debe comenzar con http:// o https://'
+
+? 'Ultra Long'
+: 'Ultra largo'
+
+? 'Unknown'
+: 'Desconocido'
+
+? 'Unset or deleted'
+: 'No establecido o eliminado'
+
+? 'Variable'
+: 'Variable'
+
+? 'View digest'
+: 'Ver resumen'
+
+? 'You'
+: 'Usted'
+
+? 'You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.'
+: 'Está ejecutando uproot con la bandera <code>--unsafe</code>. Haga esto solo cuando ejecute en <code>localhost</code>, ya que esta bandera permite a cualquiera iniciar sesión como administrador.'
+
+? 'You are running version #i_am#. The current version is #recommended#.'
+: 'Está ejecutando la versión #i_am#. La versión actual es #recommended#.'
+
+? 'You cannot create a session with #n1# players but #n2# player names.'
+: 'No puede crear una sesión con #n1# jugadores pero #n2# nombres de jugadores.'
+
+? 'Your version appears to be up to date.'
+: 'Su versión parece estar actualizada.'
+
+? 'Your version is outdated. Please update as soon as possible.'
+: 'Su versión está desactualizada. Por favor actualice lo antes posible.'
+
+? 'e.g.,'
+: 'p. ej.,'
+
+? 'free join'
+: 'unión libre'
+
+? 'unset'
+: 'no establecido'
+
+? 'uproot docs'
+: 'documentación de uproot'
+
+? 'uproot examples'
+: 'ejemplos de uproot'
+
+? 'uproot on GitHub'
+: 'uproot en GitHub'
