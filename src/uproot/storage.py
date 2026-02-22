@@ -7,6 +7,7 @@ import appendmuch
 
 from uproot.constraints import ensure, valid_token
 from uproot.types import (
+    Bound,
     GroupIdentifier,
     PlayerIdentifier,
     Sessionname,
@@ -90,6 +91,21 @@ def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Stora
         raise AttributeError
 
 
+def virtual_context(storage: Storage) -> Any:
+    if storage.__namespace__[0] == "player":
+        if (app := storage.get("app")) is None:
+            return None
+        else:
+            import uproot as u
+
+            if (context := getattr(u.APPS[app], "Context", None)) is None:
+                return None
+            else:
+                return Bound(context, storage)
+    else:
+        raise AttributeError
+
+
 def Admin() -> Storage:
     return Storage(
         "admin",
@@ -136,6 +152,7 @@ def Player(sname: Sessionname, uname: Username) -> Storage:
             "group": virtual_group,
             "along": lambda s: (lambda field: within.along(s, field)),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
+            "context": virtual_context,
         },
     )
 

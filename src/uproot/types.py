@@ -9,6 +9,7 @@ import random
 import uuid as pyuuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
+from functools import partial
 from string import ascii_lowercase, digits
 from time import perf_counter as now
 from time import time
@@ -127,6 +128,22 @@ class ModelIdentifier(Identifier):
             raise RuntimeError("ModelIdentifier.__call__ is deprecated.")
 
         return materialize(self, **kwargs)
+
+
+class Bound:
+    __slots__ = ("_cls", "_owner")
+
+    def __init__(self, cls: type, owner: "Storage") -> None:
+        object.__setattr__(self, "_cls", cls)
+        object.__setattr__(self, "_owner", owner)
+
+    def __getattr__(self, name: str) -> Any:
+        attr = getattr(object.__getattribute__(self, "_cls"), name)
+
+        if not callable(attr):
+            return attr
+
+        return partial(attr, object.__getattribute__(self, "_owner"))
 
 
 def identify(storage: "Storage") -> Identifier:
