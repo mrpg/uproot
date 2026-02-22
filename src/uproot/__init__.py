@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 from time import time  # This file uses clock time
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 from sortedcontainers import SortedList
 
@@ -31,9 +31,8 @@ WATCH: set[tuple[PlayerIdentifier, float, str, str]] = set()
 
 APPS: "ModuleManager"
 CONFIGS: dict[str, list[str]] = {}
-CONFIGS_PPATHS: dict[str, list[str]] = {}
 CONFIGS_EXTRA: dict[str, Any] = {}
-PAGES: dict[str, Union[tuple[str, str], type[Page]]] = {
+PAGES: dict[str, type[Page]] = {
     "Initialize.html": type(
         "Initialize",
         (InternalPage,),

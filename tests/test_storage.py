@@ -9,7 +9,6 @@ import uproot.types as t
 
 d.DATABASE.reset()
 u.CONFIGS["test"] = []
-u.CONFIGS_PPATHS["test"] = []
 
 with s.Admin() as admin:
     c.create_admin(admin)

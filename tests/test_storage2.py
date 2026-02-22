@@ -17,7 +17,6 @@ def expect_attribute_error(within_obj, field_name):
 def setup():
     d.DATABASE.reset()
     u.CONFIGS["test"] = []
-    u.CONFIGS_PPATHS["test"] = []
 
     with s.Admin() as admin:
         c.create_admin(admin)

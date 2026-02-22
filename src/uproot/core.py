@@ -166,7 +166,7 @@ def initialize_player(
         player.config = config
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
-        player.page_order = u.CONFIGS_PPATHS[config]
+        player.page_order = []
         player.payoff = Decimal("0")
         player.pid = pid
         player.show_page = -1
@@ -289,5 +289,28 @@ def expand(pages: list[t.PageLike]) -> list[type[t.Page]]:
             result.extend(expand(expanded))
         else:
             result.append(item)
+
+    return result
+
+
+def resolve_page_order(player: s.Storage, config: str) -> list[str]:
+    from uproot.pages import page2path
+
+    result: list[str] = []
+
+    for appname in u.CONFIGS[config]:
+        app = u.APPS[appname]
+
+        full_pages: list[t.PageLike] = [app.StartApp]
+
+        if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
+            full_pages.append(app.LandingPage)
+
+        full_pages.extend(
+            app.page_order
+        )  # TODO: Use 'player' to address for issue #178
+
+        for page in expand(full_pages):
+            result.append(page2path(page))
 
     return result

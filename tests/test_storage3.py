@@ -43,7 +43,6 @@ def setup_fresh_database():
     """Setup a completely fresh database state for testing."""
     d.DATABASE.reset()
     u.CONFIGS["test"] = []
-    u.CONFIGS_PPATHS["test"] = []
 
     # Force reload of in-memory database
     cache.load_database_into_memory()

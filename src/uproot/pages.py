@@ -363,12 +363,23 @@ def page2path(page: type[Page]) -> str:
 
 
 def path2page(path: str) -> type[Page]:
-    target_page = u.PAGES[path]
+    # System pages (Initialize.html, End.html, etc.)
+    if path in u.PAGES:
+        return u.PAGES[path]
 
-    if isinstance(target_page, tuple):
-        return cast(type[Page], getattr(u.APPS[target_page[0]], target_page[1]))
+    # Smithereens internal pages (#RandomStart, #{, etc.)
+    if path.startswith("#"):
+        from uproot.smithereens import INTERNAL_PAGES
 
-    return target_page
+        return INTERNAL_PAGES[path[1:]]
+
+    # App pages (appname/PageName or appname/#InternalName)
+    appname, pagename = path.split("/", 1)
+
+    if pagename.startswith("#"):
+        return cast(type[Page], getattr(u.APPS[appname], pagename[1:]))
+
+    return cast(type[Page], getattr(u.APPS[appname], pagename))
 
 
 @validate_call

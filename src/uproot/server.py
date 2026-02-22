@@ -26,13 +26,19 @@ import uproot.jobs as j
 from uproot.cache import load_database_into_memory
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
-from uproot.pages import app_or_default, page2path
+from uproot.pages import app_or_default
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
 from uproot.server4 import router as router4
 from uproot.storage import Admin, Storage
-from uproot.types import InternalPage, Page, ensure_awaitable, optional_call
+from uproot.types import (
+    InternalPage,
+    Page,
+    SmoothOperator,
+    ensure_awaitable,
+    optional_call,
+)
 
 MIN_PASSWORD_LENGTH: int = 5
 
@@ -202,10 +208,7 @@ def post_app_import(app: Any) -> Any:
             async def before_always_once(page, player: Storage) -> None:
                 player._uproot_part += 1
 
-        app.LandingPage = (
-            LandingPage  # This is not technically necessary, but good practice
-        )
-        app.page_order.insert(0, app.LandingPage)
+        app.LandingPage = LandingPage
 
     # AdminDigest is used by SessionDigest in the admin area
     ensure(
@@ -231,10 +234,14 @@ def post_app_import(app: Any) -> Any:
             player.app = appname
 
     app.StartApp = StartApp
-    app.page_order.insert(0, app.StartApp)
 
     # Validate that Wait pages don't use after_* methods (except after_grouping)
-    for page in c.expand(app.page_order):
+    full_pages: list[type[Page] | SmoothOperator] = [app.StartApp]
+    if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
+        full_pages.append(app.LandingPage)
+    full_pages.extend(app.page_order)
+
+    for page in c.expand(full_pages):
         # Check if this page derives from a class with "Wait" in its name
         is_wait_page = any("Wait" in base.__name__ for base in page.__mro__)
 
@@ -274,39 +281,16 @@ def load_config(
         u.APPS = ModuleManager(post_app_import)
 
     u.CONFIGS[config] = []
-    u.CONFIGS_PPATHS[config] = []
     u.CONFIGS_EXTRA[config] = {
         "multiple_of": multiple_of,
         "settings": settings or {},
     }
 
     for appname in apps:
-        first_add = False
-
         if appname not in u.APPS:
-            app = u.APPS.import_module(appname)
-        else:
-            app = u.APPS[appname]
+            u.APPS.import_module(appname)
 
         if f"~{appname}" not in u.CONFIGS:
-            first_add = True
-
             u.CONFIGS[f"~{appname}"] = [appname]
-            u.CONFIGS_PPATHS[f"~{appname}"] = []
 
         u.CONFIGS[config].append(appname)
-
-        for page in c.expand(app.page_order):
-            path = page2path(page)
-            u.CONFIGS_PPATHS[config].append(path)
-
-            if first_add:
-                u.CONFIGS_PPATHS[f"~{appname}"].append(path)
-
-            if path not in u.PAGES:
-                if not hasattr(app, page.__name__):
-                    # page is internal to uproot
-                    u.PAGES[path] = page
-                else:
-                    # page comes from app and is subject to reload modification
-                    u.PAGES[path] = appname, page.__name__

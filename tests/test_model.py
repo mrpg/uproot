@@ -24,7 +24,6 @@ import uproot.types as t
 # Reset database for tests
 d.DATABASE.reset()
 u.CONFIGS["test"] = []
-u.CONFIGS_PPATHS["test"] = []
 
 
 @pytest.fixture
