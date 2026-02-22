@@ -382,7 +382,7 @@ def watch_for_dropout(
     if not hasattr(player, "_uproot_watch"):
         player._uproot_watch = []
 
-    player._uproot_watch.append(triplet)
+    player._uproot_watch.append(list(triplet))
 
     u.WATCH.add((cast(t.PlayerIdentifier, t.identify(player)), *triplet))
 
