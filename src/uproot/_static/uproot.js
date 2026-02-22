@@ -1242,15 +1242,20 @@ window._ = (s) => {
     if (s in window.uproot.terms) {
         return window.uproot.terms[s];
     }
-    else {
-        window.uproot.missing.add(s);
 
-        if (window.uproot.verbose) {
-            console.log(`Missing translation for: "${s}"`);
-        }
-
-        return s;
+    // Try fallback with whitespace normalized
+    const normalized = s.replace(/\s+/g, " ").trim();
+    if (normalized in window.uproot.terms) {
+        return window.uproot.terms[normalized];
     }
+
+    window.uproot.missing.add(s);
+
+    if (window.uproot.verbose) {
+        console.log(`Missing translation for: "${s}"`);
+    }
+
+    return s;
 };
 
 window.alert = (message) => {
