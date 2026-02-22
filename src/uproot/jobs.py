@@ -67,33 +67,39 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
 
     while True:
         for entry in u.WATCH:
-            pid, tolerance, fmodule, fname = entry
+            try:
+                pid, tolerance, fmodule, fname = entry
 
-            triplet = tolerance, fmodule, fname
-            last = u.find_online_delta(pid)
+                triplet = [tolerance, fmodule, fname]
+                last = u.find_online_delta(pid)
 
-            if pid not in u.MANUAL_DROPOUTS and (last is None or last <= tolerance):
-                # player is online or assumed to be
-                pass
-            else:
-                u.set_offline(pid)
+                if pid not in u.MANUAL_DROPOUTS and (last is None or last <= tolerance):
+                    # player is online or assumed to be
+                    pass
+                else:
+                    u.set_offline(pid)
 
-                with materialize(pid) as player:
-                    player._uproot_dropout = True
+                    with materialize(pid) as player:
+                        player._uproot_dropout = True
 
-                    if player.show_page != len(player.page_order):
-                        try:
-                            await ensure_awaitable(
-                                optional_call, u.APPS[fmodule], fname, player=player
-                            )
-                        except Exception as e:
-                            d.LOGGER.error(
-                                f"Exception in dropout handler {fmodule}.{fname}: {e}"
-                            )
-                        else:
-                            player._uproot_watch.remove(triplet)
+                        if player.show_page != len(player.page_order):
+                            try:
+                                await ensure_awaitable(
+                                    optional_call,
+                                    u.APPS[fmodule],
+                                    fname,
+                                    player=player,
+                                )
+                            except Exception:
+                                d.LOGGER.exception(
+                                    f"Exception in dropout handler {fmodule}.{fname}"
+                                )
+                            else:
+                                player._uproot_watch.remove(triplet)
 
-                removals.add(entry)
+                    removals.add(entry)
+            except Exception:
+                d.LOGGER.exception(f"Exception in dropout watcher for entry {entry}")
 
         if removals:
             for entry in removals:
@@ -124,7 +130,7 @@ def restore(app: FastAPI, admin: s.Storage) -> None:
                     # Handle watches
                     watches = getattr(player, "_uproot_watch", None)
                     if watches is not None:
-                        for watch in cast(set[tuple[float, str, str]], watches):
+                        for watch in cast(list[list[Any]], watches):
                             u.WATCH.add((pid, *watch))
 
 
