@@ -293,7 +293,35 @@ def expand(pages: list[t.PageLike]) -> list[type[t.Page]]:
     return result
 
 
-def resolve_page_order(player: s.Storage, config: str) -> list[str]:
+def make_start_app(appname: str) -> type[t.InternalPage]:
+    class StartApp(t.InternalPage):
+        __module__ = appname
+
+        @classmethod
+        def after_always_once(page, player: s.Storage) -> None:
+            player.app = appname
+
+    return StartApp
+
+
+def make_landing_page(app: Any, appname: str) -> type[t.Page]:
+    from uproot.pages import app_or_default
+
+    class LandingPage(t.Page):
+        __module__ = appname
+        template = app_or_default(app, "LandingPage.html")
+
+        @classmethod
+        async def before_always_once(page, player: s.Storage) -> None:
+            player._uproot_part += 1
+
+    return LandingPage
+
+
+def resolve_page_order(
+    player: s.Storage,  # TODO: Use 'player' to address issue #178
+    config: str,
+) -> list[str]:
     from uproot.pages import page2path
 
     result: list[str] = []
@@ -301,14 +329,18 @@ def resolve_page_order(player: s.Storage, config: str) -> list[str]:
     for appname in u.CONFIGS[config]:
         app = u.APPS[appname]
 
-        full_pages: list[t.PageLike] = [app.StartApp]
+        ensure(
+            not hasattr(app, "Constants"),
+            AttributeError,
+            f"Use 'C' instead of 'Constants' (app {appname})",
+        )
+
+        full_pages: list[t.PageLike] = [make_start_app(appname)]
 
         if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
-            full_pages.append(app.LandingPage)
+            full_pages.append(make_landing_page(app, appname))
 
-        full_pages.extend(
-            app.page_order
-        )  # TODO: Use 'player' to address for issue #178
+        full_pages.extend(app.page_order)
 
         for page in expand(full_pages):
             result.append(page2path(page))

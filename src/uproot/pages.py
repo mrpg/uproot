@@ -376,6 +376,16 @@ def path2page(path: str) -> type[Page]:
     # App pages (appname/PageName or appname/#InternalName)
     appname, pagename = path.split("/", 1)
 
+    if pagename == "#StartApp":
+        from uproot.core import make_start_app
+
+        return cast(type[Page], make_start_app(appname))
+
+    if pagename == "#LandingPage":
+        from uproot.core import make_landing_page
+
+        return make_landing_page(u.APPS[appname], appname)
+
     if pagename.startswith("#"):
         return cast(type[Page], getattr(u.APPS[appname], pagename[1:]))
 

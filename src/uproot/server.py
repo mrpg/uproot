@@ -26,16 +26,12 @@ import uproot.jobs as j
 from uproot.cache import load_database_into_memory
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
-from uproot.pages import app_or_default
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
 from uproot.server4 import router as router4
-from uproot.storage import Admin, Storage
+from uproot.storage import Admin
 from uproot.types import (
-    InternalPage,
-    Page,
-    SmoothOperator,
     ensure_awaitable,
     optional_call,
 )
@@ -181,91 +177,6 @@ async def robots(request: Request) -> PlainTextResponse:
     return PlainTextResponse(f"User-agent: *\nDisallow: {d.ROOT}/")
 
 
-def post_app_import(app: Any) -> Any:
-    appname = app.__name__
-
-    ensure(
-        not hasattr(app, "Constants"),
-        AttributeError,
-        f"Use 'C' instead of 'Constants' (app {appname})",
-    )
-
-    # Add landing page (if desired)
-    if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
-        ensure(
-            not hasattr(app, "LandingPage")
-            or getattr(app.LandingPage, "__injected__", False),
-            TypeError,
-            f"'LandingPage' is a reserved Page name (app {appname})",
-        )
-
-        class LandingPage(Page):
-            __injected__ = True
-            __module__ = appname
-            template = app_or_default(app, "LandingPage.html")
-
-            @classmethod
-            async def before_always_once(page, player: Storage) -> None:
-                player._uproot_part += 1
-
-        app.LandingPage = LandingPage
-
-    # AdminDigest is used by SessionDigest in the admin area
-    ensure(
-        not hasattr(app, "AdminDigest")
-        or getattr(app.AdminDigest, "__injected__", False),
-        TypeError,
-        f"'AdminDigest' is a reserved Page name (app {appname})",
-    )
-
-    # Demarcate beginning of new app and set player.app
-    ensure(
-        not hasattr(app, "StartApp") or getattr(app.StartApp, "__injected__", False),
-        TypeError,
-        f"'StartApp' is a reserved Page name (app {appname})",
-    )
-
-    class StartApp(InternalPage):
-        __injected__ = True
-        __module__ = appname
-
-        @classmethod
-        def after_always_once(page, player: Storage) -> None:
-            player.app = appname
-
-    app.StartApp = StartApp
-
-    # Validate that Wait pages don't use after_* methods (except after_grouping)
-    full_pages: list[type[Page] | SmoothOperator] = [app.StartApp]
-    if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
-        full_pages.append(app.LandingPage)
-    full_pages.extend(app.page_order)
-
-    for page in c.expand(full_pages):
-        # Check if this page derives from a class with "Wait" in its name
-        is_wait_page = any("Wait" in base.__name__ for base in page.__mro__)
-
-        if is_wait_page:
-            forbidden_methods = [
-                attr
-                for attr in dir(page)
-                if attr.startswith("after_")
-                and attr != "after_grouping"
-                and hasattr(page, attr)
-                and callable(getattr(page, attr))
-                and not attr.startswith("_")
-            ]
-
-            ensure(
-                len(forbidden_methods) == 0,
-                TypeError,
-                f"Page '{page.__name__}' inherits from a Wait page and has forbidden after_* methods: "
-                f"{', '.join(forbidden_methods)}. Wait pages should use 'all_here' for "
-                f"group-wide initialization instead of 'after_once' or 'after_always_once'. "
-                f"(app {appname})",
-            )
-
-
 @validate_call(config={"arbitrary_types_allowed": True})
 def load_config(
     _server: FastAPI,
@@ -278,7 +189,7 @@ def load_config(
     ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
 
     if not hasattr(u, "APPS"):
-        u.APPS = ModuleManager(post_app_import)
+        u.APPS = ModuleManager()
 
     u.CONFIGS[config] = []
     u.CONFIGS_EXTRA[config] = {

@@ -461,7 +461,23 @@ class FrozenPage(type):
             ) and inspect.iscoroutinefunction(attr_value):
                 raise TypeError(f"Method {name}.{attr_name} must not be async")
 
-        return super().__new__(cls, name, bases, namespace)
+        klass = super().__new__(cls, name, bases, namespace)
+
+        # Validate that Wait pages don't define after_* methods (except after_grouping)
+        if any("Wait" in b.__name__ for b in klass.__mro__[1:]):
+            for attr_name in namespace:
+                if (
+                    attr_name.startswith("after_")
+                    and attr_name != "after_grouping"
+                    and not attr_name.startswith("__")
+                ):
+                    raise TypeError(
+                        f"Page '{name}' inherits from a Wait page and has forbidden method "
+                        f"'{attr_name}'. Wait pages should use 'all_here' for "
+                        f"group-wide initialization instead of 'after_once' or 'after_always_once'."
+                    )
+
+        return klass
 
     def __setattr__(self, name: str, value: Any) -> None:
         raise AttributeError(
