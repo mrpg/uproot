@@ -110,6 +110,7 @@ async def show_page(
     ppath = show2path(player.page_order, player.show_page)
     page = path2page(ppath)
     proceed = False
+    timeout_fired = False
     direction = 1  # 1 for forward, -1 for backward
     form = None
     formdata = None
@@ -121,6 +122,7 @@ async def show_page(
             optional_call, page, "timeout_reached", default_return=True, player=player
         )
         proceed = True
+        timeout_fired = True
 
     if request.method == "GET":
         if player.show_page == -1:
@@ -242,7 +244,7 @@ async def show_page(
     else:
         raise HTTPException(status_code=400)
 
-    if proceed:
+    if proceed and not timeout_fired:
         proceed = cast(
             bool,
             await ensure_awaitable(
