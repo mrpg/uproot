@@ -1078,7 +1078,7 @@ window.uproot = {
                 if (!uproot.serverThere || uproot.serverThere < sentAt) {
                     showConnectionLostModal();
                 }
-            }, 1500);
+            }, 3000);
 
             return originalHello();
         };
