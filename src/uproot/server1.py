@@ -255,6 +255,7 @@ async def show_page(
     if proceed and player.show_page < len(player.page_order):
         # Only call after_once and after_always_once for forward navigation
         if direction == 1:
+            show_page_before = player.show_page
             await ensure_awaitable(
                 optional_call_once,
                 page,
@@ -274,7 +275,12 @@ async def show_page(
 
         if direction == 1:
             # Forward navigation
-            candidate = player.show_page + 1
+            # If move_to_page was called during after_once/after_always_once,
+            # start from the new position directly instead of +1
+            if player.show_page != show_page_before:
+                candidate = player.show_page
+            else:
+                candidate = player.show_page + 1
 
             while candidate <= len(player.page_order):
                 page = path2page(show2path(player.page_order, candidate))
