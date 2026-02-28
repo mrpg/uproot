@@ -252,6 +252,10 @@ async def show_page(
                 optional_call, page, "may_proceed", default_return=True, player=player
             ),
         )
+        # Refresh show_page from storage: may_proceed (e.g. all_here) may
+        # have modified it via a separate Storage object whose write
+        # bypasses our field cache.
+        player.__field_cache__.pop("show_page", None)
 
     if proceed and player.show_page < len(player.page_order):
         # Only call after_once and after_always_once for forward navigation
