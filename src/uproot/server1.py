@@ -116,6 +116,7 @@ async def show_page(
     formdata = None
     custom_errors: list[str] = []
     metadata = {}
+    original_show_page = player.show_page
 
     if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
         await ensure_awaitable(
@@ -255,13 +256,12 @@ async def show_page(
     if proceed and player.show_page < len(player.page_order):
         # Only call after_once and after_always_once for forward navigation
         if direction == 1:
-            show_page_before = player.show_page
             await ensure_awaitable(
                 optional_call_once,
                 page,
                 "after_once",
                 storage=player,
-                show_page=player.show_page,
+                show_page=original_show_page,
                 player=player,
             )
             await ensure_awaitable(
@@ -269,15 +269,16 @@ async def show_page(
                 page,
                 "after_always_once",
                 storage=player,
-                show_page=player.show_page,
+                show_page=original_show_page,
                 player=player,
             )
 
         if direction == 1:
             # Forward navigation
-            # If move_to_page was called during after_once/after_always_once,
+            # If move_to_page was called during any callback
+            # (timeout_reached, validate, may_proceed, after_once, etc.),
             # start from the new position directly instead of +1
-            if player.show_page != show_page_before:
+            if player.show_page != original_show_page:
                 candidate = player.show_page
             else:
                 candidate = player.show_page + 1
@@ -336,25 +337,32 @@ async def show_page(
 
                 candidate -= 1
 
-    if (
-        to := await ensure_awaitable(optional_call, page, "set_timeout", player=player)
-    ) is not None:
-        metadata["remaining_seconds"] = to
-
     pid = cast(t.PlayerIdentifier, t.identify(player))
 
     u.set_online(pid)
 
     # Only call before_once for forward navigation (backward is neutral)
     if direction == 1:
-        await ensure_awaitable(
-            optional_call_once,
-            page,
-            "before_once",
-            storage=player,
-            show_page=player.show_page,
-            player=player,
-        )
+        while True:
+            sp_before = player.show_page
+            await ensure_awaitable(
+                optional_call_once,
+                page,
+                "before_once",
+                storage=player,
+                show_page=player.show_page,
+                player=player,
+            )
+            if player.show_page != sp_before:
+                # move_to_page was called in before_once: re-resolve page
+                page = path2page(show2path(player.page_order, player.show_page))
+            else:
+                break
+
+    if (
+        to := await ensure_awaitable(optional_call, page, "set_timeout", player=player)
+    ) is not None:
+        metadata["remaining_seconds"] = to
 
     return await render(
         request.app,
