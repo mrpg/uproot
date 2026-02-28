@@ -255,6 +255,7 @@ async def show_page(
         # Refresh show_page from storage: may_proceed (e.g. all_here) may
         # have modified it via a separate Storage object whose write
         # bypasses our field cache.
+        # TODO: Use player.refresh("show_page") from appendmuch 0.0.2
         player.__field_cache__.pop("show_page", None)
 
     if proceed and player.show_page < len(player.page_order):
