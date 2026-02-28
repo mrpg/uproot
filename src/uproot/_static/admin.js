@@ -328,7 +328,7 @@ function renderSessions(sessions, containerId) {
         ));
 
         infoTableWrapper.appendChild(infoTable);
-        cardBody.appendChild(infoTableWrapper)
+        cardBody.appendChild(infoTableWrapper);
 
         // Badges
         const badges = createElement("div", "align-items-end d-flex flex-column justify-content-center");
