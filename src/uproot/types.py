@@ -522,13 +522,13 @@ class Page(metaclass=FrozenPage):
     after_once: Any
     before_always_once: Any
     before_once: Any
-    context: Any
     fields: Any
     handle_stealth_fields: Any
     jsvars: Any
     may_proceed: Any
     show: Any
     stealth_fields: Any
+    templatevars: Any
     timeout: Any
     timeout_reached: Any
     validate: Any
