@@ -79,7 +79,7 @@ pg = [
     "appendmuch[pg]",  # TODO: Fix actual version
 ]
 dev = [
-    "bandit==1.9.3",
+    "bandit==1.9.4",
     "black==26.1.0",
     "deptry==0.24.0",
     "isort==8.0.0",
