@@ -480,6 +480,8 @@ class FrozenPage(type):
 
         klass = super().__new__(cls, name, bases, namespace)
 
+        # TODO: Add deprecation notice for Page.context
+
         # Validate that Wait pages don't define after_* methods (except after_grouping)
         if any("Wait" in b.__name__ for b in klass.__mro__[1:]):
             for attr_name in namespace:
