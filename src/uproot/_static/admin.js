@@ -129,7 +129,7 @@ function renderRooms(rooms, containerId) {
             "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 pt-1 text-uproot"
         );
 
-        const title = createElement("h5", "fw-semibold mb-1 me-3 text-nowrap");
+        const title = createElement("h5", "fw-semibold mb-1 me-3 overflow-x-scroll text-nowrap");
         const roomUrl = adminUrl("room", room.name);
         title.innerHTML = `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`; // SAFE
 
@@ -153,22 +153,23 @@ function renderRooms(rooms, containerId) {
             "bg-white card-body d-flex justify-content-between pb-1 pt-1 rounded-bottom"
         );
 
-        const leftCol = createElement("div", "col d-table mb-2");
+        const leftCol = createElement("div", "overflow-x-scroll me-3");
+        const infoTable = createElement("div", "col d-table mb-2");
 
         // Session row
         if (room.sname) {
             const sessionUrl = adminUrl("session", room.sname);
-            leftCol.appendChild(createTableRow(_("Session"), room.sname, {
+            infoTable.appendChild(createTableRow(_("Session"), room.sname, {
                 valueIsLink: true,
                 linkHref: sessionUrl,
                 isMonospace: true
             }));
         } else {
-            leftCol.appendChild(createTableRow(_("Session"), _("N/A"), { isNA: true }));
+            infoTable.appendChild(createTableRow(_("Session"), _("N/A"), { isNA: true }));
         }
 
         // Config row
-        leftCol.appendChild(createTableRow(
+        infoTable.appendChild(createTableRow(
             _("Config"),
             room.config || _("N/A"),
             { isMonospace: !!room.config, isNA: !room.config }
@@ -182,14 +183,15 @@ function renderRooms(rooms, containerId) {
         } else {
             labelsRow.innerHTML = `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Labels")}</span> <span class="d-table-cell text-body-tertiary w-100">N/A</span>`; // SAFE
         }
-        leftCol.appendChild(labelsRow);
+        infoTable.appendChild(labelsRow);
 
         // Join mode row
         const freejoin = room.labels == null && room.capacity == null;
         const freejoinRow = createElement("div", "d-table-row");
         freejoinRow.innerHTML = `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Join mode")}</span> <span class="d-table-cell w-100">${freejoin ? _("free join") : _("restricted")}</span>`; // SAFE
-        leftCol.appendChild(freejoinRow);
+        infoTable.appendChild(freejoinRow);
 
+        leftCol.appendChild(infoTable);
         cardBody.appendChild(leftCol);
 
         // Capacity badges
@@ -296,6 +298,7 @@ function renderSessions(sessions, containerId) {
             "bg-white card-body d-flex flex-row justify-content-between pb-2 pt-0 rounded-bottom"
         );
 
+        const infoTableWrapper = createElement("div", "overflow-x-scroll me-3");
         const infoTable = createElement("div", "d-table mb-2 mt-1");
 
         // Room row
@@ -324,7 +327,8 @@ function renderSessions(sessions, containerId) {
             { isNA: !session.description }
         ));
 
-        cardBody.appendChild(infoTable);
+        infoTableWrapper.appendChild(infoTable);
+        cardBody.appendChild(infoTableWrapper);
 
         // Badges
         const badges = createElement("div", "align-items-end d-flex flex-column justify-content-center");
