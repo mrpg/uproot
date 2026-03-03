@@ -10,7 +10,9 @@ from uproot.types import (
     GroupIdentifier,
     PlayerIdentifier,
     Sessionname,
+    StorageBunch,
     Username,
+    identify,
     materialize,
 )
 
@@ -90,11 +92,58 @@ def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Stora
         raise AttributeError
 
 
+def virtual_others_in_session(s: Storage) -> StorageBunch:
+    pid = identify(s)
+    with materialize(s._uproot_session) as session:
+        bunch = session.players
+    return StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
+
+
+def virtual_others_in_group(s: Storage) -> StorageBunch:
+    pid = identify(s)
+    with s.group as g:
+        bunch = g.players
+    return StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
+
+
+def virtual_other_in_session(s: Storage) -> Storage:
+    others = s.others_in_session
+    ensure(len(others) == 1, ValueError, "Expected exactly one other player in session")
+    return cast(Storage, others[0])
+
+
+def virtual_other_in_group(s: Storage) -> Storage:
+    others = s.others_in_group
+    ensure(len(others) == 1, ValueError, "Expected exactly one other player in group")
+    return cast(Storage, others[0])
+
+
+def virtual_groups(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
+def virtual_models(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
+def virtual_players(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
+def virtual_sessions(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
 def Admin() -> Storage:
     return Storage(
         "admin",
         virtual={
             "along": lambda s: (lambda field: within.along(s, field)),
+            # "sessions": virtual_sessions,
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -105,9 +154,12 @@ def Session(sname: Sessionname) -> Storage:
         "session",
         str(sname),
         virtual={
-            "group": virtual_group,
-            "player": virtual_player,
             "along": lambda s: (lambda field: within.along(s, field)),
+            "group": virtual_group,
+            # "groups": virtual_groups,
+            # "models": virtual_models,
+            "player": virtual_player,
+            # "players": virtual_players,
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -119,8 +171,9 @@ def Group(sname: Sessionname, gname: str) -> Storage:
         str(sname),
         gname,
         virtual={
-            "session": lambda s: materialize(s._uproot_session),
             "along": lambda s: (lambda field: within.along(s, field)),
+            # "players": virtual_players,
+            "session": lambda s: materialize(s._uproot_session),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -132,9 +185,13 @@ def Player(sname: Sessionname, uname: Username) -> Storage:
         str(sname),
         str(uname),
         virtual={
-            "session": lambda s: materialize(s._uproot_session),
-            "group": virtual_group,
             "along": lambda s: (lambda field: within.along(s, field)),
+            "group": virtual_group,
+            "others_in_session": virtual_others_in_session,
+            "others_in_group": virtual_others_in_group,
+            "other_in_session": virtual_other_in_session,
+            "other_in_group": virtual_other_in_group,
+            "session": lambda s: materialize(s._uproot_session),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -146,8 +203,8 @@ def Model(sname: Sessionname, mname: str) -> Storage:
         str(sname),
         mname,
         virtual={
-            "session": lambda s: materialize(s._uproot_session),
             "along": lambda s: (lambda field: within.along(s, field)),
+            "session": lambda s: materialize(s._uproot_session),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )

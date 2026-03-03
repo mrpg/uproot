@@ -182,9 +182,8 @@ PD_INIT_PY = """
 from uproot.fields import *
 from uproot.smithereens import *
 
-
 DESCRIPTION = "Prisoner’s dilemma"
-LANDING_PAGE = True
+LANDING_PAGE = False
 
 
 class C:
@@ -205,7 +204,7 @@ class Dilemma(Page):
 
 
 def set_payoff(player):
-    other = other_in_group(player)
+    other = player.other_in_group
 
     match player.cooperate, other.cooperate:
         case True, True:
@@ -226,11 +225,7 @@ class Sync(SynchronizingWait):
 
 
 class Results(Page):
-    @classmethod
-    def context(page, player):
-        return dict(
-            other=other_in_group(player),
-        )
+    pass
 
 
 page_order = [
@@ -272,7 +267,7 @@ Results
 <p>You did not cooperate.</p>
 {% endif %}
 
-{% if other.cooperate %}
+{% if player.other_in_group.cooperate %}
 <p>Your partner cooperated.</p>
 {% else %}
 <p>Your partner did not cooperate.</p>
