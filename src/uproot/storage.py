@@ -118,11 +118,32 @@ def virtual_other_in_group(s: Storage) -> Storage:
     return cast(Storage, others[0])
 
 
+def virtual_groups(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
+def virtual_models(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
+def virtual_players(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
+def virtual_sessions(s: Storage) -> StorageBunch:
+    # TODO: Implement, see issue #179
+    raise NotImplementedError
+
+
 def Admin() -> Storage:
     return Storage(
         "admin",
         virtual={
             "along": lambda s: (lambda field: within.along(s, field)),
+            # "sessions": virtual_sessions,
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -134,7 +155,10 @@ def Session(sname: Sessionname) -> Storage:
         str(sname),
         virtual={
             "group": virtual_group,
+            # "groups": virtual_groups,
+            # "models": virtual_models,
             "player": virtual_player,
+            # "players": virtual_players,
             "along": lambda s: (lambda field: within.along(s, field)),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
@@ -147,6 +171,7 @@ def Group(sname: Sessionname, gname: str) -> Storage:
         str(sname),
         gname,
         virtual={
+            # "players": virtual_players,
             "session": lambda s: materialize(s._uproot_session),
             "along": lambda s: (lambda field: within.along(s, field)),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
