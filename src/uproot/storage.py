@@ -11,7 +11,9 @@ from uproot.types import (
     GroupIdentifier,
     PlayerIdentifier,
     Sessionname,
+    StorageBunch,
     Username,
+    identify,
     materialize,
 )
 
@@ -106,6 +108,32 @@ def virtual_context(storage: Storage) -> Any:
         raise AttributeError
 
 
+def virtual_others_in_session(s: Storage) -> StorageBunch:
+    pid = identify(s)
+    with materialize(s._uproot_session) as session:
+        bunch = session.players
+    return StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
+
+
+def virtual_others_in_group(s: Storage) -> StorageBunch:
+    pid = identify(s)
+    with s.group as g:
+        bunch = g.players
+    return StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
+
+
+def virtual_other_in_session(s: Storage) -> Storage:
+    others = s.others_in_session
+    ensure(len(others) == 1, ValueError, "Expected exactly one other player in session")
+    return cast(Storage, others[0])
+
+
+def virtual_other_in_group(s: Storage) -> Storage:
+    others = s.others_in_group
+    ensure(len(others) == 1, ValueError, "Expected exactly one other player in group")
+    return cast(Storage, others[0])
+
+
 def Admin() -> Storage:
     return Storage(
         "admin",
@@ -150,6 +178,10 @@ def Player(sname: Sessionname, uname: Username) -> Storage:
         virtual={
             "session": lambda s: materialize(s._uproot_session),
             "group": virtual_group,
+            "others_in_session": virtual_others_in_session,
+            "others_in_group": virtual_others_in_group,
+            "other_in_session": virtual_other_in_session,
+            "other_in_group": virtual_other_in_group,
             "along": lambda s: (lambda field: within.along(s, field)),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
             "context": virtual_context,

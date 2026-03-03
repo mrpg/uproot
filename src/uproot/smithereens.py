@@ -246,8 +246,7 @@ def others_in_session(player: Storage) -> t.StorageBunch:
     # TODO: Remove (issue #179)
     t.ensure_local_logger()
     t.LOGGER.warning(
-        "others_in_session(obj) will soon be deprecated. "
-        "You can soon use obj.others_in_session directly."
+        "others_in_session(obj) is deprecated. " "Use obj.others_in_session instead."
     )
 
     pid = t.identify(player)
@@ -263,8 +262,7 @@ def others_in_group(player: Storage) -> t.StorageBunch:
     # TODO: Remove (issue #179)
     t.ensure_local_logger()
     t.LOGGER.warning(
-        "others_in_group(obj) will soon be deprecated. "
-        "You can soon use obj.others_in_group directly."
+        "others_in_group(obj) is deprecated. " "Use obj.others_in_group instead."
     )
 
     pid = t.identify(player)
@@ -280,8 +278,7 @@ def other_in_group(player: Storage) -> Storage:
     # TODO: Remove (issue #179)
     t.ensure_local_logger()
     t.LOGGER.warning(
-        "other_in_group(obj) will soon be deprecated. "
-        "You can soon use obj.other_in_group directly."
+        "other_in_group(obj) is deprecated. " "Use obj.other_in_group instead."
     )
 
     others = others_in_group(player)
@@ -296,8 +293,7 @@ def other_in_session(player: Storage) -> Storage:
     # TODO: Remove (issue #179)
     t.ensure_local_logger()
     t.LOGGER.warning(
-        "other_in_session(obj) will soon be deprecated. "
-        "You can soon use obj.other_in_session directly."
+        "other_in_session(obj) is deprecated. " "Use obj.other_in_session instead."
     )
 
     others = others_in_session(player)
