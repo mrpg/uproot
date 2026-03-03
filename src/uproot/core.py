@@ -323,7 +323,7 @@ def make_landing_page(app: Any, appname: str) -> type[t.InternalPage]:
 
 
 def resolve_page_order(
-    player: s.Storage,  # TODO: Use 'player' to address issue #178
+    player: s.Storage,
     config: str,
 ) -> list[str]:
     from uproot.pages import page2path
@@ -344,7 +344,13 @@ def resolve_page_order(
         if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
             full_pages.append(make_landing_page(app, appname))
 
-        full_pages.extend(app.page_order)
+        if hasattr(app, "page_order"):
+            if isinstance(app.page_order, list):
+                full_pages.extend(app.page_order)
+            elif callable(app.page_order):
+                full_pages.extend(app.page_order(player=player))
+            else:
+                raise TypeError(f"{app}.page_order must be list or callable")
 
         for page in expand(full_pages):
             result.append(page2path(page))
