@@ -154,12 +154,12 @@ def Session(sname: Sessionname) -> Storage:
         "session",
         str(sname),
         virtual={
+            "along": lambda s: (lambda field: within.along(s, field)),
             "group": virtual_group,
             # "groups": virtual_groups,
             # "models": virtual_models,
             "player": virtual_player,
             # "players": virtual_players,
-            "along": lambda s: (lambda field: within.along(s, field)),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -171,9 +171,9 @@ def Group(sname: Sessionname, gname: str) -> Storage:
         str(sname),
         gname,
         virtual={
+            "along": lambda s: (lambda field: within.along(s, field)),
             # "players": virtual_players,
             "session": lambda s: materialize(s._uproot_session),
-            "along": lambda s: (lambda field: within.along(s, field)),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -185,13 +185,13 @@ def Player(sname: Sessionname, uname: Username) -> Storage:
         str(sname),
         str(uname),
         virtual={
-            "session": lambda s: materialize(s._uproot_session),
+            "along": lambda s: (lambda field: within.along(s, field)),
             "group": virtual_group,
             "others_in_session": virtual_others_in_session,
             "others_in_group": virtual_others_in_group,
             "other_in_session": virtual_other_in_session,
             "other_in_group": virtual_other_in_group,
-            "along": lambda s: (lambda field: within.along(s, field)),
+            "session": lambda s: materialize(s._uproot_session),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -203,8 +203,8 @@ def Model(sname: Sessionname, mname: str) -> Storage:
         str(sname),
         mname,
         virtual={
-            "session": lambda s: materialize(s._uproot_session),
             "along": lambda s: (lambda field: within.along(s, field)),
+            "session": lambda s: materialize(s._uproot_session),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
