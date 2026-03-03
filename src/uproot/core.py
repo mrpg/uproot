@@ -304,12 +304,16 @@ def make_start_app(appname: str) -> type[t.InternalPage]:
     return StartApp
 
 
-def make_landing_page(app: Any, appname: str) -> type[t.Page]:
+def make_landing_page(app: Any, appname: str) -> type[t.InternalPage]:
     from uproot.pages import app_or_default
 
-    class LandingPage(t.Page):
+    class LandingPage(t.InternalPage):
         __module__ = appname
         template = app_or_default(app, "LandingPage.html")
+
+        @classmethod
+        async def show(page, player: s.Storage) -> bool:
+            return True
 
         @classmethod
         async def before_always_once(page, player: s.Storage) -> None:
