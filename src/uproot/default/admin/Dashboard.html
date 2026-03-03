@@ -12,15 +12,15 @@ Dashboard
 
 {% block main %}
 
-<div class="row">
+<div class="gx-4-5 pt-2 row">
     <div class="col-12 col-xl-6">
-        <h3 class="mb-3">
+        <h3 class="mb-4">
             {% translate %}
             Rooms
             {% endtranslate %}
         </h3>
         {% if not deployment.PUBLIC_DEMO %}
-        <div class="col mb-4" id="rooms-container">
+        <div class="col mb-3" id="rooms-container">
             <span class="text-body-tertiary">{% translate %}
             No rooms defined at this time.
             {% endtranslate %}</span>
@@ -30,7 +30,7 @@ Dashboard
         {% endif %}
     </div>
     <div class="col-12 col-xl-6">
-        <h3 class="mb-3">
+        <h3 class="mb-4">
             {% translate %}
             Active sessions
             {% endtranslate %}
@@ -47,9 +47,9 @@ Dashboard
     </div>
 </div>
 
-<div class="row">
+<div class="gx-4-5 row">
     <div class="col-12 col-lg-6">
-        <h3 class="mb-3 mt-4">
+        <h3 class="mb-4 mt-3">
             {% translate %}
             Configs
             {% endtranslate %}
@@ -61,7 +61,7 @@ Dashboard
         </div>
     </div>
     <div class="col-12 col-lg-6">
-        <h3 class="mb-3 mt-4">
+        <h3 class="mb-4 mt-3">
             {% translate %}
             Apps
             {% endtranslate %}

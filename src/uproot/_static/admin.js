@@ -121,12 +121,12 @@ function renderRooms(rooms, containerId) {
 
     sortedRooms.forEach(room => {
         const col = createElement("div", "col mb-4");
-        const card = createElement("div", "border-uproot-light card");
+        const card = createElement("div", "border-uproot callout card");
 
         // Card header
-        const cardHeader = createElement("div", "bg-white border-0 card-header");
+        const cardHeader = createElement("div", "bg-white border-0 card-header pe-0");
         const headerContent = createElement("div",
-            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 pt-1 text-uproot"
+            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 text-uproot"
         );
 
         const title = createElement("h5", "fw-semibold mb-1 me-3 overflow-x-scroll text-nowrap");
@@ -150,7 +150,7 @@ function renderRooms(rooms, containerId) {
 
         // Card body
         const cardBody = createElement("div",
-            "bg-white card-body d-flex justify-content-between pb-1 pt-1 rounded-bottom"
+            "bg-white card-body d-flex justify-content-between pb-1 pe-0 pt-1 rounded-bottom"
         );
 
         const leftCol = createElement("div", "overflow-x-scroll me-3");
@@ -268,12 +268,12 @@ function renderSessions(sessions, containerId) {
 
     sortedSessions.forEach(session => {
         const col = createElement("div", "col mb-4");
-        const card = createElement("div", "card");
+        const card = createElement("div", "callout card border-uproot-light");
 
         // Card header
-        const cardHeader = createElement("div", "bg-white border-0 card-header");
+        const cardHeader = createElement("div", "bg-white border-0 card-header pe-0");
         const headerContent = createElement("div",
-            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 pt-1"
+            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2"
         );
 
         if (session.sname) {
@@ -295,7 +295,7 @@ function renderSessions(sessions, containerId) {
 
         // Card body
         const cardBody = createElement("div",
-            "bg-white card-body d-flex flex-row justify-content-between pb-2 pt-0 rounded-bottom"
+            "bg-white card-body d-flex flex-row justify-content-between pb-1 pe-0 pt-0 rounded-bottom"
         );
 
         const infoTableWrapper = createElement("div", "overflow-x-scroll me-3");
@@ -418,20 +418,21 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
     container.innerHTML = "";  // SAFE
     if (!data[groupKey]) return;
 
-    const card = createElement("div", "card mb-3");
+    const card = createElement("div", "mb-3");
 
     const cardBodyClass = groupKey === "configs"
-        ? "bg-light card-body px-3 py-2 rounded"
-        : "card-body px-3 py-2";
-    const cardBody = createElement("div", cardBodyClass);
+        ? "bg-light border-uproot-subtle"
+        : "bg-light border-uproot-subtle-light";
+    const cardBody = createElement("div");
 
-    const listGroup = createElement("div", "list-group list-group-flush");
+    const listGroup = createElement("div");
 
     Object.entries(data[groupKey]).forEach(([key, value]) => {
         if (key == null) return;
 
         const item = createElement("div",
-            "align-items-start bg-transparent d-flex justify-content-between list-group-item px-0 py-1"
+            "align-items-start border-start callout d-flex justify-content-between px-3 py-2 mb-3 " +
+            cardBodyClass
         );
 
         const content = createElement("div", "flex-grow-1 overflow-x-auto");
