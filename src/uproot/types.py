@@ -480,7 +480,10 @@ class FrozenPage(type):
 
         klass = super().__new__(cls, name, bases, namespace)
 
-        # TODO: Add deprecation notice for Page.context
+        if "context" in namespace:
+            raise TypeError(
+                f"Page '{name}' defines 'context', which has been renamed to 'templatevars'."
+            )
 
         # Validate that Wait pages don't define after_* methods (except after_grouping)
         if any("Wait" in b.__name__ for b in klass.__mro__[1:]):

@@ -191,6 +191,11 @@ class C:
     pass
 
 
+class Context:
+    def other(player):
+        return other_in_group(player)
+
+
 class GroupPlease(GroupCreatingWait):
     group_size = 2
 
@@ -226,11 +231,7 @@ class Sync(SynchronizingWait):
 
 
 class Results(Page):
-    @classmethod
-    def context(page, player):
-        return dict(
-            other=other_in_group(player),
-        )
+    pass
 
 
 page_order = [
@@ -272,7 +273,7 @@ Results
 <p>You did not cooperate.</p>
 {% endif %}
 
-{% if other.cooperate %}
+{% if player.context.other().cooperate %}
 <p>Your partner cooperated.</p>
 {% else %}
 <p>Your partner did not cooperate.</p>
