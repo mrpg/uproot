@@ -7,7 +7,6 @@ import appendmuch
 
 from uproot.constraints import ensure, valid_token
 from uproot.types import (
-    Bound,
     GroupIdentifier,
     PlayerIdentifier,
     Sessionname,
@@ -103,7 +102,10 @@ def virtual_context(storage: Storage) -> Any:
             if (context := getattr(u.APPS[app], "Context", None)) is None:
                 return None
             else:
-                return Bound(context, storage)
+                try:
+                    return context(player=storage)
+                except TypeError:  # TODO: Instead inspect mro()
+                    return context()
     else:
         raise AttributeError
 
