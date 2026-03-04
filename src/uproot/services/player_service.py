@@ -40,7 +40,7 @@ async def fields_from_all(
         if not session:
             return retval
 
-        for pid in session.players:
+        for pid in session._uproot_players:
             with t.materialize(pid) as player:
                 retval[pid.uname] = {}
 

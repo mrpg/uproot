@@ -740,7 +740,7 @@ class SynchronizingWait(InternalPage):
             raise NotImplementedError
 
         with s:
-            return cast(list[PlayerIdentifier], s.players)
+            return cast(list[PlayerIdentifier], s._uproot_players)
 
     @internal_live
     async def wait(page, player: Any) -> tuple[str, float]:

@@ -157,9 +157,9 @@ async def get_session(
             "description": session.description,
             "room": session.room,
             "settings": session.settings,
-            "n_players": len(session.players),
-            "n_groups": len(session.groups),
-            "n_models": len(session.models),
+            "n_players": len(session._uproot_players),
+            "n_groups": len(session._uproot_groups),
+            "n_models": len(session._uproot_models),
             "apps": session.apps,
         }
 
@@ -180,7 +180,7 @@ async def create_session(
     )
 
     with Admin() as admin:
-        if body.sname and body.sname in admin.sessions:
+        if body.sname and body.sname in admin._uproot_sessions:
             raise HTTPException(status_code=400, detail="Session name already exists")
 
         sid = c.create_session(

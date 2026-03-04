@@ -118,7 +118,7 @@ async def roommain(
     if label != "":
         # Check existing players in this session for the same label
         with Session(room["sname"]) as session:
-            for pid in session.players:
+            for pid in session._uproot_players:
                 with Player(pid.sname, pid.uname) as player:
                     if hasattr(player, "label") and player.label == label:
                         return RedirectResponse(
@@ -135,7 +135,7 @@ async def roommain(
 
         if (
             ur.freejoin(room)
-            or len(session.players) < capacity
+            or len(session._uproot_players) < capacity
             or free_slot is not None
         ):
             sname = room["sname"]

@@ -256,12 +256,7 @@ def others_in_session(player: Storage) -> t.StorageBunch:
         "others_in_session(obj) is deprecated. " "Use obj.others_in_session instead."
     )
 
-    pid = t.identify(player)
-
-    with player._uproot_session() as s:
-        bunch = s.players
-
-    return t.StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
+    return cast(t.StorageBunch, player.others_in_session)
 
 
 @flexible
@@ -272,12 +267,7 @@ def others_in_group(player: Storage) -> t.StorageBunch:
         "others_in_group(obj) is deprecated. " "Use obj.others_in_group instead."
     )
 
-    pid = t.identify(player)
-
-    with player.group as g:
-        bunch = g.players
-
-    return t.StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
+    return cast(t.StorageBunch, player.others_in_group)
 
 
 @flexible
@@ -288,11 +278,7 @@ def other_in_group(player: Storage) -> Storage:
         "other_in_group(obj) is deprecated. " "Use obj.other_in_group instead."
     )
 
-    others = others_in_group(player)
-
-    ensure(len(others) == 1, ValueError, "Expected exactly one other player in group")
-
-    return others[0]
+    return cast(Storage, player.other_in_group)
 
 
 @flexible
@@ -303,11 +289,7 @@ def other_in_session(player: Storage) -> Storage:
         "other_in_session(obj) is deprecated. " "Use obj.other_in_session instead."
     )
 
-    others = others_in_session(player)
-
-    ensure(len(others) == 1, ValueError, "Expected exactly one other player in session")
-
-    return others[0]
+    return cast(Storage, player.other_in_session)
 
 
 def players(
@@ -315,16 +297,13 @@ def players(
 ) -> t.StorageBunch:
     # TODO: Remove (issue #179)
     t.ensure_local_logger()
-    t.LOGGER.warning(
-        "players(obj) will soon be deprecated. "
-        "You can soon use obj.players directly."
-    )
+    t.LOGGER.warning("players(obj) is deprecated. " "Use obj.players instead.")
 
     if isinstance(arg, list):
         return t.StorageBunch([Player(*pid) for pid in arg])
     elif isinstance(arg, Storage) and arg.__namespace__[0] in ("session", "group"):
         with arg:
-            return players(getattr(arg, "players"))
+            return cast(t.StorageBunch, arg.players)
     else:
         raise NotImplementedError(
             f"players() can only be called with a Session or Group storage object or a list, "

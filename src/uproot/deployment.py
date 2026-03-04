@@ -62,7 +62,7 @@ from uproot.stable import CODEC  # noqa: E402
 
 
 def uproot_replace_predicate(namespace: str, field: str) -> bool:
-    return field == "players" and namespace.startswith("session/")
+    return field == "_uproot_players" and namespace.startswith("session/")
 
 
 def uproot_on_change(
@@ -84,7 +84,7 @@ if DBENV == "sqlite3":
         os.getenv("UPROOT_SQLITE3", "uproot.sqlite3"),
         table_prefix="uproot",
         tblextra=TBLEXTRA,
-        replace_index_specs=[("players", "session/%")],
+        replace_index_specs=[("_uproot_players", "session/%")],
     )
 elif DBENV == "memory":
     LOGGER.warning("Using 'memory' database driver. Data will not persist.")
@@ -95,7 +95,7 @@ elif DBENV == "postgresql":
         pg_url,
         table_prefix="uproot",
         tblextra=TBLEXTRA,
-        replace_index_specs=[("players", "session/%")],
+        replace_index_specs=[("_uproot_players", "session/%")],
     )
 else:
     raise NotImplementedError(f"Invalid UPROOT_DATABASE environment variable: {DBENV}")

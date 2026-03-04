@@ -113,14 +113,14 @@ def virtual_context(storage: Storage) -> Any:
 def virtual_others_in_session(s: Storage) -> StorageBunch:
     pid = identify(s)
     with materialize(s._uproot_session) as session:
-        bunch = session.players
+        bunch = session._uproot_players
     return StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
 
 
 def virtual_others_in_group(s: Storage) -> StorageBunch:
     pid = identify(s)
     with s.group as g:
-        bunch = g.players
+        bunch = g._uproot_players
     return StorageBunch([Player(*pid_) for pid_ in bunch if pid_ != pid])
 
 
@@ -137,23 +137,35 @@ def virtual_other_in_group(s: Storage) -> Storage:
 
 
 def virtual_groups(s: Storage) -> StorageBunch:
-    # TODO: Implement, see issue #179
-    raise NotImplementedError
+    if s.__namespace__[0] == "session":
+        with s:
+            return StorageBunch([Group(s.name, gname) for gname in s._uproot_groups])
+    else:
+        raise AttributeError
 
 
 def virtual_models(s: Storage) -> StorageBunch:
-    # TODO: Implement, see issue #179
-    raise NotImplementedError
+    if s.__namespace__[0] == "session":
+        with s:
+            return StorageBunch([Model(s.name, mname) for mname in s._uproot_models])
+    else:
+        raise AttributeError
 
 
 def virtual_players(s: Storage) -> StorageBunch:
-    # TODO: Implement, see issue #179
-    raise NotImplementedError
+    if s.__namespace__[0] in ("session", "group"):
+        with s:
+            return StorageBunch([Player(*pid) for pid in s._uproot_players])
+    else:
+        raise AttributeError
 
 
 def virtual_sessions(s: Storage) -> StorageBunch:
-    # TODO: Implement, see issue #179
-    raise NotImplementedError
+    if s.__namespace__[0] == "admin":
+        with s:
+            return StorageBunch([Session(sname) for sname in s._uproot_sessions])
+    else:
+        raise AttributeError
 
 
 def Admin() -> Storage:
@@ -161,7 +173,7 @@ def Admin() -> Storage:
         "admin",
         virtual={
             "along": lambda s: (lambda field: within.along(s, field)),
-            # "sessions": virtual_sessions,
+            "sessions": virtual_sessions,
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -174,10 +186,10 @@ def Session(sname: Sessionname) -> Storage:
         virtual={
             "along": lambda s: (lambda field: within.along(s, field)),
             "group": virtual_group,
-            # "groups": virtual_groups,
-            # "models": virtual_models,
+            "groups": virtual_groups,
+            "models": virtual_models,
             "player": virtual_player,
-            # "players": virtual_players,
+            "players": virtual_players,
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )
@@ -190,7 +202,7 @@ def Group(sname: Sessionname, gname: str) -> Storage:
         gname,
         virtual={
             "along": lambda s: (lambda field: within.along(s, field)),
-            # "players": virtual_players,
+            "players": virtual_players,
             "session": lambda s: materialize(s._uproot_session),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },

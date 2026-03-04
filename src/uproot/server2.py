@@ -506,7 +506,7 @@ async def new_room(
                 {
                     "configs": a.configs(),
                     "rooms_available": [*admin.rooms.keys()],
-                    "sessions_available": admin.sessions,
+                    "sessions_available": admin._uproot_sessions,
                 },
             )
         )
@@ -942,7 +942,7 @@ async def session_multiview(
         labels = []
         unames = []
 
-        for i, pid in enumerate(session.players):
+        for i, pid in enumerate(session._uproot_players):
             with t.materialize(pid) as player:
                 ensure(player.id == i)
 
