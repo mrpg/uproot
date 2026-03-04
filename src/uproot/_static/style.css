@@ -9,6 +9,8 @@
     --bs-uproot-border-light-rgb: 146, 65, 228;
     --bs-uproot-border-subtle: #ba86ee;
     --bs-uproot-border-subtle-rgb: 186, 134, 238;
+    --bs-uproot-border-subtle-light: #dcbef4;
+    --bs-uproot-border-subtle-light-rgb: 220, 190, 244;
     --bs-uproot-dark: #300c55;
     --bs-uproot-dark-rgb: 48, 12, 85;
 }
@@ -38,6 +40,10 @@
 .border-uproot-subtle {
     --bs-border-opacity: 1;
     border-color: rgba(var(--bs-uproot-border-subtle-rgb), var(--bs-border-opacity)) !important;
+}
+.border-uproot-subtle-light {
+    --bs-border-opacity: 1;
+    border-color: rgba(var(--bs-uproot-border-subtle-light-rgb), var(--bs-border-opacity)) !important;
 }
 
 .btn-uproot {
@@ -97,7 +103,18 @@
     font-family: var(--bs-font-serif);
 }
 
-/* Extension of the Bootstrap .fs- classes */
+/* Adding classes for highlighting, inspired by https://getbootstrap.com/docs/5.3/docsref/#callouts*/
+/* Use in conjunction with utilities like .alert, .bg-*, .border-*, card, etc. */
+.callout {
+    border-bottom-width: 0px;
+    border-left-width: 5px !important;
+    border-right-width: 0px;
+    border-top-width: 0px;
+    border-radius: 0px;
+    margin-left: 1px;
+}
+
+/* Extension of the Bootstrap .fs-* classes */
 .fs-sm {
     font-size: small;
 }
@@ -146,6 +163,33 @@
     font-weight: 950 !important;  /* ExtraBlack/UltraBlack */
 }
 /* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
+
+/* Extension of the Bootstrap .g-* classes */
+.g-4-5,
+.gx-4-5 {
+  --bs-gutter-x: 2.25rem;
+}
+.g-4-5,
+.gy-4-5 {
+  --bs-gutter-y: 2.25rem;
+}
+
+/* Extension of the Bootstrap .m* classes */
+.m-4-5 {
+    margin: 2.25rem !important;
+}
+.mb-4-5 {
+    margin-bottom: 2.25rem !important;
+}
+.me-4-5 {
+    margin-right: 2.25rem !important;
+}
+.ms-4-5 {
+    margin-left: 2.25rem !important;
+}
+.mt-4-5 {
+    margin-top: 2.25rem !important;
+}
 
 .likert-cell {
     min-width: 4ch;
