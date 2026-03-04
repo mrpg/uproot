@@ -74,7 +74,7 @@ class TestMemoryDatabaseConsistency:
 
         with t.materialize(sid) as session:
             session.config = {"version": 1, "features": ["a", "b"]}
-            session.players = ["player1"]
+            session._uproot_players = ["player1"]
 
         with s.Admin() as admin:
             admin.system_state = "active"
@@ -89,7 +89,7 @@ class TestMemoryDatabaseConsistency:
         with t.materialize(sid) as session:
             assert session.config["version"] == 1
             assert "a" in session.config["features"]
-            assert session.players == ["player1"]
+            assert session._uproot_players == ["player1"]
 
         with s.Admin() as admin:
             assert admin.system_state == "active"
@@ -120,17 +120,17 @@ class TestMemoryDatabaseConsistency:
 
         with t.materialize(sid) as session:
             # Multiple player updates should work correctly
-            session.players = ["player1"]
-            session.players = ["player1", "player2"]
-            session.players = ["player2", "player3", "player4"]
+            session._uproot_players = ["player1"]
+            session._uproot_players = ["player1", "player2"]
+            session._uproot_players = ["player2", "player3", "player4"]
 
         # Verify final state is correct
         with t.materialize(sid) as session:
-            assert session.players == ["player2", "player3", "player4"]
-            assert len(session.players) == 3
-            assert "player2" in session.players
-            assert "player3" in session.players
-            assert "player4" in session.players
+            assert session._uproot_players == ["player2", "player3", "player4"]
+            assert len(session._uproot_players) == 3
+            assert "player2" in session._uproot_players
+            assert "player3" in session._uproot_players
+            assert "player4" in session._uproot_players
 
     def test_field_deletion_and_access_patterns(self):
         """Verify field deletion works correctly."""

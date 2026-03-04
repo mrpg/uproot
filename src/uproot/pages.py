@@ -228,7 +228,11 @@ async def render(
             cast(
                 dict[str, Any],
                 await ensure_awaitable(
-                    optional_call, page, "context", default_return={}, player=player
+                    optional_call,
+                    page,
+                    "templatevars",
+                    default_return={},
+                    player=player,
                 ),
             )
             | BUILTINS

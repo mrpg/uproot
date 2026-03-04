@@ -21,7 +21,7 @@ def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
         raise_http: If True, raise HTTPException; otherwise raise ValueError
     """
     with s.Admin() as admin:
-        if sname not in admin.sessions:
+        if sname not in admin._uproot_sessions:
             if raise_http:
                 raise HTTPException(status_code=400, detail="Invalid session")
             else:
@@ -36,7 +36,7 @@ def sessions() -> dict[str, dict[str, Any]]:
     stats = {}
 
     with s.Admin() as admin:
-        snames = admin.sessions
+        snames = admin._uproot_sessions
 
     for sname in snames:
         with s.Session(sname) as session:
@@ -47,8 +47,8 @@ def sessions() -> dict[str, dict[str, Any]]:
                 "config": session.config,
                 "room": session.room,
                 "description": session.description,
-                "n_players": len(session.players),
-                "n_groups": len(session.groups),
+                "n_players": len(session._uproot_players),
+                "n_groups": len(session._uproot_groups),
             }
 
     return stats

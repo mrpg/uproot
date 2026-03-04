@@ -123,9 +123,9 @@ def synchronize_rooms(app: FastAPI, admin: s.Storage) -> None:
 def restore(app: FastAPI, admin: s.Storage) -> None:
     u.KEY = admin._uproot_key
 
-    for sname in admin.sessions:
+    for sname in admin._uproot_sessions:
         with s.Session(sname) as session:
-            for pid in session.players:
+            for pid in session._uproot_players:
                 with s.Player(pid.sname, pid.uname) as player:
                     # Handle watches
                     watches = getattr(player, "_uproot_watch", None)

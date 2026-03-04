@@ -187,7 +187,7 @@ def page_times(sname: t.Sessionname) -> str:
     times: list[dict[str, Any]] = []
 
     with s.Session(sname) as session:
-        for pid in session.players:
+        for pid in session._uproot_players:
             uname = pid.uname
 
             with t.materialize(pid) as player:

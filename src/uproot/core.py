@@ -22,8 +22,8 @@ def create_admin(admin: s.Storage) -> None:
     if not hasattr(admin, "_uproot_key"):
         admin._uproot_key = t.uuid()
 
-    if not hasattr(admin, "sessions"):
-        admin.sessions = []
+    if not hasattr(admin, "_uproot_sessions"):
+        admin._uproot_sessions = []
 
     if not hasattr(admin, "rooms"):
         admin.rooms = {}
@@ -38,10 +38,10 @@ def create_session(
     settings: Any = None,
 ) -> t.SessionIdentifier:
     if sname is None:
-        sname = t.token(admin.sessions)
+        sname = t.token(admin._uproot_sessions)
     elif check_unique:
         ensure(
-            not any(s == sname for s in admin.sessions),
+            not any(s == sname for s in admin._uproot_sessions),
             ValueError,
             "Session name already exists",
         )
@@ -53,9 +53,9 @@ def create_session(
         session.apps = u.CONFIGS[config]
         session.config = config
         session.description = None
-        session.groups = []
-        session.models = []
-        session.players = []
+        session._uproot_groups = []
+        session._uproot_models = []
+        session._uproot_players = []
         session.packages = {
             dist.metadata["name"]: dist.version
             for dist in importlib.metadata.distributions()
@@ -67,7 +67,7 @@ def create_session(
         session._uproot_secret = t.token_unchecked(8)
         session._uproot_session = t.identify(session)
 
-        admin.sessions.append(sname)
+        admin._uproot_sessions.append(sname)
 
     return sid
 
@@ -91,10 +91,10 @@ def create_model(
     sname = session.name
 
     if mname is None:
-        mname = t.token(session.models)
+        mname = t.token(session._uproot_models)
     elif check_unique:
         ensure(
-            not any(mname_ == mname for mname_ in session.models),
+            not any(mname_ == mname for mname_ in session._uproot_models),
             ValueError,
             "Model name already exists",
         )
@@ -102,7 +102,7 @@ def create_model(
     mid = t.ModelIdentifier(sname, mname)
 
     with s.Model(*mid) as model:
-        model.id = len(session.models)
+        model.id = len(session._uproot_models)
         model.mid = mid
         model._uproot_session = t.identify(session)
 
@@ -110,7 +110,7 @@ def create_model(
             for k, v in data.items():
                 setattr(model, k, v)
 
-    session.models.append(mname)
+    session._uproot_models.append(mname)
 
     return mid
 
@@ -126,18 +126,20 @@ def create_group(
     sname = session.name
 
     if gname is None:
-        gname = t.token(session.groups)
+        gname = t.token(session._uproot_groups)
     elif check_unique:
-        ensure(gname not in session.groups, ValueError, "Group name already exists")
+        ensure(
+            gname not in session._uproot_groups, ValueError, "Group name already exists"
+        )
 
     gid = t.GroupIdentifier(sname, gname)
 
-    session.groups.append(gname)
+    session._uproot_groups.append(gname)
 
     with t.materialize(gid) as group:
         group.gid = gid
-        group.id = len(session.groups)
-        group.players = list(members)
+        group.id = len(session._uproot_groups)
+        group._uproot_players = list(members)
         group._uproot_session = t.identify(session)
 
         for i, pid in enumerate(members):
@@ -225,11 +227,11 @@ def create_players(
     data_: Sequence[Optional[dict[str, Any]]]
 
     if unames is None and n is not None:
-        unames_ = list(t.tokens(session.players, n))
+        unames_ = list(t.tokens(session._uproot_players, n))
     elif unames is not None:
         if check_unique:
             ensure(
-                not any((p.uname in unames) for p in session.players),
+                not any((p.uname in unames) for p in session._uproot_players),
                 ValueError,
                 "Username already exists",
             )
@@ -259,11 +261,11 @@ def create_players(
 
     rval: list[t.PlayerIdentifier] = []
 
-    for startid, (pid, d_) in enumerate(zip(pids, data_), len(session.players)):
+    for startid, (pid, d_) in enumerate(zip(pids, data_), len(session._uproot_players)):
         initialize_player(pid, startid, config, data=d_)
         rval.append(pid)
 
-    session.players.extend(
+    session._uproot_players.extend(
         pids
     )  # TODO: this causes app.new_player to receive a stale player.session
 
@@ -271,7 +273,7 @@ def create_players(
 
 
 def find_free_slot(session: s.Storage) -> Optional[t.PlayerIdentifier]:
-    for pid in session.players:
+    for pid in session._uproot_players:
         with t.materialize(pid) as player:
             if not player.get("started", True):
                 return cast(t.PlayerIdentifier, pid)
@@ -304,12 +306,16 @@ def make_start_app(appname: str) -> type[t.InternalPage]:
     return StartApp
 
 
-def make_landing_page(app: Any, appname: str) -> type[t.Page]:
+def make_landing_page(app: Any, appname: str) -> type[t.InternalPage]:
     from uproot.pages import app_or_default
 
-    class LandingPage(t.Page):
+    class LandingPage(t.InternalPage):
         __module__ = appname
         template = app_or_default(app, "LandingPage.html")
+
+        @classmethod
+        async def show(page, player: s.Storage) -> bool:
+            return True
 
         @classmethod
         async def before_always_once(page, player: s.Storage) -> None:
@@ -319,7 +325,7 @@ def make_landing_page(app: Any, appname: str) -> type[t.Page]:
 
 
 def resolve_page_order(
-    player: s.Storage,  # TODO: Use 'player' to address issue #178
+    player: s.Storage,
     config: str,
 ) -> list[str]:
     from uproot.pages import page2path
@@ -340,7 +346,13 @@ def resolve_page_order(
         if hasattr(app, "LANDING_PAGE") and app.LANDING_PAGE:
             full_pages.append(make_landing_page(app, appname))
 
-        full_pages.extend(app.page_order)
+        if hasattr(app, "page_order"):
+            if isinstance(app.page_order, list):
+                full_pages.extend(app.page_order)
+            elif callable(app.page_order):
+                full_pages.extend(app.page_order(player=player))
+            else:
+                raise TypeError(f"{app}.page_order must be list or callable")
 
         for page in expand(full_pages):
             result.append(page2path(page))

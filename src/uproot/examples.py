@@ -73,15 +73,17 @@ This directory contains an [uproot](https://uproot.science/) project for browser
 
 ## Run locally
 
+[Install uv](https://docs.astral.sh/uv/getting-started/installation/), then run
+
 ```bash
-uv run uproot run  # or just "uproot run"
+uv run uproot run
 ```
 
-Then follow the instructions from the console.
+Follow the instructions on the console.
 
 ## Documentation
 
-See [https://uproot.science/](https://uproot.science/) to peruse the *uproot* documentation.
+Visit [uproot.science](https://uproot.science/) to peruse the *uproot* documentation.
 """.lstrip()
 
 PROJECT_TEMPLATE = """
