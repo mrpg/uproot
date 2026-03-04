@@ -92,6 +92,24 @@ def virtual_player(storage: Storage) -> Callable[[str | PlayerIdentifier], Stora
         raise AttributeError
 
 
+def virtual_context(storage: Storage) -> Any:
+    if storage.__namespace__[0] == "player":
+        if (app := storage.get("app")) is None:
+            return None
+        else:
+            import uproot as u
+
+            if (context := getattr(u.APPS[app], "Context", None)) is None:
+                return None
+            else:
+                try:
+                    return context(player=storage)
+                except TypeError:  # TODO: Instead inspect mro()
+                    return context()
+    else:
+        raise AttributeError
+
+
 def virtual_others_in_session(s: Storage) -> StorageBunch:
     pid = identify(s)
     with materialize(s._uproot_session) as session:
@@ -193,6 +211,7 @@ def Player(sname: Sessionname, uname: Username) -> Storage:
             "other_in_group": virtual_other_in_group,
             "session": lambda s: materialize(s._uproot_session),
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
+            "context": virtual_context,
         },
     )
 

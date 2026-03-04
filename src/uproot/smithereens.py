@@ -30,6 +30,12 @@ from uproot.queries import FieldReferent
 from uproot.queues import enqueue
 from uproot.storage import Admin, Group, Model, Player, Session, Storage
 
+
+class PlayerContext:
+    def __init__(self, player: Storage) -> None:
+        self.player = player
+
+
 __all__ = [
     "_",
     "Admin",
@@ -58,6 +64,7 @@ __all__ = [
     "others_in_session",
     "Page",
     "Player",
+    "PlayerContext",
     "PlayerIdentifier",
     "players",
     "Random",

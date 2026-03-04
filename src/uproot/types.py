@@ -463,6 +463,11 @@ class FrozenPage(type):
 
         klass = super().__new__(cls, name, bases, namespace)
 
+        if "context" in namespace:
+            raise TypeError(
+                f"Page '{name}' defines 'context', which has been renamed to 'templatevars'."
+            )
+
         # Validate that Wait pages don't define after_* methods (except after_grouping)
         if any("Wait" in b.__name__ for b in klass.__mro__[1:]):
             for attr_name in namespace:
@@ -505,13 +510,13 @@ class Page(metaclass=FrozenPage):
     after_once: Any
     before_always_once: Any
     before_once: Any
-    context: Any
     fields: Any
     handle_stealth_fields: Any
     jsvars: Any
     may_proceed: Any
     show: Any
     stealth_fields: Any
+    templatevars: Any
     timeout: Any
     timeout_reached: Any
     validate: Any
