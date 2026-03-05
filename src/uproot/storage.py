@@ -7,6 +7,7 @@ import appendmuch
 
 from uproot.constraints import ensure, valid_token
 from uproot.types import (
+    FrozenDottedDict,
     GroupIdentifier,
     PlayerIdentifier,
     Sessionname,
@@ -160,6 +161,11 @@ def virtual_players(s: Storage) -> StorageBunch:
         raise AttributeError
 
 
+def virtual_settings(s: Storage) -> FrozenDottedDict:
+    with s:
+        return FrozenDottedDict(s._uproot_settings or {})
+
+
 def virtual_sessions(s: Storage) -> StorageBunch:
     if s.__namespace__[0] == "admin":
         with s:
@@ -190,6 +196,7 @@ def Session(sname: Sessionname) -> Storage:
             "models": virtual_models,
             "player": virtual_player,
             "players": virtual_players,
+            "settings": virtual_settings,
             "within": lambda s: (lambda **ctx: within(s, **ctx)),
         },
     )

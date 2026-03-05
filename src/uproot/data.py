@@ -103,6 +103,8 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
                 row["!data"] = f"session/{data}"
             elif field == "_uproot_dropout":
                 pass
+            elif field == "_uproot_settings":
+                pass
             else:
                 continue
 

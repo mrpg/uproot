@@ -223,6 +223,23 @@ def optional_call_once(
     return retval
 
 
+class FrozenDottedDict(dict[str, Any]):
+    def __getattr__(self, key: str) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        raise TypeError("FrozenDottedDict is immutable")
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        raise TypeError("FrozenDottedDict is immutable")
+
+    def __delitem__(self, key: str) -> None:
+        raise TypeError("FrozenDottedDict is immutable")
+
+
 class StorageBunch:
     def __init__(self, iterable: Iterable["Storage"] = ()) -> None:
         ensure(

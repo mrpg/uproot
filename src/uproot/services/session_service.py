@@ -86,7 +86,7 @@ async def update_settings(sname: t.Sessionname, **newsettings: Any) -> None:
     session_exists(sname, False)
 
     with s.Session(sname) as session:
-        session.settings = newsettings
+        session._uproot_settings = newsettings
 
 
 def get_digest(sname: t.Sessionname) -> list[str]:
