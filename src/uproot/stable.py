@@ -9,6 +9,7 @@ This is now a thin wrapper around appendmuch's Codec, registering uproot-specifi
 """
 
 from typing import Any
+from uuid import UUID
 
 from appendmuch import Codec
 from orjson import dumps as jd
@@ -17,6 +18,21 @@ from orjson import loads as jl
 import uproot.types as t
 
 CODEC = Codec()
+
+
+def is_model_entry(v: Any) -> bool:
+    """Model entries are [uuid_str, entry_dict] — re-parsed through pydantic on read,
+    so non-serializable values (e.g. PlayerIdentifier) inside the dict are intentional.
+    """
+    return (
+        isinstance(v, list)
+        and len(v) == 2
+        and isinstance(v[0], UUID)
+        and isinstance(v[1], dict)
+    )
+
+
+CODEC.vigilant_skip = is_model_entry
 
 # Register uproot-specific types
 

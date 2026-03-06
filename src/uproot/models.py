@@ -228,7 +228,7 @@ def add_raw_entry(
     # Generate UUID and store as [id, entry_dict]
     entry_id = uuid()
     with get_storage(mid) as storage:
-        setattr(storage, "entry", [str(entry_id), entry_dict])
+        setattr(storage, "entry", [entry_id, entry_dict])
 
     return entry_id
 
@@ -240,7 +240,7 @@ def _parse_stored_entry(
 ) -> StoredEntry[T]:
     """Parse stored [id, entry_dict] format into (id, time, entry) tuple."""
     entry_id, entry_dict = data
-    return (UUID(entry_id), time, as_type(**entry_dict))
+    return (entry_id, time, as_type(**entry_dict))
 
 
 def get_entries(
@@ -335,8 +335,7 @@ def filter_entries(
     with get_storage(mid) as storage:
         for value in storage.__history__().get("entry", []):
             if not value.unavailable:
-                entry_id_str, entry_data = cast(tuple[str, dict[str, Any]], value.data)
-                entry_id = UUID(entry_id_str)
+                entry_id, entry_data = cast(tuple[UUID, dict[str, Any]], value.data)
 
                 # Filter by id if specified
                 if id is not None and entry_id != id:
