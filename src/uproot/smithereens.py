@@ -512,12 +512,6 @@ class Rounds(t.SmoothOperator):
 
     @classmethod
     async def next(page, player: Storage) -> None:
-        # Increment overall round counter
-        if not hasattr(player, "round") or player.round is None:
-            player.round = 1
-        else:
-            player.round += 1
-
         # Calculate round_nested by scanning page_order up to current position.
         # This tracks the round number at each nesting level.
         # E.g., round_nested = [2, 3] means "outer round 2, inner round 3"
@@ -553,6 +547,16 @@ class Rounds(t.SmoothOperator):
         round_nested.append(this_round)
 
         player.round_nested = round_nested
+
+        # Reset player.round at the beginning of the Rounds sequence,
+        # otherwise increment it.
+        if round_nested == [1]:
+            player.round = 1
+        else:
+            if not hasattr(player, "round") or player.round is None:
+                player.round = 1
+            else:
+                player.round += 1
 
 
 class Repeat(t.SmoothOperator):
