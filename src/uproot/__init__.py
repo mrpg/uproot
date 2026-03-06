@@ -28,6 +28,7 @@ ONLINE: defaultdict[
 ONLINE_SORTED: SortedList[tuple[float, PlayerIdentifier]] = SortedList()
 MANUAL_DROPOUTS: set[PlayerIdentifier] = set()
 WATCH: set[tuple[PlayerIdentifier, float, str, str]] = set()
+CHAT_HOOKS: dict[tuple[str, str], list[tuple[str, str]]] = {}
 
 APPS: "ModuleManager"
 CONFIGS: dict[str, list[str]] = {}

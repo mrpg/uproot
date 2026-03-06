@@ -1,11 +1,12 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from typing import Any, Optional, cast
+from typing import Any, Callable, Optional, cast
 from uuid import UUID
 
 from pydantic import validate_call
 
+import uproot as u
 import uproot.models as um
 from uproot.flexibility import flexible
 from uproot.storage import Storage
@@ -130,3 +131,23 @@ def add_message(
 @validate_call
 def exists(chat: ModelIdentifier) -> bool:
     return um.model_exists(chat)
+
+
+def on_message(
+    chat: ModelIdentifier,
+    fun: Callable[..., Any],
+) -> None:
+    pair = (fun.__module__, fun.__name__)
+
+    with model(chat) as m:
+        if not hasattr(m, "_uproot_on_message"):
+            m._uproot_on_message = []
+
+        if pair not in m._uproot_on_message:
+            m._uproot_on_message.append(list(pair))
+
+    key = (chat.sname, chat.mname)
+    hooks = u.CHAT_HOOKS.setdefault(key, [])
+
+    if pair not in hooks:
+        hooks.append(pair)

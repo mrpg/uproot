@@ -626,6 +626,21 @@ async def ws(
                                 },
                             )
 
+                        for fmodule, fname in u.CHAT_HOOKS.get((sname, mname), ()):
+                            try:
+                                await ensure_awaitable(
+                                    optional_call,
+                                    u.APPS[fmodule],
+                                    fname,
+                                    chat=mid,
+                                    player=player,
+                                    message=msgtext,
+                                )
+                            except Exception:
+                                d.LOGGER.exception(
+                                    f"Exception in chat hook {fmodule}.{fname}"
+                                )
+
                         invoke_respond = False
                     else:
                         d.LOGGER.warning(
