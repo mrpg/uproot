@@ -44,7 +44,7 @@ import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
 from uproot.constraints import ensure, valid_token
-from uproot.core import find_free_slot, initialize
+from uproot.core import find_free_slot, resolve_page_order
 from uproot.pages import (
     path2page,
     render,
@@ -98,6 +98,27 @@ def valid_player(sname: t.Sessionname, uname: str) -> Storage:
         raise HTTPException(status_code=403, detail="Bad user")
 
     return player
+
+
+def initialize(player: Storage) -> None:
+
+    with player.session as session:
+        if not session.get("_uproot_initialized", False):
+            for appname in session.apps:
+                app = u.APPS[appname]
+
+                if hasattr(app, "new_session"):
+                    app.new_session(session)
+
+            session._uproot_initialized = True
+
+    for appname in u.CONFIGS[player.config]:
+        app = u.APPS[appname]
+
+        if hasattr(app, "new_player"):
+            app.new_player(player=player)
+
+    player.page_order = resolve_page_order(player, player.config)
 
 
 async def show_page(

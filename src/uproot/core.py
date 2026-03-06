@@ -72,24 +72,6 @@ def create_session(
     return sid
 
 
-def initialize(player: s.Storage) -> None:
-    session = player.session
-
-    if not session.get("_uproot_initialized", False):
-        for appname in session.apps:
-            app = u.APPS[appname]
-            if hasattr(app, "new_session"):
-                app.new_session(session)
-        session._uproot_initialized = True
-
-    for appname in u.CONFIGS[player.config]:
-        app = u.APPS[appname]
-        if hasattr(app, "new_player"):
-            app.new_player(player=player)
-
-    player.page_order = resolve_page_order(player, player.config)
-
-
 def create_model(
     session: s.Storage,
     *,
