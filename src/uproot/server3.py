@@ -110,7 +110,6 @@ async def roommain(
                 settings=u.CONFIGS_EXTRA.get(room["config"], {}).get("settings", {}),
             )
             room["sname"] = sid.sname
-            c.finalize_session(sid)  # This seems fine?!
             new_session = True
 
     session = Session(room["sname"])

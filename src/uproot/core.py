@@ -72,13 +72,22 @@ def create_session(
     return sid
 
 
-def finalize_session(sid: t.SessionIdentifier) -> None:
-    with t.materialize(sid) as session:
+def initialize(player: s.Storage) -> None:
+    session = player.session
+
+    if not session.get("_uproot_initialized", False):
         for appname in session.apps:
             app = u.APPS[appname]
-
             if hasattr(app, "new_session"):
                 app.new_session(session)
+        session._uproot_initialized = True
+
+    for appname in u.CONFIGS[player.config]:
+        app = u.APPS[appname]
+        if hasattr(app, "new_player"):
+            app.new_player(player=player)
+
+    player.page_order = resolve_page_order(player, player.config)
 
 
 def create_model(
@@ -185,12 +194,6 @@ def initialize_player(
             for k, v in data.items():
                 setattr(player, k, v)
 
-        for appname in u.CONFIGS[config]:
-            app = u.APPS[appname]
-
-            if hasattr(app, "new_player"):
-                app.new_player(player=player)
-
 
 def create_player(
     session: s.Storage,
@@ -265,9 +268,7 @@ def create_players(
         initialize_player(pid, startid, config, data=d_)
         rval.append(pid)
 
-    session._uproot_players.extend(
-        pids
-    )  # TODO: this causes app.new_player to receive a stale player.session
+    session._uproot_players.extend(pids)
 
     return rval
 

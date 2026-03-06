@@ -653,8 +653,6 @@ async def new_session_in_room(
             data=data,
         )
 
-    c.finalize_session(sid)
-
     r.start(roomname)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
@@ -768,8 +766,6 @@ async def new_session2(
             n=nplayers,
             unames=unames_list,
         )
-
-    c.finalize_session(sid)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 

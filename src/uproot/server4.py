@@ -197,8 +197,6 @@ async def create_session(
             unames=body.unames,
         )
 
-    c.finalize_session(sid)
-
     return {"sname": sid.sname, "created": True}
 
 
@@ -668,7 +666,6 @@ async def create_session_in_room(
             data=data,
         )
 
-    c.finalize_session(sid)
     r.start(roomname)
 
     return {"sname": sid.sname, "roomname": roomname, "created": True}

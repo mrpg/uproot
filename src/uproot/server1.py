@@ -44,7 +44,7 @@ import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
 from uproot.constraints import ensure, valid_token
-from uproot.core import find_free_slot, resolve_page_order
+from uproot.core import find_free_slot, initialize
 from uproot.pages import (
     path2page,
     render,
@@ -185,7 +185,7 @@ async def show_page(
                 if not player.started:
                     player.started = True
 
-                player.page_order = resolve_page_order(player, player.config)
+                initialize(player)
                 proceed = True
             else:  # any other page - need to validate
                 form, valid, custom_errors = await validate(page, player, formdata)
