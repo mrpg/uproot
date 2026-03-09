@@ -22,7 +22,7 @@ COLLISIONS: tuple[dict[str, str], dict[str, str]] = {}, {}
 
 
 class Message(metaclass=um.Entry):
-    sender: Optional[PlayerIdentifier]
+    sender: PlayerIdentifier | str | None
     text: str
 
 
@@ -39,21 +39,22 @@ def show_msg(
     joined_pid = ""
     anonymized = ""
 
-    if msg.sender is not None:
+    if isinstance(msg.sender, str):
+        sender_representation = ("other", msg.sender)
+    elif msg.sender is not None:
         joined_pid = str(msg.sender)
         anonymized = pseudonyms.get(joined_pid, anonymize(joined_pid))
 
-    if as_viewed_by is None:  # admin
-        if msg.sender is None:
-            sender_representation = ("admin", "")
-        else:
+        if as_viewed_by is None:  # admin
             sender_representation = ("other", f'{joined_pid} ("{anonymized}")')
-    elif msg.sender is None:
+        elif msg.sender == as_viewed_by:
+            sender_representation = ("self", anonymized)
+        else:
+            sender_representation = ("other", anonymized)
+    elif as_viewed_by is None:  # admin
         sender_representation = ("admin", "")
-    elif msg.sender == as_viewed_by:
-        sender_representation = ("self", anonymized)
     else:
-        sender_representation = ("other", anonymized)
+        sender_representation = ("admin", "")
 
     return {
         "cname": chat.mname,
@@ -119,7 +120,7 @@ def messages(chat: ModelIdentifier) -> list[tuple[UUID, float, Message]]:
 @validate_call
 def add_message(
     chat: ModelIdentifier,
-    sender: Optional[PlayerIdentifier],
+    sender: PlayerIdentifier | str | None,
     msgtext: str,
 ) -> UUID:
     return um.add_raw_entry(
@@ -136,8 +137,8 @@ def exists(chat: ModelIdentifier) -> bool:
 async def notify(
     mid: ModelIdentifier,
     msg_id: UUID,
-    pid: PlayerIdentifier,
-    player: Storage,
+    pid: PlayerIdentifier | str | None,
+    player: Storage | None,
     msgtext: str,
     recipients: Sequence[PlayerIdentifier] | None = None,
 ) -> None:
