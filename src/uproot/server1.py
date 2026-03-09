@@ -622,38 +622,7 @@ async def ws(
 
                     if chat.exists(mid) and pid in (pp := chat.players(mid)):
                         msg_id = chat.add_message(mid, pid, msgtext)
-                        msg = chat.Message(sender=pid, text=msgtext)  # type: ignore[call-arg]
-
-                        for p in pp:
-                            q.enqueue(
-                                tuple(p),
-                                {
-                                    "source": "chat",
-                                    "data": chat.show_msg(
-                                        mid,
-                                        msg_id,
-                                        d.DATABASE.now,  # HACK: approximate time
-                                        msg,
-                                        p,
-                                    ),
-                                    "event": "_uproot_Chatted",
-                                },
-                            )
-
-                        for fmodule, fname in u.CHAT_HOOKS.get((sname, mname), ()):
-                            try:
-                                await ensure_awaitable(
-                                    optional_call,
-                                    u.APPS[fmodule],
-                                    fname,
-                                    chat=mid,
-                                    player=player,
-                                    message=msgtext,
-                                )
-                            except Exception:
-                                d.LOGGER.exception(
-                                    f"Exception in chat hook {fmodule}.{fname}"
-                                )
+                        await chat.notify(mid, msg_id, pid, player, msgtext, pp)
 
                         invoke_respond = False
                     else:

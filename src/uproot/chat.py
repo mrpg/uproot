@@ -1,7 +1,7 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from typing import Any, Callable, Optional, cast
+from typing import Any, Callable, Optional, Sequence, cast
 from uuid import UUID
 
 from pydantic import validate_call
@@ -131,6 +131,53 @@ def add_message(
 @validate_call
 def exists(chat: ModelIdentifier) -> bool:
     return um.model_exists(chat)
+
+
+async def notify(
+    mid: ModelIdentifier,
+    msg_id: UUID,
+    pid: PlayerIdentifier,
+    player: Storage,
+    msgtext: str,
+    recipients: Sequence[PlayerIdentifier] | None = None,
+) -> None:
+    import uproot.deployment as d
+    import uproot.queues as q
+    from uproot.types import ensure_awaitable, optional_call
+
+    if recipients is None:
+        recipients = players(mid)
+
+    msg = Message(sender=pid, text=msgtext)  # type: ignore[call-arg]
+
+    for p in recipients:
+        q.enqueue(
+            tuple(p),
+            {
+                "source": "chat",
+                "data": show_msg(
+                    mid,
+                    msg_id,
+                    d.DATABASE.now,  # HACK: approximate time
+                    msg,
+                    p,
+                ),
+                "event": "_uproot_Chatted",
+            },
+        )
+
+    for fmodule, fname in u.CHAT_HOOKS.get((mid.sname, mid.mname), ()):
+        try:
+            await ensure_awaitable(
+                optional_call,
+                u.APPS[fmodule],
+                fname,
+                chat=mid,
+                player=player,
+                message=msgtext,
+            )
+        except Exception:
+            d.LOGGER.exception(f"Exception in chat hook {fmodule}.{fname}")
 
 
 def on_message(
