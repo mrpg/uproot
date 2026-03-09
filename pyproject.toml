@@ -94,7 +94,7 @@ dev = [
     "ruff==0.15.4",
 ]
 iban = [
-    "schwifty==2026.1.0"
+    "schwifty==2026.3.0"
 ]
 
 [tool.mypy]
