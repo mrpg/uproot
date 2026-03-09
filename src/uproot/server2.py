@@ -639,6 +639,7 @@ async def new_session_in_room(
 
         admin.rooms[roomname]["sname"] = sid.sname
         admin.rooms[roomname]["open"] = True
+        admin.rooms[roomname]["config"] = config
 
         if nogrow:
             admin.rooms[roomname]["capacity"] = nplayers
