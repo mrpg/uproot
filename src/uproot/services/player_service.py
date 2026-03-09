@@ -81,6 +81,16 @@ async def run_new_player(sname: t.Sessionname, unames: list[str]) -> None:
     """Manually run new_player callbacks for players that haven't been initialized."""
     session_exists(sname, False)
 
+    with s.Session(sname) as session:
+        if not session.get("_uproot_initialized", False):
+            for appname in session.apps:
+                app = u.APPS[appname]
+
+                if hasattr(app, "new_session"):
+                    app.new_session(session)
+
+            session._uproot_initialized = True
+
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
