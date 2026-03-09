@@ -155,6 +155,17 @@ async def show_page(
             ):
                 pass
             else:
+                # Page wants to be skipped (e.g. InternalPage).
+                # Run before_always_once so lifecycle hooks like
+                # Repeat.continue_maybe can modify page_order.
+                await ensure_awaitable(
+                    optional_call_once,
+                    page,
+                    "before_always_once",
+                    storage=player,
+                    show_page=player.show_page,
+                    player=player,
+                )
                 proceed = True
         elif len(player.page_order) == player.show_page:
             pass
