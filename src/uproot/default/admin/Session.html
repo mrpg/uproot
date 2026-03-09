@@ -255,6 +255,11 @@
                             {% translate %}Group players{% endtranslate %}
                         </span>
                     </li>
+                    <li>
+                        <span class="dropdown-item" onclick="runNewPlayer()" role="button">
+                            {% translate %}Run new_player{% endtranslate %}
+                        </span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -486,6 +491,18 @@
 
     function runNewSession() {
         uproot.invoke("run_new_session", uproot.vars.sname).then(uproot.reload);
+    }
+
+    function runNewPlayer() {
+        const selected = getSelectedPlayers();
+
+        if (selected.length > 0) {
+            uproot.invoke("run_new_player", uproot.vars.sname, selected).then(() => {
+                uproot.alert(_("The action has completed."));
+            });
+        } else {
+            uproot.error(_("No players selected."));
+        }
     }
 
     function setDescription() {

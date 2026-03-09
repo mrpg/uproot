@@ -60,6 +60,7 @@ from uproot.services.player_service import (
     redirect,
     reload,
     revert_by_one,
+    run_new_player,
 )
 
 # Re-export from room service
@@ -124,6 +125,7 @@ __all__ = [
     "redirect",
     "reload",
     "revert_by_one",
+    "run_new_player",
     # Room
     "delete_room",
     "disassociate",

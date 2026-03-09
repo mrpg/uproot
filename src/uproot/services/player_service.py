@@ -77,6 +77,26 @@ async def insert_fields(
                 )
 
 
+async def run_new_player(sname: t.Sessionname, unames: list[str]) -> None:
+    """Manually run new_player callbacks for players that haven't been initialized."""
+    session_exists(sname, False)
+
+    for uname in unames:
+        pid = t.PlayerIdentifier(sname, uname)
+
+        with t.materialize(pid) as player:
+            if player.get("_uproot_initialized", False):
+                continue
+
+            for appname in u.CONFIGS[player.config]:
+                app = u.APPS[appname]
+
+                if hasattr(app, "new_player"):
+                    app.new_player(player=player)
+
+            player._uproot_initialized = True
+
+
 async def mark_dropout(sname: t.Sessionname, unames: list[str]) -> None:
     """Mark players as dropouts."""
     session_exists(sname, False)

@@ -112,11 +112,14 @@ def initialize(player: Storage) -> None:
 
             session._uproot_initialized = True
 
-    for appname in u.CONFIGS[player.config]:
-        app = u.APPS[appname]
+    if not player.get("_uproot_initialized", False):
+        for appname in u.CONFIGS[player.config]:
+            app = u.APPS[appname]
 
-        if hasattr(app, "new_player"):
-            app.new_player(player=player)
+            if hasattr(app, "new_player"):
+                app.new_player(player=player)
+
+        player._uproot_initialized = True
 
     player.page_order = resolve_page_order(player, player.config)
 
