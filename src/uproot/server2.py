@@ -1077,6 +1077,7 @@ FUNS = {
     "redirect": a.redirect,
     "reload": a.reload,
     "revert_by_one": a.revert_by_one,
+    "run_new_session": a.run_new_session,
     "update_description": a.update_description,
     "update_settings": a.update_settings,
 }

@@ -185,6 +185,27 @@
                         {% endif %}
                     </button>
                 </div>
+                <div class="align-items-baseline d-flex flex-wrap justify-content-between mt-2">
+                    <p class="mb-1">
+                        {% if session.get("_uproot_initialized", False) %}
+                        {% translate %}Session is initialized.{% endtranslate %}
+                        {% else %}
+                        <span class="text-body-tertiary">{% translate %}Session is not initialized.{% endtranslate %}</span>
+                        {% endif %}
+                    </p>
+                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover"
+                        data-bs-content="{% translate %}Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.{% endtranslate %}"
+                        onclick="runNewSession()"
+                        type="button">
+                        {% if not session.get("_uproot_initialized", False) %}
+                        <i class="bi bi-play-fill"></i>
+                        {% else %}
+                        <i class="bi bi-check-circle-fill"></i>
+                        {% endif %}
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -466,6 +487,10 @@
 
     function flipTesting() {
         uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
+    }
+
+    function runNewSession() {
+        uproot.invoke("run_new_session", uproot.vars.sname).then(uproot.reload);
     }
 
     function setDescription() {

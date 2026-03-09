@@ -70,6 +70,23 @@ async def flip_testing(sname: t.Sessionname) -> None:
         session.testing = not session.testing
 
 
+async def run_new_session(sname: t.Sessionname) -> None:
+    """Manually run new_session callbacks for a session that hasn't been initialized."""
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        if session.get("_uproot_initialized", False):
+            raise HTTPException(status_code=400, detail="Session already initialized")
+
+        for appname in session.apps:
+            app = u.APPS[appname]
+
+            if hasattr(app, "new_session"):
+                app.new_session(session)
+
+        session._uproot_initialized = True
+
+
 async def update_description(sname: t.Sessionname, newdesc: str) -> None:
     """Update session description."""
     if d.PUBLIC_DEMO:
