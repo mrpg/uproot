@@ -983,6 +983,9 @@ def test_repeat_continue_maybe_no_change_when_add_round_false():
     from uproot.smithereens import Repeat as SmithereensRepeat
 
     mock_player = Mock()
+
+    mock_player.get = lambda attr, default=None: getattr(mock_player, attr, default)
+
     original_order = [
         "Before",
         "#RepeatStart",
