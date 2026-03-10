@@ -584,7 +584,7 @@ class Repeat(t.SmoothOperator):
         else:
             raise RuntimeError("Could not find #RepeatStart")
 
-        do_continue = player.add_round
+        do_continue = player.get("add_round", False)
 
         if do_continue:
             player.page_order = (
