@@ -153,22 +153,24 @@ async def show_page(
         if player.show_page == -1:
             pass
         elif player.started and len(player.page_order) > player.show_page > -1:
-            if await ensure_awaitable(
+            shows = await ensure_awaitable(
                 optional_call, page, "show", default_return=True, player=player
-            ):
-                pass
-            else:
+            )
+            # Always run before_always_once (optional_call_once ensures it only
+            # executes once per page). This covers players moved here via
+            # move_to_page in a loop: they receive a reload() and arrive on GET
+            # without going through the POST navigation loop that normally runs
+            # before_always_once.
+            await ensure_awaitable(
+                optional_call_once,
+                page,
+                "before_always_once",
+                storage=player,
+                show_page=player.show_page,
+                player=player,
+            )
+            if not shows:
                 # Page wants to be skipped (e.g. InternalPage).
-                # Run before_always_once so lifecycle hooks like
-                # Repeat.continue_maybe can modify page_order.
-                await ensure_awaitable(
-                    optional_call_once,
-                    page,
-                    "before_always_once",
-                    storage=player,
-                    show_page=player.show_page,
-                    player=player,
-                )
                 proceed = True
         elif len(player.page_order) == player.show_page:
             pass
@@ -290,8 +292,7 @@ async def show_page(
         # Refresh show_page from storage: may_proceed (e.g. all_here) may
         # have modified it via a separate Storage object whose write
         # bypasses our field cache.
-        # TODO: Use player.refresh("show_page") from appendmuch 0.0.2
-        player.__field_cache__.pop("show_page", None)
+        player.refresh("show_page")
 
     if proceed and player.show_page < len(player.page_order):
         # Only call after_once and after_always_once for forward navigation
@@ -312,6 +313,11 @@ async def show_page(
                 show_page=original_show_page,
                 player=player,
             )
+            # Refresh show_page from storage: after_once/after_always_once may
+            # have modified it via a separate Storage object (e.g. move_to_page
+            # called in a loop over session.players) whose write bypasses our
+            # field cache.
+            player.refresh("show_page")
 
         if direction == 1:
             # Forward navigation
@@ -393,6 +399,9 @@ async def show_page(
                 show_page=player.show_page,
                 player=player,
             )
+            # Refresh so that move_to_page called via a separate Storage object
+            # inside before_once is also detected by the comparison below.
+            player.refresh("show_page")
             if player.show_page != sp_before:
                 # move_to_page was called in before_once: re-resolve page
                 page = path2page(show2path(player.page_order, player.show_page))
