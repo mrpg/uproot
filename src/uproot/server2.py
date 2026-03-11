@@ -1064,6 +1064,7 @@ FUNS = {
     "adminmessage": a.adminmessage,
     "advance_by_one": a.advance_by_one,
     "announcements": a.announcements,
+    "close_room": a.close_room,
     "delete_room": a.delete_room,
     "disassociate": a.disassociate,
     "everything_from_session_display": a.everything_from_session_display,
