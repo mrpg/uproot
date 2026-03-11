@@ -114,7 +114,8 @@ window.uproot = {
     testing: false,
     timeout1: null,
     timeout2: null,
-    timeoutUntil: null,
+    timeoutStart: null,
+    timeoutDuration: 0,
     uname: null,
     vars: {},
     verbose: false,
@@ -125,7 +126,10 @@ window.uproot = {
     },
 
     setPageTimeout(remainingSeconds) {
-        this.timeoutUntil = Date.now() + 1000 * remainingSeconds;
+        // Use performance.now() (monotonic clock) so the countdown is unaffected
+        // by system clock changes or NTP corrections.
+        this.timeoutStart = performance.now();
+        this.timeoutDuration = 1000 * remainingSeconds;
 
         if (this.timeout1 !== null) {
             window.clearTimeout(this.timeout1);
@@ -146,7 +150,8 @@ window.uproot = {
     },
 
     reshowTimeout() {
-        const remainingSeconds = Math.max(0, (uproot.timeoutUntil - Date.now()) / 1000);
+        const elapsed = performance.now() - uproot.timeoutStart;
+        const remainingSeconds = Math.max(0, (uproot.timeoutDuration - elapsed) / 1000);
 
         const days = Math.floor(remainingSeconds / 86400);
         const hours = Math.floor((remainingSeconds % 86400) / 3600);
