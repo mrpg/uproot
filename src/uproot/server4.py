@@ -127,6 +127,15 @@ class RoomUpdate(BaseModel):
     open: bool = Field(False, description="Whether the room is open")
 
 
+class RoomClose(BaseModel):
+    """Request body for closing a room."""
+
+    disassociate: bool = Field(
+        False,
+        description="If true, disassociate the session before closing",
+    )
+
+
 # =============================================================================
 # Sessions API
 # =============================================================================
@@ -602,6 +611,23 @@ async def disassociate_room(
     await a.disassociate(roomname, sname)
 
     return {"name": roomname, "disassociated": True}
+
+
+@router.post("/room/{roomname}/close/")
+async def close_room(
+    roomname: str,
+    body: RoomClose,
+    _bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Close a room, optionally disassociating its session first."""
+    a.room_exists(roomname)
+
+    try:
+        await a.close_room(roomname, body.disassociate)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"name": roomname, "closed": True, "disassociated": body.disassociate}
 
 
 @router.post("/room/{roomname}/session/", status_code=201)

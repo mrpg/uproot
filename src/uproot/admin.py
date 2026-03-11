@@ -65,6 +65,7 @@ from uproot.services.player_service import (
 
 # Re-export from room service
 from uproot.services.room_service import (
+    close_room,
     delete_room,
     disassociate,
     room_exists,
@@ -127,6 +128,7 @@ __all__ = [
     "revert_by_one",
     "run_new_player",
     # Room
+    "close_room",
     "delete_room",
     "disassociate",
     "room_exists",

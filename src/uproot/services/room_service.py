@@ -53,6 +53,28 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     r.reset(roomname)
 
 
+async def close_room(roomname: str, disassociate_session: bool = False) -> None:
+    """Close a room, optionally disassociating its session first."""
+    room_exists(roomname, False)
+
+    with s.Admin() as admin:
+        sname = admin.rooms[roomname]["sname"]
+
+    if sname is not None:
+        if disassociate_session:
+            await disassociate(roomname, sname)
+        else:
+            raise ValueError(
+                "Cannot close room while a session is associated; "
+                "pass disassociate=true to disassociate first"
+            )
+
+    with s.Admin() as admin:
+        admin.rooms[roomname]["open"] = False
+
+    r.reset(roomname)
+
+
 async def delete_room(roomname: str) -> None:
     """Delete a room."""
     room_exists(roomname, False)
