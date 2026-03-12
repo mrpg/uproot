@@ -51,6 +51,18 @@ Please wait
     </div>
 </form>
 
+<script>
+    I("label").addEventListener("input", function () {
+        const pos = this.selectionStart;
+        const cleaned = this.value.replace(/[^A-Za-z0-9\-._]/g, "");
+        if (cleaned !== this.value) {
+            const removed = this.value.length - cleaned.length;
+            this.value = cleaned;
+            this.setSelectionRange(pos - removed, pos - removed);
+        }
+    });
+</script>
+
 {% else %}
 
 <p>
