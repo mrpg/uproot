@@ -7,10 +7,16 @@ This file implements room routes.
 
 import asyncio
 from typing import Any, Optional, cast
-from urllib.parse import quote
 
 import orjson
-from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Form,
+    HTTPException,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 import uproot as u
@@ -22,7 +28,6 @@ import uproot.types as t
 from uproot.constraints import ensure, valid_token
 from uproot.pages import path2page, render
 from uproot.storage import Admin, Player, Session
-from uproot.utils import safe_redirect
 
 router = APIRouter(prefix=d.ROOT)
 
@@ -31,8 +36,7 @@ router = APIRouter(prefix=d.ROOT)
 async def roommain(
     request: Request,
     roomname: str,
-    label: Optional[str] = None,
-    bad: Optional[bool] = False,
+    label: Optional[str] = Form(None),
 ) -> Response:
     ensure(valid_token(roomname), ValueError, "Room name invalid")
 
@@ -50,7 +54,7 @@ async def roommain(
         # Handle label entry for rooms that require labels
 
         if needs_label:
-            if label == "" and not bad:
+            if label == "":
                 return HTMLResponse(
                     await render(
                         request.app,
@@ -64,12 +68,7 @@ async def roommain(
                         },
                     ),
                 )
-            elif not ur.validate(room, label) and not bad:
-                redirect_url = safe_redirect(
-                    f"{d.ROOT}/room/{quote(roomname, safe='')}/?bad=1"
-                )
-                return RedirectResponse(redirect_url, status_code=303)
-            elif bad:
+            elif not ur.validate(room, label):
                 return HTMLResponse(
                     await render(
                         request.app,
@@ -89,7 +88,7 @@ async def roommain(
                     request,
                     None,
                     path2page("RoomHello.html"),
-                    metadata={"roomname": roomname, "needlabel": False},
+                    metadata={"roomname": roomname, "needlabel": False, "label": label},
                 ),
             )
 

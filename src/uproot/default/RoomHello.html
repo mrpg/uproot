@@ -31,14 +31,13 @@ Please wait
 
 {% endif %}
 
-<form method="get">
+<form method="post">
     <div class="mb-3">
         <label for="label" class="form-label">
             {% translate %}
             Please enter your Access Code.
             {% endtranslate %}
         </label>
-        <input type="hidden" name="bad" value="0">
         <input type="text" class="form-control form-control-lg font-monospace" id="label" name="label" maxlength="128" pattern="[A-Za-z0-9\-._]+" required>
     </div>
 
@@ -79,13 +78,13 @@ Please wait
     </b>
 </p>
 
-<form id="label-form" method="get">
+<form id="label-form" method="post">
     <input type="hidden" id="label" name="label">
 </form>
 
 <script>
-    const labelInURL = uproot.getParam("label") !== null;
-    const label = uproot.getParam("label") || "";
+    const label = uproot.vars._uproot_internal.label || "";
+    const hasLabel = label !== "";
 
     uproot.wsurl = () => {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -109,7 +108,7 @@ Please wait
         });
 
         uproot.onCustomEvent("RoomLabelProvided", (event) => {
-            if (!labelInURL || label != event.detail.label) {
+            if (!hasLabel || label != event.detail.label) {
                 setLabelAndSubmit(event);
             }
         });

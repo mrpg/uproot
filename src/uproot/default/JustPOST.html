@@ -11,7 +11,21 @@
 
 <script>
     if (typeof stopHere === "undefined" || !stopHere) {
-        uproot.onStart(() => document.forms[0].submit());
+        uproot.onStart(() => {
+            const form = document.forms[0];
+            const params = new URLSearchParams(window.location.search);
+
+            for (const [key, value] of params) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            }
+
+            form.action = window.location.pathname;
+            form.submit();
+        });
     }
 </script>
 
