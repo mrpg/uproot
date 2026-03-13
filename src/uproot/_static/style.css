@@ -337,9 +337,14 @@ div.without-anchoring-overlay {
 .messages-container {
     height: 280px;
     overflow-y: scroll;
+    resize: vertical;
 }
 .messages-container .sender {
     font-family: monospace;
+}
+
+.uproot-chat textarea {
+    resize: vertical;
 }
 
 /* Slider popover styles (requires JS initialization via slidersWithPopovers) */

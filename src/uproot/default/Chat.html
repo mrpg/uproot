@@ -6,12 +6,12 @@
 
     <div class="d-flex gap-2">
         <label for="message-input-chat-{{ chat.mname }}" class="visually-hidden">{% translate %}Type your message{% endtranslate %}</label>
-        <input type="text"
-               id="message-input-chat-{{ chat.mname }}"
-               class="form-control"
-               placeholder="{% translate %}Type your message{% endtranslate %}"
-               autocomplete="off"
-               onkeydown="uproot.chat.handleChatKeydown(event, '{{ chat.mname }}')">
+        <textarea id="message-input-chat-{{ chat.mname }}"
+                  class="form-control"
+                  placeholder="{% translate %}Type your message{% endtranslate %}"
+                  autocomplete="off"
+                  rows="1"
+                  onkeydown="uproot.chat.handleChatKeydown(event, '{{ chat.mname }}')"></textarea>
         <button type="button" class="btn btn-outline-primary" onclick="uproot.chat.sendMessage('{{ chat.mname }}')" aria-label="Send message">Send</button>
     </div>
 </div>

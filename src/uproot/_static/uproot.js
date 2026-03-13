@@ -1126,12 +1126,12 @@ window.uproot = {
 
                 <div class="d-flex gap-2">
                     <label for="message-input-chat-${chatId}" class="visually-hidden">${_("Type your message")}</label>
-                    <input type="text"
-                           id="message-input-chat-${chatId}"
-                           class="form-control"
-                           placeholder="${_("Type your message")}"
-                           required
-                           autocomplete="off">
+                    <textarea id="message-input-chat-${chatId}"
+                              class="form-control"
+                              placeholder="${_("Type your message")}"
+                              required
+                              rows="1"
+                              autocomplete="off"></textarea>
                     <button type="button" class="btn btn-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">Send</button>
                 </div>
             </div>`;
