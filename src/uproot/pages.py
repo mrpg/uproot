@@ -89,6 +89,7 @@ def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
 
     return {
         "internalstatic": static_factory(),
+        "projectstatic": static_factory("_project"),
     }
 
 
