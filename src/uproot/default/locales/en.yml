@@ -148,8 +148,8 @@
 ? 'Description'
 : 'Description'
 
-? 'Dissociate room and session'
-: 'Dissociate room and session'
+? 'Disassociate room and session'
+: 'Disassociate room and session'
 
 ? 'Download'
 : 'Download'
@@ -775,8 +775,8 @@
 ? "This room’s capacity is {{ room.capacity }}."
 : "This room’s capacity is {{ room.capacity }}."
 
-? 'To edit room settings, first dissociate the session from this room.'
-: 'To edit room settings, first dissociate the session from this room.'
+? 'To edit room settings, first disassociate the session from this room.'
+: 'To edit room settings, first disassociate the session from this room.'
 
 ? 'Toggling this has purely cosmetical consequences:'
 : 'Toggling this has purely cosmetical consequences:'
