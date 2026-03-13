@@ -139,6 +139,7 @@ async def show_page(
     form = None
     formdata = None
     custom_errors: list[str] = []
+    field_errors: dict[str, list[str]] = {}
     metadata = {}
     original_show_page = player.show_page
 
@@ -225,7 +226,9 @@ async def show_page(
                 initialize(player)
                 proceed = True
             else:  # any other page - need to validate
-                form, valid, custom_errors = await validate(page, player, formdata)
+                form, valid, custom_errors, field_errors = await validate(
+                    page, player, formdata
+                )
                 stealth_fields: dict[str, Any] = {}
 
                 for stealth in cast(
@@ -422,6 +425,7 @@ async def show_page(
         custom_errors,
         metadata,
         uauth,
+        field_errors if not proceed else None,
     )
 
 

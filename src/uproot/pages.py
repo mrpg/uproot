@@ -150,6 +150,7 @@ async def render(
     custom_errors: Optional[list[str]] = None,
     metadata: Optional[dict[str, Any]] = None,
     uauth: Optional[str] = None,
+    field_errors: Optional[dict[str, list[str]]] = None,
 ) -> str:
     ppath = truepath(page)
     group = nullcontext()
@@ -250,6 +251,9 @@ async def render(
                 "session": session,
                 "show2path": show2path,
                 "_uproot_errors": custom_errors,
+                "_uproot_field_errors": (
+                    field_errors if field_errors is not None else {}
+                ),
                 "_uproot_js": jsvars,
                 "_uproot_testing": sname is not None
                 and (is_admin or getattr(session, "testing", False)),
@@ -413,7 +417,7 @@ def show2path(page_order: list[str], show_page: int) -> str:
 
 async def validate(
     page: type[Page], player: Storage, formdata: "FormData"
-) -> tuple[Any, bool, list[str]]:
+) -> tuple[Any, bool, list[str], dict[str, list[str]]]:
     form = None
     errors = []
 
@@ -421,10 +425,10 @@ async def validate(
         form = (await form_factory(page, player))(formdata)
 
         if not form.validate():
-            return form, False, []
+            return form, False, [], {}
 
         errors_from_page = cast(
-            str | list[str],
+            str | list[str] | dict[str, str | list[str]],
             await ensure_awaitable(
                 optional_call,
                 page,
@@ -437,11 +441,18 @@ async def validate(
 
         if isinstance(errors_from_page, str):
             errors = [errors_from_page]
+        elif isinstance(errors_from_page, dict):
+            field_errors: dict[str, list[str]] = {}
+            for fname, ferrors in errors_from_page.items():
+                if isinstance(ferrors, str):
+                    ferrors = [ferrors]
+                field_errors[fname] = list(ferrors)
+            return form, not field_errors, [], field_errors
         else:
+            errors = errors_from_page or []
             ensure(isinstance(errors, list), TypeError, "Errors must be a list")
-            errors = errors_from_page
 
-    return form, not errors, errors
+    return form, not errors, errors, {}
 
 
 def verify_csrf(page: type[Page], player: Storage, formdata: "FormData") -> bool:
