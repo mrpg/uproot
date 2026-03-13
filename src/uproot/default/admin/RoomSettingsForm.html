@@ -91,5 +91,10 @@
             placeholder="{% translate %}Maximum players{% endtranslate %}" min="1"
             {% if room and room.capacity %}value="{{ room.capacity }}"{% endif %}>
         <label for="capacity" class="form-label">{% translate %}Maximum players{% endtranslate %}</label>
+        <small class="d-block form-text pt-2">
+            {% translate %}
+            Pre-created player slots can always be claimed regardless of capacity. Use a capacity only to restrict a session from growing beyond a fixed number of players.
+            {% endtranslate %}
+        </small>
     </div>
 </div>
