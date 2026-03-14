@@ -791,6 +791,112 @@ window.uproot = {
         });
     },
 
+    paginateBlocks() {
+        document.querySelectorAll(".uproot-pagination").forEach((wrapper) => {
+            const itemsPerPage = parseInt(wrapper.dataset.itemsPerPage) || 10;
+            const items = Array.from(wrapper.querySelectorAll(":scope > .uproot-pagination-item"));
+
+            if (items.length <= itemsPerPage) return;
+
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+            let currentPage = 1;
+
+            // Build Bootstrap pagination nav
+            const nav = document.createElement("nav");
+            nav.setAttribute("aria-label", "Pagination");
+            const ul = document.createElement("ul");
+            ul.className = "pagination pagination-sm mb-3";
+            nav.appendChild(ul);
+            wrapper.insertBefore(nav, wrapper.firstChild);
+
+            const showPage = (page) => {
+                currentPage = page;
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+
+                items.forEach((item, i) => {
+                    item.classList.toggle("d-none", i < start || i >= end);
+                });
+
+                rebuildNav();
+            };
+
+            const rebuildNav = () => {
+                ul.innerHTML = ""; // SAFE
+
+                // Previous
+                const prevLi = document.createElement("li");
+                prevLi.className = "page-item" + (currentPage === 1 ? " disabled" : "");
+                const prevA = document.createElement("a");
+                prevA.className = "page-link text-uproot";
+                prevA.href = "#";
+                prevA.setAttribute("aria-label", "Previous");
+                prevA.innerHTML = "&laquo;"; // SAFE
+                prevA.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) showPage(currentPage - 1);
+                });
+                prevLi.appendChild(prevA);
+                ul.appendChild(prevLi);
+
+                // Page numbers with ellipsis for large page counts
+                const pages = [];
+                if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    if (currentPage > 3) pages.push("...");
+                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                        pages.push(i);
+                    }
+                    if (currentPage < totalPages - 2) pages.push("...");
+                    pages.push(totalPages);
+                }
+
+                pages.forEach((p) => {
+                    const li = document.createElement("li");
+                    if (p === "...") {
+                        li.className = "page-item disabled";
+                        const span = document.createElement("span");
+                        span.className = "page-link text-uproot";
+                        span.textContent = "…";
+                        li.appendChild(span);
+                    } else {
+                        const isActive = p === currentPage;
+                        li.className = "page-item" + (isActive ? " active" : "");
+                        const a = document.createElement("a");
+                        a.className = isActive ? "page-link bg-uproot border-uproot text-white" : "page-link text-uproot";
+                        a.href = "#";
+                        a.textContent = p;
+                        a.addEventListener("click", (e) => {
+                            e.preventDefault();
+                            showPage(p);
+                        });
+                        li.appendChild(a);
+                    }
+                    ul.appendChild(li);
+                });
+
+                // Next
+                const nextLi = document.createElement("li");
+                nextLi.className = "page-item" + (currentPage === totalPages ? " disabled" : "");
+                const nextA = document.createElement("a");
+                nextA.className = "page-link text-uproot";
+                nextA.href = "#";
+                nextA.setAttribute("aria-label", "Next");
+                nextA.innerHTML = "&raquo;"; // SAFE
+                nextA.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) showPage(currentPage + 1);
+                });
+                nextLi.appendChild(nextA);
+                ul.appendChild(nextLi);
+            };
+
+            showPage(1);
+        });
+    },
+
     defaultFormatter(value) {
         if (value < 0) {
             return `−${-value}`;

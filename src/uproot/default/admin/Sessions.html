@@ -22,7 +22,7 @@
     Active sessions
     {% endtranslate %}
 </h3>
-<div class="gx-4-5 mb-4-5 row row-cols-1 row-cols-xl-2" id="sessions-active-container">
+<div class="gx-4-5 mb-4-5 row row-cols-1 row-cols-xl-2 uproot-pagination" id="sessions-active-container">
     <div class="col">
         <span class="text-body-tertiary">{% translate %}None{% endtranslate %}.</span>
     </div>
@@ -33,7 +33,7 @@
     Inactive sessions
     {% endtranslate %}
 </h3>
-<div class="gx-4-5 mb-4-5 opacity-50 row row-cols-1 row-cols-lg-2" id="sessions-inactive-container">
+<div class="gx-4-5 mb-4-5 opacity-50 row row-cols-1 row-cols-lg-2 uproot-pagination" id="sessions-inactive-container">
     <div class="col">
         <span class="text-body-tertiary">{% translate %}None{% endtranslate %}.</span>
     </div>
@@ -46,6 +46,7 @@
 
         renderSessions(active, "sessions-active-container");
         renderSessions(inactive, "sessions-inactive-container");
+        uproot.paginateBlocks();
     });
 </script>
 

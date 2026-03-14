@@ -22,7 +22,7 @@
     Currently open rooms
     {% endtranslate %}
 </h3>
-<div class="mb-4-5 gx-4-5 row row-cols-1 row-cols-xl-2" id="rooms-container">
+<div class="mb-4-5 gx-4-5 row row-cols-1 row-cols-xl-2 uproot-pagination" id="rooms-container">
     <div class="col">
         <span class="text-body-tertiary">{% translate %}None{% endtranslate %}.</span>
     </div>
@@ -55,6 +55,7 @@
 <script>
     uproot.onStart(() => {
         renderRooms(uproot.vars.rooms, "rooms-container");
+        uproot.paginateBlocks();
     });
 </script>
 

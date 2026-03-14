@@ -20,7 +20,7 @@ Dashboard
             {% endtranslate %}
         </h3>
         {% if not deployment.PUBLIC_DEMO %}
-        <div class="col mb-3" id="rooms-container">
+        <div class="col mb-3 uproot-pagination" id="rooms-container">
             <span class="text-body-tertiary">{% translate %}
             No rooms defined at this time.
             {% endtranslate %}</span>
@@ -36,7 +36,7 @@ Dashboard
             {% endtranslate %}
         </h3>
         {% if not deployment.PUBLIC_DEMO %}
-        <div class="col mb-4" id="sessions-container">
+        <div class="col mb-4 uproot-pagination" id="sessions-container">
             <span class="text-body-tertiary">{% translate %}
             No active sessions at this time.
             {% endtranslate %}</span>
@@ -86,6 +86,8 @@ Dashboard
         renderSessions(uproot.vars.sessions, "sessions-container");  // server2.py transmits only active sessions to Dashboard
         renderConfigsAppsCards(uproot.vars.configs, "configs-container", "configs");
         renderConfigsAppsCards(uproot.vars.configs, "apps-container", "apps");
+
+        uproot.paginateBlocks();
     });
 </script>
 

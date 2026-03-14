@@ -120,7 +120,7 @@ function renderRooms(rooms, containerId) {
     }
 
     sortedRooms.forEach(room => {
-        const col = createElement("div", "col mb-4");
+        const col = createElement("div", "col mb-4 uproot-pagination-item");
         const card = createElement("div", "border-uproot callout card");
 
         // Card header
@@ -267,7 +267,7 @@ function renderSessions(sessions, containerId) {
     }
 
     sortedSessions.forEach(session => {
-        const col = createElement("div", "col mb-4");
+        const col = createElement("div", "col mb-4 uproot-pagination-item");
         const card = createElement("div", "callout card border-uproot-light");
 
         // Card header
@@ -425,13 +425,13 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         : "bg-light border-uproot-subtle-light";
     const cardBody = createElement("div");
 
-    const listGroup = createElement("div");
+    const listGroup = createElement("div", "uproot-pagination");
 
     Object.entries(data[groupKey]).forEach(([key, value]) => {
         if (key == null) return;
 
         const item = createElement("div",
-            "align-items-start border-start callout d-flex justify-content-between px-3 py-2 mb-3 " +
+            "align-items-start border-start callout d-flex justify-content-between px-3 py-2 mb-3 uproot-pagination-item " +
             cardBodyClass
         );
 
