@@ -159,7 +159,7 @@ wheels = [
 
 [[package]]
 name = "appendmuch"
-version = "0.0.3"
+version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "msgpack" },
@@ -168,7 +168,7 @@ dependencies = [
     { name = "sortedcontainers" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/34/8d6cbac19461f2b273828610dbd43aeb374cfcb103cb12a25ed301d70701/appendmuch-0.0.3-py3-none-any.whl", hash = "sha256:ee9da424d8a535aa7a569ddc13421df8d88168af1f76bee167c4291d293fc1cd", size = 32367, upload-time = "2026-03-14T08:51:54.286Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/6c/6f87c37bc10645d51ed08e1778b04745a4618a4068d29d8e642560b718bf/appendmuch-0.0.4-py3-none-any.whl", hash = "sha256:e3d509b6e8a8390afea864bfb191e2924b276a0c6a94c0e812619a5e85c4a93c", size = 32616, upload-time = "2026-03-14T09:19:34.321Z" },
 ]
 
 [package.optional-dependencies]
@@ -2208,7 +2208,7 @@ pg = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = "==3.13.3" },
-    { name = "appendmuch", specifier = "==0.0.3" },
+    { name = "appendmuch", specifier = "==0.0.4" },
     { name = "appendmuch", extras = ["pg"], marker = "extra == 'pg'" },
     { name = "bandit", marker = "extra == 'dev'", specifier = "==1.9.4" },
     { name = "black", marker = "extra == 'dev'", specifier = "==26.3.1" },
