@@ -120,7 +120,7 @@ function renderRooms(rooms, containerId) {
     }
 
     sortedRooms.forEach(room => {
-        const col = createElement("div", "col mb-4 uproot-pagination-item");
+        const col = createElement("div", "mb-4 uproot-pagination-item");
         const card = createElement("div", "border-uproot callout card");
 
         // Card header
@@ -259,7 +259,7 @@ function renderSessions(sessions, containerId) {
     }
 
     sortedSessions.forEach(session => {
-        const col = createElement("div", "col mb-4 uproot-pagination-item");
+        const col = createElement("div", "mb-4 uproot-pagination-item");
         const card = createElement("div", "callout card border-uproot-light");
 
         // Card header
