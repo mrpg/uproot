@@ -561,8 +561,8 @@ def test_bracket_grouping_in_random():
         ), f"A, B, C not consecutive: {mock_player.page_order}"
 
         # X and Y should still be individual elements
-        x_pos = mock_player.page_order.index("X")
-        y_pos = mock_player.page_order.index("Y")
+        x_pos = mock_player.page_order.index("X")  # noqa: F841
+        y_pos = mock_player.page_order.index("Y")  # noqa: F841
 
         # The randomized section should contain all elements between RandomStart and RandomEnd
         start_pos = mock_player.page_order.index("#RandomStart")
@@ -808,18 +808,22 @@ def test_rounds_expand():
     rounds = SmithereensRounds(A, B, n=3)
     result = rounds.expand()
 
-    # Should repeat the structure 3 times
-    # Each iteration has: #{, #RoundStart, A, B, #RoundEnd, #}
-    assert len(result) == 18  # 6 elements * 3 repetitions
+    # Should have: #RoundsReset + 3 repetitions of #{, #RoundStart, A, B, #RoundEnd, #}
+    assert len(result) == 19  # 1 + 6 elements * 3 repetitions
 
     # Convert to paths for easier comparison
     paths = [getattr(p, "__name__", str(p)) for p in result]
 
-    # Verify the structure repeats correctly
+    # First element is RoundsReset
+    assert "RoundsReset" in paths[0]
+
+    # Verify the structure repeats correctly after RoundsReset
     expected_unit = ["{", "RoundStart", "A", "B", "RoundEnd", "}"]
     for i in range(3):
         for j, expected in enumerate(expected_unit):
-            assert expected in paths[i * 6 + j], f"Mismatch at position {i * 6 + j}"
+            assert (
+                expected in paths[1 + i * 6 + j]
+            ), f"Mismatch at position {1 + i * 6 + j}"
 
 
 def test_rounds_next_initializes_round():
@@ -830,8 +834,8 @@ def test_rounds_next_initializes_round():
     from uproot.smithereens import Rounds as SmithereensRounds
 
     mock_player = Mock(spec=[])  # Empty spec so hasattr returns False
-    mock_player.page_order = ["#RoundStart", "A", "#RoundEnd"]
-    mock_player.show_page = 0
+    mock_player.page_order = ["#RoundsReset", "#RoundStart", "A", "#RoundEnd"]
+    mock_player.show_page = 1
 
     asyncio.run(SmithereensRounds.next(mock_player))
 
@@ -848,6 +852,7 @@ def test_rounds_next_increments_round():
 
     mock_player = Mock()
     mock_player.page_order = [
+        "#RoundsReset",
         "#RoundStart",
         "A",
         "#RoundEnd",
@@ -860,12 +865,12 @@ def test_rounds_next_increments_round():
     ]
     mock_player.round = 1
 
-    mock_player.show_page = 3  # Second #RoundStart
+    mock_player.show_page = 4  # Second #RoundStart
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 2
     assert mock_player.round_nested == [2]
 
-    mock_player.show_page = 6  # Third #RoundStart
+    mock_player.show_page = 7  # Third #RoundStart
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 3
     assert mock_player.round_nested == [3]
@@ -880,8 +885,8 @@ def test_rounds_next_handles_none_round():
 
     mock_player = Mock()
     mock_player.round = None
-    mock_player.page_order = ["#RoundStart", "A", "#RoundEnd"]
-    mock_player.show_page = 0
+    mock_player.page_order = ["#RoundsReset", "#RoundStart", "A", "#RoundEnd"]
+    mock_player.show_page = 1
 
     asyncio.run(SmithereensRounds.next(mock_player))
 
@@ -1163,80 +1168,84 @@ def test_rounds_nested_round_tracking():
     # Iteration 2 of outer: (same structure repeated)
 
     mock_player = Mock()
+    # Real expansion of Rounds(A, Rounds(B, C, n=2), Z, n=2)
     mock_player.page_order = [
+        "#RoundsReset",  # 0: outer reset
         # Outer iteration 1
-        "#{",
-        "#RoundStart",  # pos 1: outer round 1
-        "A",
-        "#{",
-        "#RoundStart",  # pos 4: inner round 1 (of outer 1)
-        "B",
-        "C",
-        "#RoundEnd",
-        "#}",
-        "#{",
-        "#RoundStart",  # pos 10: inner round 2 (of outer 1)
-        "B",
-        "C",
-        "#RoundEnd",
-        "#}",
-        "Z",
-        "#RoundEnd",
-        "#}",
+        "#{",  # 1
+        "#RoundStart",  # 2: outer round 1
+        "A",  # 3
+        "#RoundsReset",  # 4: inner Rounds reset
+        "#{",  # 5
+        "#RoundStart",  # 6: inner round 1 (of outer 1)
+        "B",  # 7
+        "C",  # 8
+        "#RoundEnd",  # 9
+        "#}",  # 10
+        "#{",  # 11
+        "#RoundStart",  # 12: inner round 2 (of outer 1)
+        "B",  # 13
+        "C",  # 14
+        "#RoundEnd",  # 15
+        "#}",  # 16
+        "Z",  # 17
+        "#RoundEnd",  # 18
+        "#}",  # 19
         # Outer iteration 2
-        "#{",
-        "#RoundStart",  # pos 19: outer round 2
-        "A",
-        "#{",
-        "#RoundStart",  # pos 22: inner round 1 (of outer 2)
-        "B",
-        "C",
-        "#RoundEnd",
-        "#}",
-        "#{",
-        "#RoundStart",  # pos 28: inner round 2 (of outer 2)
-        "B",
-        "C",
-        "#RoundEnd",
-        "#}",
-        "Z",
-        "#RoundEnd",
-        "#}",
+        "#{",  # 20
+        "#RoundStart",  # 21: outer round 2
+        "A",  # 22
+        "#RoundsReset",  # 23: inner Rounds reset
+        "#{",  # 24
+        "#RoundStart",  # 25: inner round 1 (of outer 2)
+        "B",  # 26
+        "C",  # 27
+        "#RoundEnd",  # 28
+        "#}",  # 29
+        "#{",  # 30
+        "#RoundStart",  # 31: inner round 2 (of outer 2)
+        "B",  # 32
+        "C",  # 33
+        "#RoundEnd",  # 34
+        "#}",  # 35
+        "Z",  # 36
+        "#RoundEnd",  # 37
+        "#}",  # 38
     ]
 
-    # Test at position 1: first #RoundStart (outer round 1)
-    mock_player.show_page = 1
+    # Test at position 2: first #RoundStart (outer round 1)
+    mock_player.show_page = 2
     mock_player.round = None
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 1
     assert mock_player.round_nested == [1]
 
-    # Test at position 4: first inner #RoundStart (inner round 1 of outer 1)
-    mock_player.show_page = 4
+    # Test at position 6: first inner #RoundStart (inner round 1 of outer 1)
+    mock_player.show_page = 6
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 2
     assert mock_player.round_nested == [1, 1]
 
-    # Test at position 10: second inner #RoundStart (inner round 2 of outer 1)
-    mock_player.show_page = 10
+    # Test at position 12: second inner #RoundStart (inner round 2 of outer 1)
+    mock_player.show_page = 12
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 3
     assert mock_player.round_nested == [1, 2]
 
-    # Test at position 19: second outer #RoundStart (outer round 2)
-    mock_player.show_page = 19
+    # Test at position 21: second outer #RoundStart (outer round 2)
+    mock_player.show_page = 21
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 4
     assert mock_player.round_nested == [2]
 
-    # Test at position 22: inner #RoundStart (inner round 1 of outer 2)
-    mock_player.show_page = 22
+    # Test at position 25: inner #RoundStart (inner round 1 of outer 2)
+    mock_player.show_page = 25
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 5
     assert mock_player.round_nested == [2, 1]
 
-    # Test at position 28: inner #RoundStart (inner round 2 of outer 2)
-    mock_player.show_page = 28
+    # Test at position 31: inner #RoundStart (inner round 2 of outer 2)
+    mock_player.show_page = 31
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 6
     assert mock_player.round_nested == [2, 2]
@@ -1253,56 +1262,60 @@ def test_rounds_deeply_nested():
     # This creates: 2 * 2 * 2 = 8 total A pages
 
     mock_player = Mock()
-    # Simplified page_order with just the markers for testing
+    # page_order matching real expansion of Rounds(Rounds(Rounds(A, n=2), n=2), n=2)
     mock_player.page_order = [
+        "#RoundsReset",  # 0: outer reset
         # Level 0, iteration 1
-        "#{",
-        "#RoundStart",  # pos 1: [1]
-        "#{",
-        "#RoundStart",  # pos 3: [1, 1]
-        "#{",
-        "#RoundStart",  # pos 5: [1, 1, 1]
-        "A",
-        "#RoundEnd",
-        "#}",
-        "#{",
-        "#RoundStart",  # pos 10: [1, 1, 2]
-        "A",
-        "#RoundEnd",
-        "#}",
-        "#RoundEnd",
-        "#}",
-        "#{",
-        "#RoundStart",  # pos 17: [1, 2]
-        "#{",
-        "#RoundStart",  # pos 19: [1, 2, 1]
-        "A",
-        "#RoundEnd",
-        "#}",
-        "#{",
-        "#RoundStart",  # pos 24: [1, 2, 2]
-        "A",
-        "#RoundEnd",
-        "#}",
-        "#RoundEnd",
-        "#}",
-        "#RoundEnd",
-        "#}",
+        "#{",  # 1
+        "#RoundStart",  # 2: [1]
+        "#RoundsReset",  # 3: middle reset
+        "#{",  # 4
+        "#RoundStart",  # 5: [1, 1]
+        "#RoundsReset",  # 6: inner reset
+        "#{",  # 7
+        "#RoundStart",  # 8: [1, 1, 1]
+        "A",  # 9
+        "#RoundEnd",  # 10
+        "#}",  # 11
+        "#{",  # 12
+        "#RoundStart",  # 13: [1, 1, 2]
+        "A",  # 14
+        "#RoundEnd",  # 15
+        "#}",  # 16
+        "#RoundEnd",  # 17
+        "#}",  # 18
+        "#{",  # 19
+        "#RoundStart",  # 20: [1, 2]
+        "#RoundsReset",  # 21: inner reset
+        "#{",  # 22
+        "#RoundStart",  # 23: [1, 2, 1]
+        "A",  # 24
+        "#RoundEnd",  # 25
+        "#}",  # 26
+        "#{",  # 27
+        "#RoundStart",  # 28: [1, 2, 2]
+        "A",  # 29
+        "#RoundEnd",  # 30
+        "#}",  # 31
+        "#RoundEnd",  # 32
+        "#}",  # 33
+        "#RoundEnd",  # 34
+        "#}",  # 35
         # Level 0, iteration 2
-        "#{",
-        "#RoundStart",  # pos 33: [2]
+        "#{",  # 36
+        "#RoundStart",  # 37: [2]
         # ... (similar structure)
     ]
 
     test_cases = [
-        (1, [1]),
-        (3, [1, 1]),
-        (5, [1, 1, 1]),
-        (10, [1, 1, 2]),
-        (17, [1, 2]),
-        (19, [1, 2, 1]),
-        (24, [1, 2, 2]),
-        (33, [2]),
+        (2, [1]),
+        (5, [1, 1]),
+        (8, [1, 1, 1]),
+        (13, [1, 1, 2]),
+        (20, [1, 2]),
+        (23, [1, 2, 1]),
+        (28, [1, 2, 2]),
+        (37, [2]),
     ]
 
     mock_player.round = None
@@ -1323,20 +1336,21 @@ def test_rounds_nested_single_level_still_works():
 
     mock_player = Mock()
     mock_player.page_order = [
+        "#RoundsReset",
         "#{",
-        "#RoundStart",  # pos 1
+        "#RoundStart",  # pos 2
         "A",
         "B",
         "#RoundEnd",
         "#}",
         "#{",
-        "#RoundStart",  # pos 7
+        "#RoundStart",  # pos 8
         "A",
         "B",
         "#RoundEnd",
         "#}",
         "#{",
-        "#RoundStart",  # pos 13
+        "#RoundStart",  # pos 14
         "A",
         "B",
         "#RoundEnd",
@@ -1345,7 +1359,68 @@ def test_rounds_nested_single_level_still_works():
 
     mock_player.round = None
 
-    mock_player.show_page = 1
+    mock_player.show_page = 2
+    asyncio.run(SmithereensRounds.next(mock_player))
+    assert mock_player.round == 1
+    assert mock_player.round_nested == [1]
+
+    mock_player.show_page = 8
+    asyncio.run(SmithereensRounds.next(mock_player))
+    assert mock_player.round == 2
+    assert mock_player.round_nested == [2]
+
+    mock_player.show_page = 14
+    asyncio.run(SmithereensRounds.next(mock_player))
+    assert mock_player.round == 3
+    assert mock_player.round_nested == [3]
+
+
+def test_rounds_sequential_resets_player_round():
+    """Test that a second Rounds() block resets player.round (issue #180)"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    # Simulate: Rounds(A, n=3), Rounds(B, n=2)
+    # The #RoundsReset marker separates the two blocks.
+    mock_player = Mock()
+    mock_player.page_order = [
+        # First Rounds block
+        "#RoundsReset",
+        "#{",
+        "#RoundStart",  # pos 2
+        "A",
+        "#RoundEnd",
+        "#}",
+        "#{",
+        "#RoundStart",  # pos 7
+        "A",
+        "#RoundEnd",
+        "#}",
+        "#{",
+        "#RoundStart",  # pos 12
+        "A",
+        "#RoundEnd",
+        "#}",
+        # Second Rounds block
+        "#RoundsReset",
+        "#{",
+        "#RoundStart",  # pos 18
+        "B",
+        "#RoundEnd",
+        "#}",
+        "#{",
+        "#RoundStart",  # pos 23
+        "B",
+        "#RoundEnd",
+        "#}",
+    ]
+
+    mock_player.round = None
+
+    # First block: rounds 1, 2, 3
+    mock_player.show_page = 2
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 1
     assert mock_player.round_nested == [1]
@@ -1355,7 +1430,20 @@ def test_rounds_nested_single_level_still_works():
     assert mock_player.round == 2
     assert mock_player.round_nested == [2]
 
-    mock_player.show_page = 13
+    mock_player.show_page = 12
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 3
     assert mock_player.round_nested == [3]
+
+    # Second block: player.round must reset to 1
+    mock_player.show_page = 18
+    asyncio.run(SmithereensRounds.next(mock_player))
+    assert (
+        mock_player.round == 1
+    ), "player.round should reset at start of second Rounds()"
+    assert mock_player.round_nested == [1]
+
+    mock_player.show_page = 23
+    asyncio.run(SmithereensRounds.next(mock_player))
+    assert mock_player.round == 2
+    assert mock_player.round_nested == [2]

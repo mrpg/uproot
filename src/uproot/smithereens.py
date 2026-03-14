@@ -508,7 +508,7 @@ class Rounds(t.SmoothOperator):
         self.n = n
 
     def expand(self) -> list[t.PageLike]:
-        return self.n * self.pages
+        return [INTERNAL_PAGES["RoundsReset"]] + self.n * self.pages
 
     @classmethod
     async def next(page, player: Storage) -> None:
@@ -521,7 +521,15 @@ class Rounds(t.SmoothOperator):
 
         for i in range(player.show_page):
             page_name = player.page_order[i]
-            if page_name == "#RoundStart":
+            if page_name == "#RoundsReset":
+                # A new Rounds() block begins at this depth — reset counters
+                for d in list(completed_at_depth.keys()):
+                    if d >= depth:
+                        del completed_at_depth[d]
+                for d in list(current_at_depth.keys()):
+                    if d >= depth:
+                        del current_at_depth[d]
+            elif page_name == "#RoundStart":
                 # Entering a round at this depth
                 current_at_depth[depth] = completed_at_depth.get(depth, 0) + 1
                 depth += 1
@@ -731,6 +739,11 @@ INTERNAL_PAGES = {
     ),
     "RandomEnd": type(
         "RandomEnd",
+        (t.InternalPage,),
+        {},
+    ),
+    "RoundsReset": type(
+        "RoundsReset",
         (t.InternalPage,),
         {},
     ),
