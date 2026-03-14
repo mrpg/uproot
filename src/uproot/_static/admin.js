@@ -140,7 +140,7 @@ function renderRooms(rooms, containerId) {
                 : "badge border border-danger my-1 text-danger"
         );
 
-        const rightCol = createElement("div", "");
+        const rightCol = document.createElement("div");
         rightCol.appendChild(statusBadge);
 
         headerContent.appendChild(title);
@@ -176,20 +176,17 @@ function renderRooms(rooms, containerId) {
         ));
 
         // Labels row
-        const labelsRow = createElement("div", "d-table-row");
         if (room.labels != null && room.labels.length > 0) {
-            labelsRow.innerHTML = `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Labels")}</span> <span class="d-table-cell w-100">${room.labels.length}</span>`; // SAFE
+            const labelsRow = createTableRow(_("Labels"), String(room.labels.length));
             labelsRow.title = room.labels.slice(0, 5).join(", ") + (room.labels.length > 5 ? "..." : "");
+            infoTable.appendChild(labelsRow);
         } else {
-            labelsRow.innerHTML = `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Labels")}</span> <span class="d-table-cell text-body-tertiary w-100">N/A</span>`; // SAFE
+            infoTable.appendChild(createTableRow(_("Labels"), _("N/A"), { isNA: true }));
         }
-        infoTable.appendChild(labelsRow);
 
         // Join mode row
         const freejoin = room.labels == null && room.capacity == null;
-        const freejoinRow = createElement("div", "d-table-row");
-        freejoinRow.innerHTML = `<span class="d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase">${_("Join mode")}</span> <span class="d-table-cell w-100">${freejoin ? _("free join") : _("restricted")}</span>`; // SAFE
-        infoTable.appendChild(freejoinRow);
+        infoTable.appendChild(createTableRow(_("Join mode"), freejoin ? _("free join") : _("restricted")));
 
         leftCol.appendChild(infoTable);
         cardBody.appendChild(leftCol);
@@ -202,43 +199,38 @@ function renderRooms(rooms, containerId) {
             nPlayers = uproot.vars.sessions[room.sname].n_players;
         }
 
+        const fillBadgeClass = (fillRatio) =>
+            fillRatio >= 1
+                ? "badge bg-success border border-success mb-2"
+                : fillRatio >= 0.9
+                    ? "badge bg-warning border border-warning mb-2 text-dark"
+                    : "badge bg-danger border border-danger mb-2";
+
         // Capacity badge
-        const capacityBadge = createElement("div", "");
+        let capacityClass;
         if (room.capacity != null) {
-            const fillRatio = nPlayers / room.capacity;
-            if (room.open) {
-                capacityBadge.className = fillRatio >= 1
-                    ? "badge bg-success border border-success mb-2"
-                    : fillRatio >= 0.9
-                        ? "badge bg-warning border border-warning mb-2 text-dark"
-                        : "badge bg-danger border border-danger mb-2";
-            } else {
-                capacityBadge.className = "badge border border-danger mb-2 text-danger";
-            }
-            capacityBadge.textContent = `${_("Capacity")}: ${room.capacity}`;
+            capacityClass = room.open
+                ? fillBadgeClass(nPlayers / room.capacity)
+                : "badge border border-danger mb-2 text-danger";
         } else {
-            capacityBadge.className = room.open
+            capacityClass = room.open
                 ? "badge bg-success border border-success mb-2"
                 : "badge border border-success mb-2 text-success";
-            capacityBadge.textContent = _("Capacity") + ": ∞";
         }
-        badges.appendChild(capacityBadge);
+        badges.appendChild(createBadge(
+            `${_("Capacity")}: ${room.capacity != null ? room.capacity : "∞"}`,
+            capacityClass
+        ));
 
         // Players badge
         if (room.sname && uproot.vars.sessions[room.sname]) {
-            const nPlayersBadge = createElement("div", "");
-            if (room.capacity != null) {
-                const fillRatio = nPlayers / room.capacity;
-                nPlayersBadge.className = fillRatio >= 1
-                    ? "badge bg-success border border-success mb-2"
-                    : fillRatio >= 0.9
-                        ? "badge bg-warning border border-warning mb-2 text-dark"
-                        : "badge bg-danger border border-danger mb-2";
-            } else {
-                nPlayersBadge.className = "badge bg-success border border-success mb-2";
-            }
-            nPlayersBadge.textContent = `${_("Players")}: ${nPlayers}`;
-            badges.appendChild(nPlayersBadge);
+            const playersClass = room.capacity != null
+                ? fillBadgeClass(nPlayers / room.capacity)
+                : "badge bg-success border border-success mb-2";
+            badges.appendChild(createBadge(
+                `${_("Players")}: ${nPlayers}`,
+                playersClass
+            ));
         }
 
         if (badges.children.length > 0) {
@@ -279,7 +271,7 @@ function renderSessions(sessions, containerId) {
         if (session.sname) {
             const title = createElement("h5", "d-inline-block fw-semibold mb-1 me-3 text-nowrap");
             const sessionUrl = adminUrl("session", session.sname);
-            title.innerHTML = `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-opacity-0" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> <i class="font-bi">&#xF8A7;</i></a>`; // SAFE
+            title.innerHTML = `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> <i class="font-bi">&#xF8A7;</i></a>`; // SAFE
             headerContent.appendChild(title);
         }
 
@@ -403,10 +395,7 @@ function renderConfigsApps(data, containerId) {
 
     container.appendChild(select);
 
-    const label = createElement("label", "", {
-        for: "configs-apps-select",
-        textContent: _("Config or app")
-    });
+    const label = createElement("label", "", { textContent: _("Config or app") });
     label.htmlFor = "configs-apps-select";
     container.appendChild(label);
 
@@ -423,7 +412,6 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
     const cardBodyClass = groupKey === "configs"
         ? "bg-light border-uproot-subtle"
         : "bg-light border-uproot-subtle-light";
-    const cardBody = createElement("div");
 
     const listGroup = createElement("div", "uproot-pagination");
 
@@ -470,8 +458,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         listGroup.appendChild(item);
     });
 
-    cardBody.appendChild(listGroup);
-    card.appendChild(cardBody);
+    card.appendChild(listGroup);
     container.appendChild(card);
 }
 
