@@ -248,6 +248,7 @@ async def render(
                 "page": page,
                 "part": part,
                 "player": player,
+                "safe": Markup,
                 "session": session,
                 "show2path": show2path,
                 "_uproot_errors": custom_errors,
