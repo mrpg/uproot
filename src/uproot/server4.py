@@ -734,7 +734,9 @@ async def get_config_summary(
         "summary": a.config_summary(cname),
         "apps": u.CONFIGS[cname],
         "settings": u.CONFIGS_EXTRA.get(cname, {}).get("settings", {}),
-        "multiple_of": u.CONFIGS_EXTRA.get(cname, {}).get("multiple_of", 1),
+        "suggested_multiple": u.CONFIGS_EXTRA.get(cname, {}).get(
+            "suggested_multiple", 1
+        ),
     }
 
 

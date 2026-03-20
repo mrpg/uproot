@@ -5,10 +5,18 @@
     <div class="col-12 col-xl-4 mb-2">
         <div class="form-floating">
             <input class="form-control" id="nplayers" min="0" name="nplayers"
-                placeholder="0" required type="number" value="">
-            {# TODO (and multiple_of): value = "{{ demo-size }}" #}
+                placeholder="0" required type="number" value=""
+                oninput="checkSuggestedMultiple()">
             <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
         </div>
+
+        <small class="form-text mt-1 text-warning-emphasis" id="suggested-multiple-hint" style="visibility: hidden;">
+            <span id="suggested-multiple-text"></span>
+            <a href="https://uproot.science/multiplayer/groups/#groups-are-lazy" target="_blank"
+                class="text-body-tertiary link-underline-opacity-0"
+                title="{% translate %}Documentation{% endtranslate %}"
+                aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book"></i></a>
+        </small>
     </div>
 </div>
 
@@ -64,6 +72,8 @@
 </div>
 
 <script>
+    let _suggestedMultiple = 1;
+
     uproot.onStart(() => {
         select = renderConfigsApps(uproot.vars.configs, "config-select");
         const option = document.querySelector(`option[value='${defaultConfig}']`);
@@ -75,8 +85,24 @@
         select.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
+    function checkSuggestedMultiple() {
+        const hint = I("suggested-multiple-hint");
+        const n = parseInt(I("nplayers").value);
+
+        if (_suggestedMultiple > 1 && !isNaN(n) && n >= 0 && n % _suggestedMultiple !== 0) {
+            I("suggested-multiple-text").textContent = _("The number of players is not a multiple of #n#.").replace("#n#", _suggestedMultiple);
+            hint.style.visibility = "visible";
+        }
+        else {
+            hint.style.visibility = "hidden";
+        }
+    }
+
     function configSelected(config) {
-        // TODO: Handle multiple_of here
+        const extra = uproot.vars.configs_extra[config] || {};
+        _suggestedMultiple = extra.suggested_multiple || 1;
+
+        checkSuggestedMultiple();
 
         if (!Object.hasOwn(uproot.vars.configs_extra, config) ||
             !Object.hasOwn(uproot.vars.configs_extra[config], "settings") ||

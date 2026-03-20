@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
+import math
 from contextlib import asynccontextmanager
 from sys import stderr
 from typing import (
@@ -183,7 +184,6 @@ def load_config(
     config: str,
     apps: list[str],
     *,
-    multiple_of: int = 1,  # TODO: Rename
     settings: Optional[dict[str, Any]] = None,
 ) -> None:
     ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
@@ -193,7 +193,6 @@ def load_config(
 
     u.CONFIGS[config] = []
     u.CONFIGS_EXTRA[config] = {
-        "multiple_of": multiple_of,
         "settings": settings or {},
     }
 
@@ -204,4 +203,22 @@ def load_config(
         if f"~{appname}" not in u.CONFIGS:
             u.CONFIGS[f"~{appname}"] = [appname]
 
+            sm = getattr(u.APPS[appname], "SUGGESTED_MULTIPLE", 1)
+
+            u.CONFIGS_EXTRA[f"~{appname}"] = {
+                "settings": {},
+                "suggested_multiple": sm,
+            }
+
         u.CONFIGS[config].append(appname)
+
+    # Compute suggested_multiple as LCM of all apps' SUGGESTED_MULTIPLE constants
+    suggested = 1
+
+    for appname in u.CONFIGS[config]:
+        sm = getattr(u.APPS[appname], "SUGGESTED_MULTIPLE", 1)
+
+        if sm > 1:
+            suggested = math.lcm(suggested, sm)
+
+    u.CONFIGS_EXTRA[config]["suggested_multiple"] = suggested
