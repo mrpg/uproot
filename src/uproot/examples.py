@@ -186,6 +186,7 @@ from uproot.smithereens import *
 
 DESCRIPTION = "Prisoner’s dilemma"
 LANDING_PAGE = False
+SUGGESTED_MULTIPLE = 2
 
 
 class C:
