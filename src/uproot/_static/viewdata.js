@@ -538,7 +538,7 @@ function removeFilter() {
  * Updates a filter key and refreshes the data.
  */
 function filterThenRefreshData(key, value) {
-    if (value === "" && Object.keys(viewdataState.filter).length > 0) {
+    if (value === "") {
         // Remove the key
         const { [key]: _, ...rest } = viewdataState.filter;
         viewdataState.filter = rest;
