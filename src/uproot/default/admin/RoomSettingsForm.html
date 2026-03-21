@@ -60,10 +60,10 @@
     {% endif %}
 </div>
 
-<div x-data="{useLabels: {% if room and room.labels %}true{% else %}false{% endif %}}">
+<div x-data="{useLabels: {% if room and room.labels is not none %}true{% else %}false{% endif %}}">
     <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="use_labels"
-            {% if room and room.labels %}checked{% endif %}
+        <input class="form-check-input" type="checkbox" id="use_labels" name="use_labels" value="1"
+            {% if room and room.labels is not none %}checked{% endif %}
             @click="useLabels = !useLabels; if (!useLabels) { I('labels').value = ''; }">
         <label for="use_labels">{% translate %}Use labels/Access Codes{% endtranslate %}</label>
     </div>
@@ -73,7 +73,7 @@
         <label for="labels">Labels</label>
         <small class="d-block form-text pt-2">
             {% translate %}
-            Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.
+            Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels. If no labels are entered, any Access Code will be accepted.
             {% endtranslate %}
         </small>
     </div>

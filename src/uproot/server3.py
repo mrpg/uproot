@@ -189,7 +189,7 @@ async def ws(
     if label == "" and not needs_label:
         existing_labels = [pid.uname for pid in u.who_online(sname=f"^{roomname}")]
         local_context = t.token(existing_labels, str.upper)  # Implement fingerprinting?
-    elif not needs_label or label in room["labels"]:
+    elif ur.validate(room, label):
         # Eagerly accept label
         local_context = label
     else:

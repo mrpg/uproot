@@ -556,8 +556,8 @@
 ? 'Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.'
 : 'La entrada se evalúa como una expresión JavaScript. Puede usar comentarios, cálculos, variables, etc. El resultado debe ser serializable como JSON.'
 
-? 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels.'
-: 'Inserte una etiqueta por línea de texto. Cada etiqueta no debe tener más de 128 caracteres y solo debe usar los siguientes caracteres: <code>A-Za-z0-9-._</code> Las etiquetas restringen el acceso a la sala a jugadores con etiquetas coincidentes.'
+? 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels. If no labels are entered, any Access Code will be accepted.'
+: 'Inserte una etiqueta por línea de texto. Cada etiqueta no debe tener más de 128 caracteres y solo debe usar los siguientes caracteres: <code>A-Za-z0-9-._</code> Las etiquetas restringen el acceso a la sala a jugadores con etiquetas coincidentes. Si no se ingresan etiquetas, se aceptará cualquier código de acceso.'
 
 ? 'Internal Server Error'
 : 'Error interno del servidor'

@@ -518,6 +518,7 @@ async def new_room2(
     name: str = Form(),
     config: str = Form(""),
     labels: str = Form(""),
+    use_labels: Optional[bool] = Form(False),
     capacity: str = Form(""),
     sname: str = Form(""),
     open: Optional[bool] = Form(False),
@@ -527,6 +528,9 @@ async def new_room2(
     sname_ = sname.strip() or None
     capacity_ = int(capacity) if capacity.strip() else None
     labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
+
+    if use_labels and labels_list is None:
+        labels_list = []
 
     if sname_:
         a.session_exists(sname_)
@@ -665,6 +669,7 @@ async def update_room_settings(
     roomname: str,
     config: str = Form(""),
     labels: str = Form(""),
+    use_labels: Optional[bool] = Form(False),
     capacity: str = Form(""),
     open: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
@@ -674,6 +679,9 @@ async def update_room_settings(
     config_ = config.strip() or None
     capacity_ = int(capacity) if capacity.strip() else None
     labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
+
+    if use_labels and labels_list is None:
+        labels_list = []
 
     with Admin() as admin:
         ensure(

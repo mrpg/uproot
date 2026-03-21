@@ -5,7 +5,7 @@
 uproot rooms are finite-state machines.
 
 if labels is not None: labels will be checked in any case. Labels may only be
-used once.
+used once. If labels is an empty list, any non-empty label is accepted.
 
 State 0:
     open=False, the room is closed. Prospective players have to wait. If
@@ -59,7 +59,7 @@ def room(
 
 
 def freejoin(room: RoomType) -> bool:
-    return room["labels"] is None and room["capacity"] is None
+    return not room["labels"] and room["capacity"] is None
 
 
 def labels_file(filename: str) -> set[str]:
@@ -98,6 +98,9 @@ def validate(room: RoomType, label: str) -> bool:
         return True
 
     if room["labels"] is not None:
+        if not room["labels"]:
+            return label != ""
+
         return label != "" and label in room["labels"]
 
     return True
