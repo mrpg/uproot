@@ -568,15 +568,23 @@ async def roommain(
     with Admin() as admin:
         ensure(roomname in admin.rooms, ValueError, "Room not found")
 
+        room = admin.rooms[roomname]
+        extra: dict[str, Any] = {}
+
+        if room["sname"] is not None:
+            with Session(room["sname"]) as session:
+                extra["n_players"] = len(session._uproot_players)
+
         return HTMLResponse(
             await render(
                 "Room.html",
                 {
                     "roomname": roomname,
-                    "room": admin.rooms[roomname],
+                    "room": room,
                     "configs": a.configs(),
                     "configs_extra": u.CONFIGS_EXTRA,
                 }
+                | extra
                 | await a.info_online(f"^{roomname}"),
             )
         )
@@ -1089,6 +1097,7 @@ FUNS = {
     "revert_by_one": a.revert_by_one,
     "run_new_player": a.run_new_player,
     "run_new_session": a.run_new_session,
+    "set_room_open": a.set_room_open,
     "update_description": a.update_description,
     "update_settings": a.update_settings,
 }

@@ -75,6 +75,24 @@ async def close_room(roomname: str, disassociate_session: bool = False) -> None:
     r.reset(roomname)
 
 
+async def set_room_open(roomname: str, open: bool) -> None:
+    """Set a room's open status without disassociating its session."""
+    room_exists(roomname, False)
+
+    with s.Admin() as admin:
+        room = admin.rooms[roomname]
+
+        if open and room["sname"] is None and room["config"] is None:
+            raise ValueError(
+                "Cannot open a room that has no associated session or config"
+            )
+
+        room["open"] = open
+
+    if not open:
+        r.reset(roomname)
+
+
 async def delete_room(roomname: str) -> None:
     """Delete a room."""
     room_exists(roomname, False)

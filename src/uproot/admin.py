@@ -70,6 +70,7 @@ from uproot.services.room_service import (
     disassociate,
     room_exists,
     rooms,
+    set_room_open,
 )
 
 # Re-export from session service
@@ -133,6 +134,7 @@ __all__ = [
     "disassociate",
     "room_exists",
     "rooms",
+    "set_room_open",
     # Data
     "DisplayValue",
     "data_display",

@@ -90,6 +90,29 @@ Room
     </div>
 </div>
 
+<div class="border-uproot-light card mb-4-5">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3 py-3">
+        <div>
+            {% if room.open and room.config %}
+            <span class="badge bg-success">{% translate %}Open{% endtranslate %}</span>
+            {% elif room.open %}
+            <span class="badge border border-warning text-warning">{% translate %}Open{% endtranslate %}</span>
+            {% else %}
+            <span class="badge border border-danger text-danger">{% translate %}Closed{% endtranslate %}</span>
+            {% endif %}
+        </div>
+        <small class="text-body-secondary">
+            {% if room.open and room.config %}
+            {% translate %}This room is open and will auto-create a session when the first player joins.{% endtranslate %}
+            {% elif room.open %}
+            {% translate %}This room is open but has no config associated. Players will wait until a session is created manually.{% endtranslate %}
+            {% else %}
+            {% translate %}This room is closed. Players will wait until the room is opened or a session is created.{% endtranslate %}
+            {% endif %}
+        </small>
+    </div>
+</div>
+
 <div class="border-uproot-light card h-100 mb-4-5">
     <div class="bg-white border-0 card-header pb-1">
         <h3 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3 text-uproot">
@@ -415,16 +438,76 @@ Room
     </div>
 </div>
 
-<div class="border-uproot-light card">
-    <div class="bg-white border-0 card-header pb-1">
-        <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
-            {% translate %}Room settings{% endtranslate %}
-        </h4>
+<div class="gx-4-5 row">
+    <div class="col-12 col-lg-6 mb-4-5">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Room status{% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="d-table mb-3">
+                    <div class="d-table-row">
+                        <span class="d-table-cell pe-4 text-body-secondary">{% translate %}Status{% endtranslate %}</span>
+                        <span class="d-table-cell">
+                            {% if room.open %}
+                            <span class="badge bg-success">{% translate %}Open{% endtranslate %}</span>
+                            {% else %}
+                            <span class="badge border border-danger text-danger">{% translate %}Closed{% endtranslate %}</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="d-table-row">
+                        <span class="d-table-cell pe-4 text-body-secondary">{% translate %}Players{% endtranslate %}</span>
+                        <span class="d-table-cell">
+                            {{ n_players }}&thinsp;/&thinsp;{% if room.capacity is not none %}{{ room.capacity }}{% else %}&infin;{% endif %}
+                        </span>
+                    </div>
+                    <div class="d-table-row">
+                        <span class="d-table-cell pe-4 text-body-secondary">{% translate %}Join mode{% endtranslate %}</span>
+                        <span class="d-table-cell">
+                            {% if room.labels is none and room.capacity is none %}
+                            {% translate %}Free join{% endtranslate %}
+                            {% else %}
+                            {% translate %}Restricted{% endtranslate %}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap align-items-center mb-1">
+                    {% if room.open %}
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="setRoomOpen(false)">
+                        {% translate %}Close room{% endtranslate %}
+                    </button>
+                    <small class="text-body-secondary">
+                        {% translate %}Stop accepting new participants while keeping the session active.{% endtranslate %}
+                    </small>
+                    {% else %}
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="setRoomOpen(true)">
+                        {% translate %}Reopen room{% endtranslate %}
+                    </button>
+                    <small class="text-body-secondary">
+                        {% translate %}Resume accepting new participants into the existing session.{% endtranslate %}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <p class="text-body-secondary mb-0">
-            {% translate %}To edit room settings, first disassociate the session from this room.{% endtranslate %}
-        </p>
+    <div class="col-12 col-lg-6 mb-4-5">
+        <div class="border-uproot-light card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">
+                    {% translate %}Room settings{% endtranslate %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="text-body-secondary mb-0">
+                    {% translate %}To edit room settings, first disassociate the session from this room.{% endtranslate %}
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -437,6 +520,12 @@ Room
 
     function closeRoom() {
         uproot.invoke("close_room", uproot.vars.room.name, true).then(() => {
+            uproot.reload();
+        });
+    }
+
+    function setRoomOpen(open) {
+        uproot.invoke("set_room_open", uproot.vars.room.name, open).then(() => {
             uproot.reload();
         });
     }

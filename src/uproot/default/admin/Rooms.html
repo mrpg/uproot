@@ -19,27 +19,25 @@
 
 <h3 class="mb-4">
     {% translate %}
-    Currently open rooms
+    Open rooms
     {% endtranslate %}
 </h3>
-<div class="mb-4-5 uproot-pagination" id="rooms-container">
+<div class="mb-4-5 uproot-pagination" id="open-rooms-container">
     <div>
         <span class="text-body-tertiary">{% translate %}None{% endtranslate %}.</span>
     </div>
 </div>
 
-{#
-<h3 class="mb-3">
+<h3 class="mb-4">
     {% translate %}
-    Currently closed rooms
+    Closed rooms
     {% endtranslate %}
 </h3>
-<div class="mb-4 row row-cols-1 row-cols-lg-2" id="rooms-container">
+<div class="mb-4-5 uproot-pagination" id="closed-rooms-container">
     <div>
-        {% translate %}None{% endtranslate %}.
+        <span class="text-body-tertiary">{% translate %}None{% endtranslate %}.</span>
     </div>
 </div>
-#}
 
 {% else %}
 
@@ -54,7 +52,20 @@
 
 <script>
     uproot.onStart(() => {
-        renderRooms(uproot.vars.rooms, "rooms-container");
+        const allRooms = uproot.vars.rooms;
+        const openRooms = {};
+        const closedRooms = {};
+
+        Object.entries(allRooms).forEach(([name, room]) => {
+            if (room.open && (room.config || room.sname)) {
+                openRooms[name] = room;
+            } else {
+                closedRooms[name] = room;
+            }
+        });
+
+        renderRooms(openRooms, "open-rooms-container");
+        renderRooms(closedRooms, "closed-rooms-container");
         uproot.paginateBlocks();
     });
 </script>

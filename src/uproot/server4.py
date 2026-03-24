@@ -127,6 +127,12 @@ class RoomUpdate(BaseModel):
     open: bool = Field(False, description="Whether the room is open")
 
 
+class RoomOpen(BaseModel):
+    """Request body for setting a room's open status."""
+
+    open: bool = Field(..., description="Whether the room should be open")
+
+
 class RoomClose(BaseModel):
     """Request body for closing a room."""
 
@@ -611,6 +617,23 @@ async def disassociate_room(
     await a.disassociate(roomname, sname)
 
     return {"name": roomname, "disassociated": True}
+
+
+@router.patch("/room/{roomname}/open/")
+async def set_room_open(
+    roomname: str,
+    body: RoomOpen,
+    _bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Set a room's open status without requiring disassociation."""
+    a.room_exists(roomname)
+
+    try:
+        await a.set_room_open(roomname, body.open)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"name": roomname, "open": body.open}
 
 
 @router.post("/room/{roomname}/close/")
