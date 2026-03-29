@@ -8,6 +8,7 @@ This file implements admin routes.
 # TODO: CSRF protection?
 
 import asyncio
+import hmac
 import importlib.metadata
 import os
 import sys
@@ -366,7 +367,7 @@ async def login_post(
 
     # Check for login token first
     if token and user == "admin" and d.LOGIN_TOKEN is not None:
-        if token == d.LOGIN_TOKEN:
+        if hmac.compare_digest(token, d.LOGIN_TOKEN):
             a.ensure_globals()
             auth_token = a.create_auth_token_for_user(user)
 

@@ -3,6 +3,7 @@
 
 """Authentication and authorization service."""
 
+import hmac
 import secrets
 from datetime import datetime, timezone
 from types import EllipsisType
@@ -123,8 +124,14 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
     ensure_globals()
 
     # Verify credentials first
-    if user not in ADMINS or ADMINS[user] is ... or ADMINS[user] != pw:
-        # Sanitize user input to prevent log injection
+    if user not in ADMINS or ADMINS[user] is ...:
+        # Perform a dummy comparison to avoid leaking whether the user exists
+        # via timing differences
+        hmac.compare_digest("dummy", pw)
+        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
+        return None
+
+    if not hmac.compare_digest(ADMINS[user], pw):
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return None
 
