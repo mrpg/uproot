@@ -359,13 +359,7 @@ async def login_post(
 ) -> Response:
     global LAST_FAILED_LOGIN
 
-    # Rate limiting: require 5 second delay after failed login
-    if now() - LAST_FAILED_LOGIN <= 5.0:
-        d.LOGGER.debug("POSTed too quickly")
-        LAST_FAILED_LOGIN = now()
-        return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
-
-    # Check for login token first
+    # Check for login token first (not rate-limited)
     if token and user == "admin" and d.LOGIN_TOKEN is not None:
         if hmac.compare_digest(token, d.LOGIN_TOKEN):
             a.ensure_globals()
@@ -388,6 +382,11 @@ async def login_post(
                     ),  # Safari really sucks
                 )
                 return response
+
+    # Rate limiting: require 5 second delay after failed login
+    if now() - LAST_FAILED_LOGIN <= 5.0:
+        d.LOGGER.debug("POSTed too quickly")
+        return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
     # Attempt to create authentication token with regular credentials
     auth_token = a.create_auth_token(user, pw)
