@@ -131,7 +131,7 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return None
 
-    if not hmac.compare_digest(ADMINS[user], pw):
+    if not hmac.compare_digest(cast(str, ADMINS[user]), pw):
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return None
 
