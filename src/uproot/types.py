@@ -5,7 +5,7 @@ import asyncio
 import functools
 import hashlib
 import inspect
-import random
+import secrets
 import uuid as pyuuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
@@ -375,10 +375,8 @@ def token_unchecked(outlen: int) -> str:
     """This function generates a random Python identifier."""
     ensure(outlen > 0, ValueError, "Output length must be positive")
 
-    return random.choice(
-        ascii_lowercase
-    ) + "".join(  # nosec B311 - Random for identifier generation, not security
-        random.choices(ALPHANUMERIC, k=outlen - 1)  # nosec B311
+    return secrets.choice(ascii_lowercase) + "".join(
+        secrets.choice(ALPHANUMERIC) for _ in range(outlen - 1)
     )
 
 

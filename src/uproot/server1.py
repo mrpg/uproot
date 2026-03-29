@@ -7,6 +7,7 @@ This file implements player routes.
 
 import asyncio
 import hashlib
+import hmac
 import os.path
 import traceback
 from collections import deque
@@ -474,7 +475,7 @@ async def sessionwide(
     session = Session(sname)
 
     with session:
-        if not secret == session._uproot_secret:
+        if not hmac.compare_digest(secret, session._uproot_secret):
             raise HTTPException(status_code=401)
 
         free_slot = find_free_slot(session)
