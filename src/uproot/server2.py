@@ -383,10 +383,9 @@ async def login_post(
                 )
                 return response
 
-    # Rate limiting: require 5 second delay after failed login
-    if now() - LAST_FAILED_LOGIN <= 5.0:
-        d.LOGGER.debug("POSTed too quickly")
-        return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
+    # Rate limiting: require 5 second delay between failed login attempts.
+    # Credentials are always verified so correct logins are never blocked.
+    rate_limited = now() - LAST_FAILED_LOGIN <= 5.0
 
     # Attempt to create authentication token with regular credentials
     auth_token = a.create_auth_token(user, pw)
@@ -403,6 +402,11 @@ async def login_post(
             ),  # Safari really sucks
         )
         return response
+
+    # Wrong credentials — reject immediately if rate-limited, otherwise
+    # start a new rate-limit window.  Repeated failures cannot extend it.
+    if rate_limited:
+        return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
     LAST_FAILED_LOGIN = now()
     return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
