@@ -28,7 +28,7 @@
 
 <script src="{{ internalstatic('uproot.js') }}"></script>
 <script>
-    uproot.vars = {{ _uproot_js | tojson }};
+    uproot.vars = {{ _uproot_js | tojson | safe }};
     {% if noterms is not defined %}
     uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}
     {% endif %}
@@ -277,7 +277,7 @@
         uproot.chat.ignoreChatted = false;
 
         {% if player is not none and player._uproot_adminchat is not none %}
-        uproot.chat.create(I("adminmessage-modal-body"), {{ player._uproot_adminchat.mname | tojson }});
+        uproot.chat.create(I("adminmessage-modal-body"), {{ player._uproot_adminchat.mname | tojson | safe }});
         uproot.ensureBuddy();
         {% endif %}
     });

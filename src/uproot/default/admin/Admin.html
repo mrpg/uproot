@@ -31,7 +31,7 @@ Admin area
         {% block _uproot_scripts %}
         <script src="{{ internalstatic('uproot.js') }}"></script>
         <script>
-            uproot.vars = {{ _uproot_js | tojson }};
+            uproot.vars = {{ _uproot_js | tojson | safe }};
             uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}
 
             uproot.wsurl = () => {
