@@ -47,7 +47,7 @@ security:
 	@echo "Running bandit..."
 	bandit -r src/uproot/ -c pyproject.toml
 	@echo "\nRunning pip-audit..."
-	pip-audit
+	uvx pip-audit
 
 quality:
 	@echo "Running deptry..."

@@ -102,7 +102,7 @@ jobs:
         run: uv run bandit -r src/uproot/ -c pyproject.toml
 
       - name: Run pip-audit
-        run: uv run pip-audit --ignore-vuln CVE-2026-4539  # pygments, no fix available, transitive dev dep only
+        run: uvx pip-audit --ignore-vuln CVE-2026-4539  # pygments, no fix available, transitive dev dep only
 
   code-quality:
     runs-on: ubuntu-latest
