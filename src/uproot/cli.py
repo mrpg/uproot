@@ -12,8 +12,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
 
-import aiohttp
 import click
+import httpx
 import uvicorn
 
 import uproot.deployment as d
@@ -68,13 +68,13 @@ def set_ulimit() -> None:
 
 
 async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+    async with httpx.AsyncClient() as client:
+        zip_path = "temp.zip"
+        async with client.stream("GET", url) as response:
             response.raise_for_status()
 
-            zip_path = "temp.zip"
             with open(zip_path, "wb") as f:
-                async for chunk in response.content.iter_chunked(8192):
+                async for chunk in response.aiter_bytes(8192):
                     f.write(chunk)
 
     try:

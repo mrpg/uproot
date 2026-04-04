@@ -5,7 +5,7 @@
 
 from typing import Any, cast
 
-import aiohttp
+import httpx
 from sortedcontainers import SortedDict
 
 import uproot as u
@@ -52,15 +52,15 @@ async def announcements() -> dict[str, Any]:
     """Fetch announcements from the upstream repository."""
     ANNOUNCEMENTS_URL = "https://raw.githubusercontent.com/mrpg/uproot/refs/heads/main/announcements.json"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(ANNOUNCEMENTS_URL) as response:
-            return cast(dict[str, Any], await response.json(content_type="text/plain"))
+    async with httpx.AsyncClient() as client:
+        response = await client.get(ANNOUNCEMENTS_URL)
+        return cast(dict[str, Any], response.json())
 
 
 async def praise() -> str:
     """Fetch praise message."""
     PRAISE_URL = "https://uproot.science/praise/"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(PRAISE_URL) as response:
-            return await response.text()
+    async with httpx.AsyncClient() as client:
+        response = await client.get(PRAISE_URL)
+        return response.text

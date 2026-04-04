@@ -14,7 +14,7 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "aiohttp==3.13.3",
+    "httpx==0.28.1",
     "appendmuch==0.0.4",
     "click==8.3.1",
     "fastapi==0.135.2",

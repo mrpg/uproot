@@ -2,13 +2,12 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import argparse
-import asyncio
 import os
 import sys
 from pathlib import Path
 from typing import Any, Optional
 
-import aiohttp
+import httpx
 import orjson
 
 
@@ -100,7 +99,7 @@ def setup_command(
         print("🤯 Help, docs & code can be found at https://uproot.science/")
 
 
-async def api_request(
+def api_request(
     base_url: str,
     version: int,
     auth: str,
@@ -117,17 +116,16 @@ async def api_request(
         "User-Agent": "uproot-cli",
     }
 
-    async with aiohttp.ClientSession() as session:
-        kwargs: dict[str, Any] = {"headers": headers}
-        if data is not None:
-            kwargs["json"] = data
+    kwargs: dict[str, Any] = {"headers": headers}
+    if data is not None:
+        kwargs["json"] = data
 
-        async with session.request(method, url, **kwargs) as response:
-            try:
-                result = await response.json()
-            except aiohttp.ContentTypeError:
-                result = await response.text()
-            return response.status, result
+    response = httpx.request(method, url, **kwargs)
+    try:
+        result = response.json()
+    except ValueError:
+        result = response.text
+    return response.status_code, result
 
 
 def api_command(
@@ -148,10 +146,10 @@ def api_command(
             sys.exit(1)
 
     try:
-        status, result = asyncio.run(
-            api_request(url, version, auth, method.upper(), endpoint, parsed_data)
+        status, result = api_request(
+            url, version, auth, method.upper(), endpoint, parsed_data
         )
-    except aiohttp.ClientError as e:
+    except httpx.HTTPError as e:
         print(f"Error: Connection failed: {e}", file=sys.stderr)
         sys.exit(1)
 
