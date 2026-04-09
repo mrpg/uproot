@@ -98,13 +98,14 @@ function formatCellValue(value, metadata) {
     const displayValue = str.length > VALUE_MAX_LENGTH
         ? str.substring(0, VALUE_MAX_LENGTH - 3) + "..."
         : str;
+    const escaped = uproot.escape(displayValue);
 
     if (metadata && metadata.time) {
-        const tooltip = `${epochToLocalISO(metadata.time)} @ ${metadata.context}`;
-        return `<span class="a-value" title="${tooltip}" style="cursor: pointer;">${displayValue}</span>`;
+        const tooltip = `${epochToLocalISO(metadata.time)} @ ${uproot.escape(metadata.context)}`;
+        return `<span class="a-value" title="${tooltip}" style="cursor: pointer;">${escaped}</span>`;
     }
 
-    return displayValue;
+    return escaped;
 }
 
 /**
