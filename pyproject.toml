@@ -17,7 +17,7 @@ dependencies = [
     "httpx==0.28.1",
     "appendmuch==0.0.4",
     "click==8.3.1",
-    "fastapi==0.135.2",
+    "fastapi==0.135.3",
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
     "orjson==3.11.7",
