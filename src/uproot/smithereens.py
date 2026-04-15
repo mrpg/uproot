@@ -38,6 +38,7 @@ class PlayerContext:
 
 __all__ = [
     "_",
+    "add_to_group",
     "Admin",
     "Between",
     "Bracket",
@@ -181,6 +182,36 @@ def create_groups(
             c.create_group(session, to_player_ids(members), overwrite=overwrite)
             for members in groups
         ]
+
+
+def add_to_group(
+    group: Storage | t.GroupIdentifier,
+    members: PlayerLike | Iterable[PlayerLike],
+    *,
+    overwrite: bool = False,
+) -> None:
+    """
+    Add players to an existing group.
+
+    Args:
+        group: The group (Storage or GroupIdentifier).
+        members: A single player or an iterable of players to add.
+        overwrite: If True, allows reassigning players already in groups.
+
+    Example:
+        add_to_group(player.session.groups[0], player)
+        add_to_group(player.session.groups[0], [player1, player2])
+    """
+    if isinstance(group, t.GroupIdentifier):
+        group = t.materialize(group)
+
+    if isinstance(members, (Storage, t.PlayerIdentifier)):
+        member_pids = to_player_ids([members])
+    else:
+        member_pids = to_player_ids(members)
+
+    with group:
+        c.add_to_group(group, member_pids, overwrite=overwrite)
 
 
 def live(method: Callable[..., Any]) -> Callable[..., Any]:

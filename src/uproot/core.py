@@ -147,6 +147,30 @@ def create_group(
     return gid
 
 
+def add_to_group(
+    group: s.Storage,
+    members: Iterable[t.PlayerIdentifier],
+    *,
+    overwrite: bool = False,
+) -> None:
+    gid = cast(t.GroupIdentifier, t.identify(group))
+
+    start_index = len(group._uproot_players)
+
+    for i, pid in enumerate(members):
+        with t.materialize(pid) as player:
+            ensure(
+                overwrite or player._uproot_group is None,
+                RuntimeError,
+                "Player already belongs to a group and overwrite=False",
+            )
+
+            player._uproot_group = gid
+            player.member_id = start_index + i
+
+        group._uproot_players.append(pid)
+
+
 def initialize_player(
     pid: t.PlayerIdentifier,
     has_id: int,
