@@ -31,7 +31,7 @@ from fastapi import (
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
-    ORJSONResponse,
+    JSONResponse,
     RedirectResponse,
     Response,
 )
@@ -931,7 +931,7 @@ async def app_queries(
         if type(result) is Response:
             return result
         else:
-            return ORJSONResponse(result)
+            return JSONResponse(result)
 
 
 @router.get("/api2/{appname}/{sname}/")
@@ -959,4 +959,4 @@ async def app_queries2(
         if type(result) is Response:
             return result
         else:
-            return ORJSONResponse(result)
+            return JSONResponse(result)
