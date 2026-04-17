@@ -363,7 +363,7 @@ function mergeDiffIntoDataset(diffData) {
 
 /**
  * Computes the latest state of all fields, optionally filtered by conditions.
- * Uses "within-adjacent" temporal logic.
+ * Uses "WITHIN-ADJACENT" temporal logic.
  */
 function latest(obj, conditions = {}) {
     const result = {};
