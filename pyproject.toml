@@ -83,7 +83,7 @@ dev = [
     "black==26.3.1",
     "deptry==0.25.1",
     "isort==8.0.1",
-    "mypy==1.20.0",
+    "mypy==1.20.1",
     "pip-tools==7.5.3",
     "pre-commit==4.5.1",
     "pytest==9.0.2",
