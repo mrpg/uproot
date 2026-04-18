@@ -15,7 +15,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "httpx==0.28.1",
-    "appendmuch==0.0.4",
+    "appendmuch==0.0.5",
     "click==8.3.1",
     "fastapi==0.135.3",
     "itsdangerous==2.2.0",
@@ -31,9 +31,6 @@ dependencies = [
     "websockets==16.0",
     "wtforms==3.2.1",
 ]
-
-[tool.uv]
-exclude-newer = "8 days"
 
 [project.urls]
 Homepage = "https://uproot.science/"

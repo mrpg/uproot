@@ -371,10 +371,8 @@ def test_within_complex_data_types():
         # Test with complex dict as context field
         within_ctx2 = player.within(metadata={"level": 2, "difficulty": "hard"})
         assert within_ctx2.metadata == {"level": 2, "difficulty": "hard"}
-        expect_attribute_error(within_ctx2, "scores")  # scores was set before metadata
-        assert (
-            within_ctx2.player_title == "champion"
-        )  # player_title was set after metadata
+        assert within_ctx2.scores == [10, 20, 30, 40]
+        assert within_ctx2.player_title == "champion"
 
 
 def test_within_historical_values_works():
@@ -467,10 +465,8 @@ def test_within_boolean_context():
         # Boolean context with False value
         within_ctx2 = player.within(disabled=False)
         assert within_ctx2.disabled is False
-        expect_attribute_error(
-            within_ctx2, "enabled"
-        )  # enabled was set before disabled
-        assert within_ctx2.player_tag == "veteran"  # player_tag was set after disabled
+        assert within_ctx2.enabled is True
+        assert within_ctx2.player_tag == "veteran"
 
 
 def test_within_chaining_and_along_integration():
@@ -649,31 +645,23 @@ def test_within_realistic_gaming_scenario():
         # Test context queries with different field types
         within_ctx1 = player.within(level=5)
         assert within_ctx1.level == 5
-        expect_attribute_error(
-            within_ctx1, "player_name"
-        )  # player_name was set before level
-        assert within_ctx1.location == "dungeon_level_3"  # location was set after level
-        assert within_ctx1.hp == 80  # hp was set after level
+        assert within_ctx1.player_name == "TestPlayer"
+        assert within_ctx1.location == "dungeon_level_3"
+        assert within_ctx1.hp == 80
 
         # Test with complex data type as context
         within_ctx2 = player.within(equipment={"weapon": "sword", "armor": "chainmail"})
         assert within_ctx2.equipment == {"weapon": "sword", "armor": "chainmail"}
-        expect_attribute_error(within_ctx2, "level")  # level was set before equipment
-        expect_attribute_error(within_ctx2, "hp")  # hp was set before equipment
-        expect_attribute_error(
-            within_ctx2, "player_name"
-        )  # player_name was set before equipment
+        assert within_ctx2.level == 5
+        assert within_ctx2.hp == 80
+        assert within_ctx2.player_name == "TestPlayer"
 
         # Test with list as context
         within_ctx3 = player.within(status_effects=["poison", "blessed"])
         assert within_ctx3.status_effects == ["poison", "blessed"]
-        expect_attribute_error(within_ctx3, "hp")  # hp was set before status_effects
-        expect_attribute_error(
-            within_ctx3, "player_name"
-        )  # player_name was set before status_effects
-        expect_attribute_error(
-            within_ctx3, "location"
-        )  # location was set before status_effects
+        assert within_ctx3.hp == 80
+        assert within_ctx3.player_name == "TestPlayer"
+        assert within_ctx3.location == "dungeon_level_3"
 
 
 def test_within_advanced_historical_scenarios():
@@ -727,27 +715,21 @@ def test_within_advanced_historical_scenarios():
 
 
 def test_within_carryover_values():
-    """Test that within correctly handles temporal ordering constraint."""
+    """A field set before the context becomes satisfied still carries forward
+    into the context window."""
     sid, pid = setup()
 
-    # Scenario: field1 set before context conditions are met
-    t.materialize(pid).field1 = 42  # t=0: field1 is set to 42
-    t.materialize(pid).ctx1 = 1  # t=1: ctx1 is set to 1
-    t.materialize(pid).ctx2 = 2  # t=2: ctx2 is set to 2 (context now satisfied)
+    t.materialize(pid).field1 = 42  # t=0
+    t.materialize(pid).ctx1 = 1  # t=1
+    t.materialize(pid).ctx2 = 2  # t=2: context now satisfied
 
     with t.materialize(pid) as player:
-        # With temporal ordering constraint, field1 was set before context fields
         within_ctx = player.within(ctx1=1, ctx2=2)
 
-        # Direct access should raise AttributeError
-        expect_attribute_error(within_ctx, "field1")
-
-        # But .get() should return default gracefully
-        assert within_ctx.get("field1", "DEFAULT") == "DEFAULT"
-
-        # Context fields should still be accessible
-        assert within_ctx.ctx1 == 1  # Context value from t=1
-        assert within_ctx.ctx2 == 2  # Context value from t=2
+        assert within_ctx.field1 == 42
+        assert within_ctx.get("field1", "DEFAULT") == 42
+        assert within_ctx.ctx1 == 1
+        assert within_ctx.ctx2 == 2
 
 
 def test_within_multiple_context_windows():
@@ -769,11 +751,9 @@ def test_within_multiple_context_windows():
     t.materialize(pid).ctx1 = 1  # Context satisfied again: field1=100
 
     with t.materialize(pid) as player:
-        # With temporal constraint, field1=100 was set before ctx1 was restored
+        # In the latest ctx1=1, ctx2=2 window, field1's latest value is 100.
         within_ctx = player.within(ctx1=1, ctx2=2)
-        expect_attribute_error(
-            within_ctx, "field1"
-        )  # field1 was set before the final ctx1 restoration
+        assert within_ctx.field1 == 100
         assert within_ctx.ctx1 == 1
         assert within_ctx.ctx2 == 2
 
@@ -797,36 +777,19 @@ def test_within_context_never_satisfied():
 
 
 def test_within_context_changes_back_single_field():
-    """Test that within only returns data from the LATEST context window when context changes back.
-
-    This is the critical test that distinguishes between:
-    - Early filtering: returns data from ANY matching context window
-    - Late filtering: returns data only from the LATEST matching context window
-
-    We use the late filtering approach for "within" semantics.
-    """
+    """When context returns to a prior value, fields keep their latest value
+    from before — they carry forward into the restored context window."""
     sid, pid = setup()
 
-    # First context window: ctx1=1
     t.materialize(pid).ctx1 = 1  # t=0
-    t.materialize(pid).field1 = 42  # t=1: field1 recorded during first ctx1=1 period
-
-    # Context changes
-    t.materialize(pid).ctx1 = 2  # t=2: context no longer ctx1=1
-
-    # Second context window: ctx1=1 (changes back)
-    t.materialize(pid).ctx1 = 1  # t=3: context returns to ctx1=1
+    t.materialize(pid).field1 = 42  # t=1
+    t.materialize(pid).ctx1 = 2  # t=2
+    t.materialize(pid).ctx1 = 1  # t=3: ctx1 restored
 
     with t.materialize(pid) as player:
-        # Query for ctx1=1 should only consider the LATEST ctx1=1 window (at t=3)
-        # field1=42 was set during the first ctx1=1 window (at t=1)
-        # At t=3, ctx1 was set at t=3, field1 was set at t=1
-        # Since ctx1 time (3) > field1 time (1), field1 should be excluded
         within_ctx = player.within(ctx1=1)
-        expect_attribute_error(
-            within_ctx, "field1"
-        )  # field1 from first window should not be visible
-        assert within_ctx.ctx1 == 1  # But ctx1 itself should be accessible
+        assert within_ctx.field1 == 42
+        assert within_ctx.ctx1 == 1
 
 
 def test_within_context_changes_back_with_new_data():
@@ -872,16 +835,10 @@ def test_within_context_changes_back_multiple_fields():
     with t.materialize(pid) as player:
         within_ctx = player.within(ctx1=1, ctx2=2)
 
-        # field1 and field2 were set before the latest ctx1 restoration
-        # ctx1 latest time is t=5, field1 time is t=2, field2 time is t=3
-        expect_attribute_error(within_ctx, "field1")  # Old data excluded
-        expect_attribute_error(within_ctx, "field2")  # Old data excluded
-
-        # field3 was set after the latest ctx1 restoration
-        # ctx1 time is t=5, field3 time is t=6
-        assert within_ctx.field3 == 200  # New data included
-
-        # Context fields themselves are always accessible
+        # All fields' latest values carry forward into the restored window.
+        assert within_ctx.field1 == 42
+        assert within_ctx.field2 == 100
+        assert within_ctx.field3 == 200
         assert within_ctx.ctx1 == 1
         assert within_ctx.ctx2 == 2
 
@@ -960,13 +917,12 @@ def test_within_multiple_context_fields_temporal_logic():
     # target was last set BEFORE this restoration, so it won't be visible with temporal constraint
 
     with t.materialize(pid) as player:
-        # Context field_a="value_a1", field_b="value_b1" is restored at the point where field_a is set back
-        # Since target was set BEFORE field_a was restored, target is NOT visible (temporal constraint)
+        # Context restored at the point where field_a is set back. target's latest
+        # value (set before the restoration) carries forward into the window.
         within_ctx1 = player.within(field_a="value_a1", field_b="value_b1")
         assert within_ctx1.field_a == "value_a1"
         assert within_ctx1.field_b == "value_b1"
-        # target was set before the latest field_a restoration, so it's excluded by temporal constraint
-        expect_attribute_error(within_ctx1, "target")
+        assert within_ctx1.target == "target2"
 
     # Now test with data set AFTER context restoration
     t.materialize(pid).target = "target4"  # Set after field_a restoration
@@ -1048,15 +1004,10 @@ def test_along_with_temporal_constraints():
         for level_value, within_ctx in player.along("level"):
             level_contexts[level_value] = within_ctx
 
-        # Check level=1 context
-        # The .along() will create within(level=1), which should use the LATEST level=1 window
-        # At the latest level=1 window, score was 200 (set before level changed back to 1)
-        # So score should NOT be visible due to temporal constraint
+        # At the latest level=1 window, score's latest value (200) carries forward.
         assert level_contexts[1].level == 1
-        expect_attribute_error(
-            level_contexts[1], "score"
-        )  # score=200 was set before latest level=1
-        assert level_contexts[1].hp == 50  # hp was set during latest level=1 window
+        assert level_contexts[1].score == 200
+        assert level_contexts[1].hp == 50
 
         # Check level=2 context
         assert level_contexts[2].level == 2
@@ -1091,23 +1042,14 @@ def test_along_with_multiple_context_changes():
             # (along will visit each historical value, but we only keep the last one)
             state_contexts[state_value] = within_ctx
 
-        # For state="A": along creates within(state="A")
-        # This uses the LATEST state="A" window (from the 3rd occurrence)
-        # data1 was set when state="A" first time, should NOT be visible (temporal constraint)
-        # data3 was set when state="A" second time, SHOULD be visible
+        # Earlier-set fields carry forward into later context windows.
         assert state_contexts["A"].state == "A"
-        expect_attribute_error(
-            state_contexts["A"], "data1"
-        )  # From first A window, excluded
-        assert state_contexts["A"].data3 == "a2"  # From latest A window, included
+        assert state_contexts["A"].data1 == "a1"
+        assert state_contexts["A"].data3 == "a2"
 
-        # For state="B": along creates within(state="B")
-        # This uses the LATEST state="B" window (from the 4th occurrence)
         assert state_contexts["B"].state == "B"
-        expect_attribute_error(
-            state_contexts["B"], "data2"
-        )  # From first B window, excluded
-        assert state_contexts["B"].data4 == "b2"  # From latest B window, included
+        assert state_contexts["B"].data2 == "b1"
+        assert state_contexts["B"].data4 == "b2"
 
 
 def test_storage_repr():
