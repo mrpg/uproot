@@ -68,7 +68,7 @@ def set_ulimit() -> None:
 
 
 async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         zip_path = "temp.zip"
         async with client.stream("GET", url) as response:
             response.raise_for_status()
