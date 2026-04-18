@@ -416,32 +416,11 @@ function latest(obj, conditions = {}) {
         }
 
         if (latestValidState) {
-            // Apply temporal constraint
-            const filteredState = {};
-
-            for (const [field, payload] of Object.entries(latestValidState)) {
-                let includeField = true;
-
-                if (Object.keys(conditions).length > 0 && !Object.hasOwn(conditions, field)) {
-                    const fieldTime = payload[PAYLOAD.TIME];
-
-                    for (const condField of Object.keys(conditions)) {
-                        if (latestValidState[condField]) {
-                            const condTime = latestValidState[condField][PAYLOAD.TIME];
-                            if (condTime > fieldTime) {
-                                includeField = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (includeField) {
-                    filteredState[field] = payload;
-                }
-            }
-
-            result[uname] = filteredState;
+            // Every field in the latest valid state is kept, whether it was set before
+            // or after the condition fields. The conditions gate *when* a snapshot is
+            // recorded (i.e. they must hold at the snapshot's time), not which fields
+            // that snapshot carries forward.
+            result[uname] = { ...latestValidState };
         }
     }
 

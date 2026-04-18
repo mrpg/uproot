@@ -174,25 +174,16 @@ def latest(
                     combination_values.append(current_state[gf]["data"])
 
                 if all_fields_valid:
-                    # Create snapshot of current state
+                    # Create snapshot of current state. Every field with a non-unavailable
+                    # latest value is included, whether it was set before or after the
+                    # group-by fields — the group-by fields merely gate *when* we record a
+                    # snapshot, not which fields that snapshot carries.
                     combination_key = repr(tuple(combination_values))
                     state_snapshot = {"!storage": storage, "!time": change["!time"]}
 
                     for f, field_state in current_state.items():
                         if not field_state["unavailable"]:
-                            # Apply temporal constraint: for non-group fields, all group fields must be set before or at the same time
-                            include_field = True
-                            if f not in group_by_fields:
-                                field_time = field_state["time"]
-                                for gf in group_by_fields:
-                                    if gf in current_state:
-                                        group_time = current_state[gf]["time"]
-                                        if group_time > field_time:
-                                            include_field = False
-                                            break
-
-                            if include_field:
-                                state_snapshot[f] = field_state["data"]
+                            state_snapshot[f] = field_state["data"]
 
                     # Update latest state for this combination
                     seen_combinations[combination_key] = state_snapshot
