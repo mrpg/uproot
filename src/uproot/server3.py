@@ -79,9 +79,12 @@ async def roommain(
                     ),
                 )
 
-        # Room not open - show waiting page
+        # Room not open - show waiting page. This must be checked regardless
+        # of whether a session is already associated: admins can close a room
+        # without disassociating its session (see set_room_open), and a closed
+        # room must never admit new players.
 
-        if room["sname"] is None and (room["config"] is None or not room["open"]):
+        if not room["open"] or (room["sname"] is None and room["config"] is None):
             return HTMLResponse(
                 await render(
                     request.app,
@@ -113,21 +116,22 @@ async def roommain(
 
     session = Session(room["sname"])
 
-    if label != "":
-        # Check existing players in this session for the same label
-        with Session(room["sname"]) as session:
+    # Try to add new player. The label-dedupe scan and the add must share a
+    # single session critical section: otherwise two concurrent POSTs with the
+    # same label can each pass the scan (finding no match) and then each
+    # create a new player for that label.
+
+    with session:
+        if new_session:
+            session.room = roomname
+
+        if label != "":
             for pid in session._uproot_players:
                 with Player(pid.sname, pid.uname) as player:
                     if hasattr(player, "label") and player.label == label:
                         return RedirectResponse(
                             f"{d.ROOT}/p/{pid.sname}/{pid.uname}/", status_code=303
                         )
-
-    # Try to add new player
-
-    with session:
-        if new_session:
-            session.room = roomname
 
         free_slot = c.find_free_slot(session)
 
