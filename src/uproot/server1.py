@@ -549,7 +549,6 @@ async def ws(
 
     processed_futures: deque[str] = deque(maxlen=8 * 1024)
     tasks = {}
-    background_tasks: set[asyncio.Task[Any]] = set()
     args: dict[str, dict[str, Any]] = {
         "from_queue": {
             "pid": pid,
@@ -697,10 +696,6 @@ async def ws(
             try:
                 result = await finished
 
-                if fname == "from_websocket":
-                    new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-                    tasks[new_task] = (fname, factory)
-
                 if fname == "from_queue":
                     u_, entry = result
 
@@ -732,9 +727,12 @@ async def ws(
                                 )
                             )
                 elif fname == "from_websocket":
-                    bg_task = asyncio.create_task(process_websocket_message(result))
-                    background_tasks.add(bg_task)
-                    bg_task.add_done_callback(background_tasks.discard)
+                    try:
+                        await process_websocket_message(result)
+                    except WebSocketDisconnect:
+                        raise
+                    except Exception:
+                        traceback.print_exc()
                 elif fname == "timer":
                     pass  # placeholder for the future
                 else:
@@ -742,20 +740,15 @@ async def ws(
             except WebSocketDisconnect:
                 for task in tasks:
                     task.cancel()
-                for task in background_tasks:
-                    task.cancel()
 
-                await asyncio.gather(
-                    *tasks.keys(), *background_tasks, return_exceptions=True
-                )
+                await asyncio.gather(*tasks.keys(), return_exceptions=True)
 
                 return
             except Exception as exc:
                 raise exc
 
-            if fname != "from_websocket":
-                new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-                tasks[new_task] = (fname, factory)
+            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+            tasks[new_task] = (fname, factory)
 
 
 @router.get("/static/{realm}/{location:path}")
