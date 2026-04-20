@@ -57,9 +57,6 @@ UVICORN_KWARGS: dict[str, Any] = {
     "log_level": "info",
 }
 
-# Import uproot codec (registers uproot-specific types)
-from uproot.stable import CODEC  # noqa: E402
-
 
 def uproot_replace_predicate(namespace: str, field: str) -> bool:
     return field == "_uproot_players" and namespace.startswith("session/")
@@ -78,44 +75,67 @@ def uproot_namespace_validator(namespace: tuple[str, ...]) -> bool:
     return namespace[0] in ("admin", "session", "player", "group", "model")
 
 
-# Create the driver
-if DBENV == "sqlite3":
-    driver: appendmuch.DBDriver = appendmuch.Sqlite3(
-        os.getenv("UPROOT_SQLITE3", "uproot.sqlite3"),
-        table_prefix="uproot",
-        tblextra=TBLEXTRA,
-        replace_index_specs=[("_uproot_players", "session/%")],
+_store: Optional["appendmuch.Store"] = None
+
+
+def _init_store() -> "appendmuch.Store":
+    """Create the database driver and Store on first use.
+
+    Deferred so that running ``uproot`` without starting the server (e.g.
+    ``uproot --help`` or ``uproot new``) does not create ``uproot.sqlite3``.
+    """
+    global _store
+
+    if _store is not None:
+        return _store
+
+    # Import uproot codec (registers uproot-specific types)
+    from uproot.stable import CODEC
+
+    if DBENV == "sqlite3":
+        driver: appendmuch.DBDriver = appendmuch.Sqlite3(
+            os.getenv("UPROOT_SQLITE3", "uproot.sqlite3"),
+            table_prefix="uproot",
+            tblextra=TBLEXTRA,
+            replace_index_specs=[("_uproot_players", "session/%")],
+        )
+    elif DBENV == "memory":
+        LOGGER.warning("Using 'memory' database driver. Data will not persist.")
+        driver = appendmuch.Memory()
+    elif DBENV == "postgresql":
+        pg_url = os.getenv("UPROOT_POSTGRESQL", "") or os.getenv("DATABASE_URL", "")
+        driver = appendmuch.PostgreSQL(
+            pg_url,
+            table_prefix="uproot",
+            tblextra=TBLEXTRA,
+            replace_index_specs=[("_uproot_players", "session/%")],
+        )
+    else:
+        raise NotImplementedError(
+            f"Invalid UPROOT_DATABASE environment variable: {DBENV}"
+        )
+
+    _store = appendmuch.Store(
+        driver,
+        codec=CODEC,
+        replace_predicate=uproot_replace_predicate,
+        on_change=uproot_on_change,
+        namespace_validator=uproot_namespace_validator,
     )
-elif DBENV == "memory":
-    LOGGER.warning("Using 'memory' database driver. Data will not persist.")
-    driver = appendmuch.Memory()
-elif DBENV == "postgresql":
-    pg_url = os.getenv("UPROOT_POSTGRESQL", "") or os.getenv("DATABASE_URL", "")
-    driver = appendmuch.PostgreSQL(
-        pg_url,
-        table_prefix="uproot",
-        tblextra=TBLEXTRA,
-        replace_index_specs=[("_uproot_players", "session/%")],
-    )
-else:
-    raise NotImplementedError(f"Invalid UPROOT_DATABASE environment variable: {DBENV}")
 
-# Create the Store
-STORE = appendmuch.Store(
-    driver,
-    codec=CODEC,
-    replace_predicate=uproot_replace_predicate,
-    on_change=uproot_on_change,
-    namespace_validator=uproot_namespace_validator,
-)
+    import uproot.cache
 
-# Backward compatibility
-DATABASE = STORE.driver
+    uproot.cache.set_store(_store)
 
-# Wire up the cache compatibility layer
-import uproot.cache  # noqa: E402
+    return _store
 
-uproot.cache.set_store(STORE)
+
+def __getattr__(name: str) -> Any:
+    if name == "STORE":
+        return _init_store()
+    if name == "DATABASE":
+        return _init_store().driver
+    raise AttributeError(f"module 'uproot.deployment' has no attribute {name!r}")
 
 
 if os.getenv("UPROOT_SUBDIRECTORY", None) is None:
@@ -144,4 +164,5 @@ async def lifespan_start(*args: Any, **kwargs: Any) -> None:
 
 
 async def lifespan_stop(*args: Any, **kwargs: Any) -> None:
-    DATABASE.close()
+    if _store is not None:
+        _store.driver.close()
