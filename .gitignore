@@ -1,5 +1,6 @@
 build/
 .claude
+.codex
 .coverage
 .coverage.*
 dist/
