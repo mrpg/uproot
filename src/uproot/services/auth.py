@@ -346,7 +346,7 @@ def verify_pow(challenge: str, solution: str) -> bool:
     the same solved challenge cannot be replayed for another attempt.
     """
     if not (isinstance(challenge, str) and isinstance(solution, str)):
-        return False
+        return False  # type: ignore[unreachable]
 
     parts = challenge.split(":")
     if len(parts) != 3:
