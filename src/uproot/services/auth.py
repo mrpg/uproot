@@ -33,7 +33,7 @@ ADMINS_SECRET_KEY: Optional[str] = None
 # hashes, while the server only pays one hash + one HMAC compare to verify.
 POW_DIFFICULTY = "0000"  # 16 bits; ≈ 1 s in-browser, ≈ 65k hashes for an attacker
 POW_MAX_AGE = 120  # seconds; challenges expire to bound memory of POW_USED
-POW_USED: "OrderedDict[str, int]" = OrderedDict()
+POW_USED: OrderedDict[str, int] = OrderedDict()
 
 
 def ensure_globals() -> None:
