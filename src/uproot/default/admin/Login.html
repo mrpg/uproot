@@ -22,8 +22,48 @@ Login
 </style>
 
 <script>
+async function solvePoW(challenge, difficulty) {
+    const encoder = new TextEncoder();
+    const prefix = challenge + ":";
+    for (let counter = 0; ; counter++) {
+        const input = encoder.encode(prefix + counter);
+        const hash = await crypto.subtle.digest("SHA-256", input);
+        const bytes = new Uint8Array(hash);
+        let hex = "";
+        for (const b of bytes) hex += b.toString(16).padStart(2, "0");
+        if (hex.endsWith(difficulty)) return counter.toString();
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Check for login token in URL fragment
+    const form = document.getElementById("uproot-form");
+
+    // Manual login: solve PoW before letting the form submit.  Calling
+    // form.submit() from the handler bypasses this listener, so the
+    // recursive call below (and the auto-login path) won't re-enter.
+    form.addEventListener("submit", async (event) => {
+        const solutionField = document.getElementById("pow_solution");
+        if (solutionField.value !== "") return;
+
+        event.preventDefault();
+
+        const button = form.querySelector("button[type='submit']");
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = "\u2026";
+
+        const challenge = document.getElementById("pow_challenge").value;
+        const difficulty = document.getElementById("pow_difficulty").value;
+        solutionField.value = await solvePoW(challenge, difficulty);
+
+        button.disabled = false;
+        button.textContent = originalText;
+        form.submit();
+    });
+
+    // Auto-login via URL fragment: LOGIN_TOKEN is itself a strong shared
+    // secret, so the server accepts it without PoW.  form.submit() bypasses
+    // the listener above, matching that server-side behavior.
     if (window.location.hash) {
         const token = window.location.hash.substring(1);
 
@@ -34,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             history.replaceState(null, null, window.location.pathname + window.location.search);
 
-            document.getElementById("uproot-form").submit();
+            form.submit();
         }
     }
 });
@@ -46,6 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
 {% block main %}
 
 <input type="hidden" id="token" name="token" value="">
+<input type="hidden" id="pow_challenge" name="pow_challenge" value="{{ pow_challenge }}">
+<input type="hidden" id="pow_difficulty" value="{{ pow_difficulty }}">
+<input type="hidden" id="pow_solution" name="pow_solution" value="">
 
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
@@ -60,9 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="alert alert-danger" role="alert">
                     {% translate %}
                     You provided invalid credentials.
-                    {% endtranslate %}
-                    {% translate %}
-                    (Or you were too fast.)
                     {% endtranslate %}
                 </div>
                 {% endif %}
