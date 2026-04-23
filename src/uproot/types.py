@@ -5,6 +5,7 @@ import asyncio
 import functools
 import hashlib
 import inspect
+import math
 import secrets
 import uuid as pyuuid
 from abc import ABC, abstractmethod
@@ -40,7 +41,7 @@ from uproot.constraints import ensure
 from uproot.queries import Comparison, FieldReferent
 
 ALPHANUMERIC: str = ascii_lowercase + digits
-TOKEN_SPARSITY: float = 1_000_000
+MAX_COLLISION_PROB: float = 1e-9
 LOGGER: Any = None
 RAISE_ON_DEPRECATION: bool = False
 
@@ -393,14 +394,12 @@ def token(
         "Argument has invalid type",
     )
 
+    n = len(not_in)
     length = 5
-    acc = int((len(ascii_lowercase) * len(ALPHANUMERIC) ** length) / TOKEN_SPARSITY)
+    min_keyspace = math.ceil(n / MAX_COLLISION_PROB)
 
-    while len(not_in) >= acc:
+    while len(ascii_lowercase) * len(ALPHANUMERIC) ** (length - 1) < min_keyspace:
         length += 1
-        acc += int(
-            (len(ascii_lowercase) * len(ALPHANUMERIC) ** length) / TOKEN_SPARSITY
-        )
 
     while True:
         token_str = postprocess(token_unchecked(length))
