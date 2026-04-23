@@ -41,7 +41,7 @@ from uproot.constraints import ensure
 from uproot.queries import Comparison, FieldReferent
 
 ALPHANUMERIC: str = ascii_lowercase + digits
-MAX_COLLISION_PROB: float = 1e-9
+MAX_COLLISION_PROB: float = 1e-6
 LOGGER: Any = None
 RAISE_ON_DEPRECATION: bool = False
 
