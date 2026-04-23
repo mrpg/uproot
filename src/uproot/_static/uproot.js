@@ -640,6 +640,12 @@ window.uproot = {
     },
 
     adminMessage(text) {
+        const modalEl = this.I("adminmessage-modal");
+
+        if (text === undefined && modalEl.classList.contains("show")) {
+            return;
+        }
+
         const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
             const modal = bootstrap.Modal.getOrCreateInstance(el);
             modal.hide();
@@ -647,15 +653,28 @@ window.uproot = {
             return modal;
         });
 
-        let alertModal = bootstrap.Modal.getOrCreateInstance(this.I("adminmessage-modal"), { "backdrop": "static" });
+        let alertModal = bootstrap.Modal.getOrCreateInstance(modalEl, { "backdrop": "static" });
 
         if (text !== undefined) {
-            this.I("adminmessage-modal-body").innerText = text;
+            const body = this.I("adminmessage-modal-body");
+            const chatEl = body.querySelector(".uproot-chat");
+
+            if (chatEl) {
+                let notice = body.querySelector(".uproot-adminmessage-notice");
+                if (!notice) {
+                    notice = document.createElement("div");
+                    notice.className = "alert alert-warning uproot-adminmessage-notice";
+                    body.prepend(notice);
+                }
+                notice.innerText = text;
+            } else {
+                body.innerText = text;
+            }
         }
 
         alertModal.show();
 
-        this.I("adminmessage-modal").addEventListener("hidden.bs.modal", () => {
+        modalEl.addEventListener("hidden.bs.modal", () => {
             shownModals.forEach(modal => modal.show());
         }, { once: true });
 
@@ -1214,23 +1233,19 @@ window.uproot = {
         messageStore: {},
         ignoreChatted: true,
 
-        handleChatKeydown(event, chatId) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                this.sendMessage(chatId);
+        normalizeOptions(options = true) {
+            if (typeof options === "boolean") {
+                return { canReply: options };
             }
+
+            return {
+                canReply: options.canReply ?? true,
+            };
         },
 
-        create(el, chatId) {
-            chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
-
-            el.innerHTML = /* SAFE */ `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
-                <div class="messages-container border rounded bg-white mb-3" role="log" aria-label="Chat messages" aria-live="polite">
-                    <ul class="list-unstyled mb-0 p-0" id="messages-chat-${chatId}">
-                    </ul>
-                </div>
-
-                <div class="d-flex gap-2">
+        composerHtml(chatId) {
+            return `
+                <div class="d-flex gap-2 uproot-chat-composer">
                     <label for="message-input-chat-${chatId}" class="visually-hidden">${_("Type your message")}</label>
                     <textarea id="message-input-chat-${chatId}"
                               class="form-control"
@@ -1238,16 +1253,62 @@ window.uproot = {
                               required
                               rows="1"
                               autocomplete="off"></textarea>
-                    <button type="button" class="btn btn-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">Send</button>
+                    <button type="button" class="btn btn-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">${_("Send")}</button>
                 </div>
+            `;
+        },
+
+        bindComposer(chatId) {
+            const input = document.querySelector(`#message-input-chat-${chatId}`);
+
+            if (input && input.dataset.uprootBound !== "1") {
+                input.dataset.uprootBound = "1";
+                input.addEventListener("keydown", (e) => this.handleChatKeydown(e, chatId));
+            }
+        },
+
+        setReplyState(chatId, canReply) {
+            const chatEl = document.querySelector(`#chat-${chatId}`);
+
+            if (!chatEl) {
+                return;
+            }
+
+            chatEl.dataset.canReply = canReply ? "1" : "0";
+
+            const composer = chatEl.querySelector(".uproot-chat-composer");
+
+            if (canReply && !composer) {
+                chatEl.insertAdjacentHTML("beforeend", this.composerHtml(chatId));
+                this.bindComposer(chatId);
+            } else if (!canReply && composer) {
+                composer.remove();
+            }
+        },
+
+        handleChatKeydown(event, chatId) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                this.sendMessage(chatId);
+            }
+        },
+
+        create(el, chatId, options = true) {
+            chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
+            const { canReply } = this.normalizeOptions(options);
+            const composer = canReply ? this.composerHtml(chatId) : "";
+
+            el.innerHTML = /* SAFE */ `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
+                <div class="messages-container border rounded bg-white mb-3" role="log" aria-label="Chat messages" aria-live="polite">
+                    <ul class="list-unstyled mb-0 p-0" id="messages-chat-${chatId}">
+                    </ul>
+                </div>
+                ${composer}
             </div>`;
 
             const ch = el.children[0];
-            const input = ch.querySelector(`#message-input-chat-${chatId}`);
-
-            if (input) {
-                input.addEventListener("keydown", (e) => this.handleChatKeydown(e, chatId));
-            }
+            ch.dataset.canReply = canReply ? "1" : "0";
+            this.bindComposer(chatId);
 
             if (!this.messageStore[chatId]) {
                 this.messageStore[chatId] = new Set();
@@ -1330,7 +1391,7 @@ window.uproot = {
                             colorCls = "text-primary";
                         }
                         else if (msg.sender[0] == "admin") {
-                            senderRepresentation = _("Chat with Research Coordinator");
+                            senderRepresentation = _("Research Coordinator");
                             colorCls = "text-danger";
                         }
 
@@ -1392,8 +1453,29 @@ uproot.onInternalEvent("Received", (event) => {
 
 uproot.onInternalEvent("Chatted", (event) => {
     if (!window.uproot.chat.ignoreChatted) {
+        const msg = event.detail.data;
+
+        if (msg.sender && msg.sender[0] === "admin") {
+            const chatEl = I(`chat-${msg.cname}`);
+
+            if (!chatEl) {
+                uproot.chat.create(
+                    I("adminmessage-modal-body"),
+                    msg.cname,
+                    { canReply: !!msg.can_reply },
+                );
+                uproot.ensureBuddy();
+                uproot.adminMessage();
+                return;
+            }
+
+            uproot.chat.setReplyState(msg.cname, !!msg.can_reply);
+            uproot.ensureBuddy();
+            uproot.adminMessage();
+        }
+
         // This prevents style asyncio.Queue chat messages from being processed
-        window.uproot.chat.messagesFromServer([event.detail.data]);
+        window.uproot.chat.messagesFromServer([msg]);
     }
 });
 
@@ -1401,4 +1483,41 @@ uproot.onInternalEvent("AdminMessaged", (event) => {
     const entry = event.detail;
 
     uproot.adminMessage(entry.data);
+});
+
+uproot.onInternalEvent("AdminchatStateChanged", (event) => {
+    const data = event.detail.data;
+
+    if (!data?.cname) {
+        return;
+    }
+
+    let chatEl = I(`chat-${data.cname}`);
+
+    if (!chatEl && (data.canReply || data.hasMessages)) {
+        uproot.chat.create(
+            I("adminmessage-modal-body"),
+            data.cname,
+            { canReply: !!data.canReply },
+        );
+        uproot.ensureBuddy();
+        return;
+    }
+
+    if (!chatEl) {
+        return;
+    }
+
+    uproot.chat.setReplyState(data.cname, !!data.canReply);
+
+    if (!data.hasMessages && !data.canReply) {
+        chatEl.remove();
+
+        if (!document.querySelector(".uproot-chat")) {
+            const buddy = I("uproot-buddy");
+            if (buddy) {
+                buddy.hidden = true;
+            }
+        }
+    }
 });

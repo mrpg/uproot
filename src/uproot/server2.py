@@ -231,6 +231,23 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                         case {
                             "endpoint": "invoke",
                             "payload": {
+                                "mname": "subscribe_to_adminchat",
+                                "args": [sname],
+                            },
+                        } if isinstance(sname, str):
+                            newfname = "subscribe_to_adminchat"
+                            args[newfname] = {"sname": sname}
+                            tasks[
+                                asyncio.create_task(
+                                    j.subscribe_to_adminchat(**args[newfname])
+                                )
+                            ] = (
+                                newfname,
+                                j.subscribe_to_adminchat,
+                            )
+                        case {
+                            "endpoint": "invoke",
+                            "payload": {
                                 "mname": mname,
                                 "args": margs,
                                 "kwargs": mkwargs,
@@ -303,6 +320,19 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                     "kind": "event",
                                     "payload": {
                                         "event": "FieldChanged",
+                                        "detail": result,
+                                    },
+                                }
+                            )
+                        )
+                elif fname == "subscribe_to_adminchat":
+                    if result is not None:
+                        await websocket.send_bytes(
+                            orjson.dumps(
+                                {
+                                    "kind": "event",
+                                    "payload": {
+                                        "event": "AdminchatUpdated",
                                         "detail": result,
                                     },
                                 }
@@ -814,6 +844,25 @@ async def sessionmain(
         )
 
 
+# Particular session: admin chat
+@router.get("/session/{sname}/chat/")
+async def session_chat(
+    request: Request,
+    sname: t.Sessionname,
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.session_exists(sname)
+
+    with Session(sname) as session:
+        return HTMLResponse(
+            await render(
+                "SessionChat.html",
+                {"sname": sname, "room": session.room} | await a.info_online(sname),
+                {"session": session},
+            )
+        )
+
+
 # Particular session: data
 @router.get("/session/{sname}/data/")
 async def session_data(
@@ -1083,6 +1132,8 @@ async def dummy(
 
 
 FUNS = {
+    "adminchat_overview": a.adminchat_overview,
+    "adminchat_thread": a.adminchat_thread,
     "adminmessage": a.adminmessage,
     "advance_by_one": a.advance_by_one,
     "announcements": a.announcements,
@@ -1103,6 +1154,10 @@ FUNS = {
     "revert_by_one": a.revert_by_one,
     "run_new_player": a.run_new_player,
     "run_new_session": a.run_new_session,
+    "send_adminchat": a.send_adminchat,
+    "send_adminchat_to_players": a.send_adminchat_to_players,
+    "set_adminchat_replies": a.set_adminchat_replies,
+    "set_adminchat_replies_for_players": a.set_adminchat_replies_for_players,
     "set_room_open": a.set_room_open,
     "update_description": a.update_description,
     "update_settings": a.update_settings,

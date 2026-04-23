@@ -852,3 +852,102 @@
 
 ? 'uproot on GitHub'
 : 'uproot auf GitHub'
+
+? 'Admin chat'
+: 'Admin-Chat'
+
+? 'All'
+: 'Alle'
+
+? 'Back to session'
+: 'Zurück zur Sitzung'
+
+? 'Broadcast message'
+: 'Nachricht an alle'
+
+? 'Click a player in the sidebar, or check multiple to broadcast.'
+: 'Klicken Sie auf einen Spieler in der Seitenleiste oder wählen Sie mehrere für eine Sammel-Nachricht.'
+
+? 'Disable admin chat replies'
+: 'Admin-Chat-Antworten deaktivieren'
+
+? 'Disabled admin chat replies for #n# player(s).'
+: 'Admin-Chat-Antworten für #n# Spieler deaktiviert.'
+
+? 'Enable admin chat replies'
+: 'Admin-Chat-Antworten aktivieren'
+
+? 'Enabled admin chat replies for #n# player(s).'
+: 'Admin-Chat-Antworten für #n# Spieler aktiviert.'
+
+? 'Filter players'
+: 'Spieler filtern'
+
+? 'Live messaging with participants. Select players below, then compose.'
+: 'Live-Nachrichten an Teilnehmer. Wählen Sie Spieler unten aus und verfassen Sie eine Nachricht.'
+
+? 'Loading conversation...'
+: 'Unterhaltung wird geladen...'
+
+? 'Message'
+: 'Nachricht'
+
+? 'Message sent to #n# player(s).'
+: 'Nachricht an #n# Spieler gesendet.'
+
+? 'No label'
+: 'Kein Label'
+
+? 'No messages yet'
+: 'Noch keine Nachrichten'
+
+? 'No players found'
+: 'Keine Spieler gefunden'
+
+? 'Open player page'
+: 'Spielerseite öffnen'
+
+? 'Player can reply'
+: 'Spieler kann antworten'
+
+? 'Press Enter to send. Use Shift+Enter for a new line.'
+: 'Drücken Sie Enter zum Senden. Verwenden Sie Umschalt+Enter für eine neue Zeile.'
+
+? 'Research Coordinator'
+: 'Studienkoordination'
+
+? 'Select'
+: 'Auswählen'
+
+? 'Select a player'
+: 'Spieler auswählen'
+
+? 'Send the first message to open this channel.'
+: 'Senden Sie die erste Nachricht, um diesen Kanal zu öffnen.'
+
+? 'Send to #n# players'
+: 'An #n# Spieler senden'
+
+? 'Toggle monitor'
+: 'Monitor ein-/ausblenden'
+
+? 'Type a message for this participant'
+: 'Schreiben Sie eine Nachricht an diesen Teilnehmer'
+
+? 'Type a message that will be sent to all selected players'
+: 'Schreiben Sie eine Nachricht, die an alle ausgewählten Spieler gesendet wird'
+
+? 'With messages'
+: 'Mit Nachrichten'
+
+? 'players'
+: 'Spieler'
+
+? 'read-only'
+: 'schreibgeschützt'
+
+? 'replies on'
+: 'Antworten an'
+
+? 'new'
+: 'neu'

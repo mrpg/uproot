@@ -51,6 +51,8 @@ from uproot.services.data_service import (
 
 # Re-export from player service
 from uproot.services.player_service import (
+    adminchat_overview,
+    adminchat_thread,
     adminmessage,
     advance_by_one,
     fields_from_all,
@@ -63,6 +65,10 @@ from uproot.services.player_service import (
     reload,
     revert_by_one,
     run_new_player,
+    send_adminchat,
+    send_adminchat_to_players,
+    set_adminchat_replies,
+    set_adminchat_replies_for_players,
 )
 
 # Re-export from room service
@@ -120,6 +126,8 @@ __all__ = [
     "update_description",
     "update_settings",
     # Player
+    "adminchat_overview",
+    "adminchat_thread",
     "adminmessage",
     "advance_by_one",
     "fields_from_all",
@@ -132,6 +140,10 @@ __all__ = [
     "reload",
     "revert_by_one",
     "run_new_player",
+    "send_adminchat",
+    "send_adminchat_to_players",
+    "set_adminchat_replies",
+    "set_adminchat_replies_for_players",
     # Room
     "close_room",
     "delete_room",

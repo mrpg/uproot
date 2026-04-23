@@ -137,6 +137,8 @@ function createTable(containerId) {
         }
     });
 
+    monitorState.table.on("rowSelectionChanged", emitSelectionChanged);
+
     return monitorState.table;
 }
 
@@ -437,6 +439,20 @@ function restoreSelectedPlayers(selectedPlayers) {
     });
 }
 
+function emitSelectionChanged() {
+    const selected = getSelectedPlayers();
+
+    if (window.Alpine && Alpine.store("session")) {
+        Alpine.store("session").selectedCount = selected.length;
+    }
+
+    window.dispatchEvent(new CustomEvent("UprootCustomMonitorSelectionChanged", {
+        detail: {
+            players: selected,
+        },
+    }));
+}
+
 // ============================================================================
 // Selection Helpers
 // ============================================================================
@@ -636,6 +652,17 @@ window.actuallyAdminmessageSend = function() {
     window.bootstrap?.Modal.getOrCreateInstance(I("adminmessage_send-modal")).hide();
     window.invokeFromMonitor("adminmessage", msg).then(() => {
         uproot.alert("The action has completed.");
+    });
+};
+
+window.setSelectedAdminchatReplies = function(enabled) {
+    window.invokeFromMonitor("set_adminchat_replies_for_players", enabled).then((result) => {
+        const n = result?.players?.length ?? 0;
+        const message = enabled
+            ? _("Enabled admin chat replies for #n# player(s).")
+            : _("Disabled admin chat replies for #n# player(s).");
+
+        uproot.alert(message.replace("#n#", n));
     });
 };
 

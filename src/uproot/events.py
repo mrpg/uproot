@@ -8,6 +8,7 @@ from uproot.types import BoundedPulse, PlayerIdentifier, Sessionname, Value
 
 ATTENDANCE: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
 FIELDCHANGE: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
+ADMINCHAT: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
 ROOMS: defaultdict[str, Event] = defaultdict(Event)
 
 

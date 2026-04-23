@@ -92,6 +92,33 @@ class PlayerMessage(BaseModel):
     message: str = Field(..., description="Message to send")
 
 
+class AdminchatMessage(BaseModel):
+    """Request body for sending an admin chat message to one player."""
+
+    message: str = Field(..., description="Message to send")
+    enable_replies: Optional[bool] = Field(
+        None,
+        description="Optionally update whether the player may reply",
+    )
+
+
+class AdminchatBroadcast(BaseModel):
+    """Request body for sending an admin chat message to multiple players."""
+
+    unames: list[str] = Field(..., min_length=1, description="List of usernames")
+    message: str = Field(..., description="Message to send")
+    enable_replies: Optional[bool] = Field(
+        None,
+        description="Optionally update whether all recipients may reply",
+    )
+
+
+class AdminchatReplies(BaseModel):
+    """Request body for toggling player reply permission."""
+
+    enabled: bool = Field(..., description="Whether player replies are enabled")
+
+
 class DescriptionUpdate(BaseModel):
     """Request body for updating session description."""
 
@@ -386,6 +413,54 @@ async def message_players(
     await a.adminmessage(sname, body.unames, body.message)
 
     return {"messaged": body.unames}
+
+
+@router.get("/session/{sname}/player/{uname}/chat/")
+async def get_player_adminchat(
+    sname: str,
+    uname: str,
+    _bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Get admin chat metadata and transcript for one player."""
+    a.session_exists(sname)
+    return await a.adminchat_thread(sname, uname)
+
+
+@router.post("/session/{sname}/player/{uname}/chat/")
+async def send_player_adminchat(
+    sname: str,
+    uname: str,
+    body: AdminchatMessage,
+    _bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Send an admin chat message to one player."""
+    a.session_exists(sname)
+    return await a.send_adminchat(sname, uname, body.message, body.enable_replies)
+
+
+@router.patch("/session/{sname}/player/{uname}/chat/replies/")
+async def set_player_adminchat_replies(
+    sname: str,
+    uname: str,
+    body: AdminchatReplies,
+    _bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Enable or disable a player's ability to reply in admin chat."""
+    a.session_exists(sname)
+    return await a.set_adminchat_replies(sname, uname, body.enabled)
+
+
+@router.post("/session/{sname}/players/chat/")
+async def broadcast_adminchat(
+    sname: str,
+    body: AdminchatBroadcast,
+    _bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Send an admin chat message to multiple players at once."""
+    a.session_exists(sname)
+    return await a.send_adminchat_to_players(
+        sname, body.unames, body.message, body.enable_replies
+    )
 
 
 @router.post("/session/{sname}/players/dropout/")

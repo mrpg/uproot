@@ -189,6 +189,7 @@ def initialize_player(
         player.show_page = -1
         player.started = False
         player._uproot_adminchat = None
+        player._uproot_adminchat_replies = False
         player._uproot_dropout = False
         player._uproot_group = None
         player._uproot_key = t.uuid()

@@ -53,6 +53,12 @@ async def subscribe_to_fieldchange(
             return cast(tuple[tuple[str, ...], str, Value], received)
 
 
+async def subscribe_to_adminchat(
+    sname: Sessionname,
+) -> dict[str, Any]:
+    return cast(dict[str, Any], await e.ADMINCHAT[sname].wait())
+
+
 async def subscribe_to_room(roomname: str) -> bool:
     await e.ROOMS[roomname].wait()
     return True

@@ -1,0 +1,101 @@
+{% extends "Admin.html" %}
+
+{% block titlearea %}
+
+<div class="align-center d-flex flex-wrap justify-content-between my-4" id="title-container">
+    <h2 id="uproot-title" class="fw-semibold">
+        {% translate %}
+        Session
+        {% endtranslate %}
+        <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
+        <span class="fw-light text-secondary">&gt; {% translate %}Admin chat{% endtranslate %}</span>
+    </h2>
+</div>
+
+{% endblock titlearea %}
+
+
+{% block head %}
+
+<style>
+    #data-table .tabulator-headers div:first-of-type {
+        text-align: center;
+    }
+</style>
+
+{% endblock %}
+
+
+{% block main %}
+
+<!-- Collapsible player monitor -->
+<div class="mb-4">
+    <div class="align-items-center d-flex justify-content-between mb-2">
+        <h5 class="fw-semibold mb-0">
+            {% translate %}Player monitor{% endtranslate %}
+        </h5>
+        <button class="btn btn-sm btn-outline-uproot" type="button" data-bs-toggle="collapse" data-bs-target="#chat-monitor-collapse" aria-expanded="true" aria-controls="chat-monitor-collapse">
+            {% translate %}Toggle monitor{% endtranslate %}
+        </button>
+    </div>
+    <div class="collapse show" id="chat-monitor-collapse">
+        <div class="table-sticky-outer" id="tableContainer" style="height: 32vh;">
+            <div class="container p-0" id="tableMain">
+                <div class="border-bottom border-top border-uproot-subtle table-sticky-inner" id="tableOuter">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inbox layout -->
+<div class="adminchat-inbox" id="adminchat-inbox">
+    <!-- Left sidebar: player list -->
+    <aside class="adminchat-inbox-sidebar" id="adminchat-sidebar">
+        <div class="adminchat-inbox-toolbar">
+            <input type="search" class="form-control form-control-sm" id="adminchat-search" placeholder="{% translate %}Filter players{% endtranslate %}">
+            <div class="adminchat-inbox-actions mt-2">
+                <button class="btn btn-xs btn-outline-uproot" type="button" onclick="adminchat.selectAll()">{% translate %}All{% endtranslate %}</button>
+                <button class="btn btn-xs btn-outline-uproot" type="button" onclick="adminchat.selectNone()">{% translate %}None{% endtranslate %}</button>
+                <button class="btn btn-xs btn-outline-uproot" type="button" onclick="adminchat.selectWithMessages()">{% translate %}With messages{% endtranslate %}</button>
+            </div>
+        </div>
+        <ul class="adminchat-inbox-list" id="adminchat-player-list">
+            <!-- Rendered by JS -->
+        </ul>
+    </aside>
+
+    <!-- Main area: conversation or broadcast -->
+    <main class="adminchat-inbox-main" id="adminchat-main">
+        <!-- Rendered by JS -->
+    </main>
+</div>
+
+{% endblock main %}
+
+
+{% block late %}
+
+<script>
+    document.addEventListener("alpine:init", () => {
+        Alpine.store("session", {
+            totalPlayers: {{ len(session.players) }},
+            startedCount: "?",
+            selectedCount: 0
+        });
+    });
+</script>
+
+<script src="{{ internalstatic('viewdata.js') }}"></script>
+<script src="{{ internalstatic('monitor.js') }}"></script>
+<script src="{{ internalstatic('adminchat.js') }}"></script>
+
+<script>
+    uproot.onStart(() => {
+        document.querySelectorAll("[data-bs-toggle='popover']").forEach(el => {
+            new bootstrap.Popover(el);
+        });
+    });
+</script>
+
+{% endblock late %}

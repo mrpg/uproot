@@ -6,6 +6,7 @@
 from typing import Any
 
 import uproot as u
+import uproot.chat as chat
 import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
@@ -254,6 +255,169 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
                 "event": "_uproot_AdminMessaged",
             },
         )
+
+
+def _adminchat_summary(pid: t.PlayerIdentifier) -> dict[str, Any]:
+    mid = chat.adminchat_for_player(pid)
+
+    if mid is None or not chat.exists(mid):
+        return {
+            "chat_id": None,
+            "enabled": False,
+            "has_messages": False,
+            "message_count": 0,
+            "last_message_at": None,
+            "last_sender": None,
+            "last_message_text": None,
+        }
+
+    entries = chat.messages(mid)
+    last_message = entries[-1][2] if entries else None
+
+    return {
+        "chat_id": mid.mname,
+        "enabled": chat.adminchat_reply_state(pid),
+        "has_messages": bool(entries),
+        "message_count": len(entries),
+        "last_message_at": entries[-1][1] if entries else None,
+        "last_sender": (
+            "admin"
+            if last_message is not None and last_message.sender is None
+            else "player" if last_message is not None else None
+        ),
+        "last_message_text": (
+            last_message.text[:80] if last_message is not None else None
+        ),
+    }
+
+
+async def adminchat_overview(sname: t.Sessionname) -> dict[str, dict[str, Any]]:
+    """Summarize admin chat state for each player in a session."""
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        return {pid.uname: _adminchat_summary(pid) for pid in session._uproot_players}
+
+
+async def adminchat_thread(
+    sname: t.Sessionname,
+    uname: str,
+) -> dict[str, Any]:
+    """Get admin chat metadata and transcript for a single player."""
+    session_exists(sname, False)
+
+    pid = t.PlayerIdentifier(sname, uname)
+    mid = chat.adminchat_for_player(pid)
+    messages = []
+
+    if mid is not None and chat.exists(mid):
+        messages = [
+            chat.show_adminchat_msg(mid, msg_id, msg_time, msg, None)
+            for msg_id, msg_time, msg in chat.messages(mid)
+        ]
+
+    with t.materialize(pid) as player:
+        payload = {
+            "player": {
+                "uname": uname,
+                "id": player.get("id"),
+                "label": player.get("label", ""),
+                "show_page": player.get("show_page", -1),
+                "page_order": player.get("page_order", []),
+            },
+            "chat": _adminchat_summary(pid),
+            "messages": messages,
+        }
+
+    return payload
+
+
+async def send_adminchat(
+    sname: t.Sessionname,
+    uname: str,
+    message: str,
+    enable_replies: bool | None = None,
+) -> dict[str, Any]:
+    """Send an admin chat message to one player."""
+    session_exists(sname, False)
+
+    pid = t.PlayerIdentifier(sname, uname)
+    mid = chat.ensure_adminchat(pid)
+    msgtext = message.strip()
+
+    if msgtext == "":
+        raise ValueError("Admin chat message cannot be empty")
+
+    if enable_replies is not None:
+        chat.set_adminchat_replies(pid, enable_replies)
+
+    with t.materialize(pid) as player:
+        player._uproot_adminchat = mid
+        msg_id = chat.add_message(mid, None, msgtext)
+        await chat.notify_adminchat(mid, msg_id, None, player, msgtext)
+
+    return await adminchat_thread(sname, uname)
+
+
+async def set_adminchat_replies(
+    sname: t.Sessionname,
+    uname: str,
+    enabled: bool,
+) -> dict[str, Any]:
+    """Enable or disable replies for one player's admin chat."""
+    session_exists(sname, False)
+
+    pid = t.PlayerIdentifier(sname, uname)
+    mid = chat.adminchat_for_player(pid)
+
+    if (mid is None or not chat.exists(mid)) and not enabled:
+        payload = await adminchat_thread(sname, uname)
+        payload["kind"] = "state"
+        return payload
+
+    event = chat.set_adminchat_replies(pid, enabled)
+    payload = await adminchat_thread(sname, uname)
+    payload["kind"] = event["kind"]
+    return payload
+
+
+async def send_adminchat_to_players(
+    sname: t.Sessionname,
+    unames: list[str],
+    message: str,
+    enable_replies: bool | None = None,
+) -> dict[str, Any]:
+    """Send the same admin chat message to multiple players at once."""
+    session_exists(sname, False)
+
+    results = []
+
+    for uname in unames:
+        results.append(await send_adminchat(sname, uname, message, enable_replies))
+
+    return {
+        "sent_count": len(results),
+        "players": results,
+    }
+
+
+async def set_adminchat_replies_for_players(
+    sname: t.Sessionname,
+    unames: list[str],
+    enabled: bool,
+) -> dict[str, Any]:
+    """Enable or disable replies for multiple players at once."""
+    session_exists(sname, False)
+
+    updated = []
+
+    for uname in unames:
+        updated.append(await set_adminchat_replies(sname, uname, enabled))
+
+    return {
+        "enabled": enabled,
+        "players": updated,
+    }
 
 
 async def group_players(

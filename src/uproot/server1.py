@@ -634,10 +634,27 @@ async def ws(
                     mid = t.ModelIdentifier(sname, mname)
 
                     if chat.exists(mid) and pid in (pp := chat.players(mid)):
-                        msg_id = chat.add_message(mid, pid, msgtext)
-                        await chat.notify(mid, msg_id, pid, player, msgtext, pp)
+                        if chat.is_adminchat(mid):
+                            if not chat.adminchat_reply_state(pid):
+                                d.LOGGER.warning(
+                                    f"Player {pid} tried to reply to admin chat "
+                                    f"starting with '{mname[:32]}' while replies were disabled"
+                                )
+                            else:
+                                msg_id = chat.add_message(mid, pid, msgtext)
+                                await chat.notify_adminchat(
+                                    mid,
+                                    msg_id,
+                                    pid,
+                                    player,
+                                    msgtext,
+                                )
+                                invoke_respond = False
+                        else:
+                            msg_id = chat.add_message(mid, pid, msgtext)
+                            await chat.notify(mid, msg_id, pid, player, msgtext, pp)
+                            invoke_respond = False
 
-                        invoke_respond = False
                     else:
                         d.LOGGER.warning(
                             f"Ignored chat message starting with '{msgtext[:32]}' for "
@@ -652,10 +669,16 @@ async def ws(
                     mid = t.ModelIdentifier(sname, mname)
 
                     if chat.exists(mid) and pid in (pp := chat.players(mid)):
-                        invoke_response = [
-                            chat.show_msg(mid, msg_id, msg_time, msg, pid)
-                            for msg_id, msg_time, msg in chat.messages(mid)
-                        ]
+                        if chat.is_adminchat(mid):
+                            invoke_response = [
+                                chat.show_adminchat_msg(mid, msg_id, msg_time, msg, pid)
+                                for msg_id, msg_time, msg in chat.messages(mid)
+                            ]
+                        else:
+                            invoke_response = [
+                                chat.show_msg(mid, msg_id, msg_time, msg, pid)
+                                for msg_id, msg_time, msg in chat.messages(mid)
+                            ]
                     else:
                         d.LOGGER.warning(
                             f"Ignored chat request for non-existing chat "

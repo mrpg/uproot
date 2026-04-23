@@ -852,3 +852,102 @@
 
 ? 'uproot on GitHub'
 : 'uproot en GitHub'
+
+? 'Admin chat'
+: 'Chat de administración'
+
+? 'All'
+: 'Todos'
+
+? 'Back to session'
+: 'Volver a la sesión'
+
+? 'Broadcast message'
+: 'Mensaje masivo'
+
+? 'Click a player in the sidebar, or check multiple to broadcast.'
+: 'Haga clic en un jugador en la barra lateral, o seleccione varios para enviar un mensaje masivo.'
+
+? 'Disable admin chat replies'
+: 'Desactivar respuestas del chat de administración'
+
+? 'Disabled admin chat replies for #n# player(s).'
+: 'Se desactivaron las respuestas del chat de administración para #n# jugador(es).'
+
+? 'Enable admin chat replies'
+: 'Activar respuestas del chat de administración'
+
+? 'Enabled admin chat replies for #n# player(s).'
+: 'Se activaron las respuestas del chat de administración para #n# jugador(es).'
+
+? 'Filter players'
+: 'Filtrar jugadores'
+
+? 'Live messaging with participants. Select players below, then compose.'
+: 'Mensajería en vivo con participantes. Seleccione jugadores abajo y redacte.'
+
+? 'Loading conversation...'
+: 'Cargando conversación...'
+
+? 'Message'
+: 'Mensaje'
+
+? 'Message sent to #n# player(s).'
+: 'Mensaje enviado a #n# jugador(es).'
+
+? 'No label'
+: 'Sin etiqueta'
+
+? 'No messages yet'
+: 'Todavía no hay mensajes'
+
+? 'No players found'
+: 'No se encontraron jugadores'
+
+? 'Open player page'
+: 'Abrir página del jugador'
+
+? 'Player can reply'
+: 'El jugador puede responder'
+
+? 'Press Enter to send. Use Shift+Enter for a new line.'
+: 'Pulse Enter para enviar. Use Shift+Enter para una nueva línea.'
+
+? 'Research Coordinator'
+: 'Coordinación de la investigación'
+
+? 'Select'
+: 'Seleccionar'
+
+? 'Select a player'
+: 'Seleccione un jugador'
+
+? 'Send the first message to open this channel.'
+: 'Envíe el primer mensaje para abrir este canal.'
+
+? 'Send to #n# players'
+: 'Enviar a #n# jugadores'
+
+? 'Toggle monitor'
+: 'Mostrar/ocultar monitor'
+
+? 'Type a message for this participant'
+: 'Escriba un mensaje para este participante'
+
+? 'Type a message that will be sent to all selected players'
+: 'Escriba un mensaje que se enviará a todos los jugadores seleccionados'
+
+? 'With messages'
+: 'Con mensajes'
+
+? 'players'
+: 'jugadores'
+
+? 'read-only'
+: 'solo lectura'
+
+? 'replies on'
+: 'respuestas activas'
+
+? 'new'
+: 'nuevo'
