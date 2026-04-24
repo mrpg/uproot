@@ -15,7 +15,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "httpx==0.28.1",
-    "appendmuch==0.0.6",
+    "appendmuch @ git+https://github.com/mrpg/appendmuch.git@master",  # TODO: Pin exact version
     "click==8.3.1",
     "fastapi==0.136.0",
     "itsdangerous==2.2.0",
