@@ -22,9 +22,9 @@ Login
 </style>
 
 <script>
-async function solvePoW(challenge, difficulty) {
+async function solvePoW(challenge, user, difficulty) {
     const encoder = new TextEncoder();
-    const prefix = challenge + ":";
+    const prefix = challenge + ":" + user + ":";
     for (let counter = 0; ; counter++) {
         const input = encoder.encode(prefix + counter);
         const hash = await crypto.subtle.digest("SHA-256", input);
@@ -54,7 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const challenge = document.getElementById("pow_challenge").value;
         const difficulty = document.getElementById("pow_difficulty").value;
-        solutionField.value = await solvePoW(challenge, difficulty);
+        const user = document.getElementById("user").value;
+        solutionField.value = await solvePoW(challenge, user, difficulty);
 
         button.disabled = false;
         button.textContent = originalText;

@@ -35,9 +35,34 @@ from uproot.storage import Admin
 from uproot.types import (
     ensure_awaitable,
     optional_call,
+    sha256,
 )
 
 MIN_PASSWORD_LENGTH: int = 5
+ADMINS_PASSWORDS_HASHED: bool = False
+
+
+def validate_admin_password_lengths() -> None:
+    for user, pw in d.ADMINS.items():
+        if isinstance(pw, str) and len(pw) < MIN_PASSWORD_LENGTH:
+            d.LOGGER.critical(
+                f"Password for admin {user!r} is shorter than "
+                f"the minimum length ({MIN_PASSWORD_LENGTH}): got {len(pw)}"
+            )
+            raise SystemExit(1)
+
+
+def normalize_admin_passwords() -> None:
+    global ADMINS_PASSWORDS_HASHED
+
+    if ADMINS_PASSWORDS_HASHED:
+        return
+
+    for user, pw in d.ADMINS.items():
+        if isinstance(pw, str):
+            d.ADMINS[user] = sha256(f"{user}\n{pw}")
+
+    ADMINS_PASSWORDS_HASHED = True
 
 
 @asynccontextmanager
@@ -68,6 +93,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     else:
         d.LOGGER.info(f"There are {la} admins")
 
+    if not d.UNSAFE and not ADMINS_PASSWORDS_HASHED:
+        validate_admin_password_lengths()
+
+    normalize_admin_passwords()
+
     if d.UNSAFE:
         print(file=stderr)
 
@@ -84,18 +114,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         )
         print(file=stderr)
     else:
-        for user, pw in d.ADMINS.items():
-            if isinstance(pw, str):
-                pw_length = len(pw)
-                # Clear password from memory before logging to prevent accidental leakage
-                pw = None  # type: ignore
-                if pw_length < MIN_PASSWORD_LENGTH:
-                    # Only logging non-sensitive metadata (length), not the actual password
-                    d.LOGGER.error(
-                        f"Password for admin {user!r} is shorter than "
-                        f"the minimum length ({MIN_PASSWORD_LENGTH}): got {pw_length}"
-                    )
-
         if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
             d.ensure_login_token()
 

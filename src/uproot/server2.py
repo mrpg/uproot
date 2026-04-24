@@ -433,7 +433,7 @@ async def login_post(
     # the password.  This replaces the old time-based rate limit, which did not
     # actually throttle credential checking.  Each guess now costs the client
     # ~2**16 sha256 hashes; the server only pays one hash + one HMAC compare.
-    if not a.verify_pow(pow_challenge, pow_solution):
+    if not a.verify_pow(pow_challenge, pow_solution, user):
         return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
     auth_token = a.create_auth_token(user, pw)

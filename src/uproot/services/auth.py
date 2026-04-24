@@ -144,7 +144,8 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return None
 
-    if not hmac.compare_digest(cast(str, ADMINS[user]), pw):
+    pw_hash = hashlib.sha256(f"{user}\n{pw}".encode()).hexdigest()
+    if not hmac.compare_digest(cast(str, ADMINS[user]), pw_hash):
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return None
 
@@ -337,11 +338,11 @@ def make_pow_challenge() -> tuple[str, str]:
     return f"{nonce}:{ts}:{sig}", POW_DIFFICULTY
 
 
-def verify_pow(challenge: str, solution: str) -> bool:
+def verify_pow(challenge: str, solution: str, user: str) -> bool:
     """Verify a single-use PoW challenge + solution.
 
     Checks: well-formedness, age (<= POW_MAX_AGE), HMAC signature,
-    sha256(challenge+":"+solution) hex suffix, and that the nonce
+    sha256(challenge+":"+user+":"+solution) hex suffix, and that the nonce
     has not been used before.  On success, the nonce is recorded so
     the same solved challenge cannot be replayed for another attempt.
     """
@@ -368,7 +369,7 @@ def verify_pow(challenge: str, solution: str) -> bool:
     if not hmac.compare_digest(expected, sig):
         return False
 
-    digest = hashlib.sha256(f"{challenge}:{solution}".encode()).hexdigest()
+    digest = hashlib.sha256(f"{challenge}:{user}:{solution}".encode()).hexdigest()
     if not digest.endswith(POW_DIFFICULTY):
         return False
 
