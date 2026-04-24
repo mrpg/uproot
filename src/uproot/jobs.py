@@ -159,19 +159,20 @@ def here(
     among: Optional[list[PlayerIdentifier]] = None,
     strict: bool = True,
 ) -> set[PlayerIdentifier]:
+    with s.Session(sname) as session:
+        all_players: list[PlayerIdentifier] = session._uproot_players
+
     if strict:
         return {
             pid
-            for pid in u.who_online(d.HERE_TOLERANCE, sname)
+            for pid in all_players
             if (among is None or pid in among)
             and materialize(pid).show_page == show_page
         }
     else:
-        # TODO: Technically speaking, if strict is False, others need not be online.
-
         return {
             pid
-            for pid in u.who_online(d.HERE_TOLERANCE, sname)
+            for pid in all_players
             if (among is None or pid in among)
             and materialize(pid).show_page >= show_page
         }
