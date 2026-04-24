@@ -289,11 +289,13 @@ def find_free_slot(session: s.Storage) -> Optional[t.PlayerIdentifier]:
     return None
 
 
-def expand(pages: list[t.PageLike]) -> list[type[t.Page]]:
+def expand(pages: Any) -> list[type[t.Page]]:
     result = []
 
     for item in pages:
-        if isinstance(item, t.SmoothOperator):
+        if isinstance(item, list):
+            result.extend(expand(item))
+        elif isinstance(item, t.SmoothOperator):
             expanded = item.expand()
 
             result.extend(expand(expanded))
