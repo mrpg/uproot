@@ -235,7 +235,8 @@ async def render(
                     "templatevars",
                     default_return={},
                     player=player,
-                ),
+                )
+                or {},
             )
             | BUILTINS
             | {
