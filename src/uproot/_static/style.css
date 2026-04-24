@@ -331,6 +331,13 @@ div.without-anchoring-overlay {
     max-width: 96px;
 }
 
+#uproot-testing-button-wrapper .bg-hover-uproot:hover {
+    background-color: var(--bs-uproot) !important;
+}
+#uproot-testing-button-wrapper .text-hover-white:hover {
+    color: white !important;
+}
+
 .message-hover:hover {
     background-color: rgba(13, 110, 253, 0.05) !important;
 }
