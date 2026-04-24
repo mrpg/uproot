@@ -286,7 +286,9 @@ def _adminchat_summary(pid: t.PlayerIdentifier) -> dict[str, Any]:
             else "player" if last_message is not None else None
         ),
         "last_message_text": (
-            last_message.text[:80] if last_message is not None else None
+            last_message.text[:80] + "…"
+            if last_message is not None and len(last_message.text) > 80
+            else last_message.text if last_message is not None else None
         ),
     }
 

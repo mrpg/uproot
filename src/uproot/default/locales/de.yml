@@ -892,9 +892,6 @@
 ? 'Message'
 : 'Nachricht'
 
-? 'Message sent to #n# player(s).'
-: 'Nachricht an #n# Spieler gesendet.'
-
 ? 'No label'
 : 'Kein Label'
 

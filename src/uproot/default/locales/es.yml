@@ -892,9 +892,6 @@
 ? 'Message'
 : 'Mensaje'
 
-? 'Message sent to #n# player(s).'
-: 'Mensaje enviado a #n# jugador(es).'
-
 ? 'No label'
 : 'Sin etiqueta'
 

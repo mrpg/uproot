@@ -34,21 +34,11 @@ function adminchatPageLabel(player) {
 
 function adminchatMergeThread(uname, payload) {
     const existing = adminchatState.threads[uname] ?? { messages: [] };
-    const currentIds = new Set(existing.messages.map(msg => msg.id));
-    const incomingMessages = Array.isArray(payload.messages) ? payload.messages : existing.messages;
-    const mergedMessages = [];
-
-    incomingMessages.forEach(msg => {
-        if (!currentIds.has(msg.id) || payload.messages) {
-            currentIds.add(msg.id);
-            mergedMessages.push(msg);
-        }
-    });
 
     adminchatState.threads[uname] = {
         ...existing,
         ...payload,
-        messages: payload.messages ? payload.messages : [...existing.messages, ...mergedMessages],
+        messages: payload.messages ?? existing.messages,
     };
 
     if (payload.chat) {
@@ -270,13 +260,14 @@ function renderComposer(opts) {
     const repliesIndeterminate = opts.repliesIndeterminate ?? false;
 
     return /* SAFE */ `
-        <div class="adminchat-composer-shell">
+        <div class="adminchat-composer-shell" x-data>
             <label class="form-label adminchat-meta-label" for="adminchat-message-input">${_("Message")}</label>
             <textarea
                 class="form-control adminchat-message-input"
                 id="adminchat-message-input"
                 rows="4"
                 placeholder="${placeholder}"
+                x-model="$store.adminchat.draft"
             ></textarea>
             <div class="align-items-center d-flex flex-wrap justify-content-between gap-3 mt-3">
                 <div>
@@ -389,6 +380,7 @@ function renderMainArea() {
 
     if (focused && selected.length <= 1) {
         main.innerHTML = renderSinglePlayerView(focused);
+        Alpine.initTree(main);
         scrollTranscript();
         applyReplyToggleState();
         return;
@@ -396,6 +388,7 @@ function renderMainArea() {
 
     if (selected.length > 1) {
         main.innerHTML = renderBroadcastView(selected);
+        Alpine.initTree(main);
         applyReplyToggleState();
         return;
     }
@@ -605,18 +598,14 @@ window.adminchat = {
 
     async sendSingle() {
         const uname = adminchatState.focusedUname;
-        const input = I("adminchat-message-input");
+        const store = Alpine.store("adminchat");
+        const message = store.draft.trim();
 
-        if (!uname || !input) {
+        if (!uname || !message) {
             return;
         }
 
-        const message = input.value.trim();
-
-        if (!message) {
-            return;
-        }
-
+        store.draft = "";
         adminchatState.sending = true;
         renderAll();
 
@@ -637,19 +626,15 @@ window.adminchat = {
     },
 
     async sendBroadcast() {
-        const input = I("adminchat-message-input");
+        const store = Alpine.store("adminchat");
         const unames = Array.from(adminchatState.selectedUnames);
+        const message = store.draft.trim();
 
-        if (!input || unames.length === 0) {
+        if (unames.length === 0 || !message) {
             return;
         }
 
-        const message = input.value.trim();
-
-        if (!message) {
-            return;
-        }
-
+        store.draft = "";
         adminchatState.sending = true;
         renderAll();
 
@@ -667,9 +652,6 @@ window.adminchat = {
                 });
             }
 
-            uproot.alert(
-                _("Message sent to #n# player(s).").replace("#n#", result?.sent_count ?? unames.length)
-            );
         } finally {
             adminchatState.sending = false;
         }
@@ -713,12 +695,6 @@ window.adminchat = {
             });
         }
 
-        const n = result?.players?.length ?? 0;
-        const msg = enabled
-            ? _("Enabled admin chat replies for #n# player(s).")
-            : _("Disabled admin chat replies for #n# player(s).");
-
-        uproot.alert(msg.replace("#n#", n));
         renderAll();
     },
 
