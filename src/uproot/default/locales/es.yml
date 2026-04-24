@@ -910,9 +910,6 @@
 ? 'Player can reply'
 : 'El jugador puede responder'
 
-? 'Press Enter to send. Use Shift+Enter for a new line.'
-: 'Pulse Enter para enviar. Use Shift+Enter para una nueva línea.'
-
 ? 'Research Coordinator'
 : 'Coordinación de la investigación'
 

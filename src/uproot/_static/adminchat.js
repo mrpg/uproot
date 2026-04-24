@@ -289,7 +289,6 @@ function renderComposer(opts) {
                             <label class="form-check-label" for="adminchat-replies-toggle">${_("Player can reply")}</label>
                         </div>
                     ` : ""}
-                    <p class="adminchat-helper mb-0 mt-1">${_("Press Enter to send. Use Shift+Enter for a new line.")}</p>
                 </div>
                 <button
                     class="btn btn-uproot"
@@ -392,14 +391,12 @@ function renderMainArea() {
         main.innerHTML = renderSinglePlayerView(focused);
         scrollTranscript();
         applyReplyToggleState();
-        bindComposerKeydown();
         return;
     }
 
     if (selected.length > 1) {
         main.innerHTML = renderBroadcastView(selected);
         applyReplyToggleState();
-        bindComposerKeydown();
         return;
     }
 
@@ -416,25 +413,6 @@ function scrollTranscript() {
 
     if (transcript) {
         transcript.scrollTop = transcript.scrollHeight;
-    }
-}
-
-function bindComposerKeydown() {
-    const input = I("adminchat-message-input");
-
-    if (input && input.dataset.uprootBound !== "1") {
-        input.dataset.uprootBound = "1";
-        input.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-
-                if (adminchatState.selectedUnames.size > 1) {
-                    adminchat.sendBroadcast();
-                } else {
-                    adminchat.sendSingle();
-                }
-            }
-        });
     }
 }
 
