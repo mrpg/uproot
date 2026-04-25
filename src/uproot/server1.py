@@ -548,7 +548,9 @@ async def ws(
     )
 
     processed_futures: deque[str] = deque(maxlen=8 * 1024)
+    send_lock = asyncio.Lock()
     tasks = {}
+    background_tasks: set[asyncio.Task[None]] = set()
     args: dict[str, dict[str, Any]] = {
         "from_queue": {
             "pid": pid,
@@ -560,6 +562,18 @@ async def ws(
             "interval": 30.0,
         },
     }
+
+    async def send_websocket_message(payload: dict[str, Any]) -> None:
+        async with send_lock:
+            await websocket.send_bytes(orjson.dumps(payload))
+
+    async def run_process(result: dict[str, Any]) -> None:
+        try:
+            await process_websocket_message(result)
+        except WebSocketDisconnect:
+            pass
+        except Exception:
+            traceback.print_exc()
 
     async def process_websocket_message(result: dict[str, Any]) -> None:
         u.set_online(pid)
@@ -690,17 +704,15 @@ async def ws(
                     )
 
         if invoke_respond:
-            await websocket.send_bytes(
-                orjson.dumps(
-                    {
-                        "kind": "invoke",
-                        "payload": {
-                            "data": invoke_response,
-                            "future": result["future"],
-                            "error": invoke_exception,
-                        },
-                    }
-                )
+            await send_websocket_message(
+                {
+                    "kind": "invoke",
+                    "payload": {
+                        "data": invoke_response,
+                        "future": result["future"],
+                        "error": invoke_exception,
+                    },
+                }
             )
 
     for jj in j.PLAYER_JOBS:
@@ -719,6 +731,10 @@ async def ws(
             try:
                 result = await finished
 
+                if fname == "from_websocket":
+                    new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+                    tasks[new_task] = (fname, factory)
+
                 if fname == "from_queue":
                     u_, entry = result
 
@@ -728,34 +744,27 @@ async def ws(
                             "kind": kind_,
                             "payload": payload_,
                         } if isinstance(kind_, str) and isinstance(payload_, dict):
-                            await websocket.send_bytes(
-                                orjson.dumps(
-                                    {
-                                        "kind": kind_,
-                                        "payload": payload_,
-                                        "source": "admin",
-                                    }
-                                )
+                            await send_websocket_message(
+                                {
+                                    "kind": kind_,
+                                    "payload": payload_,
+                                    "source": "admin",
+                                }
                             )
                         case _:
-                            await websocket.send_bytes(
-                                orjson.dumps(
-                                    {
-                                        "kind": "queue",
-                                        "payload": {
-                                            "u": u_,
-                                            "entry": entry,
-                                        },
-                                    }
-                                )
+                            await send_websocket_message(
+                                {
+                                    "kind": "queue",
+                                    "payload": {
+                                        "u": u_,
+                                        "entry": entry,
+                                    },
+                                }
                             )
                 elif fname == "from_websocket":
-                    try:
-                        await process_websocket_message(result)
-                    except WebSocketDisconnect:
-                        raise
-                    except Exception:
-                        traceback.print_exc()
+                    bg_task = asyncio.create_task(run_process(result))
+                    background_tasks.add(bg_task)
+                    bg_task.add_done_callback(background_tasks.discard)
                 elif fname == "timer":
                     pass  # placeholder for the future
                 else:
@@ -763,15 +772,20 @@ async def ws(
             except WebSocketDisconnect:
                 for task in tasks:
                     task.cancel()
+                for task in background_tasks:
+                    task.cancel()
 
-                await asyncio.gather(*tasks.keys(), return_exceptions=True)
+                await asyncio.gather(
+                    *tasks.keys(), *background_tasks, return_exceptions=True
+                )
 
                 return
             except Exception as exc:
                 raise exc
 
-            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-            tasks[new_task] = (fname, factory)
+            if fname != "from_websocket":
+                new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+                tasks[new_task] = (fname, factory)
 
 
 @router.get("/static/{realm}/{location:path}")
