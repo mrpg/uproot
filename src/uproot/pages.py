@@ -257,6 +257,7 @@ async def render(
                     field_errors if field_errors is not None else {}
                 ),
                 "_uproot_js": jsvars,
+                "_uproot_run_tests": False,  # TODO
                 "_uproot_testing": sname is not None
                 and (is_admin or getattr(session, "testing", False)),
             }
