@@ -87,6 +87,14 @@ async def run_new_session(sname: t.Sessionname) -> None:
         session._uproot_initialized = True
 
 
+async def flip_tests(sname: t.Sessionname) -> None:
+    """Flip app-level JavaScript tests for a session."""
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        session._uproot_run_tests = not session.get("_uproot_run_tests", False)
+
+
 async def update_description(sname: t.Sessionname, newdesc: str) -> None:
     """Update session description."""
     if d.PUBLIC_DEMO:

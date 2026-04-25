@@ -208,6 +208,27 @@
                         {% endif %}
                     </button>
                 </div>
+                <div class="align-items-baseline d-flex flex-wrap justify-content-between mt-2">
+                    <p class="mb-1">
+                        {% if session.get("_uproot_run_tests", False) %}
+                        {% translate %}Running tests.{% endtranslate %}
+                        {% else %}
+                        {% translate %}Run tests.{% endtranslate %}
+                        {% endif %}
+                    </p>
+                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover"
+                        data-bs-content="{% translate %}Run the app’s tests.js file whenever player pages load in this session.{% endtranslate %}"
+                        onclick="flipTests()"
+                        type="button">
+                        {% if session.get("_uproot_run_tests", False) %}
+                        <i class="bi bi-check-circle-fill"></i>
+                        {% else %}
+                        <i class="bi bi-play-fill"></i>
+                        {% endif %}
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -503,6 +524,10 @@
 
     function flipTesting() {
         uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
+    }
+
+    function flipTests() {
+        uproot.invoke("flip_tests", uproot.vars.sname).then(uproot.reload);
     }
 
     function runNewSession() {

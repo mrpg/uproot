@@ -294,7 +294,6 @@
 
         {% if player is not none and _uproot_run_tests %}
         {% include app_or_default(app, "tests.js") ignore missing %}
-        {# TODO: Do not ignore missing? #}
         {% endif %}
     });
 </script>
