@@ -304,6 +304,16 @@ class #PAGENAME#(Page):
     )
 """
 
+TESTS_JS = """\
+// The use of this file is optional. What you write here can be triggered
+// manually through the admin area to automatically simulate players' responses
+// and check whether your experiment works as intended.
+
+if (uproot.currentPage == "#APP#/#PAGE#") {
+    // uproot.submit();
+}
+"""
+
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
 PYTHON_VERSION = "3.13\n"
@@ -402,6 +412,9 @@ def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
     with open(appdir / "Results.html", "w", encoding="utf-8") as f3:
         f3.write(RESULTS_HTML)
 
+    with open(appdir / "tests.js", "w", encoding="utf-8") as f4:
+        f4.write(TESTS_JS.replace("#APP#", app).replace("#PAGE#", "Dilemma"))
+
 
 def new_minimal_app(path: Path, app: str = "my_app") -> None:
     ensure(
@@ -419,6 +432,9 @@ def new_minimal_app(path: Path, app: str = "my_app") -> None:
 
     with open(appdir / "FirstPage.html", "w", encoding="utf-8") as f2:
         f2.write(FIRSTPAGE_HTML)
+
+    with open(appdir / "tests.js", "w", encoding="utf-8") as f3:
+        f3.write(TESTS_JS.replace("#APP#", app).replace("#PAGE#", "FirstPage"))
 
 
 def new_page(path: Path, app: str, page: str) -> None:
