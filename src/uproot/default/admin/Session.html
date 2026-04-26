@@ -208,27 +208,21 @@
                         {% endif %}
                     </button>
                 </div>
+                {% if session.get("_uproot_simulate", False) %}
                 <div class="align-items-baseline d-flex flex-wrap justify-content-between mt-2">
-                    <p class="mb-1">
-                        {% if session.get("_uproot_simulate", False) %}
+                    <p class="mb-1 fw-bold text-danger">
                         {% translate %}Simulating responses.{% endtranslate %}
-                        {% else %}
-                        {% translate %}Simulate responses.{% endtranslate %}
-                        {% endif %}
                     </p>
-                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
+                    <button class="border-0 btn btn-sm btn-outline-danger flex-grow-0 text-nowrap"
                         data-bs-toggle="popover"
                         data-bs-trigger="hover"
-                        data-bs-content="{% translate %}Run the app’s simulate.js file whenever player pages load in this session.{% endtranslate %}"
-                        onclick="flipSimulate()"
+                        data-bs-content="{% translate %}You must create a new session to disable simulating responses.{% endtranslate %}"
+                        onclick="alert(_('You must create a new session to disable simulating responses.'))"
                         type="button">
-                        {% if session.get("_uproot_simulate", False) %}
-                        <i class="bi bi-check-circle-fill"></i>
-                        {% else %}
-                        <i class="bi bi-play-fill"></i>
-                        {% endif %}
+                        <i class="bi bi-fast-forward text-danger"></i>
                     </button>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -524,10 +518,6 @@
 
     function flipTesting() {
         uproot.invoke("flip_testing", uproot.vars.sname).then(uproot.reload);
-    }
-
-    function flipSimulate() {
-        uproot.invoke("flip_simulate", uproot.vars.sname).then(uproot.reload);
     }
 
     function runNewSession() {

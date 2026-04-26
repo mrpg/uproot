@@ -71,6 +71,16 @@
     </div>
 </div>
 
+<div class="ps-1">
+    <div class="form-check mt-3">
+        <input class="form-check-input" type="checkbox" id="simulate" name="simulate">
+        <label for="simulate">{% translate %}Simulate responses{% endtranslate %}</label>
+        <small class="d-block form-text pt-1">
+            {% translate %}If enabled, the app's <code>simulate.js</code> file will run whenever player pages load in this session.{% endtranslate %}
+        </small>
+    </div>
+</div>
+
 <script>
     let _suggestedMultiple = 1;
 
