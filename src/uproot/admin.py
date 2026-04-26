@@ -84,8 +84,8 @@ from uproot.services.room_service import (
 # Re-export from session service
 from uproot.services.session_service import (
     flip_active,
+    flip_simulate,
     flip_testing,
-    flip_tests,
     get_digest,
     run_new_session,
     session_exists,
@@ -122,7 +122,7 @@ __all__ = [
     "flip_testing",
     "get_digest",
     "run_new_session",
-    "flip_tests",
+    "flip_simulate",
     "session_exists",
     "sessions",
     "update_description",

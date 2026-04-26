@@ -1154,7 +1154,7 @@ FUNS = {
     "revert_by_one": a.revert_by_one,
     "run_new_player": a.run_new_player,
     "run_new_session": a.run_new_session,
-    "flip_tests": a.flip_tests,
+    "flip_simulate": a.flip_simulate,
     "send_adminchat": a.send_adminchat,
     "send_adminchat_to_players": a.send_adminchat_to_players,
     "set_adminchat_replies": a.set_adminchat_replies,

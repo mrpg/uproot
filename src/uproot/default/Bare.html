@@ -227,7 +227,7 @@
 {% endblock late2 %}
 
 <script>
-    {% if player is not none and _uproot_run_tests %}
+    {% if player is not none and _uproot_simulate %}
     uproot.currentPage = {{ show2path(player.page_order, player.show_page) | tojson | safe }};
     {% endif %}
 
@@ -292,8 +292,8 @@
         uproot.ensureBuddy();
         {% endif %}
 
-        {% if player is not none and _uproot_run_tests %}
-        {% include app_or_default(app, "tests.js") ignore missing %}
+        {% if player is not none and _uproot_simulate %}
+        {% include app_or_default(app, "simulate.js") ignore missing %}
         {% endif %}
     });
 </script>
