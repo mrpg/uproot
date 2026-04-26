@@ -305,9 +305,9 @@ class #PAGENAME#(Page):
 """
 
 SIMULATE_JS = """\
-// The use of this file is optional. What you write here can be triggered
-// manually through the admin area to automatically simulate players' responses
-// and check whether your experiment works as intended.
+// The use of this file is optional. What you write here will run whenever
+// player pages load in sessions created with the "Simulate responses" option
+// enabled, allowing you to check whether your experiment works as intended.
 
 if (uproot.currentPage == "#APP#/#PAGE#") {
     // uproot.submit();
