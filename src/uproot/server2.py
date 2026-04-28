@@ -638,6 +638,7 @@ async def new_session_in_room(
     sname: str = Form(""),
     unames: str = Form(""),
     nogrow: Optional[bool] = Form(False),
+    simulate: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.room_exists(roomname)
@@ -694,6 +695,9 @@ async def new_session_in_room(
 
     with t.materialize(sid) as session:
         session.room = roomname
+
+        if simulate:
+            session._uproot_simulate = True
 
         c.create_players(
             session,
@@ -795,6 +799,7 @@ async def new_session2(
     settings: str = Form(""),
     sname: str = Form(""),
     unames: str = Form(""),
+    simulate: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     sname_ = sname.strip() or None
@@ -814,6 +819,9 @@ async def new_session2(
         )
 
     with t.materialize(sid) as session:
+        if simulate:
+            session._uproot_simulate = True
+
         c.create_players(
             session,
             n=nplayers,

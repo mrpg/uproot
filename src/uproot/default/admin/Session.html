@@ -208,6 +208,21 @@
                         {% endif %}
                     </button>
                 </div>
+                {% if session.get("_uproot_simulate", False) %}
+                <div class="align-items-baseline d-flex flex-wrap justify-content-between mt-2">
+                    <p class="mb-1 fw-bold text-danger">
+                        {% translate %}Simulating responses.{% endtranslate %}
+                    </p>
+                    <button class="border-0 btn btn-sm btn-outline-danger flex-grow-0 text-nowrap"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover"
+                        data-bs-content="{% translate %}You must create a new session to disable simulating responses.{% endtranslate %}"
+                        onclick="alert(_('You must create a new session to disable simulating responses.'))"
+                        type="button">
+                        <i class="bi bi-fast-forward text-danger"></i>
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

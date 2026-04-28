@@ -223,7 +223,7 @@ def set_payoff(player):
 class Sync(SynchronizingWait):
     @classmethod
     def all_here(page, group):
-        for player in players(group):
+        for player in group.players:
             set_payoff(player)
 
 
@@ -302,6 +302,37 @@ class #PAGENAME#(Page):
     fields = dict(
         # Add your fields here
     )
+"""
+
+SIMULATE_JS = """\
+// The use of this file is optional. What you write here will run whenever
+// player pages load in sessions created with the "Simulate responses" option
+// enabled, allowing you to check whether your experiment works as intended.
+
+if (uproot.currentPage == "#APP#/#PAGE#") {
+    // uproot.submit();
+}
+"""
+
+SIMULATE_PD_JS = """\
+// The use of this file is optional. What you write here will run whenever
+// player pages load in sessions created with the "Simulate responses" option
+// enabled, allowing you to check whether your experiment works as intended.
+
+if (uproot.currentPage == "#APP#/Dilemma") {
+    if (Math.random() < 0.5) {
+        I("cooperate-0").checked = true;
+    }
+    else {
+        I("cooperate-1").checked = true;
+    }
+
+    uproot.submit();
+}
+
+if (uproot.currentPage == "#APP#/Results") {
+    // uproot.submit();
+}
 """
 
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
@@ -402,6 +433,9 @@ def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
     with open(appdir / "Results.html", "w", encoding="utf-8") as f3:
         f3.write(RESULTS_HTML)
 
+    with open(appdir / "simulate.js", "w", encoding="utf-8") as f4:
+        f4.write(SIMULATE_PD_JS.replace("#APP#", app))
+
 
 def new_minimal_app(path: Path, app: str = "my_app") -> None:
     ensure(
@@ -419,6 +453,9 @@ def new_minimal_app(path: Path, app: str = "my_app") -> None:
 
     with open(appdir / "FirstPage.html", "w", encoding="utf-8") as f2:
         f2.write(FIRSTPAGE_HTML)
+
+    with open(appdir / "simulate.js", "w", encoding="utf-8") as f3:
+        f3.write(SIMULATE_JS.replace("#APP#", app).replace("#PAGE#", "FirstPage"))
 
 
 def new_page(path: Path, app: str, page: str) -> None:

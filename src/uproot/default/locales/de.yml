@@ -892,9 +892,6 @@
 ? 'Message'
 : 'Nachricht'
 
-? 'Message sent to #n# player(s).'
-: 'Nachricht an #n# Spieler gesendet.'
-
 ? 'No label'
 : 'Kein Label'
 
@@ -909,9 +906,6 @@
 
 ? 'Player can reply'
 : 'Spieler kann antworten'
-
-? 'Press Enter to send. Use Shift+Enter for a new line.'
-: 'Drücken Sie Enter zum Senden. Verwenden Sie Umschalt+Enter für eine neue Zeile.'
 
 ? 'Research Coordinator'
 : 'Studienkoordination'

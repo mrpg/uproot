@@ -106,6 +106,7 @@ async def roommain(
 
         if room["sname"] is None:
             # TODO: move this elsewhere entirely
+            # TODO: support enabling simulation for auto-created room sessions.
             sid = c.create_session(
                 admin,
                 room["config"],

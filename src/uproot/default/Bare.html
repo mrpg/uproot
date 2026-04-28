@@ -227,6 +227,10 @@
 {% endblock late2 %}
 
 <script>
+    {% if player is not none and _uproot_simulate %}
+    uproot.currentPage = {{ show2path(player.page_order, player.show_page) | tojson | safe }};
+    {% endif %}
+
     uproot.onStart(() => {
         const ui = uproot.vars._uproot_internal;
 
@@ -286,6 +290,10 @@
             { canReply: {{ player.get("_uproot_adminchat_replies", false) | tojson | safe }} }
         );
         uproot.ensureBuddy();
+        {% endif %}
+
+        {% if player is not none and _uproot_simulate %}
+        {% include app_or_default(app, "simulate.js") ignore missing %}
         {% endif %}
     });
 </script>

@@ -257,6 +257,9 @@ async def render(
                     field_errors if field_errors is not None else {}
                 ),
                 "_uproot_js": jsvars,
+                "_uproot_simulate": bool(
+                    player is not None and session.get("_uproot_simulate", False)  # type: ignore[attr-defined]
+                ),
                 "_uproot_testing": sname is not None
                 and (is_admin or getattr(session, "testing", False)),
             }
@@ -311,6 +314,7 @@ async def render_error(
             "player": player,
             "session": session,
             "show2path": show2path,
+            "_uproot_simulate": False,
             "_uproot_testing": session is not None and (is_admin or session.testing),
         }
     )

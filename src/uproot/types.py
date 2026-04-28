@@ -658,7 +658,20 @@ class GroupCreatingWait(InternalPage):
     after_grouping: Any
 
     @classmethod
+    def clear_group(page, player: "Storage") -> None:
+        player._uproot_group = None
+
+    @classmethod
     async def show(page, player: "Storage") -> bool:
+        # Clear stale groups from previous apps (runs once per page visit)
+        optional_call_once(
+            page,
+            "clear_group",
+            storage=player,
+            show_page=player.show_page,
+            player=player,
+        )
+
         # Already in a group - don't show page
         if page.call_after(player):
             return False

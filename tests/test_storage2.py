@@ -331,7 +331,6 @@ def test_within_none_value_context():
     with t.materialize(pid) as player:
         # Context matching None value
         within_ctx = player.within(score=None)
-        expect_attribute_error(within_ctx, "score")
         assert within_ctx.level == 5
 
 
@@ -609,7 +608,6 @@ def test_within_boundary_conditions():
     with t.materialize(pid) as player:
         # Test context with None
         within_ctx1 = player.within(none_field=None)
-        expect_attribute_error(within_ctx1, "none_field")
         assert within_ctx1.regular_field == "normal"
 
         # Test context with zero

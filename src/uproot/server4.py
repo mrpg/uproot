@@ -43,6 +43,7 @@ class SessionCreate(BaseModel):
         None, description="Custom usernames for players"
     )
     settings: Optional[dict[str, Any]] = Field(None, description="Session settings")
+    simulate: bool = Field(False, description="Enable response simulation")
 
 
 class RoomCreate(BaseModel):
@@ -143,6 +144,7 @@ class RoomSessionCreate(BaseModel):
     sname: Optional[str] = Field(None, description="Custom session name")
     unames: Optional[list[str]] = Field(None, description="Custom usernames")
     no_grow: bool = Field(False, description="Lock capacity to n_players")
+    simulate: bool = Field(False, description="Enable response simulation")
 
 
 class RoomUpdate(BaseModel):
@@ -233,6 +235,9 @@ async def create_session(
         )
 
     with t.materialize(sid) as session:
+        if body.simulate:
+            session._uproot_simulate = True
+
         c.create_players(
             session,
             n=body.n_players,
@@ -782,6 +787,9 @@ async def create_session_in_room(
 
     with t.materialize(sid) as session:
         session.room = roomname
+
+        if body.simulate:
+            session._uproot_simulate = True
 
         c.create_players(
             session,
