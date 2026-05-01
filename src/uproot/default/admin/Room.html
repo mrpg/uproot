@@ -123,7 +123,7 @@ Room
         <script>
             const defaultConfig = uproot.vars.room.config || "";
         </script>
-        {% include "CreateSession.html" %}
+        {% include "SessionCreate.html" %}
         <input type="hidden" name="assignees" id="assignees" value="">
         <div class="ps-1">
             <div class="form-check mt-3">
@@ -278,7 +278,7 @@ Room
 
     uproot.onStart(() => {
         const select = renderConfigsApps(uproot.vars.configs, "room-config-select");
-        // Give this select a unique name to avoid conflict with CreateSession's config select
+        // Give this select a unique name to avoid conflict with SessionCreate's config select
         select.name = "config";
         select.id = "room-config-select-input";
 
@@ -312,7 +312,7 @@ Room
             uproot.error(_("One or more labels exceed the maximum length of 128 characters."));
         }
         else {
-            // Disable the CreateSession config select to prevent it from being submitted
+            // Disable the SessionCreate config select to prevent it from being submitted
             const createSessionSelect = I("configs-apps-select");
             if (createSessionSelect) createSessionSelect.disabled = true;
 
