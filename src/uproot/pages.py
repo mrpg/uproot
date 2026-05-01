@@ -193,9 +193,18 @@ async def render(
         form = None
 
     app = u.APPS[page.__module__] if page.__module__ in u.APPS else None
+
+    if app is None and player is not None:
+        for page_path in reversed(player.page_order):
+            app_name = page_path.split("/", 1)[0]
+
+            if app_name in u.APPS:
+                app = u.APPS[app_name]
+                break
+
     language = await ensure_awaitable(
         optional_call,
-        app,  # TODO: or previous app if on End.html
+        app,
         "language",
         default_return=d.LANGUAGE,
         player=player,
