@@ -237,9 +237,14 @@
     color: rgba(var(--bs-uproot-dark-rgb), var(--bs-text-opacity)) !important;
 }
 
-/* main style */
+/* Main style */
 body {
     overflow-y: scroll;
+    /* Harmonize font smoothing across platforms */
+    font-smooth: always;  /* https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-smooth */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
 }
 header {
     margin-bottom: 1em;
