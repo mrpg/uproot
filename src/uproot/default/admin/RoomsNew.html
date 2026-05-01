@@ -11,24 +11,28 @@ New room
 
 {% block titlearea %}
 
-<h2 id="uproot-title" class="fw-semibold my-4">{% translate %}New room{% endtranslate %} <a class="text-body-tertiary link-underline-opacity-0" href="https://uproot.science/running/rooms/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-5"></i></a></h2>
+<h2 id="uproot-title" class="fw-semibold my-4">
+    {% translate %}New room{% endtranslate %}
+    <a class="ms-2 text-body-tertiary link-underline-opacity-0" href="https://uproot.science/running/rooms/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-5"></i></a>
+</h2>
 
 {% endblock titlearea %}
 
 
 {% block main %}
 
-<div class="alert bg-uproot-light border-uproot-light mb-4">
+<div class="alert bg-uproot-light border-uproot-light callout mb-4">
     <p>
         {% translate %}Please note that a room created this way will disappear when you reset the database.{% endtranslate %}
     </p>
     <p class="mb-0">
-        {% translate %}Only rooms defined in your <code class="fs-6">main.py</code> file will be automatically recreated after a database reset.{% endtranslate %}
+        {% translate %}Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.{% endtranslate %}
     </p>
 
 </div>
 
 {% set editing = false %}
+
 {% include "RoomSettingsForm.html" %}
 
 <button type="button" class="btn btn-uproot mt-4" onclick="createRoom()">Create room</button>
