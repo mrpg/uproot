@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import base64
+import csv
+import os
+import tempfile
 from collections import namedtuple
 from decimal import Decimal as cu
 from types import EllipsisType
@@ -39,6 +42,8 @@ class PlayerContext:
 __all__ = [
     "_",
     "add_to_group",
+    "append_to_csv",
+    "read_csv",
     "Admin",
     "Between",
     "Bracket",
@@ -437,6 +442,49 @@ def combine(named_tuples: Sequence[Any]) -> Any:
             ValueTuple(*[getattr(nt, f) for f in fields[1:]]) for nt in named_tuples
         ]
         return ResultTuple(*values)
+
+
+def read_csv(infile: str) -> list[dict[str, str]]:
+    if not os.path.exists(infile):
+        return []
+
+    with open(infile, newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def append_to_csv(outfile: str, data: dict[str, Any]) -> None:
+    existing_rows: list[dict[str, Any]] = []
+    columns: list[str] = []
+
+    if os.path.exists(outfile):
+        with open(outfile, newline="") as f:
+            reader = csv.DictReader(f)
+            columns = list(reader.fieldnames or [])
+            existing_rows = list(reader)
+
+    for key in data:
+        if key not in columns:
+            columns.append(key)
+
+    outfile_dir = os.path.dirname(outfile) or "."
+    tmpname = ""
+
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", newline="", dir=outfile_dir, delete=False
+        ) as f:
+            tmpname = f.name
+            writer = csv.DictWriter(f, fieldnames=columns)
+            writer.writeheader()
+            writer.writerows(existing_rows)
+            writer.writerow(data)
+            f.flush()
+            os.fsync(f.fileno())
+
+        os.replace(tmpname, outfile)
+    finally:
+        if tmpname and os.path.exists(tmpname):
+            os.unlink(tmpname)
 
 
 class Random(t.SmoothOperator):
