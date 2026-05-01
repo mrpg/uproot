@@ -114,6 +114,12 @@
     margin-left: 1px;
 }
 
+/* Override bootstrap.css to make font size of <code> elements match the surrounding text */
+code, .font-monospace {
+    font-size: inherit;
+    font-size-adjust: ex-height 0.54;  /* Match Cascadia Mono to Inter */
+}
+
 /* Extension of the Bootstrap .fs-* classes */
 .fs-sm {
     font-size: small;

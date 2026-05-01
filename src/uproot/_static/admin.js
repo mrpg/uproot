@@ -413,6 +413,10 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         ? "bg-light border-uproot-subtle"
         : "bg-light border-uproot-subtle-light";
 
+    const cardTitleFontClass = groupKey === "configs"
+        ? ""
+        : "font-monospace";
+
     const listGroup = createElement("div", "uproot-pagination");
 
     Object.entries(data[groupKey]).forEach(([key, value]) => {
@@ -426,7 +430,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
         const content = createElement("div", "flex-grow-1 overflow-x-auto");
         const displayKey = key.startsWith("~") ? key.substring(1) : key;
 
-        const title = createElement("div", "font-monospace fw-semibold h5 my-2", {
+        const title = createElement("div", cardTitleFontClass + " fw-semibold h5 my-2", {
             textContent: displayKey
         });
         content.appendChild(title);
