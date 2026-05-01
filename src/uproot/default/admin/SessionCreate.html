@@ -1,4 +1,4 @@
-<div class="row">
+<div class="gx-4-5 row">
     <div class="col-12 col-xl-8 mb-2">
         <div class="form-floating" id="config-select"></div>
     </div>
@@ -20,7 +20,11 @@
     </div>
 </div>
 
-<div class="ps-1" x-data="{automatic: true}">
+<div class="gx-4-5 row">
+
+<div class="col-12 col-xl-8 mb-4">
+
+<div x-data="{automatic: true}">
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="automatic_settings"
             @click="automatic = !automatic; if (automatic) { I('settings').value = ''; }" checked>
@@ -37,7 +41,7 @@
     </div>
 </div>
 
-<div class="ps-1" x-data="{automatic: true}">
+<div x-data="{automatic: true}">
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="automatic_sname"
             @click="automatic = !automatic; if (automatic) { I('sname').value = ''; }" checked>
@@ -54,7 +58,7 @@
     </div>
 </div>
 
-<div class="mb-2 ps-1" x-data="{automatic: true}">
+<div x-data="{automatic: true}">
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="automatic_unames"
             @click="automatic = !automatic; if (automatic) { I('unames').value = ''; }" checked>
@@ -71,14 +75,23 @@
     </div>
 </div>
 
-<div class="ps-1">
+</div>
+
+<div class="col-12 col-xl-4 mb-4">
+
+<div>
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="simulate" name="simulate">
         <label for="simulate">{% translate %}Simulate responses{% endtranslate %}</label>
         <small class="d-block form-text pt-1">
-            {% translate %}If enabled, the app's <code>simulate.js</code> file will run whenever player pages load in this session.{% endtranslate %}
+            {% translate %}If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.{% endtranslate %}
+            {% translate %}This is useful for testing and development purposes.{% endtranslate %}
         </small>
     </div>
+</div>
+
+</div>
+
 </div>
 
 <script>
