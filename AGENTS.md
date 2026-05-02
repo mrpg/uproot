@@ -1,0 +1,3 @@
+- Never run `git add` unless specifically instructed to do so.
+- Examples of how this library is commonly used are available at https://github.com/mrpg/uproot-examples
+- Authors of apps and templates are trusted.
