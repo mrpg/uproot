@@ -13,13 +13,13 @@ import uproot.deployment as d
 import uproot.events as e
 import uproot.queues as q
 import uproot.storage as s
+from uproot.constraints import ensure
 from uproot.types import (
     PlayerIdentifier,
     Sessionname,
     Username,
     Value,
     ensure_awaitable,
-    identify,
     materialize,
     optional_call,
 )
@@ -190,37 +190,30 @@ def try_group(player: s.Storage, show_page: int, group_size: int) -> Optional[st
     Returns:
         Group name if a group was created, None otherwise
     """
-    # Get all players on the same page (not checking group status yet)
     sname = player._uproot_session
-    same_page = here(sname, show_page)
+    ensure(group_size > 0, ValueError, "Group size must be positive")
 
-    # Not enough players available
-    if len(same_page) < group_size:
-        return None
+    with s.Session(sname) as session:
+        same_page = [
+            pid
+            for pid in session._uproot_players
+            if materialize(pid).show_page == show_page
+        ]
 
-    # Verification that players are still valid and ungrouped
-    valid_members = []
-    for pid in same_page:
-        add_to_valid = False
+        if len(same_page) < group_size:
+            return None
 
-        if pid == identify(player):
-            add_to_valid = player._uproot_group is None
-        else:
-            add_to_valid = materialize(pid)._uproot_group is None
+        valid_members = []
+        for pid in same_page:
+            if materialize(pid)._uproot_group is None:
+                valid_members.append(pid)
 
-        if add_to_valid:
-            valid_members.append(pid)
+        if len(valid_members) >= group_size:
+            group_members = valid_members[:group_size]
+            gid = c.create_group(session, group_members, expected_size=group_size)
+            player.refresh("_uproot_group")
 
-    # Still have enough valid players
-    if len(valid_members) >= group_size:
-        # Take exactly group_size members
-        group_members = valid_members[:group_size]
-
-        # Create the group
-        with s.Session(sname) as session:
-            gid = c.create_group(session, group_members)
-
-        return gid.gname
+            return gid.gname
 
     return None
 

@@ -219,6 +219,16 @@ def optional_call_once(
         return default_return
 
     retval = optional_call(obj, attr, default_return=default_return, **kwargs)
+
+    if inspect.iscoroutine(retval):
+
+        async def await_and_mark() -> Any:
+            result = await retval
+            storage._uproot_what_ran.add(hereruns)
+            return result
+
+        return await_and_mark()
+
     storage._uproot_what_ran.add(hereruns)
 
     return retval
@@ -471,7 +481,11 @@ class FrozenPage(type):
             if attr_name in (
                 "all_here",
                 "after_grouping",
-            ) and inspect.iscoroutinefunction(attr_value):
+            ) and inspect.iscoroutinefunction(
+                attr_value.__func__
+                if isinstance(attr_value, classmethod)
+                else attr_value
+            ):
                 raise TypeError(f"Method {name}.{attr_name} must not be async")
 
         klass = super().__new__(cls, name, bases, namespace)
@@ -673,16 +687,17 @@ class GroupCreatingWait(InternalPage):
         )
 
         # Already in a group - don't show page
-        if page.call_after(player):
+        if await page.call_after(player):
             return False
 
         # Try to create a group immediately
         from uproot.jobs import try_group
 
         try_group(player, player.show_page, page.group_size)
+        player.refresh("_uproot_group")
 
         # If grouping succeeded, player now has a group - don't show page
-        if page.call_after(player):
+        if await page.call_after(player):
             return False
 
         # Need to wait for more players
@@ -698,9 +713,10 @@ class GroupCreatingWait(InternalPage):
 
         # Always try to create a group
         try_group(player, player.show_page, page.group_size)
+        player.refresh("_uproot_group")
 
         # Re-check group status after grouping attempt
-        if page.call_after(player):
+        if await page.call_after(player):
             return "submit", 1
 
         # Get fresh count for progress display
@@ -723,23 +739,23 @@ class GroupCreatingWait(InternalPage):
 
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
-        return page.call_after(player)
+        player.refresh("_uproot_group")
+        return await page.call_after(player)
 
     @classmethod
-    def call_after(page, player: "Storage") -> bool:
+    async def call_after(page, player: "Storage") -> bool:
         if player._uproot_group is not None:
             group = player.group
 
             with group:
-                optional_call_once(
+                await ensure_awaitable(
+                    optional_call_once,
                     page,
                     "after_grouping",
                     storage=group,
                     show_page=player.show_page,
                     group=group,
                 )
-
-            # This works because all_here and after_grouping must not be async
 
             return True
         else:

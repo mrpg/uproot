@@ -173,6 +173,40 @@ class TestOptionalCallOnce:
         # Should not be in the ran list after exception
         assert "1:test_method" not in storage._uproot_what_ran
 
+    async def test_async_exception_does_not_mark_as_ran(self):
+        """Test that failing async callbacks are not marked as run."""
+
+        class Obj:
+            async def test_method(self):
+                raise ValueError("test error")
+
+        storage = Mock()
+        storage._uproot_what_ran = set()
+
+        with pytest.raises(ValueError, match="test error"):
+            await optional_call_once(
+                Obj(), "test_method", "default", storage=storage, show_page=1
+            )
+
+        assert "1:test_method" not in storage._uproot_what_ran
+
+    async def test_async_success_marks_as_ran_after_await(self):
+        """Test that successful async callbacks are marked after completion."""
+
+        class Obj:
+            async def test_method(self):
+                return "executed"
+
+        storage = Mock()
+        storage._uproot_what_ran = set()
+
+        result = await optional_call_once(
+            Obj(), "test_method", "default", storage=storage, show_page=1
+        )
+
+        assert result == "executed"
+        assert "1:test_method" in storage._uproot_what_ran
+
 
 class TestStorageBunch:
     """Test the StorageBunch class."""

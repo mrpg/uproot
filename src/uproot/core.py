@@ -112,9 +112,32 @@ def create_group(
     *,
     gname: Optional[str] = None,
     check_unique: bool = True,
+    expected_size: Optional[int] = None,
     overwrite: bool = False,
 ) -> t.GroupIdentifier:
     sname = session.name
+    members_ = list(members)
+
+    ensure(
+        len(set(members_)) == len(members_),
+        ValueError,
+        "Group members must be unique",
+    )
+
+    if expected_size is not None:
+        ensure(
+            len(members_) == expected_size,
+            ValueError,
+            f"Expected group of size {expected_size}, got {len(members_)}",
+        )
+
+    for pid in members_:
+        with t.materialize(pid) as player:
+            ensure(
+                overwrite or player._uproot_group is None,
+                RuntimeError,
+                "Player already belongs to a group and overwrite=False",
+            )
 
     if gname is None:
         gname = t.token(session._uproot_groups)
@@ -130,17 +153,11 @@ def create_group(
     with t.materialize(gid) as group:
         group.gid = gid
         group.id = len(session._uproot_groups)
-        group._uproot_players = list(members)
+        group._uproot_players = members_
         group._uproot_session = t.identify(session)
 
-        for i, pid in enumerate(members):
+        for i, pid in enumerate(members_):
             with t.materialize(pid) as player:
-                ensure(
-                    overwrite or player._uproot_group is None,
-                    RuntimeError,
-                    "Player already belongs to a group and overwrite=False",
-                )
-
                 player._uproot_group = gid
                 player.member_id = i
 
