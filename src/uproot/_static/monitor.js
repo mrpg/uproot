@@ -32,8 +32,8 @@ const monitorState = {
 uproot.onStart(() => {
     createTable("tableOuter");
     loadExtraData();
-    uproot.invoke("subscribe_to_attendance", uproot.vars.sname);
-    uproot.invoke("subscribe_to_fieldchange", uproot.vars.sname, EXTRA_FIELDS);
+    uproot.subscribe("subscribe_to_attendance", uproot.vars.sname);
+    uproot.subscribe("subscribe_to_fieldchange", uproot.vars.sname, EXTRA_FIELDS);
 
     // Initialize Alpine store counts once Alpine is ready
     document.addEventListener("alpine:initialized", () => {

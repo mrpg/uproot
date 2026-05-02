@@ -703,7 +703,7 @@ async def ws(
                         f"Ignored websocket message starting with '{repr(result)[:64]}' (is_admin: {is_admin})"
                     )
 
-        if invoke_respond:
+        if invoke_respond and "future" in result:
             await send_websocket_message(
                 {
                     "kind": "invoke",
@@ -720,6 +720,14 @@ async def ws(
             jj.__name__,
             jj,
         )
+
+    async def cleanup_tasks() -> None:
+        for task in tasks:
+            task.cancel()
+        for task in background_tasks:
+            task.cancel()
+
+        await asyncio.gather(*tasks.keys(), *background_tasks, return_exceptions=True)
 
     while True:
         done, pending = await asyncio.wait(
@@ -770,18 +778,12 @@ async def ws(
                 else:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:
-                for task in tasks:
-                    task.cancel()
-                for task in background_tasks:
-                    task.cancel()
-
-                await asyncio.gather(
-                    *tasks.keys(), *background_tasks, return_exceptions=True
-                )
-
+                await cleanup_tasks()
                 return
-            except Exception as exc:
-                raise exc
+            except Exception:
+                d.LOGGER.exception("Closing player websocket after handler failure")
+                await cleanup_tasks()
+                return
 
             if fname != "from_websocket":
                 new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))

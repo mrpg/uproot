@@ -179,6 +179,12 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 
         tasks[asyncio.create_task(fun(**args[jj.__name__]))] = jj.__name__, jj
 
+    async def cleanup_tasks() -> None:
+        for task in tasks:
+            task.cancel()
+
+        await asyncio.gather(*tasks.keys(), return_exceptions=True)
+
     while True:
         done, pending = await asyncio.wait(
             tasks.keys(), return_when=asyncio.FIRST_COMPLETED
@@ -343,11 +349,11 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                 else:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:
-                for task in tasks:
-                    task.cancel()
-
-                await asyncio.gather(*tasks.keys(), return_exceptions=True)
-
+                await cleanup_tasks()
+                return None
+            except Exception:
+                d.LOGGER.exception("Closing admin websocket after handler failure")
+                await cleanup_tasks()
                 return None
 
             # Re-add new instance of the same task

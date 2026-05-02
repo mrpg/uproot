@@ -222,6 +222,12 @@ async def ws(
             jj,
         )
 
+    async def cleanup_tasks() -> None:
+        for task in tasks:
+            task.cancel()
+
+        await asyncio.gather(*tasks.keys(), return_exceptions=True)
+
     while True:
         done, pending = await asyncio.wait(
             tasks.keys(), return_when=asyncio.FIRST_COMPLETED
@@ -288,14 +294,13 @@ async def ws(
                 # Unlike the main ws, this really means the person went away
                 u.set_offline(pid)
 
-                for task in tasks:
-                    task.cancel()
-
-                await asyncio.gather(*tasks.keys(), return_exceptions=True)
-
+                await cleanup_tasks()
                 return
-            except Exception as exc:
-                raise exc
+            except Exception:
+                d.LOGGER.exception("Closing room websocket after handler failure")
+                u.set_offline(pid)
+                await cleanup_tasks()
+                return
 
             # Re-add new instance of the same task (except one-shot tasks)
             if fname != "subscribe_to_room":

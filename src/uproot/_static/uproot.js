@@ -110,6 +110,7 @@ window.uproot = {
     root: null,
     serverThere: null,
     sname: null,
+    subscriptions: new Map(),
     terms: {},
     testing: false,
     timeout1: null,
@@ -221,6 +222,27 @@ window.uproot = {
         const kwargs = isKwargs ? lastParam : {};
 
         return uproot.api("invoke", { "mname": mname, "args": args, "kwargs": kwargs });
+    },
+
+    subscribe(mname, ...args) {
+        const key = JSON.stringify([mname, args]);
+        this.subscriptions.set(key, { mname, args });
+        this.sendSubscription(mname, args);
+    },
+
+    sendSubscription(mname, args) {
+        const message = JSON.stringify({
+            endpoint: "invoke",
+            payload: { mname, args, kwargs: {} },
+        });
+
+        this.ws.send(message);
+    },
+
+    replaySubscriptions() {
+        for (const { mname, args } of this.subscriptions.values()) {
+            this.sendSubscription(mname, args);
+        }
     },
 
     queueDispatch(u, entry) {
@@ -342,6 +364,10 @@ window.uproot = {
                     window.clearInterval(this.keepAliveInterval);
                 }
                 this.keepAliveInterval = window.setInterval(this.hello, 9000);
+
+                if (this.isInitialized) {
+                    this.replaySubscriptions();
+                }
 
                 this.hello().then(() => {
                     if (!this.isInitialized) {

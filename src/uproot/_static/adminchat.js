@@ -722,7 +722,7 @@ uproot.onStart(() => {
         renderAll();
     });
 
-    uproot.invoke("subscribe_to_adminchat", uproot.vars.sname);
+    uproot.subscribe("subscribe_to_adminchat", uproot.vars.sname);
 
     const search = I("adminchat-search");
 
