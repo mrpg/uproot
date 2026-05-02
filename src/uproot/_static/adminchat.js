@@ -9,6 +9,11 @@ const adminchatState = {
     syncingSelection: false,
 };
 
+const adminchatView = {
+    type: null,
+    key: null,
+};
+
 function adminchatPlayerUrl(uname) {
     return `${uproot.vars.root}/p/${uproot.vars.sname}/${encodeURIComponent(uname)}/`;
 }
@@ -293,6 +298,28 @@ function renderComposer(opts) {
     `;
 }
 
+function buildSinglePlayerHeader(uname, thread) {
+    const player = thread.player;
+    const label = player?.label ? uproot.escape(player.label) : `<span class="text-body-tertiary">${_("No label")}</span>`;
+    const playerId = player?.id != null ? uproot.escape(String(player.id)) : `<span class="text-body-tertiary">&mdash;</span>`;
+
+    return /* SAFE */ `
+        <div class="d-flex align-items-start justify-content-between gap-3">
+            <div>
+                <h4 class="adminchat-player-name mb-1">${uproot.escape(uname)}</h4>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="text-body-secondary">${_("Player ID")}: ${playerId}</span>
+                    <span class="text-body-secondary">${_("Label")}: ${label}</span>
+                    <span class="text-body-secondary font-monospace">${uproot.escape(adminchatPageLabel(player))}</span>
+                </div>
+            </div>
+            <a class="btn btn-outline-uproot btn-sm text-nowrap" href="${adminchatPlayerUrl(uname)}" target="_blank">
+                ${_("Open player page")}
+            </a>
+        </div>
+    `;
+}
+
 function renderSinglePlayerView(uname) {
     const thread = adminchatState.threads[uname];
 
@@ -305,30 +332,11 @@ function renderSinglePlayerView(uname) {
         `;
     }
 
-    const player = thread.player;
     const chatInfo = thread.chat;
-    const label = player?.label ? uproot.escape(player.label) : `<span class="text-body-tertiary">${_("No label")}</span>`;
-    const playerId = player?.id != null ? uproot.escape(String(player.id)) : `<span class="text-body-tertiary">&mdash;</span>`;
 
-    const headerHtml = /* SAFE */ `
-        <div class="adminchat-thread-header">
-            <div class="d-flex align-items-start justify-content-between gap-3">
-                <div>
-                    <h4 class="adminchat-player-name mb-1">${uproot.escape(uname)}</h4>
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <span class="text-body-secondary">${_("Player ID")}: ${playerId}</span>
-                        <span class="text-body-secondary">${_("Label")}: ${label}</span>
-                        <span class="text-body-secondary font-monospace">${uproot.escape(adminchatPageLabel(player))}</span>
-                    </div>
-                </div>
-                <a class="btn btn-outline-uproot btn-sm text-nowrap" href="${adminchatPlayerUrl(uname)}" target="_blank">
-                    ${_("Open player page")}
-                </a>
-            </div>
-        </div>
-    `;
+    const headerHtml = /* SAFE */ `<div class="adminchat-thread-header" id="adminchat-view-header">${buildSinglePlayerHeader(uname, thread)}</div>`;
 
-    const messagesHtml = renderAdminchatMessages(thread);
+    const messagesHtml = /* SAFE */ `<div id="adminchat-view-messages">${renderAdminchatMessages(thread)}</div>`;
 
     const composerHtml = renderComposer({
         targetLabel: uproot.escape(uname),
@@ -378,27 +386,61 @@ function renderMainArea() {
     const selected = Array.from(adminchatState.selectedUnames);
     const focused = adminchatState.focusedUname;
 
+    let desiredType, desiredKey;
+
     if (focused && selected.length <= 1) {
+        desiredType = adminchatState.threads[focused] ? "single" : "loading";
+        desiredKey = focused;
+    } else if (selected.length > 1) {
+        desiredType = "broadcast";
+        desiredKey = selected.slice().sort().join("\0");
+    } else {
+        desiredType = "empty";
+        desiredKey = null;
+    }
+
+    const canPatch = (
+        adminchatView.type === desiredType &&
+        adminchatView.key === desiredKey &&
+        (desiredType === "single" || desiredType === "broadcast")
+    );
+
+    if (canPatch) {
+        if (desiredType === "single") {
+            patchSinglePlayerView(focused);
+        } else {
+            patchBroadcastView(selected);
+        }
+        return;
+    }
+
+    if (desiredType === "single") {
         main.innerHTML = renderSinglePlayerView(focused);
         Alpine.initTree(main);
         scrollTranscript();
         applyReplyToggleState();
-        return;
-    }
-
-    if (selected.length > 1) {
+    } else if (desiredType === "broadcast") {
         main.innerHTML = renderBroadcastView(selected);
         Alpine.initTree(main);
         applyReplyToggleState();
-        return;
+    } else if (desiredType === "loading") {
+        main.innerHTML = /* SAFE */ `
+            <div class="adminchat-empty-state">
+                <div class="spinner-border spinner-border-sm text-uproot mb-3" role="status"></div>
+                <div class="adminchat-empty-title">${_("Loading conversation...")}</div>
+            </div>
+        `;
+    } else {
+        main.innerHTML = /* SAFE */ `
+            <div class="adminchat-empty-state">
+                <div class="adminchat-empty-title">${_("Select a player")}</div>
+                <p class="mb-0">${_("Click a player in the sidebar, or check multiple to broadcast.")}</p>
+            </div>
+        `;
     }
 
-    main.innerHTML = /* SAFE */ `
-        <div class="adminchat-empty-state">
-            <div class="adminchat-empty-title">${_("Select a player")}</div>
-            <p class="mb-0">${_("Click a player in the sidebar, or check multiple to broadcast.")}</p>
-        </div>
-    `;
+    adminchatView.type = desiredType;
+    adminchatView.key = desiredKey;
 }
 
 function scrollTranscript() {
@@ -417,9 +459,107 @@ function applyReplyToggleState() {
     }
 }
 
+function captureAdminchatFocus() {
+    const main = I("adminchat-main");
+    const active = document.activeElement;
+
+    if (!main || !active || !main.contains(active) || !active.id) {
+        return null;
+    }
+
+    return {
+        id: active.id,
+        viewType: adminchatView.type,
+        viewKey: adminchatView.key,
+        selectionStart: typeof active.selectionStart === "number" ? active.selectionStart : null,
+        selectionEnd: typeof active.selectionEnd === "number" ? active.selectionEnd : null,
+    };
+}
+
+function restoreAdminchatFocus(snapshot) {
+    if (
+        !snapshot ||
+        adminchatView.type !== snapshot.viewType ||
+        adminchatView.key !== snapshot.viewKey
+    ) {
+        return;
+    }
+
+    const main = I("adminchat-main");
+    const el = I(snapshot.id);
+
+    if (!main || !el || !main.contains(el)) {
+        return;
+    }
+
+    el.focus({ preventScroll: true });
+
+    if (
+        snapshot.selectionStart !== null &&
+        snapshot.selectionEnd !== null &&
+        typeof el.setSelectionRange === "function"
+    ) {
+        el.setSelectionRange(snapshot.selectionStart, snapshot.selectionEnd);
+    }
+}
+
 function renderAll() {
+    const focusSnapshot = captureAdminchatFocus();
+
     renderInboxSidebar();
     renderMainArea();
+
+    restoreAdminchatFocus(focusSnapshot);
+}
+
+function patchSinglePlayerView(uname) {
+    const thread = adminchatState.threads[uname];
+
+    if (!thread) {
+        return;
+    }
+
+    const headerEl = I("adminchat-view-header");
+
+    if (headerEl) {
+        headerEl.innerHTML = buildSinglePlayerHeader(uname, thread);
+    }
+
+    const messagesEl = I("adminchat-view-messages");
+
+    if (messagesEl) {
+        messagesEl.innerHTML = renderAdminchatMessages(thread);
+        scrollTranscript();
+    }
+
+    const toggle = I("adminchat-replies-toggle");
+
+    if (toggle) {
+        toggle.checked = thread.chat?.enabled ?? false;
+        toggle.indeterminate = false;
+    }
+
+    patchSendButton();
+}
+
+function patchBroadcastView(selected) {
+    const repliesState = adminchatBulkRepliesState(selected);
+    const toggle = I("adminchat-replies-toggle");
+
+    if (toggle) {
+        toggle.checked = repliesState.checked;
+        toggle.indeterminate = repliesState.indeterminate;
+    }
+
+    patchSendButton();
+}
+
+function patchSendButton() {
+    const btn = document.querySelector("#adminchat-main .btn-uproot");
+
+    if (btn) {
+        btn.disabled = adminchatState.sending;
+    }
 }
 
 // ============================================================================

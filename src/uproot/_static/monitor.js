@@ -22,6 +22,7 @@ const monitorState = {
     currentContainer: "tableOuter",
     pendingUpdate: null,       // For debouncing
     activeHeartbeats: new Map(), // uname -> timeoutId (for cleanup)
+    suppressSelectionChanged: false,
     rowHeight: 44
 };
 
@@ -391,26 +392,48 @@ async function doTableUpdate() {
                 const currentSort = monitorState.table.getSorters();
                 const selectedPlayers = getSelectedPlayers();
 
-                createTable(monitorState.currentContainer);
+                try {
+                    monitorState.suppressSelectionChanged = true;
+                    createTable(monitorState.currentContainer);
+                } finally {
+                    monitorState.suppressSelectionChanged = false;
+                }
 
                 if (currentSort.length > 0 || selectedPlayers.length > 0) {
                     monitorState.table.on("tableBuilt", function() {
-                        if (currentSort.length > 0) {
-                            monitorState.table.setSort(currentSort);
+                        try {
+                            monitorState.suppressSelectionChanged = true;
+
+                            if (currentSort.length > 0) {
+                                monitorState.table.setSort(currentSort);
+                            }
+                            restoreSelectedPlayers(selectedPlayers);
+                        } finally {
+                            monitorState.suppressSelectionChanged = false;
                         }
-                        restoreSelectedPlayers(selectedPlayers);
+
+                        emitSelectionChanged();
                     });
+                } else {
+                    emitSelectionChanged();
                 }
             } else {
                 const currentSort = monitorState.table.getSorters();
                 const selectedPlayers = getSelectedPlayers();
 
-                monitorState.table.setData(transformedData);
+                try {
+                    monitorState.suppressSelectionChanged = true;
+                    await monitorState.table.setData(transformedData);
 
-                if (currentSort.length > 0) {
-                    monitorState.table.setSort(currentSort);
+                    if (currentSort.length > 0) {
+                        monitorState.table.setSort(currentSort);
+                    }
+                    restoreSelectedPlayers(selectedPlayers);
+                } finally {
+                    monitorState.suppressSelectionChanged = false;
                 }
-                restoreSelectedPlayers(selectedPlayers);
+
+                emitSelectionChanged();
             }
 
             tableHolder.scrollLeft = scrollPosX;
@@ -440,6 +463,10 @@ function restoreSelectedPlayers(selectedPlayers) {
 }
 
 function emitSelectionChanged() {
+    if (monitorState.suppressSelectionChanged) {
+        return;
+    }
+
     const selected = getSelectedPlayers();
 
     if (window.Alpine && Alpine.store("session")) {
