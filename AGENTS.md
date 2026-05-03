@@ -1,3 +1,6 @@
-- Never run `git add` unless specifically instructed to do so.
+- Never run `git add` or `git restore` unless specifically instructed to do so.
 - Examples of how this library is commonly used are available at https://github.com/mrpg/uproot-examples
 - Authors of apps and templates are trusted.
+- Never start any identifier whatsoever with an underscore.
+- Always feel free to utterly break backwards compatibility. Work with reckless abandon.
+- When asked to review code, output "OK" on a separate line at the end if the code is acceptable.
