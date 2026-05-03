@@ -26,7 +26,7 @@ ADMINS: dict[str, str | EllipsisType] = {}
 ADMINS_HASH: Optional[str] = None
 ADMINS_SECRET_KEY: Optional[str] = None
 
-PASSWORD_HASH_SCHEME = "pbkdf2_sha256"
+PASSWORD_HASH_SCHEME = "pbkdf2_sha256"  # nosec B105
 PASSWORD_HASH_ITERATIONS = 600_000
 PASSWORD_SALT_BYTES = 16
 PASSWORD_KEY_BYTES = 32
