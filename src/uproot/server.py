@@ -31,11 +31,11 @@ from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
 from uproot.server4 import router as router4
+from uproot.services.auth import admin_password_salt, hash_admin_password
 from uproot.storage import Admin
 from uproot.types import (
     ensure_awaitable,
     optional_call,
-    sha256,
 )
 
 MIN_PASSWORD_LENGTH: int = 5
@@ -60,7 +60,7 @@ def normalize_admin_passwords() -> None:
 
     for user, pw in d.ADMINS.items():
         if isinstance(pw, str):
-            d.ADMINS[user] = sha256(f"{user}\n{pw}")
+            d.ADMINS[user] = hash_admin_password(user, pw, admin_password_salt(user))
 
     ADMINS_PASSWORDS_HASHED = True
 

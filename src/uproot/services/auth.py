@@ -14,6 +14,7 @@ from typing import Any, Optional, cast
 
 from fastapi import Header, HTTPException
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from starlette.concurrency import run_in_threadpool
 
 import uproot as u
 import uproot.deployment as d
@@ -24,6 +25,12 @@ import uproot.types as t
 ADMINS: dict[str, str | EllipsisType] = {}
 ADMINS_HASH: Optional[str] = None
 ADMINS_SECRET_KEY: Optional[str] = None
+
+PASSWORD_HASH_SCHEME = "pbkdf2_sha256"
+PASSWORD_HASH_ITERATIONS = 600_000
+PASSWORD_SALT_BYTES = 16
+PASSWORD_KEY_BYTES = 32
+DUMMY_PASSWORD_SALT = b"\0" * PASSWORD_SALT_BYTES
 
 # Login proof-of-work: the client must find a `solution` such that
 # sha256(challenge + ":" + solution) ends in POW_DIFFICULTY (in hex).
@@ -60,6 +67,61 @@ def get_secret_key() -> str:
 def get_serializer() -> URLSafeTimedSerializer:
     """Get configured token serializer."""
     return URLSafeTimedSerializer(get_secret_key())
+
+
+def admin_password_salt(user: str) -> bytes:
+    """Derive a stable per-installation salt for configured plaintext passwords."""
+    return hashlib.sha256(f"uproot-admin-password\0{u.KEY}\0{user}".encode()).digest()[
+        :PASSWORD_SALT_BYTES
+    ]
+
+
+def hash_admin_password(user: str, pw: str, salt: bytes | None = None) -> str:
+    """Hash an admin password using a salted, slow password hash."""
+    if salt is None:
+        salt = secrets.token_bytes(PASSWORD_SALT_BYTES)
+
+    key = hashlib.pbkdf2_hmac(
+        "sha256",
+        f"{user}\n{pw}".encode(),
+        salt,
+        PASSWORD_HASH_ITERATIONS,
+        dklen=PASSWORD_KEY_BYTES,
+    )
+    return (
+        f"{PASSWORD_HASH_SCHEME}${PASSWORD_HASH_ITERATIONS}"
+        f"${salt.hex()}${key.hex()}"
+    )
+
+
+def verify_pbkdf2_admin_password(user: str, pw: str, stored_hash: str) -> bool:
+    try:
+        scheme, iterations_raw, salt_hex, key_hex = stored_hash.split("$", 3)
+        iterations = int(iterations_raw)
+        salt = bytes.fromhex(salt_hex)
+        expected_key = bytes.fromhex(key_hex)
+    except ValueError:
+        return False
+
+    if scheme != PASSWORD_HASH_SCHEME or iterations <= 0 or not expected_key:
+        return False
+
+    candidate_key = hashlib.pbkdf2_hmac(
+        "sha256",
+        f"{user}\n{pw}".encode(),
+        salt,
+        iterations,
+        dklen=len(expected_key),
+    )
+    return hmac.compare_digest(candidate_key, expected_key)
+
+
+def verify_admin_password(user: str, pw: str, stored_hash: str) -> bool:
+    """Verify an admin password against supported password hash formats."""
+    if stored_hash.startswith(f"{PASSWORD_HASH_SCHEME}$"):
+        return verify_pbkdf2_admin_password(user, pw, stored_hash)
+
+    return False
 
 
 def get_active_tokens() -> set[str]:
@@ -124,6 +186,22 @@ def create_token_internal(user: str) -> str:
     return token
 
 
+def admin_credentials_valid(user: str, pw: str) -> bool:
+    if user not in ADMINS or ADMINS[user] is ...:
+        # Do comparable password-hashing work to avoid leaking whether the user
+        # exists via timing differences.
+        hash_admin_password(user, pw, DUMMY_PASSWORD_SALT)
+        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
+        return False
+
+    stored_hash = cast(str, ADMINS[user])
+    if not verify_admin_password(user, pw, stored_hash):
+        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
+        return False
+
+    return True
+
+
 def create_auth_token(user: str, pw: str) -> Optional[str]:
     """Create a new authentication token for a user.
 
@@ -137,16 +215,17 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
     ensure_globals()
 
     # Verify credentials first
-    if user not in ADMINS or ADMINS[user] is ...:
-        # Perform a dummy comparison to avoid leaking whether the user exists
-        # via timing differences
-        hmac.compare_digest("dummy", pw)
-        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
+    if not admin_credentials_valid(user, pw):
         return None
 
-    pw_hash = hashlib.sha256(f"{user}\n{pw}".encode()).hexdigest()
-    if not hmac.compare_digest(cast(str, ADMINS[user]), pw_hash):
-        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
+    return create_token_internal(user)
+
+
+async def create_auth_token_async(user: str, pw: str) -> Optional[str]:
+    """Create an authentication token without blocking the event loop."""
+    ensure_globals()
+
+    if not await run_in_threadpool(admin_credentials_valid, user, pw):
         return None
 
     return create_token_internal(user)

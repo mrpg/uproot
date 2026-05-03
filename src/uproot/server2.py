@@ -442,7 +442,7 @@ async def login_post(
     if not a.verify_pow(pow_challenge, pow_solution, user):
         return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
-    auth_token = a.create_auth_token(user, pw)
+    auth_token = await a.create_auth_token_async(user, pw)
     if auth_token is not None:
         response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
         set_auth_cookie(response, auth_token, secure)
