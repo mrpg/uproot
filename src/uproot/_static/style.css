@@ -115,8 +115,10 @@
 }
 
 /* Override bootstrap.css to make font size of <code> elements match the surrounding text */
+code {
+    font-size: unset;
+}
 code, .font-monospace {
-    font-size: inherit;
     font-size-adjust: ex-height 0.54;  /* Match Cascadia Mono to Inter */
 }
 
