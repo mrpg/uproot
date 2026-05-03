@@ -31,7 +31,7 @@ See [uv installation docs](https://docs.astral.sh/uv/getting-started/installatio
 ### 2. Create a project
 
 ```console
-uv run --with 'uproot-science[dev] @ git+https://github.com/mrpg/uproot.git@main' uproot setup my_project
+uv run --with 'uproot-science @ git+https://github.com/mrpg/uproot.git@main' uproot setup my_project
 ```
 
 ### 3. Run *uproot*
