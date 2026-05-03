@@ -32,6 +32,9 @@ dependencies = [
     "wtforms==3.2.1",
 ]
 
+[tool.uv]
+exclude-newer = "8 days"
+
 [project.urls]
 Homepage = "https://uproot.science/"
 Repository = "https://github.com/mrpg/uproot"
