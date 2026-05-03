@@ -73,6 +73,8 @@ This directory contains an [uproot](https://uproot.science/) project for browser
 
 ## Run locally
 
+Python 3.13 is recommended, but only Python 3.12 or newer is required.
+
 [Install uv](https://docs.astral.sh/uv/getting-started/installation/), then run
 
 ```bash
@@ -337,7 +339,7 @@ if (uproot.currentPage == "#APP#/Results") {
 
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
-PYTHON_VERSION = "3.13\n"
+PYTHON_VERSION = "3.12\n"
 
 PYPROJECT_TOML = """\
 [project]
@@ -346,7 +348,7 @@ version = "0.1.0"
 description = "An uproot-based web application for behavioral science experiments"
 readme = "README.md"
 license = "0BSD"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "uproot-science @ git+https://github.com/mrpg/uproot.git@main",
 ]
