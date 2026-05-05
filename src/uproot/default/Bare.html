@@ -249,7 +249,7 @@
 
         uproot.paginateBlocks();
 
-        if (ui.no_enter) {
+        if (!ui.allow_enter) {
             // disable Enter for form submission
 
             document.querySelectorAll("form").forEach((form) => {
