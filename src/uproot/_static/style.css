@@ -103,7 +103,62 @@
     font-family: var(--bs-font-serif);
 }
 
-/* Adding classes for highlighting, inspired by https://getbootstrap.com/docs/5.3/docsref/#callouts*/
+/* Follow some suggestions by https://www.joshwcomeau.com/css/custom-css-reset/#the-css-reset-1 */
+button, input, select, textarea {
+    font-family: inherit;
+}
+* {
+    text-wrap: pretty;
+}
+
+/* Disambiguation of glyphs for text inputs and textareas */
+input[type=text], textarea {
+    font-variant-alternates:
+        styleset(disambiguation-except-zero, open-digits);
+}
+
+/* Enable slashed zero for input fields where every character counts */
+input[type=email], input[type=file], input[type=password], input[type=url] {
+    font-variant: slashed-zero;
+    font-variant-alternates:
+        styleset(disambiguation-except-zero, open-digits);
+}
+
+/* Inter and various other fonts have proportional figures enabled by default */
+/* We enable tabular figures in tables and particular input fields */
+input[type=date],
+input[type=number],
+span[id^="popover-content-"],
+table, .table {
+    font-variant: tabular-nums;
+    font-variant-alternates:
+        character-variant(lc-l-with-tail, alt-double-s)
+        styleset(open-digits);
+}
+ol li::marker {
+    font-variant: tabular-nums;  /* Probably unnecessary, most browsers’ default behavior */
+}
+.ffs-pnum, .fv-proportional-nums {
+    font-variant: proportional-nums !important;
+    /* Equivalent to font-feature-settings: "pnum" !important; */
+}
+.ffs-tnum, .fv-tabular-nums {
+    font-variant: tabular-nums !important;
+    /* Equivalent to font-feature-settings: "tnum" !important; */
+}
+.ffs-zero, .fv-slashed-zero {
+    font-variant: slashed-zero !important;
+    /* Equivalent to font-feature-settings: "zero" !important; */
+}
+.ffa-disambiguation {
+    font-variant: slashed-zero !important;
+    font-variant-alternates: styleset(disambiguation) !important;
+}
+.ffa-disambiguation-except-zero {
+    font-variant-alternates: styleset(disambiguation-except-zero) !important;
+}
+
+/* Adding classes for highlighting, inspired by https://getbootstrap.com/docs/5.3/docsref/#callouts */
 /* Use in conjunction with utilities like .alert, .bg-*, .border-*, card, etc. */
 .callout {
     border-bottom-width: 0px;
@@ -144,13 +199,13 @@ code, .font-monospace {
     font-weight: 300 !important;  /* Light */
 }
 .fw-350 {
-    font-weight: 350 !important;  /* SemiLight/Book */
+    font-weight: 350 !important;  /* SemiLight/Book (for some fonts, Book is lighter than Normal) */
 }
 .fw-400 {
     font-weight: 400 !important;  /* Normal/Regular */
 }
 .fw-450 {
-    font-weight: 450 !important;  /* Text */
+    font-weight: 450 !important;  /* Book/Text (for some fonts, Book is heavier than Normal) */
 }
 .fw-500 {
     font-weight: 500 !important;  /* Medium */
