@@ -202,6 +202,9 @@ code, .font-monospace {
 .likert-cell {
     min-width: 4ch;
 }
+.uproot-likert-matrix .likert-corner {
+    width: 60%;
+}
 
 /* In-text hyperlink with gray underline that turns black on hover */
 /* See https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css */

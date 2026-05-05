@@ -16,38 +16,41 @@
 
 {% macro likert_matrix() %}
     {% set field0 = varargs.0 %}
-    <table class="table w-100">
-        <tr>
-            <td class="border-0"></td>
-            <td colspan="{{ field0.max - field0.min + 1 }}">
-                <div class="d-flex justify-content-between">
-                    <div>{{ field0.label_min }}</div>
-                    <div>{{ field0.label_max }}</div>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            {% for subfield in field0 %}
-                <td>
-                    {% if field0.render_kw and field0.render_kw.get("class") %}
-                        <div class="{{ field0.render_kw.get('class') }}">
-                    {% else %}
-                        <div class="text-body-tertiary text-center">
-                    {% endif %}
-                    {{ subfield.label(class_="form-check-label me-0") | replace("-", "−") }}
+    <table class="table w-100 uproot-likert-matrix">
+        <thead>
+            <tr class="likert-scale-row">
+                <th class="border-0 likert-corner" aria-hidden="true" scope="col"></th>
+                <th class="likert-scale border-0" colspan="{{ field0.max - field0.min + 1 }}" scope="colgroup">
+                    <div class="d-flex justify-content-between">
+                        <span class="likert-scale-min">{{ field0.label_min }}</span>
+                        <span class="likert-scale-max">{{ field0.label_max }}</span>
                     </div>
-                </td>
-            {% endfor %}
-        </tr>
+                </th>
+            </tr>
+            <tr class="likert-choice-row">
+                <th class="likert-corner" aria-hidden="true" scope="col"></th>
+                {% for subfield in field0 %}
+                    <th class="likert-choice text-center" scope="col">
+                        {% if field0.render_kw and field0.render_kw.get("class") %}
+                            <div class="{{ field0.render_kw.get('class') }}">
+                        {% else %}
+                            <div class="text-body-tertiary text-center">
+                        {% endif %}
+                        {{ subfield.label(class_="form-check-label me-0") | replace("-", "−") }}
+                        </div>
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
         {% for field_ in varargs %}
-            <tr>
-                <td class="ps-0">
-                    {{ field_.label(class_="form-label uproot-form-label") }}
+            <tr class="likert-item-row">
+                <th class="likert-item ps-0" scope="row">
+                    <span class="form-label uproot-form-label">{{ field_.label.text }}</span>
                     {% if field_.description %}
                         <small class="form-text text-body-secondary uproot-form-description">{{ field_.description | safe }}</small>
                     {% endif %}
-                </td>
+                </th>
                 {% for subfield in field_ %}
                     <td class="text-center likert-cell" onclick="this.children[0].click()">
                         {{ subfield(class_="form-check-input", data_uproot_radio="") }}
@@ -55,6 +58,7 @@
                 {% endfor %}
             </tr>
         {% endfor %}
+        </tbody>
     </table>
 {% endmacro %}
 
@@ -131,32 +135,38 @@
                 <small class="form-text mt-2 uproot-form-description">{{ field.description | safe }}</small>
             {% endif %}
         {% elif field.type == "LikertField" %}
-            {{ field.label(class_="form-label uproot-form-label") }}
-            <table class="table w-100">
-                <tr>
-                    <td class="w-10"></td>
-                    {% for subfield in field %}
-                        <td class="text-center w-auto">
-                            {% if field.render_kw and field.render_kw.get("class") %}
-                                <div class="{{ field.render_kw.get('class') }}">
-                            {% else %}
-                                <div class="text-body-tertiary">
-                            {% endif %}
-                                {{ subfield.label(class_="form-check-label me-0") | replace("-", "−") }}
-                            </div>
-                        </td>
-                    {% endfor %}
-                    <td class="w-10"></td>
-                </tr>
-                <tr>
-                    <td class="text-end pe-3 ps-0">{{ field.label_min }}</td>
-                    {% for subfield in field %}
-                        <td class="text-center likert-cell" onclick="this.children[0].click()">
-                            {{ subfield(class_="form-check-input", data_uproot_radio="") }}
-                        </td>
-                    {% endfor %}
-                    <td class="text-start pe-0 ps-3">{{ field.label_max }}</td>
-                </tr>
+            <table class="table w-100 uproot-likert">
+                <caption class="caption-top p-0">
+                    <span class="form-label uproot-form-label">{{ field.label.text }}</span>
+                </caption>
+                <thead>
+                    <tr class="likert-choice-row">
+                        <th class="w-10 likert-corner" aria-hidden="true" scope="col"></th>
+                        {% for subfield in field %}
+                            <th class="likert-choice text-center w-auto" scope="col">
+                                {% if field.render_kw and field.render_kw.get("class") %}
+                                    <div class="{{ field.render_kw.get('class') }}">
+                                {% else %}
+                                    <div class="text-body-tertiary">
+                                {% endif %}
+                                    {{ subfield.label(class_="form-check-label me-0") | replace("-", "−") }}
+                                </div>
+                            </th>
+                        {% endfor %}
+                        <th class="w-10 likert-corner" aria-hidden="true" scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="likert-response-row">
+                        <th class="likert-scale-min text-end pe-3 ps-0" scope="row">{{ field.label_min }}</th>
+                        {% for subfield in field %}
+                            <td class="text-center likert-cell" onclick="this.children[0].click()">
+                                {{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                            </td>
+                        {% endfor %}
+                        <th class="likert-scale-max text-start pe-0 ps-3" scope="row">{{ field.label_max }}</th>
+                    </tr>
+                </tbody>
             </table>
             {% if field.description %}
                 <small class="form-text uproot-form-description">{{ field.description | safe }}</small>
