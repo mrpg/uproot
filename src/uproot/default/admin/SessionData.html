@@ -20,7 +20,14 @@
 
 <h3 class="mb-3">{% translate %}Main data{% endtranslate %}</h3>
 
-<form method="get" action="get/" target="_blank">
+<form method="get" action="get/" target="_blank" x-data="{
+    dataFormat: 'latest',
+    groupVars: [
+        { id: 'group-var-app', value: 'app', example: 'app' },
+        { id: 'group-var-round', value: 'round', example: 'round' },
+    ],
+    nextGroupVarId: 1,
+}">
     <div class="gx-4-5 row">
         <!-- Column 1 -->
         <div class="col-12 col-xl-4 mb-4">
@@ -28,8 +35,8 @@
                 {% translate %}Format{% endtranslate %}
             </h4>
             <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" name="format" id="option1" value="ultralong">
-                <label class="form-check-label" for="option1">{% translate %}Ultra Long{% endtranslate %}</label>
+                <input class="form-check-input" type="radio" name="format" id="format-ultralong" value="ultralong" @change="dataFormat = 'ultralong'">
+                <label class="form-check-label" for="format-ultralong">{% translate %}Ultra Long{% endtranslate %}</label>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Raw event log where every single change to any field becomes its own row.
@@ -37,8 +44,8 @@
                 </div>
             </div>
             <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" name="format" id="option2" value="sparse">
-                <label class="form-check-label" for="option2">{% translate %}Sparse{% endtranslate %}</label>
+                <input class="form-check-input" type="radio" name="format" id="format-sparse" value="sparse" @change="dataFormat = 'sparse'">
+                <label class="form-check-label" for="format-sparse">{% translate %}Sparse{% endtranslate %}</label>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.
@@ -46,8 +53,8 @@
                 </div>
             </div>
             <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" name="format" id="option3" value="latest" checked>
-                <label class="form-check-label" for="option3">{% translate %}Latest{% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
+                <input class="form-check-input" type="radio" name="format" id="format-latest" value="latest" checked @change="dataFormat = 'latest'">
+                <label class="form-check-label" for="format-latest">{% translate %}Latest{% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     One row per player showing their final state: just the last/current value of every field.
@@ -55,31 +62,26 @@
                 </div>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="format" id="option4" value="latest">
-                <label class="form-check-label" for="option4">{% translate %}Latest &times; Field(s){% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
+                <input class="form-check-input" type="radio" name="format" id="format-latest-fields" value="latest" @change="dataFormat = 'latest-fields'">
+                <label class="form-check-label" for="format-latest-fields">{% translate %}Latest &times; Field(s){% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.
                     {% endtranslate %}
                 </div>
-                <div id="customInputs" class="my-4" style="display: none;">
+                <div id="customInputs" class="my-4" style="display: none;" x-show="dataFormat === 'latest-fields'">
                     <div id="inputContainer">
+                        <template x-for="(groupVar, index) in groupVars" :key="groupVar.id">
                         <div class="input-group mb-2">
                             <div class="form-floating">
-                                <input type="text" class="font-monospace form-control" name="gvar" placeholder="{% translate %}e.g.,{% endtranslate %} app" value="app">
-                                <label for="gvar">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace">app</span>)</label>
+                                <input type="text" class="font-monospace form-control" :id="groupVar.id" name="gvar" placeholder="grouping variable" x-model="groupVar.value" disabled :disabled="dataFormat !== 'latest-fields'">
+                                <label :for="groupVar.id">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace" x-text="groupVar.example"></span>)</label>
                             </div>
-                            <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
+                            <button type="button" class="btn btn-outline-danger remove-input" @click="if (groupVars.length > 1) groupVars.splice(index, 1)">{% translate %}Remove{% endtranslate %}</button>
                         </div>
-                        <div class="input-group mb-2">
-                            <div class="form-floating">
-                                <input type="text" class="font-monospace form-control" name="gvar" placeholder="{% translate %}e.g.,{% endtranslate %} round" value="round">
-                                <label for="gvar">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace">round</span>)</label>
-                            </div>
-                            <button type="button" class="btn btn-outline-danger remove-input">{% translate %}Remove{% endtranslate %}</button>
-                        </div>
+                        </template>
                     </div>
-                    <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput">
+                    <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput" @click="nextGroupVarId += 1; groupVars.push({ id: `group-var-extra-${nextGroupVarId}`, value: '', example: 'round' })">
                         <i class="bi bi-plus-lg"></i> {% translate %}Add grouping variable{% endtranslate %}
                     </button>
                 </div>
@@ -109,7 +111,7 @@
             </h4>
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv" checked>
-                <label class="form-check-label" for="option1">CSV</label>
+                <label class="form-check-label" for="filetype-csv">CSV</label>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}CSV is the better choice for spreadsheet applications.{% endtranslate %}
                 </div>
@@ -133,49 +135,3 @@
 <a class="btn btn-outline-uproot" href="../page-times/">{% translate %}Page times{% endtranslate %}</a>
 
 {% endblock main3 %}
-
-
-{% block late %}
-
-<script>
-    const option4 = document.getElementById("option4");
-    const customInputs = document.getElementById("customInputs");
-    const addButton = document.getElementById("addInput");
-    const inputContainer = document.getElementById("inputContainer");
-
-    document.querySelectorAll("input[name='format']").forEach(radio => {
-        radio.addEventListener("change", () => {
-            if (option4.checked) {
-                customInputs.style.display = "block";
-            } else {
-                customInputs.style.display = "none";
-                document.querySelectorAll("input[name='gvar']").forEach(input => {
-                    input.value = "";
-                });
-            }
-        });
-    });
-
-    addButton.addEventListener("click", () => {
-        const inputGroup = document.createElement("div");
-        inputGroup.className = "input-group mb-2";
-        inputGroup.innerHTML = /* SAFE */ `
-            <div class="form-floating">
-                <input type="text" class="font-monospace form-control" name="gvar" placeholder="grouping variable">
-                <label for="gvar">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace">round</span>)</label>
-            </div>
-            <button type="button" class="btn btn-outline-danger remove-input">${_("Remove")}</button>
-        `;
-        inputContainer.appendChild(inputGroup);
-    });
-
-    inputContainer.addEventListener("click", (e) => {
-        if (e.target.classList.contains("remove-input")) {
-            if (inputContainer.children.length > 1) {
-                e.target.parentElement.remove();
-            }
-        }
-    });
-</script>
-
-{% endblock late %}
