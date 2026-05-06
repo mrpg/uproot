@@ -2,8 +2,17 @@ import random
 from datetime import date, datetime, time
 from unittest.mock import patch
 
-from uproot.data import csv_out, json2csv, long_to_wide, noop, value2json
+from uproot.data import (
+    csv_out,
+    json2csv,
+    long_to_wide,
+    noop,
+    player_storage_only,
+    value2json,
+)
+from uproot.services import data_service
 from uproot.stable import decode, encode
+from uproot.types import Value
 
 
 def test_value2json_unavailable():
@@ -95,6 +104,44 @@ def test_long_to_wide_quoted_field():
 
     result = list(long_to_wide(test_data))
     assert result[0]["quoted_field"] == "test_data"
+
+
+def test_player_storage_only():
+    test_data = [
+        {"!storage": "player/session1/p1", "!field": "choice"},
+        {"!storage": "session/session1", "!field": "players"},
+        {"!storage": "group/session1/g1", "!field": "payoff"},
+        {"!storage": "player/session1/p2", "!field": "choice"},
+    ]
+
+    result = list(player_storage_only(test_data))
+
+    assert result == [test_data[0], test_data[3]]
+
+
+def test_generate_data_player_data_only(monkeypatch):
+    session_data = {
+        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
+        ("session", "session1", "players"): [Value(2.0, False, ["p1"], "")],
+    }
+
+    monkeypatch.setattr(
+        data_service,
+        "everything_from_session",
+        lambda sname: session_data,
+    )
+
+    alldata, transformer, transkwargs = data_service.generate_data(
+        "session1",
+        "ultralong",
+        [],
+        False,
+        player_data_only=True,
+    )
+
+    assert transformer is noop
+    assert transkwargs == {}
+    assert [row["!storage"] for row in alldata] == ["player/session1/p1"]
 
 
 def test_csv_out():

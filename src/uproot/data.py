@@ -123,6 +123,12 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
         yield row
 
 
+def player_storage_only(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
+    for row in pm:
+        if row["!storage"].startswith("player/"):
+            yield row
+
+
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: Optional[list[str]] = None
 ) -> Iterator[dict[str, Any]]:

@@ -442,6 +442,9 @@
 ? 'Apply reasonable filters'
 : 'Aplicar filtros razonables'
 
+? 'Restrict export to player data'
+: 'Restringir exportación a datos de jugadores'
+
 ? 'Associate with a particular config'
 : 'Asociar con una configuración particular'
 
@@ -474,6 +477,9 @@
 
 ? 'Copy URLs as plain text'
 : 'Copiar URLs como texto plano'
+
+? 'Exports only data stored on players.'
+: 'Exporta solo filas almacenadas en jugadores.'
 
 ? 'Create groups of size'
 : 'Crear grupos de tamaño'

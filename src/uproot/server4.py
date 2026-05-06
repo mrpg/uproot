@@ -509,6 +509,9 @@ async def download_session_csv(
     ),
     gvar: list[str] = Query(default=[], description="Group-by variables"),
     filters: bool = Query(default=False, description="Apply reasonable filters"),
+    player_data_only: bool = Query(
+        default=False, description="Restrict export to player data"
+    ),
     _bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
     """Download session data as CSV."""
@@ -519,7 +522,7 @@ async def download_session_csv(
             status_code=400, detail="Invalid format. Use: ultralong, sparse, or latest"
         )
 
-    csv_data = a.generate_csv(sname, format, gvar, filters)
+    csv_data = a.generate_csv(sname, format, gvar, filters, player_data_only)
 
     return Response(
         csv_data,
@@ -536,6 +539,9 @@ async def download_session_jsonl(
     ),
     gvar: list[str] = Query(default=[], description="Group-by variables"),
     filters: bool = Query(default=False, description="Apply reasonable filters"),
+    player_data_only: bool = Query(
+        default=False, description="Restrict export to player data"
+    ),
     _bauth: None = Depends(a.require_bearer_token),
 ) -> StreamingResponse:
     """Download session data as JSONL (streaming)."""
@@ -547,7 +553,7 @@ async def download_session_jsonl(
         )
 
     return StreamingResponse(
-        a.generate_jsonl(sname, format, gvar, filters),
+        a.generate_jsonl(sname, format, gvar, filters, player_data_only),
         media_type="application/jsonl",
         headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
     )

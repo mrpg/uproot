@@ -972,13 +972,14 @@ async def session_data_download(
     filetype: str,
     gvar: list[str] = Query(default=[]),
     filters: bool = Query(default=False),
+    player_data_only: bool = Query(default=False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
 
     if filetype == "csv":
         t0 = now()
-        csv = a.generate_csv(sname, format, gvar, filters)
+        csv = a.generate_csv(sname, format, gvar, filters, player_data_only)
 
         # Sanitize session name to prevent log injection
         d.LOGGER.debug(f"generate_csv({sname!r}, ...) took {(now()-t0):5f} seconds")
@@ -990,7 +991,7 @@ async def session_data_download(
         )
     elif filetype == "jsonl":
         return StreamingResponse(
-            a.generate_jsonl(sname, format, gvar, filters),
+            a.generate_jsonl(sname, format, gvar, filters, player_data_only),
             media_type="application/jsonl",
             headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
         )

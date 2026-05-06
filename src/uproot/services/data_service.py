@@ -124,6 +124,7 @@ def generate_data(
     format: str,
     gvar: list[str],
     filters: bool,
+    player_data_only: bool = False,
 ) -> tuple[
     Iterator[dict[str, Any]],
     Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]],
@@ -150,6 +151,9 @@ def generate_data(
 
     alldata = data.partial_matrix(everything_from_session(sname))
 
+    if player_data_only:
+        alldata = data.player_storage_only(alldata)
+
     if filters:
         alldata = data.reasonable_filters(alldata)
 
@@ -161,9 +165,12 @@ def generate_csv(
     format: str,
     gvar: list[str],
     filters: bool,
+    player_data_only: bool = False,
 ) -> str:
     """Generate CSV data for a session."""
-    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
+    alldata, transformer, transkwargs = generate_data(
+        sname, format, gvar, filters, player_data_only
+    )
 
     return data.csv_out(transformer(alldata, **transkwargs))
 
@@ -173,9 +180,12 @@ async def generate_jsonl(
     format: str,
     gvar: list[str],
     filters: bool,
+    player_data_only: bool = False,
 ) -> AsyncGenerator[str, None]:
     """Generate JSONL data for a session as an async generator."""
-    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
+    alldata, transformer, transkwargs = generate_data(
+        sname, format, gvar, filters, player_data_only
+    )
 
     async for chunk in data.jsonl_out(transformer(alldata, **transkwargs)):
         yield chunk
