@@ -168,16 +168,16 @@ def generate_csv(
     return data.csv_out(transformer(alldata, **transkwargs))
 
 
-async def generate_json(
+async def generate_jsonl(
     sname: t.Sessionname,
     format: str,
     gvar: list[str],
     filters: bool,
 ) -> AsyncGenerator[str, None]:
-    """Generate JSON data for a session as an async generator."""
+    """Generate JSONL data for a session as an async generator."""
     alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
 
-    async for chunk in data.json_out(transformer(alldata, **transkwargs)):
+    async for chunk in data.jsonl_out(transformer(alldata, **transkwargs)):
         yield chunk
         await asyncio.sleep(0)
 

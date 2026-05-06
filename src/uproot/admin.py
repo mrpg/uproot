@@ -46,7 +46,7 @@ from uproot.services.data_service import (
     everything_from_session_display,
     generate_csv,
     generate_data,
-    generate_json,
+    generate_jsonl,
     page_times,
 )
 
@@ -160,7 +160,7 @@ __all__ = [
     "everything_from_session_display",
     "generate_csv",
     "generate_data",
-    "generate_json",
+    "generate_jsonl",
     "page_times",
     # Config
     "announcements",

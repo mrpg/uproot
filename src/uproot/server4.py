@@ -528,8 +528,8 @@ async def download_session_csv(
     )
 
 
-@router.get("/session/{sname}/data/json/")
-async def download_session_json(
+@router.get("/session/{sname}/data/jsonl/")
+async def download_session_jsonl(
     sname: str,
     format: str = Query(
         default="ultralong", description="Export format: ultralong, sparse, or latest"
@@ -538,7 +538,7 @@ async def download_session_json(
     filters: bool = Query(default=False, description="Apply reasonable filters"),
     _bauth: None = Depends(a.require_bearer_token),
 ) -> StreamingResponse:
-    """Download session data as JSON (streaming)."""
+    """Download session data as JSONL (streaming)."""
     a.session_exists(sname)
 
     if format not in ("ultralong", "sparse", "latest"):
@@ -547,9 +547,9 @@ async def download_session_json(
         )
 
     return StreamingResponse(
-        a.generate_json(sname, format, gvar, filters),
-        media_type="application/json",
-        headers={"Content-Disposition": f"attachment; filename={sname}.json"},
+        a.generate_jsonl(sname, format, gvar, filters),
+        media_type="application/jsonl",
+        headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
     )
 
 

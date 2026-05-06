@@ -224,21 +224,9 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     return buffer.getvalue()
 
 
-async def json_out(rows: Iterable[dict[str, Any]]) -> AsyncGenerator[str, None]:
-    first = True
-    yield "["
-
+async def jsonl_out(rows: Iterable[dict[str, Any]]) -> AsyncGenerator[str, None]:
     for row in rows:
-        if not first:
-            yield ","
-        else:
-            first = False
-
-        yield "{"
-        yield ",".join(
-            (f'"{k}":{value2json(v, row.get("!unavailable", False))}')
+        yield "{" + ",".join(
+            f'"{k}":{value2json(v, row.get("!unavailable", False))}'
             for k, v in row.items()
-        )
-        yield "}"
-
-    yield "]"
+        ) + "}\n"

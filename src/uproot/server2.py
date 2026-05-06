@@ -988,13 +988,11 @@ async def session_data_download(
             media_type="text/csv",
             headers={"Content-Disposition": f"attachment; filename={sname}.csv"},
         )
-    elif filetype == "json":
-        # Time cannot be trivially measured here as this involves an async generator
-
+    elif filetype == "jsonl":
         return StreamingResponse(
-            a.generate_json(sname, format, gvar, filters),
-            media_type="application/json",
-            headers={"Content-Disposition": f"attachment; filename={sname}.json"},
+            a.generate_jsonl(sname, format, gvar, filters),
+            media_type="application/jsonl",
+            headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
         )
     else:
         raise NotImplementedError
