@@ -1,25 +1,17 @@
 /* Sans-serif font: Inter, https://github.com/rsms/inter/ */
-@import url("vendor/Inter-3.19/InterWeb/inter.css");
+@import url("vendor/Inter-4.1/web/inter.css");
 /* Serif font: IBM Plex Serif, https://github.com/ibm/plex/ */
 @import url("vendor/ibm-plex-serif/css/ibm-plex-serif-all.min.css");
 /* Math font: IBM Plex Math, https://github.com/ibm/plex/ */
 @import url("vendor/ibm-plex-math/css/ibm-plex-math-all.min.css");
 
-/* Font settings for Inter to improve disambiguation of glyphs */
-@font-feature-values "Inter" {
-    @character-variant {
-        inter-l-with-tail: 5;  /* Alias "l-with-tail" points to OpenType feature cv05 (character variant 5) */
-        inter-double-s: 7;  /* German double-s that is more dissimilar from Greek beta (cv07) */
-    }
-    @styleset {
-        inter-open-digits: 1;  /* Alias "open-digits" points to OpenType feature ss01 (style set 1) */
-    }
-}
-:root {
-    font-variant: tabular-nums;
+* {
+    /* Disable contextual alternates, since they may produce unwanted results with Inter (e.g., in “Step 1: ‘Go’” */
+    font-feature-settings: "calt" 0;
+    /* Enable selected features defined in inter.css to improve disambiguation of glyphs */
     font-variant-alternates:
-        character-variant(inter-l-with-tail, inter-double-s)
-        styleset(inter-open-digits);
+        character-variant(lc-l-with-tail, alt-double-s)
+        styleset(open-digits);
 }
 
 /* Monospaced font: Cascadia Mono, https://github.com/microsoft/cascadia-code/ */
@@ -112,6 +104,6 @@
 :root {
     --bs-font-math: "IBM Plex Math", "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", math, serif;
     /* No change to --bs-font-monospace, since "Cascadia Mono" is already included at position 1. */
-    --bs-font-sans-serif: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --bs-font-serif: "IBM Plex Serif", ui-serif, "New York", "Noto Serif", "Liberation Serif", "Times New Roman", Times, Cambria, Georgia, serif;
+    --bs-font-sans-serif: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Roboto", "Helvetica Neue", "Noto Sans", "Liberation Sans", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --bs-font-serif: "IBM Plex Serif", ui-serif, "New York", "Noto Serif", "Liberation Serif", "Times New Roman", "Times", "Cambria", "Georgia", serif;
 }

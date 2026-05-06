@@ -20,4 +20,4 @@ See `pyproject.toml`.
 | [Cascadia Code](https://github.com/microsoft/cascadia-code) | 2407.24 |
 | [IBM Plex Math](https://github.com/IBM/plex) | 1.000 |
 | [IBM Plex Serif](https://github.com/IBM/plex) | 3.001 |
-| [Inter](https://rsms.me/inter/) | 3.19 |
+| [Inter](https://github.com/rsms/inter) | 4.1 |
