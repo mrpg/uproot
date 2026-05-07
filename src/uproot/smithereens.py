@@ -4,8 +4,6 @@
 import base64
 import csv
 import os
-import random
-import secrets
 import tempfile
 from collections import namedtuple
 from decimal import Decimal as cu
@@ -103,16 +101,7 @@ safe = Markup
 SessionIdentifier = t.SessionIdentifier
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
-
-
-def rng() -> random.Random:
-    """
-    Create an independent pseudo-random generator with an OS-random seed.
-
-    The returned object is a normal random.Random instance, so it can be stored
-    on uproot Storage objects and resumed later by the data layer.
-    """
-    return random.Random(secrets.randbits(256))
+rng = t.rng
 
 
 def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
@@ -517,8 +506,6 @@ class Random(t.SmoothOperator):
 
     @classmethod
     async def start(page, player: Storage) -> None:
-        from random import shuffle
-
         # Find the nearest #RandomStart before our position
         start_ix = None
         for i in range(player.show_page, -1, -1):
@@ -576,7 +563,7 @@ class Random(t.SmoothOperator):
                 i += 1
 
         # Shuffle the groups
-        shuffle(grouped_pages)
+        rng().shuffle(grouped_pages)
 
         # Flatten back to page list
         shuffled_pages = []
@@ -740,8 +727,6 @@ class Between(t.SmoothOperator):
 
     @classmethod
     async def start(page, player: Storage) -> None:
-        from random import choice
-
         # Find the nearest #BetweenStart before our position
         start_ix = None
         for i in range(player.show_page, -1, -1):
@@ -806,7 +791,7 @@ class Between(t.SmoothOperator):
             return
 
         # Randomly select exactly one group
-        selected_group = choice(grouped_pages)  # nosec B311
+        selected_group = rng().choice(grouped_pages)
 
         # Record which page was selected (filter out bracket markers)
         selected_page = next((p for p in selected_group if p not in ("#{", "#}")), None)

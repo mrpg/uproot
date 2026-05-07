@@ -1,5 +1,6 @@
 import random
 
+import uproot.types as t
 from uproot.smithereens import rng
 from uproot.stable import decode, encode
 
@@ -8,6 +9,10 @@ def test_rng_returns_random_instance():
     value = rng()
 
     assert isinstance(value, random.Random)
+
+
+def test_rng_is_reexported_from_types():
+    assert rng is t.rng
 
 
 def test_rng_uses_fresh_seed():

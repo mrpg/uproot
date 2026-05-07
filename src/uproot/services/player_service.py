@@ -449,8 +449,6 @@ async def group_players(
     Returns:
         Result dict with info about created/modified groups
     """
-    import random
-
     import uproot.core as c
 
     session_exists(sname, False)
@@ -460,7 +458,7 @@ async def group_players(
 
     # Shuffle players if requested
     if shuffle:
-        random.shuffle(pids)
+        t.rng().shuffle(pids)
 
     result: dict[str, Any] = {"action": action, "players": unames}
 

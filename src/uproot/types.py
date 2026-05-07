@@ -6,6 +6,7 @@ import functools
 import hashlib
 import inspect
 import math
+import random
 import secrets
 import uuid as pyuuid
 from abc import ABC, abstractmethod
@@ -448,6 +449,16 @@ def uuid() -> pyuuid.UUID:
         return cast(pyuuid.UUID, pyuuid.uuid7())
     else:
         return pyuuid.uuid4()
+
+
+def rng() -> random.Random:
+    """
+    Create an independent pseudo-random generator with an OS-random seed.
+
+    The returned object is a normal random.Random instance, so it can be stored
+    on uproot Storage objects and resumed later by the data layer.
+    """
+    return random.Random(secrets.randbits(256))  # nosec B311
 
 
 def longest_common_prefix(strings: list[str]) -> str:
