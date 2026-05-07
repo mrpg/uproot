@@ -132,9 +132,6 @@ def player_storage_only(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: Optional[list[str]] = None
 ) -> Iterator[dict[str, Any]]:
-    # WITHIN-ADJACENT
-    # This function should stay algorithmically close to latest() in viewdata.js.
-
     if group_by_fields is None:
         group_by_fields = []
 
@@ -157,6 +154,7 @@ def latest(
         # Build state evolution and track all seen combinations
         current_state: dict[str, dict[str, Any]] = {}
         seen_combinations: dict[str, dict[str, Any]] = {}
+        latest_state: dict[str, Any] | None = None
 
         for change in changes:
             field = change["!field"]
@@ -166,6 +164,14 @@ def latest(
                 "unavailable": change["!unavailable"],
                 "time": change["!time"],
             }
+
+            state_snapshot = {"!storage": storage, "!time": change["!time"]}
+
+            for f, field_state in current_state.items():
+                if not field_state["unavailable"]:
+                    state_snapshot[f] = field_state["data"]
+
+            latest_state = state_snapshot
 
             if group_by_fields:
                 # Check if all group_by_fields exist and are available
@@ -180,30 +186,18 @@ def latest(
                     combination_values.append(current_state[gf]["data"])
 
                 if all_fields_valid:
-                    # Create snapshot of current state. Every field with a non-unavailable
-                    # latest value is included, whether it was set before or after the
-                    # group-by fields — the group-by fields merely gate *when* we record a
-                    # snapshot, not which fields that snapshot carries.
                     combination_key = repr(tuple(combination_values))
-                    state_snapshot = {"!storage": storage, "!time": change["!time"]}
-
-                    for f, field_state in current_state.items():
-                        if not field_state["unavailable"]:
-                            state_snapshot[f] = field_state["data"]
 
                     # Update latest state for this combination
                     seen_combinations[combination_key] = state_snapshot
             else:
                 # No grouping - track single latest state
-                state_snapshot = {"!storage": storage, "!time": change["!time"]}
-
-                for f, field_state in current_state.items():
-                    if not field_state["unavailable"]:
-                        state_snapshot[f] = field_state["data"]
-
                 seen_combinations[""] = state_snapshot
 
         # Yield all tracked combinations
+        if group_by_fields and latest_state is not None and not seen_combinations:
+            yield latest_state
+
         yield from seen_combinations.values()
 
 

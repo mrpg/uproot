@@ -5,6 +5,7 @@ from unittest.mock import patch
 from uproot.data import (
     csv_out,
     json2csv,
+    latest,
     long_to_wide,
     noop,
     player_storage_only,
@@ -117,6 +118,162 @@ def test_player_storage_only():
     result = list(player_storage_only(test_data))
 
     assert result == [test_data[0], test_data[3]]
+
+
+def test_latest_with_group_by_keeps_storage_without_group_field():
+    test_data = [
+        {
+            "!storage": "session/session1",
+            "!field": "apps",
+            "!time": 1.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": ["app1"],
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!field": "round",
+            "!time": 2.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": 1,
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!field": "choice",
+            "!time": 3.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": "A",
+        },
+    ]
+
+    result = list(latest(test_data, group_by_fields=["round"]))
+
+    assert result == [
+        {"!storage": "session/session1", "!time": 1.0, "apps": ["app1"]},
+        {
+            "!storage": "player/session1/p1",
+            "!time": 3.0,
+            "round": 1,
+            "choice": "A",
+        },
+    ]
+
+
+def test_latest_with_group_by_keeps_player_before_first_group_value():
+    test_data = [
+        {
+            "!storage": "player/session1/p1",
+            "!field": "choice",
+            "!time": 1.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": "A",
+        }
+    ]
+
+    result = list(latest(test_data, group_by_fields=["round"]))
+
+    assert result == [
+        {"!storage": "player/session1/p1", "!time": 1.0, "choice": "A"}
+    ]
+
+
+def test_latest_with_group_by_keeps_fields_from_before_group_value():
+    test_data = [
+        {
+            "!storage": "player/session1/p1",
+            "!field": "treatment",
+            "!time": 1.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": "high",
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!field": "round",
+            "!time": 2.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": 1,
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!field": "choice",
+            "!time": 3.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": "A",
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!field": "round",
+            "!time": 4.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": 2,
+        },
+    ]
+
+    result = list(latest(test_data, group_by_fields=["round"]))
+
+    assert result == [
+        {
+            "!storage": "player/session1/p1",
+            "!time": 3.0,
+            "treatment": "high",
+            "round": 1,
+            "choice": "A",
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!time": 4.0,
+            "treatment": "high",
+            "round": 2,
+            "choice": "A",
+        },
+    ]
+
+
+def test_latest_with_group_by_does_not_emit_extra_row_after_group_unavailable():
+    test_data = [
+        {
+            "!storage": "player/session1/p1",
+            "!field": "round",
+            "!time": 1.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": 1,
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!field": "choice",
+            "!time": 2.0,
+            "!context": "",
+            "!unavailable": False,
+            "!data": "A",
+        },
+        {
+            "!storage": "player/session1/p1",
+            "!field": "round",
+            "!time": 3.0,
+            "!context": "",
+            "!unavailable": True,
+            "!data": None,
+        },
+    ]
+
+    result = list(latest(test_data, group_by_fields=["round"]))
+
+    assert result == [
+        {
+            "!storage": "player/session1/p1",
+            "!time": 2.0,
+            "round": 1,
+            "choice": "A",
+        }
+    ]
 
 
 def test_generate_data_player_data_only(monkeypatch):
