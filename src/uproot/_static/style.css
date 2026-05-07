@@ -103,11 +103,26 @@
     font-family: var(--bs-font-serif);
 }
 
-/* Follow some suggestions by https://www.joshwcomeau.com/css/custom-css-reset/#the-css-reset-1 */
+/* Follow a suggestion by https://www.joshwcomeau.com/css/custom-css-reset/#the-css-reset-1 */
 button, input, select, textarea {
     font-family: inherit;
 }
+
 * {
+    /* Enable selected features defined in inter.css to improve disambiguation of glyphs */
+    font-variant-alternates:
+        character-variant(lc-l-with-tail, alt-double-s)
+        styleset(open-digits);
+    /* Disable contextual alternates, since they may produce unwanted results with Inter (e.g., in “Step 1: ‘Go’” */
+    font-feature-settings: "calt" 0;
+    /* Settings related to number formatting */
+    font-variant-numeric:
+        var(--fvn-figure-style,)
+        var(--fvn-spacing, proportional-nums)
+        var(--fvn-fractions,)
+        var(--fvn-zero,)
+        var(--fvn-alt,);
+    /* Follow a suggestion by https://www.joshwcomeau.com/css/custom-css-reset/#the-css-reset-1 */
     text-wrap: pretty;
 }
 
@@ -119,7 +134,7 @@ input[type=text], textarea {
 
 /* Enable slashed zero for input fields where every character counts */
 input[type=email], input[type=file], input[type=password], input[type=url] {
-    font-variant: slashed-zero;
+    font-variant-numeric: slashed-zero;
     font-variant-alternates:
         styleset(disambiguation-except-zero, open-digits);
 }
@@ -129,29 +144,37 @@ input[type=email], input[type=file], input[type=password], input[type=url] {
 input[type=date],
 input[type=number],
 span[id^="popover-content-"],
-table, .table {
-    font-variant: tabular-nums;
+td, th, *[style*="table-cell"], .d-table-cell {
+    --fvn-spacing: tabular-nums;
     font-variant-alternates:
         character-variant(lc-l-with-tail, alt-double-s)
         styleset(open-digits);
 }
 ol li::marker {
-    font-variant: tabular-nums;  /* Probably unnecessary, most browsers’ default behavior */
+    --fvn-spacing: tabular-nums;  /* Probably unnecessary, most browsers’ default behavior */
 }
-.ffs-pnum, .fv-proportional-nums {
-    font-variant: proportional-nums !important;
+.ffs-lnum, .fvn-lining-nums {
+    --fvn-figure-style: lining-nums !important;
+    /* Equivalent to font-feature-settings: "lnum" !important; */
+}
+.ffs-onum, .fvn-oldstyle-nums {
+    --fvn-figure-style: oldstyle-nums !important;
+    /* Equivalent to font-feature-settings: "onum" !important; */
+}
+.ffs-pnum, .fvn-proportional-nums {
+    --fvn-spacing: proportional-nums !important;
     /* Equivalent to font-feature-settings: "pnum" !important; */
 }
-.ffs-tnum, .fv-tabular-nums {
-    font-variant: tabular-nums !important;
+.ffs-tnum, .fvn-tabular-nums {
+    --fvn-spacing: tabular-nums !important;
     /* Equivalent to font-feature-settings: "tnum" !important; */
 }
-.ffs-zero, .fv-slashed-zero {
-    font-variant: slashed-zero !important;
+.ffs-zero, .fvn-slashed-zero {
+    --fvn-zero: slashed-zero !important;
     /* Equivalent to font-feature-settings: "zero" !important; */
 }
 .ffa-disambiguation {
-    font-variant: slashed-zero !important;
+    --fvn-zero: slashed-zero !important;
     font-variant-alternates: styleset(disambiguation) !important;
 }
 .ffa-disambiguation-except-zero {

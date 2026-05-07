@@ -5,15 +5,6 @@
 /* Math font: IBM Plex Math, https://github.com/ibm/plex/ */
 @import url("vendor/ibm-plex-math/css/ibm-plex-math-all.min.css");
 
-* {
-    /* Disable contextual alternates, since they may produce unwanted results with Inter (e.g., in “Step 1: ‘Go’” */
-    font-feature-settings: "calt" 0;
-    /* Enable selected features defined in inter.css to improve disambiguation of glyphs */
-    font-variant-alternates:
-        character-variant(lc-l-with-tail, alt-double-s)
-        styleset(open-digits);
-}
-
 /* Monospaced font: Cascadia Mono, https://github.com/microsoft/cascadia-code/ */
 @font-face {
     font-family: "Cascadia Mono";
