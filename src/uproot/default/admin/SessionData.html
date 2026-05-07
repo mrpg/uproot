@@ -10,7 +10,12 @@
         <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
         <span class="fw-light text-secondary">&gt; {% translate %}Download data{% endtranslate %}</span>
     </h2>
-    <a class="btn btn-uproot my-1" href="../viewdata/">{% translate %}View data{% endtranslate %}</a>
+    <div class="d-flex flex-wrap gap-2">
+        {% if has_pipelines %}
+        <a class="btn btn-outline-uproot my-1" href="../pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
+        {% endif %}
+        <a class="btn btn-uproot my-1" href="../viewdata/">{% translate %}View data{% endtranslate %}</a>
+    </div>
 </div>
 
 {% endblock titlearea %}

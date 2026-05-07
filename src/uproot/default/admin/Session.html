@@ -14,6 +14,9 @@
         {% if has_digest %}
         <a class="btn btn-outline-uproot my-1" href="digest/">{% translate %}Digest{% endtranslate %}</a>
         {% endif %}
+        {% if has_pipelines %}
+        <a class="btn btn-outline-uproot my-1" href="pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
+        {% endif %}
         <div class="btn-group my-1">
             <a class="btn btn-uproot" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
             <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>

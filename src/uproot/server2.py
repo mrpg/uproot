@@ -853,7 +853,11 @@ async def sessionmain(
             await render(
                 "Session.html",
                 {"sname": sname, "room": session.room} | await a.info_online(sname),
-                {"session": session, "has_digest": bool(a.get_digest(sname))},
+                {
+                    "session": session,
+                    "has_digest": bool(a.get_digest(sname)),
+                    "has_pipelines": bool(a.get_pipelines(sname)),
+                },
             )
         )
 
@@ -885,7 +889,12 @@ async def session_data(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    return HTMLResponse(await render("SessionData.html", {"sname": sname}))
+    return HTMLResponse(
+        await render(
+            "SessionData.html",
+            {"sname": sname, "has_pipelines": bool(a.get_pipelines(sname))},
+        )
+    )
 
 
 # Particular session: page times
@@ -963,6 +972,23 @@ async def session_digest(
     )
 
 
+# Particular session: pipeline
+@router.get("/session/{sname}/pipelines/")
+async def session_pipeline(
+    request: Request,
+    sname: t.Sessionname,
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.session_exists(sname)
+
+    available = a.get_pipelines(sname)
+    ensure(bool(available), ValueError, "No pipeline available")
+
+    return HTMLResponse(
+        await render("SessionPipelines.html", {"sname": sname, "apps": available})
+    )
+
+
 # Particular session: get data
 @router.get("/session/{sname}/data/get/")
 async def session_data_download(
@@ -1007,7 +1033,12 @@ async def session_viewdata(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
-    return HTMLResponse(await render("SessionViewdata.html", {"sname": sname}))
+    return HTMLResponse(
+        await render(
+            "SessionViewdata.html",
+            {"sname": sname, "has_pipelines": bool(a.get_pipelines(sname))},
+        )
+    )
 
 
 # Particular session: view multiple players’ screens

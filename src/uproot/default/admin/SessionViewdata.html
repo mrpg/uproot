@@ -27,7 +27,10 @@
                 </li>
             </ul>
         </div>
-        <div id="buttons-normal-table">
+        <div class="d-flex flex-wrap gap-2" id="buttons-normal-table">
+            {% if has_pipelines %}
+            <a class="btn btn-outline-uproot my-1" href="../pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
+            {% endif %}
             <a class="btn btn-uproot my-1" href="../data/">{% translate %}Download data{% endtranslate %}</a>
         </div>
     </div>

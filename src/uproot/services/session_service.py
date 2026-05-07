@@ -112,3 +112,11 @@ def get_digest(sname: t.Sessionname) -> list[str]:
         apps = session.apps
 
     return [appname for appname in apps if hasattr(u.APPS[appname], "digest")]
+
+
+def get_pipelines(sname: t.Sessionname) -> list[str]:
+    """Get list of apps that have pipeline methods for a session."""
+    with s.Session(sname) as session:
+        apps = session.apps
+
+    return [appname for appname in apps if hasattr(u.APPS[appname], "pipeline")]
