@@ -4,6 +4,8 @@
 import base64
 import csv
 import os
+import random
+import secrets
 import tempfile
 from collections import namedtuple
 from decimal import Decimal as cu
@@ -77,6 +79,7 @@ __all__ = [
     "reload",
     "Repeat",
     "Rounds",
+    "rng",
     "safe",
     "send_to",
     "send_to_one",
@@ -100,6 +103,16 @@ safe = Markup
 SessionIdentifier = t.SessionIdentifier
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
+
+
+def rng() -> random.Random:
+    """
+    Create an independent pseudo-random generator with an OS-random seed.
+
+    The returned object is a normal random.Random instance, so it can be stored
+    on uproot Storage objects and resumed later by the data layer.
+    """
+    return random.Random(secrets.randbits(256))
 
 
 def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
