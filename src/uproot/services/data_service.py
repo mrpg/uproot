@@ -175,6 +175,36 @@ def generate_csv(
     return data.csv_out(transformer(alldata, **transkwargs))
 
 
+def is_custom_data_export(value: Any) -> bool:
+    """Return whether a pipeline value can be exported as tabular rows."""
+    return isinstance(value, list) and all(
+        isinstance(row, dict) and all(isinstance(key, str) for key in row)
+        for row in value
+    )
+
+
+def generate_custom_csv(rows: list[dict[str, Any]]) -> str:
+    return data.csv_out(rows)
+
+
+async def generate_custom_jsonl(
+    rows: list[dict[str, Any]],
+) -> AsyncGenerator[str, None]:
+    async for chunk in data.jsonl_out(rows):
+        yield chunk
+        await asyncio.sleep(0)
+
+
+def pipeline_result_display(value: Any) -> str:
+    if isinstance(value, str):
+        return value
+
+    try:
+        return data.value2json(value)
+    except Exception:
+        return str(value)
+
+
 async def generate_jsonl(
     sname: t.Sessionname,
     format: str,

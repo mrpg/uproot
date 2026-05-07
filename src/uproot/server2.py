@@ -989,6 +989,52 @@ async def session_pipeline(
     )
 
 
+@router.get("/session/{sname}/pipelines/{appname}/run/")
+async def session_pipeline_run(
+    request: Request,
+    sname: t.Sessionname,
+    appname: str,
+    filetype: str = Query(default="csv"),
+    auth: dict[str, Any] = Depends(auth_required),
+) -> Response:
+    a.session_exists(sname)
+
+    ensure(appname in a.get_pipelines(sname), ValueError, "No pipeline available")
+    app = u.APPS[appname]
+
+    with Session(sname) as session:
+        rval = await ensure_awaitable(app.pipeline, session=session)
+
+    if not a.is_custom_data_export(rval):
+        return PlainTextResponse(a.pipeline_result_display(rval))
+
+    rows = cast(list[dict[str, Any]], rval)
+    filename = f"{sname}-{appname}"
+
+    ensure(
+        filetype
+        in (
+            "csv",
+            "json",
+        ),
+        ValueError,
+        "Invalid filetype",
+    )
+
+    if filetype == "csv":
+        return Response(
+            a.generate_custom_csv(rows),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
+        )
+    else:
+        return StreamingResponse(
+            a.generate_custom_jsonl(rows),
+            media_type="application/jsonl",
+            headers={"Content-Disposition": f"attachment; filename={filename}.jsonl"},
+        )
+
+
 # Particular session: get data
 @router.get("/session/{sname}/data/get/")
 async def session_data_download(

@@ -2,9 +2,12 @@ import random
 from datetime import date, datetime, time
 from unittest.mock import patch
 
+import orjson as json
+
 from uproot.data import (
     csv_out,
     json2csv,
+    jsonl_out,
     latest,
     long_to_wide,
     noop,
@@ -175,9 +178,7 @@ def test_latest_with_group_by_keeps_player_before_first_group_value():
 
     result = list(latest(test_data, group_by_fields=["round"]))
 
-    assert result == [
-        {"!storage": "player/session1/p1", "!time": 1.0, "choice": "A"}
-    ]
+    assert result == [{"!storage": "player/session1/p1", "!time": 1.0, "choice": "A"}]
 
 
 def test_latest_with_group_by_keeps_fields_from_before_group_value():
@@ -327,6 +328,45 @@ def test_csv_out_empty():
     result = csv_out([])
     # Empty CSV still has a header line when no fields are present
     assert result.strip() == ""
+
+
+async def test_jsonl_out_escapes_row_keys():
+    row = {
+        'choice "A"': "x\ny",
+        "slash\\key": {"nested": True},
+        "tab\tkey": [1, 2, 3],
+    }
+    chunks = [chunk async for chunk in jsonl_out([row])]
+
+    assert len(chunks) == 1
+    assert json.loads(chunks[0]) == row
+
+
+def test_is_custom_data_export_accepts_list_of_str_keyed_dicts():
+    assert data_service.is_custom_data_export([])
+    assert data_service.is_custom_data_export([{"a": 1}, {"b": 2}])
+
+
+def test_is_custom_data_export_rejects_non_row_values():
+    assert not data_service.is_custom_data_export({"a": 1})
+    assert not data_service.is_custom_data_export([{"a": 1}, "bad"])
+    assert not data_service.is_custom_data_export([{1: "bad"}])
+
+
+def test_generate_custom_csv():
+    result = data_service.generate_custom_csv([{"a": "x", "b": 2}])
+    assert result == "a,b\r\nx,2\r\n"
+
+
+async def test_generate_custom_jsonl():
+    rows = [{"a": "x", "b": 2}]
+    chunks = [chunk async for chunk in data_service.generate_custom_jsonl(rows)]
+    assert chunks == ['{"a":"x","b":2}\n']
+
+
+def test_pipeline_result_display():
+    assert data_service.pipeline_result_display("hello") == "hello"
+    assert data_service.pipeline_result_display({"a": 1}) == '{"a":1}'
 
 
 def test_stable_encode_decode_date():

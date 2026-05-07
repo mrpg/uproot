@@ -45,9 +45,13 @@ from uproot.services.data_service import (
     everything_from_session,
     everything_from_session_display,
     generate_csv,
+    generate_custom_csv,
+    generate_custom_jsonl,
     generate_data,
     generate_jsonl,
+    is_custom_data_export,
     page_times,
+    pipeline_result_display,
 )
 
 # Re-export from player service
@@ -160,10 +164,14 @@ __all__ = [
     "data_display",
     "everything_from_session",
     "everything_from_session_display",
+    "generate_custom_csv",
+    "generate_custom_jsonl",
     "generate_csv",
     "generate_data",
     "generate_jsonl",
+    "is_custom_data_export",
     "page_times",
+    "pipeline_result_display",
     # Config
     "announcements",
     "config_summary",
