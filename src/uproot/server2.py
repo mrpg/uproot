@@ -1015,7 +1015,7 @@ async def session_pipeline_run(
         filetype
         in (
             "csv",
-            "json",
+            "jsonl",
         ),
         ValueError,
         "Invalid filetype",
