@@ -5,7 +5,6 @@
 
 import hashlib
 import hmac
-import secrets
 import time
 from collections import OrderedDict
 from datetime import datetime, timezone
@@ -79,7 +78,7 @@ def admin_password_salt(user: str) -> bytes:
 def hash_admin_password(user: str, pw: str, salt: bytes | None = None) -> str:
     """Hash an admin password using a salted, slow password hash."""
     if salt is None:
-        salt = secrets.token_bytes(PASSWORD_SALT_BYTES)
+        salt = t.rng().randbytes(PASSWORD_SALT_BYTES)
 
     key = hashlib.pbkdf2_hmac(
         "sha256",
@@ -171,7 +170,7 @@ def create_token_internal(user: str) -> str:
     token_data = {
         "user": user,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "nonce": secrets.token_hex(16),  # Prevent token reuse across sessions
+        "nonce": t.rng().randbytes(16).hex(),  # Prevent token reuse across sessions
     }
 
     # Sign the token
@@ -410,7 +409,7 @@ def make_pow_challenge() -> tuple[str, str]:
     The difficulty is the hex suffix the client must hit.
     """
     ensure_globals()
-    nonce = secrets.token_hex(16)
+    nonce = t.rng().randbytes(16).hex()
     ts = int(time.time())
     secret = cast(str, ADMINS_SECRET_KEY).encode()
     sig = hmac.new(secret, f"{nonce}:{ts}".encode(), hashlib.sha256).hexdigest()

@@ -386,9 +386,10 @@ def noop(s: str) -> str:
 def token_unchecked(outlen: int) -> str:
     """This function generates a random Python identifier."""
     ensure(outlen > 0, ValueError, "Output length must be positive")
+    generator = rng()
 
-    return secrets.choice(ascii_lowercase) + "".join(
-        secrets.choice(ALPHANUMERIC) for _ in range(outlen - 1)
+    return generator.choice(ascii_lowercase) + "".join(
+        generator.choice(ALPHANUMERIC) for _ in range(outlen - 1)
     )
 
 
