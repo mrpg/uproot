@@ -15,6 +15,13 @@
     --bs-uproot-dark-rgb: 48, 12, 85;
 }
 
+/* Make body text black in light theme (instead of Bootstrap’s default #212529) */
+:root,
+[data-bs-theme=light] {
+    --bs-body-color: var(--bs-black, #000);
+    --bs-body-color-rgb: var(--bs-black-rgb, 0, 0, 0);
+}
+
 .bg-uproot {
     background-color: var(--bs-uproot) !important;
 }
