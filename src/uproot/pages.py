@@ -27,6 +27,7 @@ from uproot.types import (
     InternalPage,
     Page,
     ensure_awaitable,
+    materialize,
     optional_call,
 )
 
@@ -291,7 +292,7 @@ async def render_error(
     sname, uname, session = (
         player._uproot_session,
         player.name,
-        player._uproot_session(),
+        materialize(player._uproot_session),
     )
 
     data = a.from_cookie(uauth)
