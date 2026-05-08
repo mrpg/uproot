@@ -32,7 +32,8 @@ PASSWORD_KEY_BYTES = 32
 DUMMY_PASSWORD_SALT = b"\0" * PASSWORD_SALT_BYTES
 
 # Login proof-of-work: the client must find a `solution` such that
-# sha256(challenge + ":" + solution) ends in POW_DIFFICULTY (in hex).
+# sha256(challenge + ":" + user + ":" + solution) ends in POW_DIFFICULTY
+# (in hex).
 # Challenges are server-signed with the admin secret key, short-lived,
 # and single-use (tracked in POW_USED).  This replaces time-based login
 # rate limiting: each password guess costs the attacker ~2**(4*len(POW_DIFFICULTY))
