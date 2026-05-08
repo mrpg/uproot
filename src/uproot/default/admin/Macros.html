@@ -58,3 +58,24 @@
     {{ _("player(s)") }}</b>.
 </p>
 {% endmacro %}
+
+{#
+    JSON-like input textarea. Values are parsed by callers with
+    uproot.looseJSONtoJSON() when JavaScript-expression input is allowed.
+#}
+{% macro json_input(_, id, label, rows=10, value="", help_text=None, placeholder="JSON") %}
+<div class="mb-3">
+    <label class="form-label" for="{{ id }}">{{ label }}</label>
+    <textarea
+        class="form-control h-auto font-monospace"
+        id="{{ id }}"
+        rows="{{ rows }}"
+        placeholder="{{ placeholder }}"
+    >{{ value }}</textarea>
+</div>
+{% if help_text %}
+<small class="d-block form-text">
+    {{ help_text }}
+</small>
+{% endif %}
+{% endmacro %}

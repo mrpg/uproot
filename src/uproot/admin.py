@@ -88,11 +88,14 @@ from uproot.services.room_service import (
 
 # Re-export from session service
 from uproot.services.session_service import (
+    PipelineInvocationError,
     flip_active,
     flip_testing,
     get_digest,
     get_pipelines,
+    pipeline_call_kwargs,
     run_new_session,
+    run_pipeline,
     session_exists,
     sessions,
     update_description,
@@ -124,10 +127,13 @@ __all__ = [
     "verify_bearer_token",
     "verify_pow",
     # Session
+    "PipelineInvocationError",
     "flip_active",
     "flip_testing",
     "get_digest",
     "get_pipelines",
+    "pipeline_call_kwargs",
+    "run_pipeline",
     "run_new_session",
     "session_exists",
     "sessions",

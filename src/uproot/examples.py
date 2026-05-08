@@ -226,6 +226,8 @@ class Results(Page):
 
 def pipeline(session):
     # OPTIONAL. This function allows you define a custom data export.
+    # You can also define pipeline(session, data=None) to receive optional JSON data
+    # from the admin pipeline runner.
 
     rows = []
 

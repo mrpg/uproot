@@ -3,6 +3,7 @@
 
 """Session management service."""
 
+import inspect
 from typing import Any
 
 from fastapi import HTTPException
@@ -11,6 +12,11 @@ import uproot as u
 import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
+from uproot.types import ensure_awaitable
+
+
+class PipelineInvocationError(TypeError):
+    pass
 
 
 def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
@@ -120,3 +126,72 @@ def get_pipelines(sname: t.Sessionname) -> list[str]:
         apps = session.apps
 
     return [appname for appname in apps if hasattr(u.APPS[appname], "pipeline")]
+
+
+def pipeline_call_kwargs(
+    pipeline: Any, data: Any, data_was_provided: bool
+) -> dict[str, Any]:
+    """Return validated optional keyword arguments for a pipeline callable."""
+    try:
+        params = inspect.signature(pipeline).parameters
+    except (TypeError, ValueError):
+        if data_was_provided:
+            raise PipelineInvocationError(
+                "Cannot pass pipeline data to a callable with no signature"
+            )
+        return {}
+
+    accepts_arbitrary_kwargs = any(
+        param.kind is inspect.Parameter.VAR_KEYWORD for param in params.values()
+    )
+    data_param = params.get("data")
+    accepts_data = data_param is not None or accepts_arbitrary_kwargs
+
+    if data_was_provided and not accepts_data:
+        raise PipelineInvocationError(
+            "Pipeline data was provided, but pipeline() does not accept data"
+        )
+
+    if data_param is not None:
+        data_required = (
+            data_param.default is inspect.Parameter.empty
+            and data_param.kind
+            in (
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            )
+        )
+
+        if data_required and not data_was_provided:
+            raise PipelineInvocationError(
+                "pipeline() requires data, but no pipeline data was provided"
+            )
+
+        return {"data": data}
+
+    if data_was_provided and accepts_arbitrary_kwargs:
+        return {"data": data}
+
+    return {}
+
+
+async def run_pipeline(
+    sname: t.Sessionname,
+    appname: str,
+    data: Any = None,
+    data_was_provided: bool = False,
+) -> Any:
+    """Run an app pipeline for a session, optionally passing JSON-compatible data."""
+    session_exists(sname, False)
+
+    if appname not in get_pipelines(sname):
+        raise ValueError("No pipeline available")
+
+    app = u.APPS[appname]
+
+    with s.Session(sname) as session:
+        return await ensure_awaitable(
+            app.pipeline,
+            session=session,
+            **pipeline_call_kwargs(app.pipeline, data, data_was_provided),
+        )

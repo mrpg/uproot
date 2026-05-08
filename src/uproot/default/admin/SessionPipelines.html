@@ -1,4 +1,5 @@
 {% extends "Admin.html" %}
+{% from "Macros.html" import json_input, modal %}
 
 {% block titlearea %}
 
@@ -28,13 +29,18 @@
             class="btn btn-outline-uproot"
             onclick="uprootRunPipeline('{{ appname | urlencode }}', 'csv')"
         >{% translate %}Run pipeline{% endtranslate %}</button>
-        <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+        <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">{% translate %}Pipeline options{% endtranslate %}</span>
+        </button>
         <ul class="dropdown-menu">
             <li>
-                <button class="dropdown-item" type="button" onclick="uprootRunPipeline('{{ appname | urlencode }}', 'csv')">CSV</button>
+                <button class="dropdown-item" type="button" onclick="uprootRunPipeline('{{ appname | urlencode }}', 'jsonl')">{% translate %}Run as JSONL{% endtranslate %}</button>
             </li>
             <li>
-                <button class="dropdown-item" type="button" onclick="uprootRunPipeline('{{ appname | urlencode }}', 'jsonl')">JSONL</button>
+                <hr class="dropdown-divider">
+            </li>
+            <li>
+                <button class="dropdown-item" type="button" onclick="uprootOpenPipelineData('{{ appname | urlencode }}')">{% translate %}Invoke with data...{% endtranslate %}</button>
             </li>
         </ul>
     </div>
@@ -42,18 +48,70 @@
 
 {% endfor %}
 
+{% call modal(_, "pipeline-data", title=_("Invoke with data"), action_text=_("Run pipeline"), action_handler="uprootRunPipelineWithData()") %}
+<p class="mb-3">
+    <span id="pipeline-data-appname" class="font-monospace"></span>
+</p>
+<div class="form-floating mb-3">
+    <select class="form-select" id="pipeline-data-filetype">
+        <option value="csv" selected>{% translate %}Automatic (CSV if tabular){% endtranslate %}</option>
+        <option value="jsonl">JSONL</option>
+    </select>
+    <label for="pipeline-data-filetype">{% translate %}Output{% endtranslate %}</label>
+</div>
+{{ json_input(_, "pipeline-data-input", _("Pipeline data"), rows=8, help_text=_("Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.")) }}
+{% endcall %}
+
 <script>
-async function uprootRunPipeline(appname, filetype) {
-    const response = await fetch(`${appname}/run/?filetype=${filetype}`);
+let uprootPipelineDataAppname = null;
+
+function uprootOpenPipelineData(appname) {
+    uprootPipelineDataAppname = appname;
+
+    I("pipeline-data-appname").textContent = decodeURIComponent(appname);
+    I("pipeline-data-filetype").value = "csv";
+    I("pipeline-data-input").value = "";
+
+    const modal = bootstrap.Modal.getOrCreateInstance(I("pipeline-data-modal"));
+    modal.show();
+}
+
+function uprootRunPipelineWithData() {
+    if (!uprootPipelineDataAppname) {
+        return;
+    }
+
+    const filetype = I("pipeline-data-filetype").value;
+    const dataText = I("pipeline-data-input").value.trim();
+
+    if (!dataText) {
+        return uproot.error(_("Please enter pipeline data."));
+    }
+
+    const options = {};
+
+    try {
+        options.method = "POST";
+        options.headers = {"Content-Type": "application/json"};
+        options.body = JSON.stringify(JSON.parse(uproot.looseJSONtoJSON(dataText)));
+    } catch {
+        return uproot.error(_("The data you entered cannot be properly encoded as JSON."));
+    }
+
+    uprootRunPipeline(uprootPipelineDataAppname, filetype, options);
+}
+
+async function uprootRunPipeline(appname, filetype, options = {}) {
+    const response = await fetch(`${appname}/run/?filetype=${filetype}`, options);
     const disposition = response.headers.get("content-disposition") || "";
 
     if (!response.ok) {
-        alert(await response.text());
+        alert(await uprootPipelineResponseText(response));
         return;
     }
 
     if (!disposition.includes("attachment")) {
-        alert(await response.text());
+        alert(await uprootPipelineResponseText(response));
         return;
     }
 
@@ -68,6 +126,21 @@ async function uprootRunPipeline(appname, filetype) {
     link.click();
     URL.revokeObjectURL(link.href);
     link.remove();
+
+    const modal = bootstrap.Modal.getInstance(I("pipeline-data-modal"));
+    if (modal) {
+        modal.hide();
+    }
+}
+
+async function uprootPipelineResponseText(response) {
+    const text = await response.text();
+
+    try {
+        return JSON.parse(text).detail || text;
+    } catch {
+        return text;
+    }
 }
 </script>
 

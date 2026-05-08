@@ -3,6 +3,7 @@ from datetime import date, datetime, time
 from unittest.mock import patch
 
 import orjson as json
+import pytest
 
 from uproot.data import (
     csv_out,
@@ -14,7 +15,7 @@ from uproot.data import (
     player_storage_only,
     value2json,
 )
-from uproot.services import data_service
+from uproot.services import data_service, session_service
 from uproot.stable import decode, encode
 from uproot.types import Value
 
@@ -367,6 +368,49 @@ async def test_generate_custom_jsonl():
 def test_pipeline_result_display():
     assert data_service.pipeline_result_display("hello") == "hello"
     assert data_service.pipeline_result_display({"a": 1}) == '{"a":1}'
+
+
+def test_pipeline_call_kwargs_preserves_legacy_pipeline_signature():
+    def pipeline(session):
+        return session
+
+    assert session_service.pipeline_call_kwargs(pipeline, None, False) == {}
+
+
+def test_pipeline_call_kwargs_rejects_data_for_legacy_pipeline_signature():
+    def pipeline(session):
+        return session
+
+    with pytest.raises(TypeError, match="does not accept data"):
+        session_service.pipeline_call_kwargs(pipeline, {"limit": 3}, True)
+
+
+def test_pipeline_call_kwargs_passes_declared_data():
+    def pipeline(session, data=None):
+        return session, data
+
+    assert session_service.pipeline_call_kwargs(pipeline, {"limit": 3}, True) == {
+        "data": {"limit": 3}
+    }
+    assert session_service.pipeline_call_kwargs(pipeline, None, False) == {"data": None}
+
+
+def test_pipeline_call_kwargs_rejects_missing_required_data():
+    def pipeline(session, data):
+        return session, data
+
+    with pytest.raises(TypeError, match="requires data"):
+        session_service.pipeline_call_kwargs(pipeline, None, False)
+
+
+def test_pipeline_call_kwargs_passes_provided_data_to_kwargs_pipeline():
+    def pipeline(session, **kwargs):
+        return session, kwargs
+
+    assert session_service.pipeline_call_kwargs(pipeline, {"limit": 3}, True) == {
+        "data": {"limit": 3}
+    }
+    assert session_service.pipeline_call_kwargs(pipeline, None, False) == {}
 
 
 def test_stable_encode_decode_date():

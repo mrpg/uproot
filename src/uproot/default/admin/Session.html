@@ -1,5 +1,5 @@
 {% extends "Admin.html" %}
-{% from "Macros.html" import modal, player_count %}
+{% from "Macros.html" import json_input, modal, player_count %}
 
 
 {% block titlearea %}
@@ -480,12 +480,7 @@
 
 <!-- Modal for settings -->
 {% call modal(_, "settings", title=_("Change settings"), action_text=_("Save settings"), action_handler="saveSettings()") %}
-<div class="mb-3">
-    <textarea class="form-control font-monospace h-auto" id="settings-input" rows="10">{{ session.settings | tojson(indent=2) }}</textarea>
-</div>
-<small class="d-block form-text">
-    {% translate %}Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.{% endtranslate %}
-</small>
+{{ json_input(_, "settings-input", _("Settings"), value=session.settings | tojson(indent=2), help_text=_("Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.")) }}
 {% endcall %}
 
 {% endblock main %}

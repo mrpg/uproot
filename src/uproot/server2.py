@@ -973,6 +973,22 @@ async def session_digest(
 
 
 # Particular session: pipeline
+async def pipeline_data_from_request(request: Request) -> tuple[Any, bool]:
+    if request.method != "POST":
+        return None, False
+
+    body = await request.body()
+    if not body.strip():
+        return None, False
+
+    try:
+        return orjson.loads(body), True
+    except orjson.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=400, detail="Pipeline data must be valid JSON"
+        ) from exc
+
+
 @router.get("/session/{sname}/pipelines/")
 async def session_pipeline(
     request: Request,
@@ -989,7 +1005,7 @@ async def session_pipeline(
     )
 
 
-@router.get("/session/{sname}/pipelines/{appname}/run/")
+@router.api_route("/session/{sname}/pipelines/{appname}/run/", methods=["GET", "POST"])
 async def session_pipeline_run(
     request: Request,
     sname: t.Sessionname,
@@ -1000,10 +1016,11 @@ async def session_pipeline_run(
     a.session_exists(sname)
 
     ensure(appname in a.get_pipelines(sname), ValueError, "No pipeline available")
-    app = u.APPS[appname]
-
-    with Session(sname) as session:
-        rval = await ensure_awaitable(app.pipeline, session=session)
+    pipeline_data, data_was_provided = await pipeline_data_from_request(request)
+    try:
+        rval = await a.run_pipeline(sname, appname, pipeline_data, data_was_provided)
+    except a.PipelineInvocationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     if not a.is_custom_data_export(rval):
         return PlainTextResponse(a.pipeline_result_display(rval))
