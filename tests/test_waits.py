@@ -52,7 +52,28 @@ async def test_group_creating_wait_refreshes_player_and_runs_after_grouping(
 
     with s.Group(sid, gid.gname) as group:
         assert group._uproot_players == pids
+        assert group.app == Wait.__module__
         assert group.after_grouping_ran is True
+
+
+async def test_group_creating_wait_does_not_overwrite_app_set_by_after_grouping(
+    session_with_two_players,
+):
+    sid, pids = session_with_two_players
+
+    class Wait(GroupCreatingWait):
+        group_size = 2
+
+        @classmethod
+        def after_grouping(page, group):
+            group.app = "custom_app"
+
+    with s.Player(*pids[0]) as player:
+        assert await Wait.show(player) is False
+        gid = player._uproot_group
+
+    with s.Group(sid, gid.gname) as group:
+        assert group.app == "custom_app"
 
 
 def test_group_creating_wait_rejects_async_after_grouping():

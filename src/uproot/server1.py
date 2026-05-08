@@ -11,6 +11,7 @@ import hmac
 import os.path
 import traceback
 from collections import deque
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import formatdate, parsedate_to_datetime
 from pathlib import Path
@@ -64,6 +65,157 @@ from uproot.types import ensure_awaitable, optional_call, optional_call_once
 from uproot.utils import safe_redirect
 
 router = APIRouter(prefix=d.ROOT)
+
+
+@dataclass
+class PageTransitionState:
+    original_show_page: int
+    direction: int = 1  # 1 for forward, -1 for backward
+    proceed: bool = False
+    timeout_fired: bool = False
+
+    @property
+    def forward(self) -> bool:
+        return self.direction == 1
+
+    def go_back(self) -> None:
+        self.direction = -1
+        self.proceed = True
+
+    def route_was_requested(self, player: Storage) -> bool:
+        return bool(player.show_page != self.original_show_page)
+
+    def first_forward_candidate(self, player: Storage) -> int:
+        if self.route_was_requested(player):
+            return cast(int, player.show_page)
+
+        return cast(int, player.show_page + 1)
+
+
+def current_page(player: Storage) -> type[t.Page]:
+    return path2page(show2path(player.page_order, player.show_page))
+
+
+async def call_before_always_once(
+    page: type[t.Page],
+    player: Storage,
+    show_page: int,
+) -> None:
+    await ensure_awaitable(
+        optional_call_once,
+        page,
+        "before_always_once",
+        storage=player,
+        show_page=show_page,
+        player=player,
+    )
+
+
+async def advance_to_next_visible_page(
+    request: Request,
+    player: Storage,
+    state: PageTransitionState,
+) -> type[t.Page]:
+    if state.forward:
+        candidate = state.first_forward_candidate(player)
+
+        while candidate <= len(player.page_order):
+            page = path2page(show2path(player.page_order, candidate))
+            player.show_page = candidate
+
+            await ensure_awaitable(
+                optional_call,
+                page,
+                "early",
+                player=player,
+                request=request,
+            )
+
+            await call_before_always_once(page, player, candidate)
+
+            if await ensure_awaitable(
+                optional_call, page, "show", default_return=True, player=player
+            ):
+                return page
+
+            await ensure_awaitable(
+                optional_call_once,
+                page,
+                "after_always_once",
+                storage=player,
+                show_page=candidate,
+                player=player,
+            )
+
+            candidate += 1
+    else:
+        candidate = player.show_page - 1
+
+        while candidate >= 0:
+            page = path2page(show2path(player.page_order, candidate))
+            player.show_page = candidate
+
+            if await ensure_awaitable(
+                optional_call, page, "show", default_return=True, player=player
+            ):
+                return page
+
+            candidate -= 1
+
+    return current_page(player)
+
+
+async def run_current_page_after_hooks(
+    page: type[t.Page],
+    player: Storage,
+    state: PageTransitionState,
+) -> None:
+    if not state.forward:
+        return
+
+    await ensure_awaitable(
+        optional_call_once,
+        page,
+        "after_once",
+        storage=player,
+        show_page=state.original_show_page,
+        player=player,
+    )
+    await ensure_awaitable(
+        optional_call_once,
+        page,
+        "after_always_once",
+        storage=player,
+        show_page=state.original_show_page,
+        player=player,
+    )
+    player.refresh("show_page")
+
+
+async def settle_before_once(
+    player: Storage,
+    page: type[t.Page],
+    state: PageTransitionState,
+) -> type[t.Page]:
+    if not state.forward:
+        return page
+
+    while True:
+        sp_before = player.show_page
+        await ensure_awaitable(
+            optional_call_once,
+            page,
+            "before_once",
+            storage=player,
+            show_page=player.show_page,
+            player=player,
+        )
+        player.refresh("show_page")
+
+        if player.show_page == sp_before:
+            return page
+
+        page = current_page(player)
 
 
 @router.get("/")
@@ -134,22 +286,19 @@ async def show_page(
 
     ppath = show2path(player.page_order, player.show_page)
     page = path2page(ppath)
-    proceed = False
-    timeout_fired = False
-    direction = 1  # 1 for forward, -1 for backward
     form = None
     formdata = None
     custom_errors: list[str] = []
     field_errors: dict[str, list[str]] = {}
     metadata = {}
-    original_show_page = player.show_page
+    state = PageTransitionState(original_show_page=player.show_page)
 
     if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
         await ensure_awaitable(
             optional_call, page, "timeout_reached", default_return=True, player=player
         )
-        proceed = True
-        timeout_fired = True
+        state.proceed = True
+        state.timeout_fired = True
 
     if request.method == "GET":
         if player.show_page == -1:
@@ -163,17 +312,10 @@ async def show_page(
             # move_to_page in a loop: they receive a reload() and arrive on GET
             # without going through the POST navigation loop that normally runs
             # before_always_once.
-            await ensure_awaitable(
-                optional_call_once,
-                page,
-                "before_always_once",
-                storage=player,
-                show_page=player.show_page,
-                player=player,
-            )
+            await call_before_always_once(page, player, player.show_page)
             if not shows:
                 # Page wants to be skipped (e.g. InternalPage).
-                proceed = True
+                state.proceed = True
         elif len(player.page_order) == player.show_page:
             pass
         else:
@@ -207,9 +349,7 @@ async def show_page(
                     and page.allow_back
                     and player.show_page > 0
                 ):
-                    # Set direction to backward and proceed
-                    direction = -1
-                    proceed = True
+                    state.go_back()
                 else:
                     # Back navigation not allowed
                     if not hasattr(page, "allow_back") or not page.allow_back:
@@ -225,7 +365,7 @@ async def show_page(
                     player.started = True
 
                 initialize(player)
-                proceed = True
+                state.proceed = True
             else:  # any other page - need to validate
                 form, valid, custom_errors, field_errors = await validate(
                     page, player, formdata
@@ -274,20 +414,20 @@ async def show_page(
                                 stealth_errors = [stealth_errors]
                             if stealth_errors:
                                 custom_errors.extend(stealth_errors)
-                                proceed = False
+                                state.proceed = False
                             else:
-                                proceed = True
+                                state.proceed = True
                         else:
-                            proceed = True
+                            state.proceed = True
                     else:
-                        proceed = True
+                        state.proceed = True
         else:
             pass
     else:
         raise HTTPException(status_code=400)
 
-    if proceed and not timeout_fired:
-        proceed = cast(
+    if state.proceed and not state.timeout_fired:
+        state.proceed = cast(
             bool,
             await ensure_awaitable(
                 optional_call, page, "may_proceed", default_return=True, player=player
@@ -298,119 +438,15 @@ async def show_page(
         # bypasses our field cache.
         player.refresh("show_page")
 
-    if proceed and player.show_page < len(player.page_order):
-        # Only call after_once and after_always_once for forward navigation
-        if direction == 1:
-            await ensure_awaitable(
-                optional_call_once,
-                page,
-                "after_once",
-                storage=player,
-                show_page=original_show_page,
-                player=player,
-            )
-            await ensure_awaitable(
-                optional_call_once,
-                page,
-                "after_always_once",
-                storage=player,
-                show_page=original_show_page,
-                player=player,
-            )
-            # Refresh show_page from storage: after_once/after_always_once may
-            # have modified it via a separate Storage object (e.g. move_to_page
-            # called in a loop over session.players) whose write bypasses our
-            # field cache.
-            player.refresh("show_page")
-
-        if direction == 1:
-            # Forward navigation
-            # If move_to_page was called during any callback
-            # (timeout_reached, validate, may_proceed, after_once, etc.),
-            # start from the new position directly instead of +1
-            if player.show_page != original_show_page:
-                candidate = player.show_page
-            else:
-                candidate = player.show_page + 1
-
-            while candidate <= len(player.page_order):
-                page = path2page(show2path(player.page_order, candidate))
-                player.show_page = candidate
-
-                await ensure_awaitable(
-                    optional_call,
-                    page,
-                    "early",
-                    player=player,
-                    request=request,
-                )
-
-                await ensure_awaitable(
-                    optional_call_once,
-                    page,
-                    "before_always_once",
-                    storage=player,
-                    show_page=candidate,
-                    player=player,
-                )
-
-                if await ensure_awaitable(
-                    optional_call, page, "show", default_return=True, player=player
-                ):
-                    # Ladies and gentlemen, we got him!
-                    break
-                else:
-                    await ensure_awaitable(
-                        optional_call_once,
-                        page,
-                        "after_always_once",
-                        storage=player,
-                        show_page=candidate,
-                        player=player,
-                    )
-
-                candidate += 1
-        else:
-            # Backward navigation - neutral, no lifecycle methods
-            candidate = player.show_page - 1
-
-            while candidate >= 0:
-                page = path2page(show2path(player.page_order, candidate))
-                player.show_page = candidate
-
-                # Only check if page should be shown, no other lifecycle methods
-                if await ensure_awaitable(
-                    optional_call, page, "show", default_return=True, player=player
-                ):
-                    # Ladies and gentlemen, we got him!
-                    break
-
-                candidate -= 1
+    if state.proceed and player.show_page < len(player.page_order):
+        await run_current_page_after_hooks(page, player, state)
+        page = await advance_to_next_visible_page(request, player, state)
 
     pid = cast(t.PlayerIdentifier, t.identify(player))
 
     u.set_online(pid)
 
-    # Only call before_once for forward navigation (backward is neutral)
-    if direction == 1:
-        while True:
-            sp_before = player.show_page
-            await ensure_awaitable(
-                optional_call_once,
-                page,
-                "before_once",
-                storage=player,
-                show_page=player.show_page,
-                player=player,
-            )
-            # Refresh so that move_to_page called via a separate Storage object
-            # inside before_once is also detected by the comparison below.
-            player.refresh("show_page")
-            if player.show_page != sp_before:
-                # move_to_page was called in before_once: re-resolve page
-                page = path2page(show2path(player.page_order, player.show_page))
-            else:
-                break
+    page = await settle_before_once(player, page, state)
 
     if (
         to := await ensure_awaitable(optional_call, page, "set_timeout", player=player)
@@ -422,11 +458,11 @@ async def show_page(
         request,
         player,
         page,
-        formdata if not proceed else None,
+        formdata if not state.proceed else None,
         custom_errors,
         metadata,
         uauth,
-        field_errors if not proceed else None,
+        field_errors if not state.proceed else None,
     )
 
 

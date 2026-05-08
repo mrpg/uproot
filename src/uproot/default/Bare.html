@@ -50,6 +50,10 @@
 </script>
 <script src="{{ internalstatic('jserrors.js') }}"></script>
 
+{% if _uproot_simulate %}
+<script src="{{ internalstatic('simulate.js') }}"></script>
+{% endif %}
+
 <script src="{{ internalstatic('vendor/alpinejs/cdn.min.js') }}" defer></script>
 
 {% block head %}

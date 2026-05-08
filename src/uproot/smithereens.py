@@ -85,6 +85,8 @@ __all__ = [
     "SessionIdentifier",
     "Storage",
     "SynchronizingWait",
+    "transition_to_end",
+    "transition_to_page",
     "uuid",
     "watch_for_dropout",
 ]
@@ -364,20 +366,33 @@ def reload(player: Storage) -> None:
 
 
 @flexible
-def move_to_page(player: Storage, target: type[t.Page], reload_: bool = True) -> None:
+def transition_to_page(
+    player: Storage, target: type[t.Page], reload_: bool = True
+) -> None:
     target_path = page2path(target)
-    player.show_page = player.page_order.index(target_path, player.show_page)
+    target_index = player.page_order.index(target_path, player.show_page)
+    player.show_page = target_index
 
     if reload_:
         reload(player)
 
 
 @flexible
-def move_to_end(player: Storage, reload_: bool = True) -> None:
+def transition_to_end(player: Storage, reload_: bool = True) -> None:
     player.show_page = len(player.page_order)
 
     if reload_:
         reload(player)
+
+
+@flexible
+def move_to_page(player: Storage, target: type[t.Page], reload_: bool = True) -> None:
+    transition_to_page(player, target, reload_=reload_)
+
+
+@flexible
+def move_to_end(player: Storage, reload_: bool = True) -> None:
+    transition_to_end(player, reload_=reload_)
 
 
 @flexible

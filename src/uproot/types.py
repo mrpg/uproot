@@ -760,6 +760,9 @@ class GroupCreatingWait(InternalPage):
             group = player.group
 
             with group:
+                if group.get("app") is None:
+                    group.app = page.__module__
+
                 await ensure_awaitable(
                     optional_call_once,
                     page,

@@ -311,9 +311,9 @@ SIMULATE_JS = """\
 // player pages load in sessions created with the "Simulate responses" option
 // enabled, allowing you to check whether your experiment works as intended.
 
-if (uproot.currentPage == "#APP#/#PAGE#") {
-    // uproot.submit();
-}
+uproot.simulate.on("#APP#/#PAGE#", (sim) => {
+    // sim.submit();
+});
 """
 
 SIMULATE_PD_JS = """\
@@ -321,20 +321,9 @@ SIMULATE_PD_JS = """\
 // player pages load in sessions created with the "Simulate responses" option
 // enabled, allowing you to check whether your experiment works as intended.
 
-if (uproot.currentPage == "#APP#/Dilemma") {
-    if (Math.random() < 0.5) {
-        I("cooperate-0").checked = true;
-    }
-    else {
-        I("cooperate-1").checked = true;
-    }
-
-    uproot.submit();
-}
-
-if (uproot.currentPage == "#APP#/Results") {
-    // uproot.submit();
-}
+uproot.simulate.on("#APP#/Dilemma", (sim) => {
+    sim.choose("cooperate", sim.random(["True", "False"])).submit();
+});
 """
 
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
