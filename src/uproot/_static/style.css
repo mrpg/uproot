@@ -126,17 +126,10 @@ button, input, select, textarea {
     text-wrap: pretty;
 }
 
-/* Disambiguation of glyphs for text inputs and textareas */
-input[type=text], textarea {
-    font-variant-alternates:
-        styleset(disambiguation-except-zero, open-digits);
-}
-
-/* Enable slashed zero for input fields where every character counts */
-input[type=email], input[type=file], input[type=password], input[type=url] {
+/* Enable full disambiguation of glyphs for input fields (since every character may matter) */
+input[type=email], input[type=file], input[type=text], input[type=url], textarea {
     font-variant-numeric: slashed-zero;
-    font-variant-alternates:
-        styleset(disambiguation-except-zero, open-digits);
+    font-variant-alternates: styleset(disambiguation, open-digits);
 }
 
 /* Inter and various other fonts have proportional figures enabled by default */
