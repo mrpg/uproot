@@ -277,8 +277,15 @@ code, .font-monospace {
     margin-top: 2.25rem !important;
 }
 
+/* Styling of Likert scales */
 .likert-cell {
     min-width: 4ch;
+}
+.likert-item {
+    --fvn-spacing: proportional-nums;
+}
+.uproot-likert caption {
+    color: var(--bs-body-color);
 }
 .uproot-likert-matrix .likert-corner {
     width: 60%;
