@@ -18,6 +18,7 @@ from uproot.types import (
     ModelIdentifier,
     PlayerIdentifier,
     SessionIdentifier,
+    materialize,
     token_unchecked,
 )
 
@@ -149,13 +150,13 @@ def has_messages(chat: ModelIdentifier) -> bool:
 
 @validate_call
 def adminchat_for_player(pid: PlayerIdentifier) -> Optional[ModelIdentifier]:
-    with pid() as player:
+    with materialize(pid) as player:
         return cast(Optional[ModelIdentifier], player.get("_uproot_adminchat"))
 
 
 @validate_call
 def adminchat_reply_state(pid: PlayerIdentifier) -> bool:
-    with pid() as player:
+    with materialize(pid) as player:
         return bool(player.get("_uproot_adminchat_replies", False))
 
 
@@ -182,7 +183,7 @@ def ensure_adminchat(pid: PlayerIdentifier) -> ModelIdentifier:
 
     chat = create_adminchat(pid)
 
-    with pid() as player:
+    with materialize(pid) as player:
         player._uproot_adminchat = chat
 
     return chat
@@ -234,7 +235,7 @@ def adminchat_event(
     entries = messages(mid)
     last_message = entries[-1][2] if entries else None
 
-    with pid() as player:
+    with materialize(pid) as player:
         label = player.get("label", "")
         player_id = player.get("id")
         page_order = player.get("page_order", [])
@@ -286,7 +287,7 @@ def set_adminchat_replies(
 ) -> dict[str, Any]:
     mid = ensure_adminchat(pid)
 
-    with pid() as player:
+    with materialize(pid) as player:
         player._uproot_adminchat = mid
         player._uproot_adminchat_replies = enabled
 

@@ -44,7 +44,6 @@ from uproot.queries import Comparison, FieldReferent
 ALPHANUMERIC: str = ascii_lowercase + digits
 MAX_COLLISION_PROB: float = 1e-6
 LOGGER: Any = None
-RAISE_ON_DEPRECATION: bool = False
 
 if TYPE_CHECKING:
     from uproot.storage import Storage
@@ -79,12 +78,6 @@ class SessionIdentifier(str, Identifier):
     def __iter__(self) -> Iterator[str]:
         yield from (self.sname,)
 
-    def __call__(self, **kwargs: Any) -> "Storage":
-        if RAISE_ON_DEPRECATION:
-            raise RuntimeError("SessionIdentifier.__call__ is deprecated.")
-
-        return materialize(self, **kwargs)
-
 
 @validated_dataclass(frozen=True)
 class PlayerIdentifier(Identifier):
@@ -93,12 +86,6 @@ class PlayerIdentifier(Identifier):
 
     def __iter__(self) -> Iterator[str]:
         yield from (self.sname, self.uname)
-
-    def __call__(self, **kwargs: Any) -> "Storage":
-        if RAISE_ON_DEPRECATION:
-            raise RuntimeError("PlayerIdentifier.__call__ is deprecated.")
-
-        return materialize(self, **kwargs)
 
 
 @validated_dataclass(frozen=True)
@@ -109,12 +96,6 @@ class GroupIdentifier(Identifier):
     def __iter__(self) -> Iterator[str]:
         yield from (self.sname, self.gname)
 
-    def __call__(self, **kwargs: Any) -> "Storage":
-        if RAISE_ON_DEPRECATION:
-            raise RuntimeError("GroupIdentifier.__call__ is deprecated.")
-
-        return materialize(self, **kwargs)
-
 
 @validated_dataclass(frozen=True)
 class ModelIdentifier(Identifier):
@@ -123,12 +104,6 @@ class ModelIdentifier(Identifier):
 
     def __iter__(self) -> Iterator[str]:
         yield from (self.sname, self.mname)
-
-    def __call__(self, **kwargs: Any) -> "Storage":
-        if RAISE_ON_DEPRECATION:
-            raise RuntimeError("ModelIdentifier.__call__ is deprecated.")
-
-        return materialize(self, **kwargs)
 
 
 def identify(storage: "Storage") -> Identifier:

@@ -61,7 +61,7 @@ def virtual_group(
         if storage._uproot_group is None:
             return None
         else:
-            return cast(Storage, storage._uproot_group())
+            return materialize(storage._uproot_group)
     elif storage.__namespace__[0] == "session":
 
         def grabber(glike: str | GroupIdentifier) -> Storage:

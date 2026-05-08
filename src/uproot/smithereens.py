@@ -9,7 +9,6 @@ from collections import namedtuple
 from decimal import Decimal as cu
 from types import EllipsisType
 from typing import (
-    Annotated,
     Any,
     Awaitable,
     Callable,
@@ -64,15 +63,10 @@ __all__ = [
     "move_to_page",
     "NoshowPage",
     "notify",
-    "other_in_group",
-    "other_in_session",
-    "others_in_group",
-    "others_in_session",
     "Page",
     "Player",
     "PlayerContext",
     "PlayerIdentifier",
-    "players",
     "Random",
     "reload",
     "Repeat",
@@ -286,69 +280,6 @@ def notify(
         where = sender.show_page
 
     return send_to(recipient=to, data=data, event=event, where=where)
-
-
-@flexible
-def others_in_session(player: Storage) -> t.StorageBunch:
-    # TODO: Remove (issue #179)
-    t.ensure_local_logger()
-    t.LOGGER.warning(
-        "others_in_session(obj) is deprecated. " "Use obj.others_in_session instead."
-    )
-
-    return cast(t.StorageBunch, player.others_in_session)
-
-
-@flexible
-def others_in_group(player: Storage) -> t.StorageBunch:
-    # TODO: Remove (issue #179)
-    t.ensure_local_logger()
-    t.LOGGER.warning(
-        "others_in_group(obj) is deprecated. " "Use obj.others_in_group instead."
-    )
-
-    return cast(t.StorageBunch, player.others_in_group)
-
-
-@flexible
-def other_in_group(player: Storage) -> Storage:
-    # TODO: Remove (issue #179)
-    t.ensure_local_logger()
-    t.LOGGER.warning(
-        "other_in_group(obj) is deprecated. " "Use obj.other_in_group instead."
-    )
-
-    return cast(Storage, player.other_in_group)
-
-
-@flexible
-def other_in_session(player: Storage) -> Storage:
-    # TODO: Remove (issue #179)
-    t.ensure_local_logger()
-    t.LOGGER.warning(
-        "other_in_session(obj) is deprecated. " "Use obj.other_in_session instead."
-    )
-
-    return cast(Storage, player.other_in_session)
-
-
-def players(
-    arg: Annotated[Storage, "Session or Group object"] | list[t.PlayerIdentifier],
-) -> t.StorageBunch:
-    # TODO: Remove (issue #179)
-    t.ensure_local_logger()
-    t.LOGGER.warning("players(obj) is deprecated. " "Use obj.players instead.")
-
-    if isinstance(arg, list):
-        return t.StorageBunch([Player(*pid) for pid in arg])
-    elif isinstance(arg, Storage) and arg.__namespace__[0] in ("session", "group"):
-        with arg:
-            return cast(t.StorageBunch, arg.players)
-    else:
-        raise NotImplementedError(
-            f"players() can only be called with a Session or Group storage object or a list, "
-            f"yet it was invoked with {arg}"
-        )
 
 
 @flexible
