@@ -55,8 +55,10 @@ __all__ = [
     "Group",
     "GroupCreatingWait",
     "GroupIdentifier",
+    "identify",
     "live",
     "mark_dropout",
+    "materialize",
     "Model",
     "ModelIdentifier",
     "move_to_end",
@@ -85,19 +87,22 @@ __all__ = [
     "watch_for_dropout",
 ]
 
+
 chat = uproot.chat
 _ = FieldReferent()
 GroupCreatingWait = t.GroupCreatingWait
 GroupIdentifier = t.GroupIdentifier
+identify = t.identify
+materialize = t.materialize
 ModelIdentifier = t.ModelIdentifier
 NoshowPage = t.NoshowPage
 Page = t.Page
 PlayerIdentifier = t.PlayerIdentifier
+rng = t.rng
 safe = Markup
 SessionIdentifier = t.SessionIdentifier
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
-rng = t.rng
 
 
 def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
