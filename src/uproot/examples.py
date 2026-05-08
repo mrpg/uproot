@@ -186,13 +186,17 @@ PD_INIT_PY = """
 from uproot.fields import *
 from uproot.smithereens import *
 
-DESCRIPTION = "Prisoner’s dilemma"
-LANDING_PAGE = False
+DESCRIPTION = "Prisoner's dilemma"
 SUGGESTED_MULTIPLE = 2
 
 
 class C:
-    pass
+    PAYOFF_MATRIX = {
+        (True, True): 10,
+        (True, False): 0,
+        (False, True): 15,
+        (False, False): 3,
+    }
 
 
 class GroupPlease(GroupCreatingWait):
@@ -208,29 +212,76 @@ class Dilemma(Page):
     )
 
 
-def set_payoff(player):
-    other = player.other_in_group
-
-    match player.cooperate, other.cooperate:
-        case True, True:
-            player.payoff = 10
-        case True, False:
-            player.payoff = 0
-        case False, True:
-            player.payoff = 15
-        case False, False:
-            player.payoff = 3
-
-
 class Sync(SynchronizingWait):
     @classmethod
     def all_here(page, group):
         for player in group.players:
-            set_payoff(player)
+            other = player.other_in_group
+            player.payoff = C.PAYOFF_MATRIX[player.cooperate, other.cooperate]
 
 
 class Results(Page):
     pass
+
+
+def pipeline(session):
+    # OPTIONAL. This function allows you define a custom data export.
+
+    rows = []
+
+    for group, players in prisoner_groups(session):
+        player1, player2 = players
+
+        for member_id, player in enumerate(players):
+            other = player2 if member_id == 0 else player1
+            player_data = player.within(app="#APP#")
+            other_data = other.within(app="#APP#")
+            cooperate = player_data.get("cooperate")
+            other_cooperate = other_data.get("cooperate")
+
+            rows.append(
+                {
+                    "session": session.name,
+                    "group": group.name,
+                    "uname": player.name,
+                    "member_id": member_id,
+                    "cooperate": cooperate,
+                    "other_uname": other.name,
+                    "other_cooperate": other_cooperate,
+                    "payoff": player_data.get("payoff"),
+                }
+            )
+
+    return rows
+
+
+def prisoner_groups(session):
+    # This function is only used by pipeline().
+
+    groups = []
+
+    for group in session.groups:
+        players = group.players
+
+        if len(players) == 2 and is_app_group(group, players):
+            groups.append((group, players))
+
+    return groups
+
+
+def is_app_group(group, players):
+    # This function is only used by prisoner_groups(), which is only used by pipeline().
+
+    with group:
+        if group.get("app") == "#APP#":
+            return True
+
+        gid = group.gid
+
+    return all(
+        player.within(app="#APP#").get("_uproot_group") == gid
+        for player in players
+    )
 
 
 page_order = [
@@ -416,7 +467,7 @@ def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
     (appdir / "_static").mkdir(exist_ok=False)
 
     with open(appdir / "__init__.py", "w", encoding="utf-8") as f1:
-        f1.write(PD_INIT_PY)
+        f1.write(PD_INIT_PY.replace("#APP#", app))
 
     with open(appdir / "Dilemma.html", "w", encoding="utf-8") as f2:
         f2.write(DILEMMA_HTML)
