@@ -57,7 +57,7 @@ Room
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <h5 class="mb-2">{% translate %}Recently seen{% endtranslate %}: <i>n</i>&nbsp;=&nbsp;<span class="n-here">0</span></h5>
-                        <div id="recently-seen" class="mb-4"></div>
+                        <div id="recently-seen" class="font-monospace mb-4"></div>
                     </div>
                     <div class="col-md-6"
                          {% if not room.labels %}
@@ -197,8 +197,8 @@ Room
 
     function updateUI() {
         const now = Date.now() / 1000;
-        const recentlySeenDiv = document.getElementById('recently-seen');
-        const notRecentlySeenDiv = document.getElementById('not-recently-seen');
+        const recentlySeenDiv = document.getElementById("recently-seen");
+        const notRecentlySeenDiv = document.getElementById("not-recently-seen");
 
         const recentLabels = Object.keys(seen)
             .filter(label => now - seen[label] <= recent)
@@ -207,29 +207,29 @@ Room
         [...document.querySelectorAll(".n-here")].forEach((el) => el.textContent = recentLabels.length);
 
         if (JSON.stringify(recentLabels) !== JSON.stringify(currentRecentLabels)) {
-            recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
+            recentlySeenDiv.querySelectorAll(".badge").forEach(element => {
                 const tooltip = window.bootstrap?.Tooltip?.getInstance(element);
                 if (tooltip) tooltip.dispose();
             });
 
             recentlySeenDiv.innerHTML = /* SAFE */ recentLabels
                 .map(label => `<span class="badge bg-success me-1" data-label="${label}">${uproot.escape(label)}</span>`)
-                .join('');
+                .join("");
 
-            recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
-                const label = element.getAttribute('data-label');
+            recentlySeenDiv.querySelectorAll(".badge").forEach(element => {
+                const label = element.getAttribute("data-label");
                 const time = new Date(seen[label]).toLocaleTimeString();
                 createTooltip(element, time);
             });
 
             currentRecentLabels = recentLabels;
         } else {
-            recentlySeenDiv.querySelectorAll('.badge').forEach(element => {
-                const label = element.getAttribute('data-label');
+            recentlySeenDiv.querySelectorAll(".badge").forEach(element => {
+                const label = element.getAttribute("data-label");
                 const time = new Date(1000 * seen[label]).toLocaleTimeString();
                 const tooltip = window.bootstrap?.Tooltip?.getInstance(element);
                 if (tooltip) {
-                    tooltip.setContent({ '.tooltip-inner': time });
+                    tooltip.setContent({ ".tooltip-inner": time });
                 }
             });
         }
@@ -240,7 +240,7 @@ Room
 
         notRecentlySeenDiv.innerHTML = /* SAFE */ notRecentLabels
             .map(label => `<span class="badge bg-secondary me-1">${uproot.escape(label)}</span>`)
-            .join('');
+            .join("");
     }
 
     function cleanupOld() {
@@ -278,7 +278,7 @@ Room
 
     uproot.onStart(() => {
         const select = renderConfigsApps(uproot.vars.configs, "room-config-select");
-        // Give this select a unique name to avoid conflict with SessionCreate's config select
+        // Give this select a unique name to avoid conflict with SessionCreate’s config select
         select.name = "config";
         select.id = "room-config-select-input";
 
@@ -286,7 +286,7 @@ Room
         const useConfigCheckbox = I("use_config");
 
         if (roomConfig) {
-            const option = select.querySelector(`option[value='${roomConfig}']`);
+            const option = select.querySelector(`option[value="${roomConfig}"]`);
             if (option) {
                 option.selected = true;
             }
