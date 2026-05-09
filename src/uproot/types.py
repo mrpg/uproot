@@ -761,7 +761,7 @@ class SynchronizingWait(InternalPage):
 
     @classmethod
     async def show(page, player: "Storage") -> bool:
-        return True
+        return not await page.may_proceed(player)
 
     @classmethod
     def wait_for(page, player: "Storage") -> list[PlayerIdentifier]:
@@ -792,6 +792,7 @@ class SynchronizingWait(InternalPage):
     async def may_proceed(page, player: "Storage") -> bool:
         # Use fresh wait check instead of potentially stale frontend data
         from uproot.jobs import here
+        from uproot.queues import enqueue
 
         wf = page.wait_for(player)
         # For synchronization, allow players who have advanced past this page (strict=False)
@@ -831,6 +832,17 @@ class SynchronizingWait(InternalPage):
             player.refresh()
         else:
             raise NotImplementedError
+
+        for pid in wf:
+            enqueue(
+                tuple(pid),
+                {
+                    "source": "synchronizing",
+                    "constraint": player.show_page,
+                    "event": "Synchronized",
+                    "data": None,
+                },
+            )
 
         return True
 

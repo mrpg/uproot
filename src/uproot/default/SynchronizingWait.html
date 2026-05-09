@@ -38,6 +38,10 @@ Please wait
     }
 
     if (typeof stopHere === "undefined" || !stopHere) {
+        uproot.onCustomEvent("Synchronized", (event) => {
+            uproot.submit();
+        });
+
         uproot.onReady(() => {
             uproot.invoke("wait").then(update);
 

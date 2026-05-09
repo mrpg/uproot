@@ -144,6 +144,39 @@ async def test_synchronizing_wait_refreshes_player_fields_set_through_group_play
         assert player.bonus == "bonus0"
 
 
+async def test_synchronizing_wait_show_skips_page_and_notifies_waiters_when_ready(
+    session_with_two_players,
+):
+    sid, pids = session_with_two_players
+
+    with s.Session(sid) as session:
+        c.create_group(session, pids, expected_size=2)
+
+    q.Q.clear()
+
+    with s.Player(*pids[1]) as player:
+        player.show_page = -1
+
+    class Wait(SynchronizingWait):
+        pass
+
+    with s.Player(*pids[0]) as player:
+        assert await Wait.show(player) is True
+
+    assert tuple(pids[0]) not in q.Q
+
+    with s.Player(*pids[1]) as player:
+        player.show_page = 0
+        assert await Wait.show(player) is False
+
+    for pid in pids:
+        queued_id, queued = q.Q[tuple(pid)].get_nowait()
+        assert queued_id is not None
+        assert queued["event"] == "Synchronized"
+        assert queued["constraint"] == 0
+        assert queued["data"] is None
+
+
 def test_create_group_does_not_append_group_when_member_validation_fails(
     session_with_two_players,
 ):
