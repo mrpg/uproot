@@ -9,6 +9,7 @@ sys.path.insert(0, str(uproot_src))
 import uproot as u  # noqa: E402
 import uproot.core as c  # noqa: E402
 import uproot.deployment as d  # noqa: E402
+import uproot.queues as q  # noqa: E402
 import uproot.storage as s  # noqa: E402
 from uproot.jobs import try_group  # noqa: E402
 from uproot.types import GroupCreatingWait, SynchronizingWait  # noqa: E402
@@ -17,6 +18,7 @@ from uproot.types import GroupCreatingWait, SynchronizingWait  # noqa: E402
 @pytest.fixture
 def session_with_two_players():
     d.DATABASE.reset()
+    q.Q.clear()
     u.CONFIGS["test"] = []
 
     with s.Admin() as admin:
@@ -54,6 +56,32 @@ async def test_group_creating_wait_refreshes_player_and_runs_after_grouping(
         assert group._uproot_players == pids
         assert group.app == Wait.__module__
         assert group.after_grouping_ran is True
+
+    for pid in pids:
+        queued_id, queued = q.Q[tuple(pid)].get_nowait()
+        assert queued_id is not None
+        assert queued["event"] == "Grouped"
+        assert queued["constraint"] == 0
+        assert queued["data"] == gid
+
+
+async def test_group_creating_wait_refreshes_player_fields_set_through_group_players(
+    session_with_two_players,
+):
+    _, pids = session_with_two_players
+
+    class Wait(GroupCreatingWait):
+        group_size = 2
+
+        @classmethod
+        def after_grouping(page, group):
+            for member in group.players:
+                with member:
+                    member.role = f"role{member.member_id}"
+
+    with s.Player(*pids[0]) as player:
+        assert await Wait.show(player) is False
+        assert player.role == "role0"
 
 
 async def test_group_creating_wait_does_not_overwrite_app_set_by_after_grouping(
@@ -94,6 +122,26 @@ def test_synchronizing_wait_rejects_async_all_here():
             @classmethod
             async def all_here(page, group):
                 pass
+
+
+async def test_synchronizing_wait_refreshes_player_fields_set_through_group_players(
+    session_with_two_players,
+):
+    sid, pids = session_with_two_players
+
+    with s.Session(sid) as session:
+        c.create_group(session, pids, expected_size=2)
+
+    class Wait(SynchronizingWait):
+        @classmethod
+        def all_here(page, group):
+            for member in group.players:
+                with member:
+                    member.bonus = f"bonus{member.member_id}"
+
+    with s.Player(*pids[0]) as player:
+        assert await Wait.may_proceed(player) is True
+        assert player.bonus == "bonus0"
 
 
 def test_create_group_does_not_append_group_when_member_validation_fails(

@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, cast
 
 import uproot as u
+import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 from uproot.constraints import ensure
@@ -160,6 +161,15 @@ def create_group(
             with t.materialize(pid) as player:
                 player._uproot_group = gid
                 player.member_id = i
+                q.enqueue(
+                    tuple(pid),
+                    {
+                        "source": "grouping",
+                        "constraint": player.show_page,
+                        "event": "Grouped",
+                        "data": gid,
+                    },
+                )
 
     return gid
 

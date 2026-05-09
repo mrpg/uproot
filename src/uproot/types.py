@@ -747,6 +747,7 @@ class GroupCreatingWait(InternalPage):
                     group=group,
                 )
 
+            player.refresh()
             return True
         else:
             return False
@@ -812,6 +813,8 @@ class SynchronizingWait(InternalPage):
                     show_page=player.show_page,
                     group=group,
                 )
+
+            player.refresh()
         elif page.synchronize == "session":
             session = player.session
 
@@ -824,6 +827,8 @@ class SynchronizingWait(InternalPage):
                     show_page=player.show_page,
                     session=session,
                 )
+
+            player.refresh()
         else:
             raise NotImplementedError
 
