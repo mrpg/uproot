@@ -3,18 +3,18 @@ repos:
     hooks:
       - id: black
         name: black
-        entry: uv run black
+        entry: black
         language: system
         types: [python]
 
       - id: isort
         name: isort
-        entry: uv run isort
+        entry: isort
         language: system
         types: [python]
 
       - id: ruff
         name: ruff
-        entry: uv run ruff check --fix
+        entry: ruff check --fix
         language: system
         types: [python]
