@@ -48,6 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
 
         const button = form.querySelector("button[type='submit']");
+        if (!button) return;
+
         const originalText = button.textContent;
         button.disabled = true;
         button.textContent = "\u2026";
@@ -91,6 +93,20 @@ document.addEventListener("DOMContentLoaded", () => {
 <input type="hidden" id="pow_difficulty" value="{{ pow_difficulty }}">
 <input type="hidden" id="pow_solution" name="pow_solution" value="">
 
+{% if login_token_enabled %}
+<input type="hidden" id="user" name="user" value="">
+<input type="hidden" id="pw" name="pw" value="">
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card mt-5 shadow">
+            <div class="card-body p-4">
+                <i>{% translate %}Here be dragons.{% endtranslate %}</i>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
         <div class="card mt-5 shadow">
@@ -134,5 +150,6 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
     </div>
 </div>
+{% endif %}
 
 {% endblock main %}

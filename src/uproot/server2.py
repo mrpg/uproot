@@ -382,6 +382,7 @@ async def login_get(
             "Login.html",
             {
                 "bad": bad,
+                "login_token_enabled": d.LOGIN_TOKEN is not None,
                 "pow_challenge": pow_challenge,
                 "pow_difficulty": pow_difficulty,
             },
