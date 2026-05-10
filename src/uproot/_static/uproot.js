@@ -630,6 +630,19 @@ window.uproot = {
         return Math.sqrt(variance);
     },
 
+    sort(arr, key = null) {
+        if (typeof key === "function" && key.length >= 2) {
+            return arr.sort(key);
+        }
+
+        const valueFor = key === null ? (item) => item : key;
+
+        return arr.sort((a, b) => String(valueFor(a)).localeCompare(String(valueFor(b)), undefined, {
+            numeric: true,
+            sensitivity: "base"
+        }));
+    },
+
     escape(text) {
         const span = document.createElement("span");
         span.textContent = text;

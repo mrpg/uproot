@@ -113,7 +113,7 @@ function newSessionUrl(config) {
 
 function renderRooms(rooms, containerId) {
     const container = I(containerId);
-    const sortedRooms = Object.values(rooms).sort((a, b) => a.name.localeCompare(b.name));
+    const sortedRooms = uproot.sort(Object.values(rooms), room => room.name);
 
     if (sortedRooms.length > 0) {
         container.innerHTML = ""; // SAFE
@@ -252,7 +252,7 @@ function renderRooms(rooms, containerId) {
 
 function renderSessions(sessions, containerId) {
     const container = I(containerId);
-    const sortedSessions = Object.values(sessions).sort((a, b) => (b.created || 0) - (a.created || 0));
+    const sortedSessions = uproot.sort(Object.values(sessions), (a, b) => (b.created || 0) - (a.created || 0));
 
     if (sortedSessions.length > 0) {
         container.innerHTML = ""; // SAFE

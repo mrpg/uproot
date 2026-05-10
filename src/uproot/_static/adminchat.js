@@ -143,7 +143,7 @@ function renderInboxSidebar() {
     }
 
     const info = uproot.vars.info || {};
-    const unames = Object.keys(info).sort((a, b) => {
+    const unames = uproot.sort(uproot.sort(Object.keys(info)), (a, b) => {
         const ua = adminchatIsUnread(a) ? 1 : 0;
         const ub = adminchatIsUnread(b) ? 1 : 0;
 
@@ -160,7 +160,7 @@ function renderInboxSidebar() {
             return tb - ta;
         }
 
-        return a.localeCompare(b);
+        return 0;
     });
 
     const filter = adminchatState.filter.toLowerCase();
@@ -393,7 +393,7 @@ function renderMainArea() {
         desiredKey = focused;
     } else if (selected.length > 1) {
         desiredType = "broadcast";
-        desiredKey = selected.slice().sort().join("\0");
+        desiredKey = uproot.sort(selected.slice()).join("\0");
     } else {
         desiredType = "empty";
         desiredKey = null;

@@ -60,7 +60,7 @@ function prioritizeFields(a, b) {
     if (ai !== -1 && bi !== -1) return ai - bi;
     if (ai !== -1) return -1;
     if (bi !== -1) return 1;
-    return a.localeCompare(b);
+    return 0;
 }
 
 /**
@@ -195,7 +195,7 @@ function createColumns(data) {
     });
 
     // Sort fields by priority
-    const sortedFields = Array.from(allFields).sort(prioritizeFields);
+    const sortedFields = uproot.sort(uproot.sort(Array.from(allFields)), prioritizeFields);
 
     sortedFields.forEach((field, index) => {
         const detectedType = detectColumnType(field, data);
@@ -385,7 +385,7 @@ function latest(obj, conditions = {}) {
         }
 
         // Sort by time
-        changes.sort((a, b) => a.time - b.time);
+        uproot.sort(changes, (a, b) => a.time - b.time);
 
         // Build state evolution
         const currentState = {};

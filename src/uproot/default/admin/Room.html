@@ -200,9 +200,8 @@ Room
         const recentlySeenDiv = document.getElementById("recently-seen");
         const notRecentlySeenDiv = document.getElementById("not-recently-seen");
 
-        const recentLabels = Object.keys(seen)
-            .filter(label => now - seen[label] <= recent)
-            .sort();
+        const recentLabels = uproot.sort(Object.keys(seen)
+            .filter(label => now - seen[label] <= recent));
 
         [...document.querySelectorAll(".n-here")].forEach((el) => el.textContent = recentLabels.length);
 
@@ -234,9 +233,8 @@ Room
             });
         }
 
-        const notRecentLabels = expectedLabels
-            .filter(label => !recentLabels.includes(label))
-            .sort();
+        const notRecentLabels = uproot.sort(expectedLabels
+            .filter(label => !recentLabels.includes(label)));
 
         notRecentlySeenDiv.innerHTML = /* SAFE */ notRecentLabels
             .map(label => `<span class="badge bg-secondary me-1">${uproot.escape(label)}</span>`)

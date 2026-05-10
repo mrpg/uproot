@@ -168,14 +168,14 @@ function createMonitorColumns(data) {
     });
 
     // Sort fields by monitor priority
-    const sortedFields = Array.from(allFields).sort((a, b) => {
+    const sortedFields = uproot.sort(uproot.sort(Array.from(allFields)), (a, b) => {
         const ai = MONITOR_PRIORITY_FIELDS.indexOf(a);
         const bi = MONITOR_PRIORITY_FIELDS.indexOf(b);
 
         if (ai !== -1 && bi !== -1) return ai - bi;
         if (ai !== -1) return -1;
         if (bi !== -1) return 1;
-        return a.localeCompare(b);
+        return 0;
     });
 
     sortedFields.forEach((field) => {
@@ -500,7 +500,7 @@ function openMultiview() {
     if (count < 1) {
         uproot.error(_("No players selected."));
     } else if (count <= MAX_MULTIVIEW_PLAYERS) {
-        const ids = selectedIds.sort().map(i => i.toString()).join(",");
+        const ids = uproot.sort(selectedIds).map(i => i.toString()).join(",");
         window.open(`./multiview/#${ids}`, "_blank");
     } else {
         uproot.error(
