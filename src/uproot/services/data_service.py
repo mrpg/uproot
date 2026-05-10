@@ -235,8 +235,8 @@ def page_times(sname: t.Sessionname) -> str:
                 history = player.__history__()
                 last_order = None
 
-                show_pages = history.get("show_page", [])
-                page_orders = history.get("page_order", [])
+                show_pages = history.get("show_page", [])  # type: ignore[var-annotated]
+                page_orders = history.get("page_order", [])  # type: ignore[var-annotated]
 
                 for show_page in show_pages:
                     if not isinstance(show_page.data, int):

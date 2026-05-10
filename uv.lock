@@ -6,10 +6,6 @@ resolution-markers = [
     "python_full_version < '3.15'",
 ]
 
-[options]
-exclude-newer = "2026-04-25T00:17:13.839939838Z"
-exclude-newer-span = "P8D"
-
 [[package]]
 name = "annotated-doc"
 version = "0.0.4"
@@ -43,13 +39,16 @@ wheels = [
 
 [[package]]
 name = "appendmuch"
-version = "0.0.6"
-source = { git = "https://github.com/mrpg/appendmuch.git?rev=master#c5c21eddec4ff00983ab322a163ec244fbb9b56a" }
+version = "0.0.7"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "msgpack" },
     { name = "orjson" },
     { name = "pydantic" },
     { name = "sortedcontainers" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a8/db/3f3a18d627933a21bb726fbab2b60ab90a4999333ff9c28bafb9adb265e6/appendmuch-0.0.7-py3-none-any.whl", hash = "sha256:4570d7d2be302f7cac3f59604798b61e34960989d7ae83040d173fec0165f483", size = 33809, upload-time = "2026-05-10T06:16:27.946Z" },
 ]
 
 [package.optional-dependencies]
@@ -1565,7 +1564,7 @@ pg = [
 
 [package.metadata]
 requires-dist = [
-    { name = "appendmuch", git = "https://github.com/mrpg/appendmuch.git?rev=master" },
+    { name = "appendmuch", specifier = "==0.0.7" },
     { name = "appendmuch", extras = ["pg"], marker = "extra == 'pg'" },
     { name = "bandit", marker = "extra == 'dev'", specifier = "==1.9.4" },
     { name = "black", marker = "extra == 'dev'", specifier = "==26.3.1" },
