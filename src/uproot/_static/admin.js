@@ -67,7 +67,7 @@ function createTableRow(label, value, options = {}) {
 
     let valueClass = "d-table-cell w-100";
     if (isNA) valueClass += " text-body-tertiary";
-    if (isMonospace) valueClass += " font-monospace";
+    if (isMonospace) valueClass += " font-monospace"; else valueClass += " fvn-proportional-nums";
 
     const valueSpan = createElement("span", valueClass);
 
@@ -442,7 +442,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
                 { textContent: key.startsWith("~") ? _("Description") : _("Apps") }
             );
             const descContent = createElement("div",
-                key.startsWith("~") ? "d-table-cell w-100" : "d-table-cell font-monospace w-100",
+                key.startsWith("~") ? "d-table-cell fvn-proportional-nums w-100" : "d-table-cell font-monospace w-100",
                 { textContent: value }
             );
             desc.appendChild(descLabel);
