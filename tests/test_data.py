@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import orjson as json
 import pytest
+from sortedcontainers import SortedList
 
 from uproot.data import (
     csv_out,
@@ -368,6 +369,25 @@ async def test_generate_custom_jsonl():
 def test_pipeline_result_display():
     assert data_service.pipeline_result_display("hello") == "hello"
     assert data_service.pipeline_result_display({"a": 1}) == '{"a":1}'
+
+
+async def test_everything_from_session_display_filters_by_time_with_sequence_ordered_history():
+    values = SortedList(key=lambda value: value.seq)
+    values.add(Value(10.0, False, "old", "setup", seq=1))
+    values.add(Value(20.0, False, "new", "refresh", seq=2))
+
+    with patch.object(
+        data_service.cache,
+        "MEMORY_HISTORY",
+        {"player": {"session1": {"player1": {"choice": values}}}},
+    ):
+        result, last_update = await data_service.everything_from_session_display(
+            "session1",
+            10.0,
+        )
+
+    assert result == {"player1": {"choice": [(20.0, False, "str", "new", "refresh")]}}
+    assert last_update == 20.0
 
 
 def test_pipeline_call_kwargs_preserves_legacy_pipeline_signature():

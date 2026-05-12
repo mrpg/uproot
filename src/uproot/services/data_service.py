@@ -79,7 +79,6 @@ async def everything_from_session_display(
     # This function returns something that orjson can handle
 
     sname = str(sname)
-    search_val = t.Value(since_epoch, True, None, "")
     retval: dict[str, dict[str, list[DisplayValue]]] = {}
     last_update: float = since_epoch
 
@@ -87,7 +86,6 @@ async def everything_from_session_display(
         retval[uname] = {}
 
         for field, values in fields.items():
-            from_ix = values.bisect_right(search_val)
             retval[uname][field] = displayvalues = [
                 cast(
                     DisplayValue,
@@ -99,7 +97,8 @@ async def everything_from_session_display(
                         val.context,
                     ),
                 )
-                for val in values[from_ix:]
+                for val in values
+                if val.time is not None and val.time > since_epoch
             ]
 
             if displayvalues:
