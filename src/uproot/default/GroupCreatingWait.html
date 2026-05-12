@@ -18,6 +18,22 @@ Please wait
 
 <script>
     let grouploop;
+    let proceeding = false;
+    const waitPage = uproot.vars._uproot_internal.thisis;
+
+    function proceed() {
+        if (proceeding) {
+            return;
+        }
+
+        proceeding = true;
+
+        if (grouploop !== undefined) {
+            window.clearInterval(grouploop);
+        }
+
+        uproot.submit(waitPage);
+    }
 
     function updateBar(x) {
         I("wait-progress").style.width = `${Math.round(100 * x)}%`;
@@ -29,8 +45,8 @@ Please wait
     }
 
     function update(x) {
-        if (x[0] == "submit") {
-            uproot.submit();
+        if (x[0] === "submit") {
+            proceed();
         }
 
         updateBar(x[1]);
@@ -39,7 +55,7 @@ Please wait
 
     if (typeof stopHere === "undefined" || !stopHere) {
         uproot.onCustomEvent("Grouped", (event) => {
-            uproot.submit();
+            proceed();
         });
 
         uproot.onReady(() => {

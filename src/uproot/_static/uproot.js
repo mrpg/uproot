@@ -439,8 +439,22 @@ window.uproot = {
         }
     },
 
-    submit() {
-        return I("uproot-form").submit();
+    submit(expectedPage = null) {
+        const currentPage = uproot.vars?._uproot_internal?.thisis;
+
+        if (expectedPage !== null && currentPage !== expectedPage) {
+            return false;
+        }
+
+        const form = I("uproot-form");
+
+        if (form.dataset.uprootSubmitting === "true") {
+            return false;
+        }
+
+        form.dataset.uprootSubmitting = "true";
+        form.submit();
+        return true;
     },
 
     goBack() {
