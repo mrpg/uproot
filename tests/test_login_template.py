@@ -1,6 +1,19 @@
 import pytest
+from starlette.requests import Request
 
 from uproot import server2
+
+
+def make_request(scheme: str, host: str) -> Request:
+    return Request(
+        {
+            "type": "http",
+            "scheme": scheme,
+            "path": "/admin/login/",
+            "headers": [(b"host", host.encode())],
+            "server": (host.split(":", 1)[0], 8000),
+        }
+    )
 
 
 @pytest.mark.asyncio
@@ -41,3 +54,15 @@ async def test_password_login_page_keeps_manual_login_form():
     assert 'id="user"' in html
     assert 'id="pw"' in html
     assert 'type="submit"' in html
+
+
+def test_auth_cookie_is_not_secure_on_http_lan_address():
+    request = make_request("http", "192.168.0.42:8000")
+
+    assert server2.auth_cookie_secure(request) is False
+
+
+def test_auth_cookie_is_secure_behind_https_proxy():
+    request = make_request("http", "192.168.0.42:8000")
+
+    assert server2.auth_cookie_secure(request, "https") is True

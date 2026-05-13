@@ -412,12 +412,9 @@ async def login_post(
     token: str = Form(""),
     pow_challenge: str = Form(""),
     pow_solution: str = Form(""),
-    host: str = Header(""),
     x_forwarded_proto: str = Header(""),
 ) -> Response:
-    secure = x_forwarded_proto.lower() == "https" or not (
-        host.startswith("localhost") or host.startswith("127.0.0.") or ".onion" in host
-    )  # Safari really sucks
+    secure = auth_cookie_secure(request, x_forwarded_proto)
 
     # Login-token path: the token itself is a strong shared secret issued by
     # `uproot` on startup, so no proof-of-work is required.  Verified with a
@@ -488,6 +485,14 @@ def set_auth_cookie(
         secure=secure,
         samesite="strict",
     )
+
+
+def auth_cookie_secure(request: Request, x_forwarded_proto: str = "") -> bool:
+    forwarded_proto = x_forwarded_proto.split(",", 1)[0].strip().lower()
+    if forwarded_proto:
+        return forwarded_proto == "https"
+
+    return request.url.scheme == "https"
 
 
 # Dashboard
