@@ -523,10 +523,12 @@ async def sessionwide(
             with Player(sname, free_uname) as p:
                 p.started = True  # This prevents race conditions
 
-            redirect_url = safe_redirect(
-                f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(free_uname, safe='')}/"
+            redirect_url = (
+                f"{d.ROOT}/p/{quote(sname, safe='')}/" f"{quote(free_uname, safe='')}/"
             )
-            return RedirectResponse(redirect_url, status_code=303)
+
+            # codeql[py/url-redirection] Same-origin path with quoted route components.
+            return RedirectResponse(safe_redirect(redirect_url), status_code=303)
         else:
             # Session is full, so to speak
             return HTMLResponse(
@@ -630,9 +632,9 @@ async def ws(
                 case {"endpoint": "time"}:
                     invoke_response = time()
                 case {"endpoint": "jserrors", "payload": msg} if isinstance(msg, str):
-                    # Use repr() to prevent log injection attacks
                     epath = f"{d.ROOT}/p/{sname}/{uname}/"
-                    d.LOGGER.error(f"JavaScript error [{epath!r}]: {msg[:256]!r}")
+                    # codeql[py/log-injection] %r formatting repr-escapes browser text.
+                    d.LOGGER.error("JavaScript error [%r]: %r", epath, msg[:256])
                 case {
                     "endpoint": "skip",
                     "payload": new_show_page,
@@ -911,6 +913,7 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
             and str(current_path) != base_path
         ):
             raise HTTPException(status_code=404)
+        # codeql[py/path-injection] current_path is under the validated base_path.
         actual_names = os.listdir(current_path)
         if part not in actual_names:
             # Check for case mismatches (helpful for cross-platform development)
@@ -918,7 +921,9 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
             matches = [n for n in actual_names if n.lower() == part.lower()]
             if matches:
                 d.LOGGER.error(
-                    f"Case mismatch in {{%% static %%}}: '{part}' should be '{matches[0]}'"
+                    "Case mismatch in {%% static %%}: %r should be %r",
+                    part,
+                    matches[0],
                 )
                 raise HTTPException(status_code=500)
             else:

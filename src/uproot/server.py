@@ -46,8 +46,7 @@ def validate_admin_password_lengths() -> None:
     for user, pw in d.ADMINS.items():
         if isinstance(pw, str) and len(pw) < MIN_PASSWORD_LENGTH:
             d.LOGGER.critical(
-                f"Password for admin {user!r} is shorter than "
-                f"the minimum length ({MIN_PASSWORD_LENGTH}): got {len(pw)}"
+                "Configured admin password is shorter than the minimum length"
             )
             raise SystemExit(1)
 

@@ -601,8 +601,10 @@ async def new_room2(
         with Session(sname_) as session:
             session.room = name
 
-    redirect_url = safe_redirect(f"{d.ROOT}/admin/room/{quote(name, safe='')}/")
-    return RedirectResponse(redirect_url, status_code=303)
+    redirect_url = f"{d.ROOT}/admin/room/{quote(name, safe='')}/"
+
+    # codeql[py/url-redirection] Same-origin path with a quoted room name.
+    return RedirectResponse(safe_redirect(redirect_url), status_code=303)
 
 
 # Particular room
@@ -759,8 +761,10 @@ async def update_room_settings(
             sname=None,
         )
 
-    redirect_url = safe_redirect(f"{d.ROOT}/admin/room/{quote(roomname, safe='')}/")
-    return RedirectResponse(redirect_url, status_code=303)
+    redirect_url = f"{d.ROOT}/admin/room/{quote(roomname, safe='')}/"
+
+    # codeql[py/url-redirection] Same-origin path with a quoted room name.
+    return RedirectResponse(safe_redirect(redirect_url), status_code=303)
 
 
 # Sessions
@@ -1076,8 +1080,10 @@ async def session_data_download(
         t0 = now()
         csv = a.generate_csv(sname, format, gvar, filters, player_data_only)
 
-        # Sanitize session name to prevent log injection
-        d.LOGGER.debug(f"generate_csv({sname!r}, ...) took {(now()-t0):5f} seconds")
+        d.LOGGER.debug(
+            "generate_csv took %.5f seconds",
+            now() - t0,
+        )
 
         return Response(
             csv,
@@ -1208,7 +1214,7 @@ async def logout_all(
         user = data.get("user", "")
         if user:
             revoked_count = a.revoke_all_user_tokens(user)
-            d.LOGGER.info(f"Revoked {revoked_count} tokens for user {user}")
+            d.LOGGER.info("Revoked %d tokens for current user", revoked_count)
 
     response = RedirectResponse(f"{d.ROOT}/admin/login/", status_code=303)
     response.delete_cookie("uauth", path=f"{d.ROOT}/")

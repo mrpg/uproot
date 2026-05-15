@@ -65,17 +65,8 @@ def read_yml_entries(filepath: str) -> list[tuple[str, str]]:
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
-    entries = []
-    for m in re.finditer(
-        r"^\?\s*(?:'((?:[^']*)*)'|\"((?:[^\"\\]|\\.)*)\")\n"
-        r":\s*(?:'((?:[^']*)*)'|\"((?:[^\"\\]|\\.)*)\")",
-        content,
-        re.MULTILINE,
-    ):
-        key = m.group(1) if m.group(1) is not None else m.group(2)
-        value = m.group(3) if m.group(3) is not None else m.group(4)
-        entries.append((key, value))
-    return entries
+    data = strictyaml.load(content).data
+    return [(key, value) for key, value in data.items()]
 
 
 def write_yml(filepath: str, entries: list[tuple[str, str]]) -> None:
