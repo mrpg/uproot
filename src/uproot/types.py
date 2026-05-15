@@ -399,7 +399,6 @@ def token(
 def tokens(not_in: list[str] | Bunch, n: int) -> list[str]:
     if not_in and isinstance(not_in[0], PlayerIdentifier):
         # not_in is Bunch
-        not_in = cast(Bunch, not_in)
         not_in = [el.uname for el in not_in]
 
     rval: list[str] = []
