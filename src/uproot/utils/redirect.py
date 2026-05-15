@@ -3,6 +3,8 @@
 
 """Safe redirect utilities to prevent open redirect vulnerabilities."""
 
+from fastapi.responses import Response
+
 
 def safe_redirect(url: str) -> str:
     """Ensure redirect URL is safe by validating it's a relative URL.
@@ -16,3 +18,9 @@ def safe_redirect(url: str) -> str:
     if url.startswith("//"):
         raise ValueError("Protocol-relative URLs not allowed")
     return url
+
+
+def safe_redirect_response(url: str, status_code: int = 303) -> Response:
+    response = Response(status_code=status_code)
+    response.headers["Location"] = safe_redirect(url)
+    return response

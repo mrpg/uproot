@@ -3,6 +3,6 @@
 
 """Utility functions shared across the uproot package."""
 
-from uproot.utils.redirect import safe_redirect
+from uproot.utils.redirect import safe_redirect, safe_redirect_response
 
-__all__ = ["safe_redirect"]
+__all__ = ["safe_redirect", "safe_redirect_response"]

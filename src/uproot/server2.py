@@ -54,7 +54,7 @@ from uproot.pages import ENV as PENV
 from uproot.pages import static_factory, to_filter, tojson_filter
 from uproot.storage import Admin, Session
 from uproot.types import ensure_awaitable
-from uproot.utils import safe_redirect
+from uproot.utils import safe_redirect_response
 
 # General settings
 
@@ -603,8 +603,7 @@ async def new_room2(
 
     redirect_url = f"{d.ROOT}/admin/room/{quote(name, safe='')}/"
 
-    # codeql[py/url-redirection] Same-origin path with a quoted room name.
-    return RedirectResponse(safe_redirect(redirect_url), status_code=303)
+    return safe_redirect_response(redirect_url)
 
 
 # Particular room
@@ -763,8 +762,7 @@ async def update_room_settings(
 
     redirect_url = f"{d.ROOT}/admin/room/{quote(roomname, safe='')}/"
 
-    # codeql[py/url-redirection] Same-origin path with a quoted room name.
-    return RedirectResponse(safe_redirect(redirect_url), status_code=303)
+    return safe_redirect_response(redirect_url)
 
 
 # Sessions
