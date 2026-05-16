@@ -8,6 +8,7 @@ from types import EllipsisType
 from typing import TYPE_CHECKING, Any, Optional
 
 import appendmuch
+import dotenv
 
 from uproot.i18n import ISO639
 
@@ -15,6 +16,7 @@ if TYPE_CHECKING:
     from uproot.rooms import RoomType
 
 logging.basicConfig(level=logging.INFO)
+dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
 
 ADMINS: dict[str, str | EllipsisType] = {}
 API_KEYS: set[str] = set()
@@ -155,6 +157,15 @@ def project_metadata(uproot: str, *args: Any, **kwargs: Any) -> None:
 
     PROJECT_METADATA |= {"uproot": uproot}
     PROJECT_METADATA |= kwargs
+
+
+def auto_login() -> EllipsisType | str:
+    env_pw = os.getenv("UPROOT_ADMIN_PASSWORD")
+
+    if env_pw is None:
+        return ...
+    else:
+        return env_pw
 
 
 def ensure_login_token() -> None:

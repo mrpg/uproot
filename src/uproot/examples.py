@@ -108,7 +108,7 @@ load_config(uproot_server, config="study01", apps=["#EXAMPLE#"])
 
 # Create admin
 
-upd.ADMINS["admin"] = ...  # Leave as-is to enable auto login
+upd.ADMINS["admin"] = upd.auto_login()  # Leave as-is to enable auto login
 
 # Create room if it does not exist
 
