@@ -383,6 +383,29 @@ PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
 PYTHON_VERSION = "3.12\n"
 
+PRE_COMMIT_CONFIG = """\
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: uv run black
+        language: system
+        types: [python]
+
+      - id: isort
+        name: isort
+        entry: uv run isort
+        language: system
+        types: [python]
+
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+"""
+
 PYPROJECT_TOML = """\
 [project]
 name = "uproot-project"
@@ -393,12 +416,21 @@ license = "0BSD"
 requires-python = ">=3.12"
 dependencies = [
     "uproot-science @ git+https://github.com/mrpg/uproot.git@main",
+    "black",
+    "isort",
+    "ruff",
 ]
 
 [project.optional-dependencies]
 pg = [
     "uproot-science[pg] @ git+https://github.com/mrpg/uproot.git@main",
 ]
+
+[tool.ruff.lint]
+ignore = ["F403", "F405"]
+
+[tool.isort]
+profile = "black"
 """
 
 
@@ -434,6 +466,9 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
     with open(path / "LICENSE", "w", encoding="utf-8") as lf:
         lf.write(LICENSE_0BSD)
+
+    with open(path / ".pre-commit-config.yaml", "w", encoding="utf-8") as pc:
+        pc.write(PRE_COMMIT_CONFIG)
 
     # Deployment files
     with open(path / "Procfile", "w", encoding="utf-8") as pf:
