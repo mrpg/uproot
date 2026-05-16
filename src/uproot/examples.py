@@ -66,6 +66,12 @@ venv/
 *.whl
 """.lstrip()
 
+DOTENV = """\
+# Set a password for the admin user. If empty or unset, a secure token-based
+# auto-login URL is printed to the console instead.
+UPROOT_ADMIN_PASSWORD=
+""".lstrip()
+
 README = """\
 # uproot project
 
@@ -473,6 +479,9 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
     with open(path / "LICENSE", "w", encoding="utf-8") as lf:
         lf.write(LICENSE_0BSD)
+
+    with open(path / ".env", "w", encoding="utf-8") as ef:
+        ef.write(DOTENV)
 
     with open(path / ".pre-commit-config.yaml", "w", encoding="utf-8") as pc:
         pc.write(PRE_COMMIT_CONFIG)

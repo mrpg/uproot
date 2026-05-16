@@ -162,10 +162,10 @@ def project_metadata(uproot: str, *args: Any, **kwargs: Any) -> None:
 def auto_login() -> EllipsisType | str:
     env_pw = os.getenv("UPROOT_ADMIN_PASSWORD")
 
-    if env_pw is None:
-        return ...
-    else:
+    if env_pw:
         return env_pw
+    else:
+        return ...
 
 
 def ensure_login_token() -> None:
