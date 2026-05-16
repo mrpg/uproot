@@ -808,13 +808,19 @@ window.uproot = {
             const sliderRect = slider.getBoundingClientRect();
             const computedStyle = window.getComputedStyle(slider);
 
-            // Create wrapper with exact slider dimensions
+            // Create wrapper with exact slider dimensions. When an ancestor is
+            // hidden at startup, browsers may report 0px/auto even though the
+            // slider will be visible later.
+            let sliderHeight = sliderRect.height > 0 ? `${sliderRect.height}px` : computedStyle.height;
+            if (!sliderHeight || sliderHeight === "0px" || sliderHeight === "auto") {
+                sliderHeight = "1.5rem";
+            }
             const wrapper = document.createElement("div");
             wrapper.style.cssText = `
                 position: relative;
                 display: inline-block;
                 width: 100%;
-                height: ${sliderRect.height || computedStyle.height}px;
+                height: ${sliderHeight};
             `;
 
             // Insert wrapper before slider and move slider into wrapper
