@@ -418,6 +418,7 @@ dependencies = [
     "uproot-science @ git+https://github.com/mrpg/uproot.git@main",
     "black",
     "isort",
+    "pre-commit",
     "ruff",
 ]
 
