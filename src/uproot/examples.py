@@ -381,7 +381,7 @@ uproot.simulate.on("#APP#/Dilemma", (sim) => {
 
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
-PYTHON_VERSION = "3.12\n"
+PYTHON_VERSION = "3.13\n"
 
 PRE_COMMIT_CONFIG = """\
 repos:
@@ -427,11 +427,17 @@ pg = [
     "uproot-science[pg] @ git+https://github.com/mrpg/uproot.git@main",
 ]
 
-[tool.ruff.lint]
-ignore = ["F403", "F405"]
+[tool.black]
+target-version = ["py313"]
 
 [tool.isort]
 profile = "black"
+
+[tool.ruff.lint]
+ignore = ["F403", "F405"]
+
+[tool.uv]
+python-preference = "system"
 """
 
 
