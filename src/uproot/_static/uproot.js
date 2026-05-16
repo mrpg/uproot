@@ -175,17 +175,14 @@ window.uproot = {
 
         if (I("uproot-timeout")) {
             I("uproot-timeout").hidden = false;
-
-            if (remainingSeconds < 60) {
-                I("uproot-timeout").classList.remove("alert-light");
-                I("uproot-timeout").classList.remove("alert-warning");
-
-                if (remainingSeconds < 15) {
+            if (remainingSeconds < (uproot.timeoutWarningSeconds ?? 60)) {
+                if (remainingSeconds < (uproot.timeoutDangerSeconds ?? 16)) {
                     I("uproot-timeout").classList.add("alert-danger");
-                }
-                else {
+                    I("uproot-timeout").classList.remove("alert-warning");
+                } else {
                     I("uproot-timeout").classList.add("alert-warning");
                 }
+                I("uproot-timeout").classList.remove("alert-light");
             }
         }
 
