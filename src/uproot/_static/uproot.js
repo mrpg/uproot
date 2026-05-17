@@ -868,7 +868,7 @@ window.uproot = {
 
     paginateBlocks() {
         document.querySelectorAll(".uproot-pagination").forEach((wrapper) => {
-            const itemsPerPage = parseInt(wrapper.dataset.itemsPerPage) || 10;
+            const itemsPerPage = parseInt(wrapper.dataset.itemsPerPage) || 15;
             const items = Array.from(wrapper.querySelectorAll(":scope > .uproot-pagination-item"));
 
             if (items.length <= itemsPerPage) return;
@@ -916,25 +916,34 @@ window.uproot = {
 
                 // Page numbers with ellipsis for large page counts
                 const pages = [];
-                if (totalPages <= 7) {
+                const maxVisiblePages = 20;
+                if (totalPages <= maxVisiblePages) {
                     for (let i = 1; i <= totalPages; i++) pages.push(i);
                 } else {
+                    const innerPageCount = maxVisiblePages - 2;
+                    let startPage = Math.max(2, currentPage - Math.floor((innerPageCount - 1) / 2));
+                    let endPage = startPage + innerPageCount - 1;
+                    if (endPage > totalPages - 1) {
+                        endPage = totalPages - 1;
+                        startPage = endPage - innerPageCount + 1;
+                    }
+
                     pages.push(1);
-                    if (currentPage > 3) pages.push("...");
-                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                    if (startPage > 2) pages.push("⋯");
+                    for (let i = startPage; i <= endPage; i++) {
                         pages.push(i);
                     }
-                    if (currentPage < totalPages - 2) pages.push("...");
+                    if (endPage < totalPages - 1) pages.push("⋯");
                     pages.push(totalPages);
                 }
 
                 pages.forEach((p) => {
                     const li = document.createElement("li");
-                    if (p === "...") {
+                    if (p === "⋯") {
                         li.className = "page-item disabled";
                         const span = document.createElement("span");
                         span.className = "page-link text-uproot";
-                        span.textContent = "…";
+                        span.textContent = "⋯";
                         li.appendChild(span);
                     } else {
                         const isActive = p === currentPage;
