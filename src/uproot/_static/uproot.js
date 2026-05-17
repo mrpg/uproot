@@ -177,12 +177,12 @@ window.uproot = {
             I("uproot-timeout").hidden = false;
             if (remainingSeconds < (uproot.timeoutWarningSeconds ?? 60)) {
                 if (remainingSeconds < (uproot.timeoutDangerSeconds ?? 16)) {
-                    I("uproot-timeout").classList.add("alert-danger");
-                    I("uproot-timeout").classList.remove("alert-warning");
+                    I("uproot-timeout").classList.add("uproot-timeout-danger");
+                    I("uproot-timeout").classList.remove("uproot-timeout-warning");
                 } else {
-                    I("uproot-timeout").classList.add("alert-warning");
+                    I("uproot-timeout").classList.add("uproot-timeout-warning");
                 }
-                I("uproot-timeout").classList.remove("alert-light");
+                I("uproot-timeout").classList.remove("uproot-timeout-light");
             }
         }
 
