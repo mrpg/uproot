@@ -277,6 +277,11 @@ code, .font-monospace {
     margin-top: 2.25rem !important;
 }
 
+/* Extension of the Bootstrap .w-* classes */
+.w-fit-content {
+    width: fit-content !important;
+}
+
 /* Styling of Likert scales */
 .likert-cell {
     min-width: 4ch;
@@ -396,9 +401,30 @@ input[type="radio"].form-check-input {
     margin-bottom: 250px;
 }
 
+#uproot-timeout {
+    backdrop-filter: blur(0.1rem);
+    -webkit-backdrop-filter: blur(1px);
+    background-color: rgba(from var(--bs-alert-bg) r g b / 0.85);
+    width: fit-content;
+}
 #uproot-timeout #uproot-time-remaining {
     font-weight: bold;
     font-variant-numeric: tabular-nums;
+}
+.uproot-timeout-light {
+    --bs-alert-bg: var(--bs-light);
+    --bs-alert-border-color: var(--bs-tertiary-color);
+    --bs-alert-color: var(--bs-secondary-color);
+}
+.uproot-timeout-warning {
+    --bs-alert-bg: var(--bs-warning-bg-subtle);
+    --bs-alert-border-color: var(--bs-warning);
+    --bs-alert-color: var(--bs-black);
+}
+.uproot-timeout-danger {
+    --bs-alert-bg: var(--bs-danger-bg-subtle);
+    --bs-alert-border-color: var(--bs-danger);
+    --bs-alert-color: var(--bs-black);
 }
 
 #uproot-title {
