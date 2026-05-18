@@ -1475,6 +1475,10 @@ window.uproot = {
     },
 };
 
+document.addEventListener("alpine:init", () => {
+    Alpine.store("uproot", {});
+});
+
 window._ = (s) => {
     if (s in window.uproot.terms) {
         return window.uproot.terms[s];
