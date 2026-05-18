@@ -397,6 +397,10 @@ input[type="radio"].form-check-input {
     cursor: pointer;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 #uproot-main-container {
     margin-bottom: 250px;
 }

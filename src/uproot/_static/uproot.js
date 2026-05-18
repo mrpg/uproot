@@ -113,10 +113,12 @@ window.uproot = {
     subscriptions: new Map(),
     terms: {},
     testing: false,
-    timeout1: null,
-    timeout2: null,
-    timeoutStart: null,
-    timeoutDuration: 0,
+    pageTimeoutDangerSeconds: 16,
+    pageTimeoutDurationMs: 0,
+    pageTimeoutStartMs: null,
+    pageTimeoutSubmitTimer: null,
+    pageTimeoutTickTimer: null,
+    pageTimeoutWarningSeconds: 60,
     uname: null,
     vars: {},
     verbose: false,
@@ -126,38 +128,83 @@ window.uproot = {
         document.location = "https://www.econlib.org/library/Essays/hykKnw.html";
     },
 
-    setPageTimeout(remainingSeconds) {
+    installAlpineStore() {
+        Alpine.store("uproot", {
+            timeout: { active: false, level: "light", text: "__:__" },
+        });
+        this.syncTimeout();
+    },
+
+    setPageTimeout(seconds) {
+        const duration = Number(seconds);
+        if (!Number.isFinite(duration)) {
+            throw new TypeError(`Invalid page timeout: ${seconds}`);
+        }
+
+        this.stopPageTimeoutTimers();
+        if (duration <= 0) {
+            this.pageTimeoutStartMs = null;
+            this.pageTimeoutDurationMs = 0;
+            this.syncTimeout();
+            this.submit();
+            return;
+        }
+
         // Use performance.now() (monotonic clock) so the countdown is unaffected
         // by system clock changes or NTP corrections.
-        this.timeoutStart = performance.now();
-        this.timeoutDuration = 1000 * remainingSeconds;
+        this.pageTimeoutStartMs = performance.now();
+        this.pageTimeoutDurationMs = Math.max(0, 1000 * duration);
 
-        if (this.timeout1 !== null) {
-            window.clearTimeout(this.timeout1);
-            window.clearInterval(this.timeout2);
+        const state = this.syncTimeout();
+        this.pageTimeoutSubmitTimer = window.setTimeout(() => this.submit(), this.pageTimeoutDurationMs);
+        this.pageTimeoutTickTimer = window.setInterval(() => this.syncTimeout(), 1000);
+        window.dispatchEvent(new CustomEvent("UprootInternalPageTimeoutSet", { detail: state }));
+    },
+
+    stopPageTimeoutTimers() {
+        if (this.pageTimeoutSubmitTimer !== null) {
+            window.clearTimeout(this.pageTimeoutSubmitTimer);
+            this.pageTimeoutSubmitTimer = null;
         }
-
-        if (remainingSeconds > 0) {
-            this.timeout1 = window.setTimeout(this.submit, 1000 * remainingSeconds);
-            this.timeout2 = window.setInterval(this.reshowTimeout, 1000);
-
-            this.reshowTimeout();
-
-            window.dispatchEvent(new CustomEvent(`UprootInternalPageTimeoutSet`));
-        }
-        else {
-            this.submit();
+        if (this.pageTimeoutTickTimer !== null) {
+            window.clearInterval(this.pageTimeoutTickTimer);
+            this.pageTimeoutTickTimer = null;
         }
     },
 
-    reshowTimeout() {
-        const elapsed = performance.now() - uproot.timeoutStart;
-        const remainingSeconds = Math.max(0, (uproot.timeoutDuration - elapsed) / 1000);
+    pageTimeoutRemainingMs() {
+        if (this.pageTimeoutStartMs === null) return 0;
+        return Math.max(0, this.pageTimeoutDurationMs - (performance.now() - this.pageTimeoutStartMs));
+    },
 
-        const days = Math.floor(remainingSeconds / 86400);
-        const hours = Math.floor((remainingSeconds % 86400) / 3600);
-        const minutes = Math.floor((remainingSeconds % 3600) / 60);
-        const seconds = Math.floor(remainingSeconds % 60);
+    syncTimeout() {
+        const active = this.pageTimeoutStartMs !== null;
+        const remainingMs = this.pageTimeoutRemainingMs();
+        const remainingSeconds = remainingMs / 1000;
+
+        let level = "light";
+        if (active && remainingSeconds <= this.pageTimeoutDangerSeconds) level = "danger";
+        else if (active && remainingSeconds <= this.pageTimeoutWarningSeconds) level = "warning";
+
+        const state = {
+            active,
+            level,
+            text: active ? this.formatDuration(remainingSeconds) : "__:__",
+        };
+
+        const store = window.Alpine?.store?.("uproot");
+        if (store) Object.assign(store.timeout, state);
+        window.dispatchEvent(new CustomEvent("UprootInternalPageTimeout", { detail: state }));
+
+        return state;
+    },
+
+    formatDuration(totalSeconds) {
+        const s = Math.max(0, Math.ceil(totalSeconds));
+        const days = Math.floor(s / 86400);
+        const hours = Math.floor((s % 86400) / 3600);
+        const minutes = Math.floor((s % 3600) / 60);
+        const seconds = s % 60;
 
         const parts = [];
         if (days > 0) parts.push(_(days === 1 ? "#x# day" : "#x# days").replace("#x#", days));
@@ -165,28 +212,9 @@ window.uproot = {
         if (minutes > 0) parts.push(_(minutes === 1 ? "#x# minute" : "#x# minutes").replace("#x#", minutes));
         if (seconds > 0 || parts.length === 0) parts.push(_(seconds === 1 ? "#x# second" : "#x# seconds").replace("#x#", seconds));
 
-        const timeText = parts.length > 1
+        return parts.length > 1
             ? parts.slice(0, -1).join(_(", ")) + _(" and ") + parts[parts.length - 1]
             : parts[0];
-
-        if (I("uproot-time-remaining")) {
-            I("uproot-time-remaining").innerText = timeText;
-        }
-
-        if (I("uproot-timeout")) {
-            I("uproot-timeout").hidden = false;
-            if (remainingSeconds < (uproot.timeoutWarningSeconds ?? 60)) {
-                if (remainingSeconds < (uproot.timeoutDangerSeconds ?? 16)) {
-                    I("uproot-timeout").classList.add("uproot-timeout-danger");
-                    I("uproot-timeout").classList.remove("uproot-timeout-warning");
-                } else {
-                    I("uproot-timeout").classList.add("uproot-timeout-warning");
-                }
-                I("uproot-timeout").classList.remove("uproot-timeout-light");
-            }
-        }
-
-        window.dispatchEvent(new CustomEvent(`UprootInternalPageTimeout`));
     },
 
     getParam(name) {
@@ -1476,7 +1504,7 @@ window.uproot = {
 };
 
 document.addEventListener("alpine:init", () => {
-    Alpine.store("uproot", {});
+    uproot.installAlpineStore();
 });
 
 window._ = (s) => {

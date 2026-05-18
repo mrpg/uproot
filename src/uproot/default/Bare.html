@@ -178,13 +178,19 @@
     {% endif %}
 
     {% block timeoutbox %}
-    <div class="alert callout mt-4 pe-4 uproot-timeout-light" role="alert" id="uproot-timeout" hidden>
+    <div
+        x-cloak
+        x-show="$store.uproot.timeout.active"
+        x-bind:class="'uproot-timeout-' + $store.uproot.timeout.level"
+        class="alert callout mt-4 pe-4"
+        role="alert"
+        id="uproot-timeout">
         <span id="uproot-time-remaining-preamble">
         {% translate %}
         Remaining time on this page:
         {% endtranslate %}
         </span>
-        <span id="uproot-time-remaining">__:__</span>
+        <span id="uproot-time-remaining" x-text="$store.uproot.timeout.text">__:__</span>
     </div>
     {% endblock timeoutbox %}
 
