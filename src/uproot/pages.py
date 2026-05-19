@@ -513,8 +513,23 @@ def fmtnum_filter(
     post: str = "",
     places: int = 2,
     use_nbsp: bool = True,
+    sep: str = ",",
+    decsep: str = ".",
 ) -> str:
-    formatted = f"{pre}{value:.{places}f}{post}"
+    formatted = f"{value:,.{places}f}" if sep else f"{value:.{places}f}"
+
+    if sep:
+        if decsep != ".":
+            formatted = (
+                formatted.replace(",", "\x00").replace(".", decsep).replace("\x00", sep)
+            )
+        else:
+            formatted = formatted.replace(",", sep)
+
+    if decsep != "." and not sep:
+        formatted = formatted.replace(".", decsep)
+
+    formatted = f"{pre}{formatted}{post}"
 
     if value < 0:
         formatted = "\u2212" + formatted.replace("-", "")
