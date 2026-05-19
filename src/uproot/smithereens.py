@@ -27,7 +27,9 @@ import uproot.core as c
 import uproot.types as t
 from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
+from uproot.pages import fmtnum_filter as fmtnum
 from uproot.pages import page2path
+from uproot.pages import to_filter as to
 from uproot.queries import FieldReferent
 from uproot.queues import enqueue
 from uproot.storage import Admin, Group, Model, Player, Session, Storage
@@ -52,6 +54,7 @@ __all__ = [
     "create_groups",
     "cu",
     "data_uri",
+    "fmtnum",
     "Group",
     "GroupCreatingWait",
     "GroupIdentifier",
@@ -81,6 +84,7 @@ __all__ = [
     "SessionIdentifier",
     "Storage",
     "SynchronizingWait",
+    "to",
     "transition_to_end",
     "transition_to_page",
     "uuid",
