@@ -485,6 +485,10 @@ div.without-anchoring-overlay {
     resize: vertical;
 }
 
+.uproot-form-group.short-field {
+    max-width: 340px;
+}
+
 /* Slider popover styles (requires JS initialization via slidersWithPopovers) */
 .uproot-slider-popover-wrapper {
     flex-grow: 1;
