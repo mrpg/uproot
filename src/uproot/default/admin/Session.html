@@ -66,32 +66,6 @@
         <div class="card h-100">
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Essential information{% endtranslate %}</h5>
-                {% if not deployment.PUBLIC_DEMO %}
-                <div class="mb-3">
-                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
-                        <h6 class="fw-semibold">{% translate %}Description{% endtranslate %}</h6>
-                        {% if session.description is none %}
-                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button>
-                        {% else %}
-                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
-                        {% endif %}
-                    </div>
-                    {% if session.description %}
-                    <p>{{ session.description }}</p>
-                    {% endif %}
-                </div>
-                {% endif %}
-                <div class="mb-3">
-                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
-                        <h6 class="fw-semibold">{% translate %}Settings{% endtranslate %}</h6>
-                        <button type="button" class="btn btn-sm btn-outline-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change{% endtranslate %}</button>
-                    </div>
-                    {% if session.settings %}
-                    <p>{% translate %}Custom settings{% endtranslate %}</p>
-                    {% else %}
-                    <p class="text-body-tertiary">{% translate %}No settings{% endtranslate %}</p>
-                    {% endif %}
-                </div>
                 {% if session.config %}
                 <div class="mb-3">
                     <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
@@ -145,8 +119,56 @@
     <div class="col-12 col-xl-3 col-lg-6 mb-4-5">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Admin settings{% endtranslate %}</h5>
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>
+                {% if not deployment.PUBLIC_DEMO %}
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Description{% endtranslate %}</h6>
+                        {% if session.description is none %}
+                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button>
+                        {% else %}
+                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
+                        {% endif %}
+                    </div>
+                    {% if session.description %}
+                    <p>{{ session.description }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
+                        <h6 class="fw-semibold">{% translate %}Settings{% endtranslate %}</h6>
+                        <button type="button" class="btn btn-sm btn-outline-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change{% endtranslate %}</button>
+                    </div>
+                    {% if session.settings %}
+                    <p>{% translate %}Custom settings{% endtranslate %}</p>
+                    {% else %}
+                    <p class="text-body-tertiary">{% translate %}No settings{% endtranslate %}</p>
+                    {% endif %}
+                </div>
+                <hr>
+                {% if session.get("_uproot_simulate", False) %}
                 <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2">
+                    <p class="mb-1 fw-bold text-danger">
+                        {% translate %}Simulating responses.{% endtranslate %}
+                    </p>
+                    <button class="border-0 btn btn-sm btn-outline-danger flex-grow-0 text-nowrap"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover"
+                        data-bs-content="{% translate %}You must create a new session to disable simulating responses.{% endtranslate %}"
+                        onclick="alert(_('You must create a new session to disable simulating responses.'))"
+                        type="button">
+                        <i class="bi bi-fast-forward text-danger"></i>
+                    </button>
+                </div>
+                {% endif %}
+                <p class="mb-0">
+                    <a class="link-subtle small" data-bs-toggle="collapse" href="#advancedActions" role="button" aria-expanded="false" aria-controls="advancedActions">
+                        {% translate %}Show advanced actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                    </a>
+                </p>
+                <div class="collapse" id="advancedActions">
+                <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2 mt-3">
                     <p class="mb-1">
                         {% if session.testing %}
                         <b class="text-uproot"><i class="bi bi-exclamation-triangle-fill text-uproot"></i>
@@ -211,21 +233,7 @@
                         {% endif %}
                     </button>
                 </div>
-                {% if session.get("_uproot_simulate", False) %}
-                <div class="align-items-baseline d-flex flex-wrap justify-content-between mt-2">
-                    <p class="mb-1 fw-bold text-danger">
-                        {% translate %}Simulating responses.{% endtranslate %}
-                    </p>
-                    <button class="border-0 btn btn-sm btn-outline-danger flex-grow-0 text-nowrap"
-                        data-bs-toggle="popover"
-                        data-bs-trigger="hover"
-                        data-bs-content="{% translate %}You must create a new session to disable simulating responses.{% endtranslate %}"
-                        onclick="alert(_('You must create a new session to disable simulating responses.'))"
-                        type="button">
-                        <i class="bi bi-fast-forward text-danger"></i>
-                    </button>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
