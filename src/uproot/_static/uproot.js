@@ -569,7 +569,12 @@ window.uproot = {
             return modal;
         });
 
-        let alertModal = bootstrap.Modal.getOrCreateInstance(this.I("alert-modal"), { "backdrop": "static" });
+        const alertEl = this.I("alert-modal");
+        const existingAlertModal = bootstrap.Modal.getInstance(alertEl);
+        if (existingAlertModal && !alertEl.classList.contains("show")) {
+            existingAlertModal.dispose();
+        }
+        let alertModal = bootstrap.Modal.getOrCreateInstance(alertEl, { "backdrop": true });
 
         this.I("alert-modal-body").innerHTML = html; // SAFE (users need to be careful, and prefer window.alert()!)
 

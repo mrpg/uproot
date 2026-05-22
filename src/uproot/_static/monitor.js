@@ -623,7 +623,10 @@ window.invokeFromMonitor = function(fname, ...args) {
  */
 window.mmodal = function(modalName) {
     const selected = getSelectedPlayers();
-    const modal = window.bootstrap?.Modal.getOrCreateInstance(I(`${modalName}-modal`));
+    const modal = window.bootstrap?.Modal.getOrCreateInstance(
+        I(`${modalName}-modal`),
+        { backdrop: true }
+    );
 
     if (selected.length > 0) {
         // Update Alpine store with selected player count
