@@ -331,7 +331,7 @@ code, .font-monospace {
     -webkit-text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity, 1)) !important;
     text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity, 1)) !important;
 }
-.link-uproot:hover, .link-primary:focus {
+.link-uproot:hover, .link-uproot:focus {
     color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-opacity, 1)) !important;
     -webkit-text-decoration-color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-underline-opacity, 1)) !important;
     text-decoration-color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-underline-opacity, 1)) !important;

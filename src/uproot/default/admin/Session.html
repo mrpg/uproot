@@ -79,7 +79,7 @@
                     {% if session.description %}
                     <p>{{ session.description }}</p>
                     {% else %}
-                    <p class="text-body-tertiary">None</p>
+                    <p class="text-body-tertiary">{% translate %}None{% endtranslate %}</p>
                     {% endif %}
                 </div>
                 {% endif %}
@@ -102,7 +102,9 @@
                 </p>
                 <div class="collapse" id="advancedActionsSession">
                     <p class="mb-2 pt-1 d-flex gap-2 flex-wrap">
+                        {% if not deployment.PUBLIC_DEMO %}
                         <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change description{% endtranslate %}</button>
+                        {% endif %}
                         <a type="button" class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}Choose different config{% endtranslate %}</a>
                     </p>
                 </div>
@@ -235,7 +237,7 @@
                             data-bs-content="{% translate %}Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.{% endtranslate %}"
                             onclick="runNewSession()"
                             type="button">
-                            Initialize session
+                            {% translate %}Initialize session{% endtranslate %}
                         </button>
                     </p>
                     {% endif %}
