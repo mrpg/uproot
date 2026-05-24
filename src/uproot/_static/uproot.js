@@ -113,7 +113,7 @@ window.uproot = {
     subscriptions: new Map(),
     terms: {},
     testing: false,
-    pageTimeoutDangerSeconds: 16,
+    pageTimeoutDangerSeconds: 15,
     pageTimeoutDurationMs: 0,
     pageTimeoutStartMs: null,
     pageTimeoutSubmitTimer: null,
@@ -190,6 +190,7 @@ window.uproot = {
             active,
             level,
             text: active ? this.formatDuration(remainingSeconds) : "__:__",
+            compact: active ? this.formatDurationCompact(remainingSeconds) : "__:__",
         };
 
         const store = window.Alpine?.store?.("uproot");
@@ -205,16 +206,38 @@ window.uproot = {
         const hours = Math.floor((s % 86400) / 3600);
         const minutes = Math.floor((s % 3600) / 60);
         const seconds = s % 60;
-
         const parts = [];
         if (days > 0) parts.push(_(days === 1 ? "#x# day" : "#x# days").replace("#x#", days));
         if (hours > 0) parts.push(_(hours === 1 ? "#x# hour" : "#x# hours").replace("#x#", hours));
         if (minutes > 0) parts.push(_(minutes === 1 ? "#x# minute" : "#x# minutes").replace("#x#", minutes));
         if (seconds > 0 || parts.length === 0) parts.push(_(seconds === 1 ? "#x# second" : "#x# seconds").replace("#x#", seconds));
-
         return parts.length > 1
             ? parts.slice(0, -1).join(_(", ")) + _(" and ") + parts[parts.length - 1]
             : parts[0];
+    },
+
+    formatDurationCompact(totalSeconds) {
+        const s = Math.max(0, Math.ceil(totalSeconds));
+        var days = Math.floor(s / 86400);
+        var hours = Math.floor((s % 86400) / 3600);
+        var minutes = Math.floor((s % 3600) / 60);
+        var seconds = s % 60;
+        const pad2 = (n) => String(n).padStart(2, "0");
+        if (s > 86400) {
+            return `${days}:${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)} ${_("days")}`;
+        }
+        if (s > 3600) {
+            hours = Math.floor(s / 3600);
+            minutes = Math.floor((s % 3600) / 60);
+            seconds = s % 60;
+            return `${hours}:${pad2(minutes)}:${pad2(seconds)} ${_("hours")}`;
+        }
+        if (s > 60) {
+            minutes = Math.floor(s / 60);
+            seconds = s % 60;
+            return `${minutes}:${pad2(seconds)} ${_("minutes")}`;
+        }
+        return `${s} ${s <= 1 ? _("second") : _("seconds")}`;
     },
 
     getParam(name) {

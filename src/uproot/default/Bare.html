@@ -182,15 +182,13 @@
         x-cloak
         x-show="$store.uproot.timeout.active"
         x-bind:class="'uproot-timeout-' + $store.uproot.timeout.level"
-        class="alert callout mt-4 pe-4"
+        class="alert callout mb-4-5 mt-4 pe-4"
         role="alert"
         id="uproot-timeout">
         <span id="uproot-time-remaining-preamble">
-        {% translate %}
-        Remaining time on this page:
-        {% endtranslate %}
+            {% translate %}Remaining time on this page:{% endtranslate %}
         </span>
-        <span id="uproot-time-remaining" x-text="$store.uproot.timeout.text">__:__</span>
+        <span id="uproot-time-remaining" x-text="$store.uproot.timeout.compact">__:__</span>
     </div>
     {% endblock timeoutbox %}
 
@@ -233,6 +231,7 @@
 
 {% block late %}
 {% endblock late %}
+
 {% block late2 %}
 {% endblock late2 %}
 
@@ -309,4 +308,5 @@
 </script>
 
 {% endblock %}
+
 {% endif %}
