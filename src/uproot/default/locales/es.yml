@@ -951,3 +951,27 @@
 
 ? 'new'
 : 'nuevo'
+
+? 'day'
+: 'día'
+
+? 'days'
+: 'días'
+
+? 'hour'
+: 'hora'
+
+? 'hours'
+: 'horas'
+
+? 'minute'
+: 'minuto'
+
+? 'minutes'
+: 'minutos'
+
+? 'second'
+: 'segundo'
+
+? 'seconds'
+: 'segundos'

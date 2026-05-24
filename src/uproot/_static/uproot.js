@@ -223,16 +223,16 @@ window.uproot = {
         var minutes = Math.floor((s % 3600) / 60);
         var seconds = s % 60;
         const pad2 = (n) => String(n).padStart(2, "0");
-        if (s > 86400) {
+        if (s >= 86400) {
             return `${days}:${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)} ${_("days")}`;
         }
-        if (s > 3600) {
+        if (s >= 3600) {
             hours = Math.floor(s / 3600);
             minutes = Math.floor((s % 3600) / 60);
             seconds = s % 60;
             return `${hours}:${pad2(minutes)}:${pad2(seconds)} ${_("hours")}`;
         }
-        if (s > 60) {
+        if (s >= 60) {
             minutes = Math.floor(s / 60);
             seconds = s % 60;
             return `${minutes}:${pad2(seconds)} ${_("minutes")}`;
