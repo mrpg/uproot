@@ -105,7 +105,7 @@ def virtual_context(storage: Storage) -> Any:
             else:
                 try:
                     return context(player=storage)
-                except TypeError:  # TODO: Instead inspect mro()
+                except TypeError:
                     return context()
     else:
         raise AttributeError
