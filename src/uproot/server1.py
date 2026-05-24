@@ -12,6 +12,7 @@ import traceback
 from collections import deque
 from dataclasses import dataclass
 from time import time
+from types import MappingProxyType
 from typing import Any, Iterable, Optional, cast
 from urllib.parse import quote
 
@@ -382,6 +383,14 @@ async def show_page(
 
                 if valid:
                     if form is not None:
+                        await ensure_awaitable(
+                            optional_call,
+                            page,
+                            "before_form_save",
+                            player=player,
+                            data=MappingProxyType(form.data),
+                        )
+
                         for fname, field in form._fields.items():
                             if (
                                 isinstance(field.data, UploadFile)
