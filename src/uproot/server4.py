@@ -197,7 +197,7 @@ async def get_session(
             "sname": session.name,
             "config": session.config,
             "active": session.active,
-            "testing": session.testing,
+            "testing": session._uproot_testing,
             "description": session.description,
             "room": session.room,
             "settings": session.settings,
@@ -270,7 +270,7 @@ async def toggle_session_testing(
     await a.flip_testing(sname)
 
     with Session(sname) as session:
-        return {"testing": session.testing}
+        return {"testing": session._uproot_testing}
 
 
 @router.patch("/session/{sname}/description/")

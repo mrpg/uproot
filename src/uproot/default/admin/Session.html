@@ -170,7 +170,7 @@
                 <div class="collapse" id="advancedActions">
                 <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2 mt-3">
                     <p class="mb-1">
-                        {% if session.testing %}
+                        {% if session._uproot_testing %}
                         <b class="text-uproot"><i class="bi bi-exclamation-triangle-fill text-uproot"></i>
                             {% translate %}Testing is enabled.{% endtranslate %}
                         </b>
@@ -181,10 +181,10 @@
                     <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0"
                         data-bs-toggle="popover"
                         data-bs-trigger="hover"
-                        data-bs-content="{% if session.testing %}{% translate %}Toggling this will hide this session’s testing elements for everyone except admins.{% endtranslate %}{% else %}{% translate %}Toggling this will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
+                        data-bs-content="{% if session._uproot_testing %}{% translate %}Toggling this will hide this session’s testing elements for everyone except admins.{% endtranslate %}{% else %}{% translate %}Toggling this will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
                         onclick="flipTesting()"
                         type="button">
-                        {% if session.testing %}
+                        {% if session._uproot_testing %}
                         <i class="bi bi-toggle-on"></i>
                         {% else %}
                         <i class="bi bi-toggle-off"></i>

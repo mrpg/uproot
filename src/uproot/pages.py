@@ -270,8 +270,8 @@ async def render(
                 "_uproot_simulate": bool(
                     player is not None and session.get("_uproot_simulate", False)  # type: ignore[attr-defined]
                 ),
-                "_uproot_testing": sname is not None
-                and (is_admin or getattr(session, "testing", False)),
+                "show_testing": sname is not None
+                and (is_admin or getattr(session, "_uproot_testing", False)),
             }
             | function_context(page)
             | internal
@@ -325,7 +325,8 @@ async def render_error(
             "session": session,
             "show2path": show2path,
             "_uproot_simulate": False,
-            "_uproot_testing": session is not None and (is_admin or session.testing),
+            "show_testing": session is not None
+            and (is_admin or session._uproot_testing),
         }
     )
 

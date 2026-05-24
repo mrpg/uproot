@@ -173,7 +173,7 @@
 {% endblock pre_container %}
 
 <div id="uproot-main-container" class="container" x-data>
-    {% if _uproot_testing %}
+    {% if show_testing %}
     {% include "TestingHead.html" %}
     {% endif %}
 
@@ -224,7 +224,7 @@
     {% block footer %}
     {% endblock footer %}
 
-    {% if _uproot_testing %}
+    {% if show_testing %}
     {% include "DataHistory.html" %}
     {% endif %}
 </div>

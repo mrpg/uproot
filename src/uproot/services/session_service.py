@@ -73,7 +73,7 @@ async def flip_testing(sname: t.Sessionname) -> None:
     session_exists(sname, False)
 
     with s.Session(sname) as session:
-        session.testing = not session.testing
+        session._uproot_testing = not session._uproot_testing
 
 
 async def run_new_session(sname: t.Sessionname) -> None:

@@ -644,7 +644,7 @@ async def ws(
                     "payload": new_show_page,
                 } if isinstance(
                     new_show_page, int
-                ) and (is_admin or player.session.testing):
+                ) and (is_admin or player.session._uproot_testing):
                     player.show_page = new_show_page
                 case {
                     "endpoint": "invoke",
