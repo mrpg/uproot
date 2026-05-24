@@ -320,8 +320,21 @@ code, .font-monospace {
 }
 .link-underline-uproot:hover, .link-underline-uproot:focus {
     color: var(--bs-uproot-dark) !important;
+    -webkit-text-decoration-color:
+        rgba(var(--bs-uproot-rgb-dark), var(--bs-link-underline-opacity)) !important;
     text-decoration-color:
         rgba(var(--bs-uproot-rgb-dark), var(--bs-link-underline-opacity)) !important;
+}
+
+.link-uproot {
+    color: rgba(var(--bs-uproot-rgb), var(--bs-link-opacity, 1)) !important;
+    -webkit-text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity, 1)) !important;
+    text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity, 1)) !important;
+}
+.link-uproot:hover, .link-primary:focus {
+    color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-opacity, 1)) !important;
+    -webkit-text-decoration-color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-underline-opacity, 1)) !important;
+    text-decoration-color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-underline-opacity, 1)) !important;
 }
 
 .text-ls-uppercase {

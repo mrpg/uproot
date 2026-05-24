@@ -129,7 +129,7 @@ function renderRooms(rooms, containerId) {
             "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 text-uproot"
         );
 
-        const title = createElement("h5", "fw-semibold mb-1 me-3 overflow-x-scroll text-nowrap");
+        const title = createElement("h5", "fw-semibold mb-0 pb-1 me-3 overflow-x-scroll text-nowrap");
         const roomUrl = adminUrl("room", room.name);
         title.innerHTML = `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`; // SAFE
 

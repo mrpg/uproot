@@ -54,10 +54,17 @@
                 {% else %}
                 <p class="mb-2 pt-1">{% translate %}This session is associated with a room.{% endtranslate %}</p>
                 <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
-                <p class="mb-2 pt-1 d-flex gap-2 flex-wrap">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="closeRoom()">{% translate %}Disassociate &amp; close room{% endtranslate %}</button>
+                <p class="mb-2">
+                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsRoom" role="button" aria-expanded="false" aria-controls="advancedActionsRoom">
+                        {% translate %}Room-related actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                    </a>
                 </p>
+                <div class="collapse" id="advancedActionsRoom">
+                    <p class="mb-2 pt-1 d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="closeRoom()">{% translate %}Disassociate &amp; close room{% endtranslate %}</button>
+                    </p>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -65,19 +72,39 @@
     <div class="col-12 col-xl-3 col-lg-6 mb-4-5">
         <div class="card h-100">
             <div class="card-body pb-2">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Essential information{% endtranslate %}</h5>
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Session properties{% endtranslate %}</h5>
+                {% if not deployment.PUBLIC_DEMO %}
+                <div class="mb-3">
+                    <h6 class="fw-semibold">{% translate %}Description{% endtranslate %}</h6>
+                    {% if session.description %}
+                    <p>{{ session.description }}</p>
+                    {% else %}
+                    <p class="text-body-tertiary">None</p>
+                    {% endif %}
+                </div>
+                {% endif %}
                 {% if session.config %}
                 <div class="mb-3">
                     <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
                         <h6 class="fw-semibold">{% translate %}Config{% endtranslate %}</h6>
-                        <a class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}New{% endtranslate %}</a>
                     </div>
                     <p class="font-monospace mb-2">{{ session.config }}</p>
                 </div>
                 {% endif %}
                 <div>
                     <h6 class="fw-semibold mb-2 pb-0 pt-1">{% translate %}Apps{% endtranslate %}</h6>
-                    <p class="font-monospace mb-2">{{ " → ".join(session.apps) }}</p>
+                    <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
+                </div>
+                <p class="mb-2">
+                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsSession" role="button" aria-expanded="false" aria-controls="advancedActionsSession">
+                        {% translate %}Property-related actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                    </a>
+                </p>
+                <div class="collapse" id="advancedActionsSession">
+                    <p class="mb-2 pt-1 d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change description{% endtranslate %}</button>
+                        <a type="button" class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}Choose different config{% endtranslate %}</a>
+                    </p>
                 </div>
             </div>
         </div>
@@ -109,7 +136,7 @@
                 {% if len(info) > 0 %}
                 <p class="mb-2">
                     <button class="btn btn-sm btn-outline-uproot mt-1" data-bs-target="#urlModal" data-bs-toggle="modal" type="button">
-                        {% translate %}Show individual URLs{% endtranslate %}
+                        {% translate %}Individual URLs{% endtranslate %}
                     </button>
                 </p>
                 {% endif %}
@@ -119,34 +146,30 @@
     <div class="col-12 col-xl-3 col-lg-6 mb-4-5">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Actions{% endtranslate %}</h5>
-                {% if not deployment.PUBLIC_DEMO %}
-                <div class="mb-3">
-                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
-                        <h6 class="fw-semibold">{% translate %}Description{% endtranslate %}</h6>
-                        {% if session.description is none %}
-                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Add{% endtranslate %}</button>
-                        {% else %}
-                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change{% endtranslate %}</button>
-                        {% endif %}
-                    </div>
-                    {% if session.description %}
-                    <p>{{ session.description }}</p>
-                    {% endif %}
-                </div>
-                {% endif %}
-                <div class="mb-3">
-                    <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
-                        <h6 class="fw-semibold">{% translate %}Settings{% endtranslate %}</h6>
-                        <button type="button" class="btn btn-sm btn-outline-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change{% endtranslate %}</button>
-                    </div>
-                    {% if session.settings %}
-                    <p>{% translate %}Custom settings{% endtranslate %}</p>
+                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Session status{% endtranslate %}</h5>
+                <p class="mb-2">
+                    {% if session.active %}
+                    {% translate %}Session is marked as active.{% endtranslate %}
                     {% else %}
-                    <p class="text-body-tertiary">{% translate %}No settings{% endtranslate %}</p>
+                    <span class="text-body-tertiary">{% translate %}Session is marked as inactive.{% endtranslate %}</span>
                     {% endif %}
-                </div>
-                <hr>
+                </p>
+                <p class="mb-2">
+                    {% if session.get("_uproot_initialized", False) %}
+                    {% translate %}Session is initialized.{% endtranslate %}
+                    {% else %}
+                    <span class="text-body-tertiary">{% translate %}Session is not initialized.{% endtranslate %}</span>
+                    {% endif %}
+                </p>
+                <p class="mb-2">
+                    {% if session._uproot_testing %}
+                    <b class="text-danger"><i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        {% translate %}Testing elements are displayed for all participants.{% endtranslate %}
+                    </b>
+                    {% else %}
+                    {% translate %}Testing elements are disabled except for admins.{% endtranslate %}
+                    {% endif %}
+                </p>
                 {% if session.get("_uproot_simulate", False) %}
                 <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2">
                     <p class="mb-1 fw-bold text-danger">
@@ -162,77 +185,63 @@
                     </button>
                 </div>
                 {% endif %}
-                <p class="mb-0">
-                    <a class="link-subtle small" data-bs-toggle="collapse" href="#advancedActions" role="button" aria-expanded="false" aria-controls="advancedActions">
-                        {% translate %}Show advanced actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                <div class="my-3">
+                    <h6 class="fw-semibold">{% translate %}Settings{% endtranslate %}</h6>
+                    {% if session.settings %}
+                    <p>{% translate %}Custom settings applied via <span class="font-monospace">session.settings</span>.{% endtranslate %}</p>
+                    {% else %}
+                    <p class="text-body-tertiary">{% translate %}No custom entries in <span class="font-monospace">session.settings</span>.{% endtranslate %}</p>
+                    {% endif %}
+                </div>
+                <p>
+                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActions" role="button" aria-expanded="false" aria-controls="advancedActions">
+                        {% translate %}Status-related actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
                     </a>
                 </p>
                 <div class="collapse" id="advancedActions">
-                <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2 mt-3">
-                    <p class="mb-1">
-                        {% if session._uproot_testing %}
-                        <b class="text-uproot"><i class="bi bi-exclamation-triangle-fill text-uproot"></i>
-                            {% translate %}Testing is enabled.{% endtranslate %}
-                        </b>
-                        {% else %}
-                        {% translate %}Testing is disabled.{% endtranslate %}
-                        {% endif %}
+                    <p class="mb-2">
+                        <button class="btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
+                            data-bs-toggle="popover"
+                            data-bs-trigger="hover"
+                            data-bs-content="{% translate %}Toggling this has purely cosmetical consequences:{% endtranslate %} {% if session.active %}{% translate %}It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”{% endtranslate %}{% else %}{% translate %}It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”{% endtranslate %}{% endif %}"
+                            onclick="flipActive()"
+                            type="button">
+                            {% if session.active %}
+                            {% translate %}Mark session as inactive{% endtranslate %}
+                            {% else %}
+                            {% translate %}Mark session as active{% endtranslate %}
+                            {% endif %}
+                        </button>
                     </p>
-                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0"
-                        data-bs-toggle="popover"
-                        data-bs-trigger="hover"
-                        data-bs-content="{% if session._uproot_testing %}{% translate %}Toggling this will hide this session’s testing elements for everyone except admins.{% endtranslate %}{% else %}{% translate %}Toggling this will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
-                        onclick="flipTesting()"
-                        type="button">
-                        {% if session._uproot_testing %}
-                        <i class="bi bi-toggle-on"></i>
-                        {% else %}
-                        <i class="bi bi-toggle-off"></i>
-                        {% endif %}
-                    </button>
-                </div>
-                <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
-                    <p class="mb-1">
-                        {% if session.active %}
-                        {% translate %}Session is active.{% endtranslate %}
-                        {% else %}
-                        <span class="text-body-tertiary">{% translate %}Session is inactive.{% endtranslate %}</span>
-                        {% endif %}
+                    <p class="mb-2">
+                        <button class="btn btn-sm btn-danger"
+                            data-bs-toggle="popover"
+                            data-bs-trigger="hover"
+                            data-bs-content="{% if session._uproot_testing %}{% translate %}Toggling this will hide this session’s testing elements for everyone except admins.{% endtranslate %}{% else %}{% translate %}Toggling this will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
+                            onclick="flipTesting()"
+                            type="button">
+                            {% if session._uproot_testing %}
+                            {% translate %}Hide testing elements{% endtranslate %}
+                            {% else %}
+                            {% translate %}Display testing elements{% endtranslate %}
+                            {% endif %}
+                        </button>
                     </p>
-                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
-                        data-bs-toggle="popover"
-                        data-bs-trigger="hover"
-                        data-bs-content="{% translate %}Toggling this has purely cosmetical consequences:{% endtranslate %} {% if session.active %}{% translate %}It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”{% endtranslate %}{% else %}{% translate %}It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”{% endtranslate %}{% endif %}"
-                        onclick="flipActive()"
-                        type="button">
-                        {% if session.active %}
-                        <i class="bi bi-toggle-on"></i>
-                        {% else %}
-                        <i class="bi bi-toggle-off"></i>
-                        {% endif %}
-                    </button>
-                </div>
-                <div class="align-items-baseline d-flex flex-wrap justify-content-between mt-2">
-                    <p class="mb-1">
-                        {% if session.get("_uproot_initialized", False) %}
-                        {% translate %}Session is initialized.{% endtranslate %}
-                        {% else %}
-                        <span class="text-body-tertiary">{% translate %}Session is not initialized.{% endtranslate %}</span>
-                        {% endif %}
+                    {% if not session.get("_uproot_initialized", False) %}
+                    <p class="mb-2">
+                        <button class="btn btn-sm btn-uproot flex-grow-0 text-nowrap"
+                            data-bs-toggle="popover"
+                            data-bs-trigger="hover"
+                            data-bs-content="{% translate %}Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.{% endtranslate %}"
+                            onclick="runNewSession()"
+                            type="button">
+                            Initialize session
+                        </button>
                     </p>
-                    <button class="border-0 btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
-                        data-bs-toggle="popover"
-                        data-bs-trigger="hover"
-                        data-bs-content="{% translate %}Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.{% endtranslate %}"
-                        onclick="runNewSession()"
-                        type="button">
-                        {% if not session.get("_uproot_initialized", False) %}
-                        <i class="bi bi-play-fill"></i>
-                        {% else %}
-                        <i class="bi bi-check-circle-fill"></i>
-                        {% endif %}
-                    </button>
-                </div>
+                    {% endif %}
+                    <p class="mb-2">
+                        <button type="button" class="btn btn-sm btn-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change settings{% endtranslate %}</button>
+                    </p>
                 </div>
             </div>
         </div>
