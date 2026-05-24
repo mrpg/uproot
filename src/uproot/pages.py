@@ -332,7 +332,7 @@ async def render_error(
 
     # the following builds some info about the exception for admins
 
-    if is_admin:
+    if is_admin or (session is not None and session._uproot_testing):
         tb_list = traceback.extract_tb(exc.__traceback__)
 
         stack_frames = []
