@@ -347,10 +347,10 @@ Room
             </div>
             <div class="card-body">
                 <p class="mb-2">
-                {% translate %}This room is associated with the following session{% endtranslate %}:
+                    {% translate %}This room is associated with the following session{% endtranslate %}:
                 </p>
                 <p class="fs-4">
-                <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
+                    <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
                 </p>
                 <div class="d-flex gap-2 flex-wrap mb-1 mt-4">
                     <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
@@ -445,7 +445,7 @@ Room
                 </h4>
             </div>
             <div class="card-body">
-                <div class="d-table mb-3">
+                <div class="d-table mb-2">
                     <div class="d-table-row">
                         <span class="d-table-cell pe-4 text-body-secondary">{% translate %}Status{% endtranslate %}</span>
                         <span class="d-table-cell">
@@ -472,23 +472,27 @@ Room
                             {% endif %}
                         </span>
                     </div>
-                </div>
-                <div class="d-flex gap-2 flex-wrap align-items-center mb-1">
-                    {% if room.open %}
-                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="setRoomOpen(false)">
-                        {% translate %}Close room{% endtranslate %}
-                    </button>
-                    <small class="text-body-secondary">
-                        {% translate %}Stop accepting new participants while keeping the session active.{% endtranslate %}
-                    </small>
-                    {% else %}
-                    <button type="button" class="btn btn-outline-success btn-sm" onclick="setRoomOpen(true)">
-                        {% translate %}Reopen room{% endtranslate %}
-                    </button>
-                    <small class="text-body-secondary">
-                        {% translate %}Resume accepting new participants into the existing session.{% endtranslate %}
-                    </small>
-                    {% endif %}
+                    <div class="d-table-row">
+                        {% if room.open %}
+                        <span class="d-table-cell pt-3 pe-3 text-body-secondary">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="setRoomOpen(false)">
+                                {% translate %}Close room{% endtranslate %}
+                            </button>
+                        </span>
+                        <span class="d-table-cell small text-body-secondary">
+                            {% translate %}Stop accepting new participants while keeping the session active.{% endtranslate %}
+                        </span>
+                        {% else %}
+                        <span class="d-table-cell pt-3 pe-3 text-body-secondary">
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setRoomOpen(true)">
+                                {% translate %}Reopen room{% endtranslate %}
+                            </button>
+                        </span>
+                        <span class="d-table-cell small text-body-secondary">
+                            {% translate %}Resume accepting new participants into the existing session.{% endtranslate %}
+                        </span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
