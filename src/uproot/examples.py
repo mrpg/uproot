@@ -389,6 +389,10 @@ PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
 PYTHON_VERSION = "3.13\n"
 
+REQUIREMENTS_TXT = """\
+uproot-science @ git+https://github.com/mrpg/uproot.git@main
+"""
+
 PRE_COMMIT_CONFIG = """\
 repos:
   - repo: local
@@ -474,6 +478,9 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
     with open(path / "pyproject.toml", "w", encoding="utf-8") as pf:
         pf.write(PYPROJECT_TOML)
+
+    with open(path / "requirements.txt", "w", encoding="utf-8") as rf:
+        rf.write(REQUIREMENTS_TXT)
 
     shutil.copy(LICENSE_PATH, path / "uproot_license.txt")
 
