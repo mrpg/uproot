@@ -352,9 +352,18 @@ Room
                 <p class="fs-4">
                     <a class="font-monospace link-subtle" href="../../session/{{ room.sname }}/">{{ room.sname }}</a>
                 </p>
-                <div class="d-flex gap-2 flex-wrap mb-1 mt-4">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="closeRoom()">{% translate %}Disassociate &amp; close room{% endtranslate %}</button>
+                <p class="mb-0">
+                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsSession" role="button" aria-expanded="false" aria-controls="advancedActionsSession">
+                        {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                    </a>
+                </p>
+                <div class="collapse" id="advancedActionsSession">
+                    <p class="my-2">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+                    </p>
+                    <p class="mb-0">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="closeRoom()">{% translate %}Disassociate &amp; close room{% endtranslate %}</button>
+                    </p>
                 </div>
             </div>
         </div>
@@ -445,7 +454,7 @@ Room
                 </h4>
             </div>
             <div class="card-body">
-                <div class="d-table mb-2">
+                <div class="d-table mb-3">
                     <div class="d-table-row">
                         <span class="d-table-cell pe-4 text-body-secondary">{% translate %}Status{% endtranslate %}</span>
                         <span class="d-table-cell">
@@ -472,9 +481,16 @@ Room
                             {% endif %}
                         </span>
                     </div>
-                    <div class="d-table-row">
+                </div>
+                <p class="mb-0">
+                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsRoom" role="button" aria-expanded="false" aria-controls="advancedActionsRoom">
+                        {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                    </a>
+                </p>
+                <div class="collapse" id="advancedActionsRoom">
+                    <div class="d-table mt-2">
                         {% if room.open %}
-                        <span class="d-table-cell pt-3 pe-3 text-body-secondary">
+                        <span class="d-table-cell pe-3">
                             <button type="button" class="btn btn-danger btn-sm" onclick="setRoomOpen(false)">
                                 {% translate %}Close room{% endtranslate %}
                             </button>
@@ -483,7 +499,7 @@ Room
                             {% translate %}Stop accepting new participants while keeping the session active.{% endtranslate %}
                         </span>
                         {% else %}
-                        <span class="d-table-cell pt-3 pe-3 text-body-secondary">
+                        <span class="d-table-cell pe-3">
                             <button type="button" class="btn btn-outline-success btn-sm" onclick="setRoomOpen(true)">
                                 {% translate %}Reopen room{% endtranslate %}
                             </button>

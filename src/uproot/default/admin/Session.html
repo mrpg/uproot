@@ -54,14 +54,16 @@
                 {% else %}
                 <p class="mb-2 pt-1">{% translate %}This session is associated with a room.{% endtranslate %}</p>
                 <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
-                <p class="mb-2">
+                <p class="mb-0">
                     <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsRoom" role="button" aria-expanded="false" aria-controls="advancedActionsRoom">
-                        {% translate %}Room-related actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                        {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
                     </a>
                 </p>
                 <div class="collapse" id="advancedActionsRoom">
-                    <p class="mb-2 pt-1 d-flex gap-2 flex-wrap">
+                    <p class="my-2">
                         <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+                    </p>
+                    <p class="mb-2">
                         <button type="button" class="btn btn-danger btn-sm" onclick="closeRoom()">{% translate %}Disassociate &amp; close room{% endtranslate %}</button>
                     </p>
                 </div>
@@ -95,17 +97,25 @@
                     <h6 class="fw-semibold mb-2 pb-0 pt-1">{% translate %}Apps{% endtranslate %}</h6>
                     <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
                 </div>
-                <p class="mb-2">
+                <p class="mb-0">
                     <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsSession" role="button" aria-expanded="false" aria-controls="advancedActionsSession">
-                        {% translate %}Property-related actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                        {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
                     </a>
                 </p>
                 <div class="collapse" id="advancedActionsSession">
-                    <p class="mb-2 pt-1 d-flex gap-2 flex-wrap">
-                        {% if not deployment.PUBLIC_DEMO %}
+                    {% if not deployment.PUBLIC_DEMO %}
+                    <p class="my-2">
                         <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change description{% endtranslate %}</button>
-                        {% endif %}
-                        <a type="button" class="btn btn-sm btn-uproot" href="../../sessions/new/?config={{ session.config }}">{% translate %}Choose different config{% endtranslate %}</a>
+                    </p>
+                    {% endif %}
+                    <p class="mb-2">
+                        <a type="button" class="btn btn-sm btn-uproot"
+                            data-bs-toggle="popover"
+                            data-bs-trigger="hover"
+                            data-bs-content="{% translate %}This creates a new session, with the current configuration preselected.{% endtranslate %}"
+                            href="../../sessions/new/?config={{ session.config }}" target="_blank">
+                            {% translate %}New session{% endtranslate %}
+                        </a>
                     </p>
                 </div>
             </div>
@@ -195,13 +205,13 @@
                     <p class="text-body-tertiary">{% translate %}No custom entries in <span class="font-monospace">session.settings</span>.{% endtranslate %}</p>
                     {% endif %}
                 </div>
-                <p>
+                <p class="mb-0">
                     <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActions" role="button" aria-expanded="false" aria-controls="advancedActions">
-                        {% translate %}Status-related actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
+                        {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
                     </a>
                 </p>
                 <div class="collapse" id="advancedActions">
-                    <p class="mb-2">
+                    <p class="my-2">
                         <button class="btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
                             data-bs-toggle="popover"
                             data-bs-trigger="hover"
@@ -241,7 +251,7 @@
                         </button>
                     </p>
                     {% endif %}
-                    <p class="mb-2">
+                    <p class="mb-0">
                         <button type="button" class="btn btn-sm btn-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change settings{% endtranslate %}</button>
                     </p>
                 </div>
