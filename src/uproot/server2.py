@@ -254,6 +254,23 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                         case {
                             "endpoint": "invoke",
                             "payload": {
+                                "mname": "subscribe_to_room",
+                                "args": [roomname_ws],
+                            },
+                        } if isinstance(roomname_ws, str):
+                            newfname = "subscribe_to_room"
+                            args[newfname] = {"roomname": roomname_ws}
+                            tasks[
+                                asyncio.create_task(
+                                    j.subscribe_to_room(**args[newfname])
+                                )
+                            ] = (
+                                newfname,
+                                j.subscribe_to_room,
+                            )
+                        case {
+                            "endpoint": "invoke",
+                            "payload": {
                                 "mname": mname,
                                 "args": margs,
                                 "kwargs": mkwargs,
@@ -344,6 +361,18 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                 }
                             )
                         )
+                elif fname == "subscribe_to_room":
+                    await websocket.send_bytes(
+                        orjson.dumps(
+                            {
+                                "kind": "event",
+                                "payload": {
+                                    "event": "RoomStarted",
+                                    "detail": {},
+                                },
+                            }
+                        )
+                    )
                 elif fname == "timer":
                     pass  # placeholder for the future
                 else:
@@ -356,9 +385,10 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                 await cleanup_tasks()
                 return None
 
-            # Re-add new instance of the same task
-            new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-            tasks[new_task] = (fname, factory)
+            # Re-add new instance of the same task (except one-shot tasks)
+            if fname != "subscribe_to_room":
+                new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
+                tasks[new_task] = (fname, factory)
 
 
 # Login page
@@ -687,11 +717,8 @@ async def new_session_in_room(
             data.append({"label": label})
 
     with Admin() as admin:
-        ensure(
-            admin.rooms[roomname]["sname"] is None,
-            RuntimeError,
-            "Room already has an active session",
-        )
+        if admin.rooms[roomname]["sname"] is not None:
+            return RedirectResponse(f"{d.ROOT}/admin/room/{roomname}/", status_code=303)
 
         sid = c.create_session(
             admin,

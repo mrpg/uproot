@@ -172,6 +172,9 @@ async def roommain(
 
                 redirect_to = f"{d.ROOT}/p/{sname}/{pid.uname}/"
 
+            if new_session:
+                ur.start(roomname)
+
             return RedirectResponse(redirect_to, status_code=303)
         else:
             return HTMLResponse(

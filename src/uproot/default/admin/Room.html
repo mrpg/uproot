@@ -255,9 +255,14 @@ Room
         updateUI();
 
         uproot.subscribe("subscribe_to_attendance", `^${uproot.vars.roomname}`);
+        uproot.subscribe("subscribe_to_room", uproot.vars.roomname);
         setInterval(cleanupOld, 1000);
 
         document.querySelector("label[for='nplayers']").innerHTML += /* SAFE */ " (<b>#n# recently seen</b>)".replace("#n#", "<span class='n-here'>0</span>");
+    });
+
+    uproot.onCustomEvent("RoomStarted", () => {
+        uproot.reload();
     });
 
     uproot.onCustomEvent("Attended", (event) => {
