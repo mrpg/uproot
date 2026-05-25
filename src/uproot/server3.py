@@ -7,6 +7,7 @@ This file implements room routes.
 
 import asyncio
 from typing import Any, Optional, cast
+from urllib.parse import quote
 
 import orjson
 from fastapi import (
@@ -28,8 +29,20 @@ import uproot.types as t
 from uproot.constraints import ensure, valid_token
 from uproot.pages import path2page, render
 from uproot.storage import Admin, Player, Session
+from uproot.utils import safe_redirect_response
 
 router = APIRouter(prefix=d.ROOT)
+
+
+@router.get("/room/{roomname}")
+async def room_without_terminating_slash(
+    request: Request,
+    roomname: str,
+) -> Response:
+    query = f"?{request.url.query}" if request.url.query else ""
+    redirect_url = f"{d.ROOT}/room/{quote(roomname, safe='')}/{query}"
+
+    return safe_redirect_response(redirect_url, status_code=307)
 
 
 @router.post("/room/{roomname}/")
