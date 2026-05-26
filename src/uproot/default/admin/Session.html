@@ -139,7 +139,7 @@
                 <p class="mb-2">{% translate %}The sessionwide URL is{% endtranslate %}:</p>
                 <ul>
                     <li>
-                        <a class="link-subtle player-url"
+                        <a class="ffa-disambiguation link-subtle player-url"
                             href="../../../s/{{ sname }}/{{ session._uproot_secret }}/" target="_blank">
                             {{ root }}/s/{{ sname }}/{{ session._uproot_secret}}/
                         </a>
@@ -491,7 +491,7 @@
                     <tr>
                         <td class="ps-0">{{ loop.index0 }}</td>
                         <td>
-                            <a class="link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/p/{{ sname }}/{{ key }}/</a>
+                            <a class="ffa-disambiguation link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/p/{{ sname }}/{{ key }}/</a>
                         </td>
                     </tr>
                     {% endfor %}
