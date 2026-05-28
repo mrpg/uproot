@@ -131,7 +131,7 @@ function renderRooms(rooms, containerId) {
 
         const title = createElement("h5", "fw-semibold mb-0 pb-1 me-3 overflow-x-scroll text-nowrap");
         const roomUrl = adminUrl("room", room.name);
-        title.innerHTML = `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> <i class="font-bi">&#xF891;</i></a>`; // SAFE
+        title.innerHTML = `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.6;">&#xF56B;</i></a>`; // SAFE
 
         const statusBadge = createBadge(
             room.open ? _("room is Open") : _("Closed"),
@@ -271,7 +271,7 @@ function renderSessions(sessions, containerId) {
         if (session.sname) {
             const title = createElement("h5", "d-inline-block fw-semibold mb-1 me-3 text-nowrap");
             const sessionUrl = adminUrl("session", session.sname);
-            title.innerHTML = `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> <i class="font-bi">&#xF8A7;</i></a>`; // SAFE
+            title.innerHTML = `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.60;">&#xF56B;</i></a>`; // SAFE
             headerContent.appendChild(title);
         }
 
