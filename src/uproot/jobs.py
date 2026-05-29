@@ -101,7 +101,8 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
                                     f"Exception in dropout handler {fmodule}.{fname}"
                                 )
                             else:
-                                player._uproot_watch.remove(triplet)
+                                if triplet in player._uproot_watch:
+                                    player._uproot_watch.remove(triplet)
 
                     removals.add(entry)
             except Exception:
