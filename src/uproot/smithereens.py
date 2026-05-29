@@ -310,7 +310,10 @@ def transition_to_page(
     player: Storage, target: type[t.Page], reload_: bool = True
 ) -> None:
     target_path = page2path(target)
-    target_index = player.page_order.index(target_path, player.show_page)
+
+    with player:
+        target_index = player.page_order.index(target_path, player.show_page)
+
     player.show_page = target_index
 
     if reload_:
