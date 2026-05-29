@@ -583,6 +583,28 @@
         }
     }
 
+    {% if not session.get("_uproot_initialized", False) %}
+    let sessionInitializationReloadPending = false;
+
+    function reloadAfterPlayerStart(event) {
+        if (sessionInitializationReloadPending) {
+            return;
+        }
+
+        const info = event?.detail?.info;
+        const showPage = Array.isArray(info) ? info[2] : -1;
+
+        if (!Number.isInteger(showPage) || showPage < 0) {
+            return;
+        }
+
+        sessionInitializationReloadPending = true;
+        uproot.reload();
+    }
+
+    uproot.onCustomEvent("Attended", reloadAfterPlayerStart);
+    {% endif %}
+
     // ========================================================================
     // URL Utilities
     // ========================================================================
