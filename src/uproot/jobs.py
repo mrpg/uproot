@@ -68,41 +68,67 @@ async def timer(interval: float) -> None:
     await asyncio.sleep(interval)
 
 
+def forget_dropout_watch(player: s.Storage, triplet: list[Any]) -> bool:
+    watches = getattr(player, "_uproot_watch", None)
+
+    if not isinstance(watches, list):
+        return False
+
+    removed = False
+    while triplet in watches:
+        watches.remove(triplet)
+        removed = True
+
+    return removed
+
+
+async def check_dropout_watch(
+    entry: tuple[PlayerIdentifier, float, str, str],
+) -> bool:
+    pid, tolerance, fmodule, fname = entry
+
+    triplet = [tolerance, fmodule, fname]
+    last = u.find_online_delta(pid)
+
+    if pid not in u.MANUAL_DROPOUTS and (last is None or last <= tolerance):
+        return False
+
+    u.set_offline(pid)
+
+    with materialize(pid) as player:
+        watches = getattr(player, "_uproot_watch", None)
+
+        if not isinstance(watches, list) or triplet not in watches:
+            return True
+
+        if player.show_page == len(player.page_order):
+            forget_dropout_watch(player, triplet)
+            return True
+
+        player._uproot_dropout = True
+
+        try:
+            await ensure_awaitable(
+                optional_call,
+                u.APPS[fmodule],
+                fname,
+                player=player,
+            )
+        except Exception:
+            d.LOGGER.exception(f"Exception in dropout handler {fmodule}.{fname}")
+        else:
+            forget_dropout_watch(player, triplet)
+
+    return True
+
+
 async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
-    removals = set()
+    removals: set[tuple[PlayerIdentifier, float, str, str]] = set()
 
     while True:
-        for entry in u.WATCH:
+        for entry in tuple(u.WATCH):
             try:
-                pid, tolerance, fmodule, fname = entry
-
-                triplet = [tolerance, fmodule, fname]
-                last = u.find_online_delta(pid)
-
-                if pid not in u.MANUAL_DROPOUTS and (last is None or last <= tolerance):
-                    # player is online or assumed to be
-                    pass
-                else:
-                    u.set_offline(pid)
-
-                    with materialize(pid) as player:
-                        player._uproot_dropout = True
-
-                        if player.show_page != len(player.page_order):
-                            try:
-                                await ensure_awaitable(
-                                    optional_call,
-                                    u.APPS[fmodule],
-                                    fname,
-                                    player=player,
-                                )
-                            except Exception:
-                                d.LOGGER.exception(
-                                    f"Exception in dropout handler {fmodule}.{fname}"
-                                )
-                            else:
-                                player._uproot_watch.remove(triplet)
-
+                if await check_dropout_watch(entry):
                     removals.add(entry)
             except Exception:
                 d.LOGGER.exception(f"Exception in dropout watcher for entry {entry}")
