@@ -82,19 +82,19 @@ def uproot_namespace_validator(namespace: tuple[str, ...]) -> bool:
     return namespace[0] in ("admin", "session", "player", "group", "model")
 
 
-_store: Optional["appendmuch.Store"] = None
+store: Optional["appendmuch.Store"] = None
 
 
-def _init_store() -> "appendmuch.Store":
+def init_store() -> "appendmuch.Store":
     """Create the database driver and Store on first use.
 
     Deferred so that running ``uproot`` without starting the server (e.g.
     ``uproot --help`` or ``uproot new``) does not create ``uproot.sqlite3``.
     """
-    global _store
+    global store
 
-    if _store is not None:
-        return _store
+    if store is not None:
+        return store
 
     # Import uproot codec (registers uproot-specific types)
     from uproot.stable import CODEC
@@ -122,7 +122,7 @@ def _init_store() -> "appendmuch.Store":
             f"Invalid UPROOT_DATABASE environment variable: {DBENV}"
         )
 
-    _store = appendmuch.Store(
+    store = appendmuch.Store(
         driver,
         codec=CODEC,
         replace_predicate=uproot_replace_predicate,
@@ -132,16 +132,16 @@ def _init_store() -> "appendmuch.Store":
 
     import uproot.cache
 
-    uproot.cache.set_store(_store)
+    uproot.cache.set_store(store)
 
-    return _store
+    return store
 
 
 def __getattr__(name: str) -> Any:
     if name == "STORE":
-        return _init_store()
+        return init_store()
     if name == "DATABASE":
-        return _init_store().driver
+        return init_store().driver
     raise AttributeError(f"module 'uproot.deployment' has no attribute {name!r}")
 
 
@@ -180,5 +180,5 @@ async def lifespan_start(*args: Any, **kwargs: Any) -> None:
 
 
 async def lifespan_stop(*args: Any, **kwargs: Any) -> None:
-    if _store is not None:
-        _store.driver.close()
+    if store is not None:
+        store.driver.close()

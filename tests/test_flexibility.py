@@ -5,8 +5,8 @@ from uproot.flexibility import TypeRegistry
 
 def test_type_registry_init():
     registry = TypeRegistry()
-    assert registry._equivalences == {}
-    assert registry._converters == {}
+    assert registry.equivalences == {}
+    assert registry.converters == {}
 
 
 def test_get_equivalent_types_no_equivalence():

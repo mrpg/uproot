@@ -10,7 +10,7 @@ import orjson as json
 import uproot.deployment as d
 from uproot import cache
 from uproot.constraints import ensure
-from uproot.stable import _encode
+from uproot.stable import encode_raw
 from uproot.types import Value
 
 
@@ -18,7 +18,7 @@ def value2json(data: Any, unavailable: bool = False) -> str:
     if unavailable:
         return d.UNAVAILABLE_EQUIVALENT
 
-    return _encode(data)[1].decode("utf-8")  # This is guaranteed to work
+    return encode_raw(data)[1].decode("utf-8")  # This is guaranteed to work
 
 
 def json2csv(js: str) -> str:

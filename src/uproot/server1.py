@@ -224,7 +224,7 @@ async def index(request: Request) -> RedirectResponse:
 async def enqueue(
     request: Request,
     queue: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     path = tuple(queue.strip("/").split("/"))
 
@@ -675,7 +675,7 @@ async def ws(
                                 *margs,
                                 **mkwargs,
                             )
-                    except Exception as _e:
+                    except Exception:
                         traceback.print_exc()
                         invoke_exception = True
 
@@ -864,7 +864,7 @@ async def app_queries(
     request: Request,
     appname: str,
     sname: t.Sessionname,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
     if appname not in u.APPS:
         raise HTTPException(status_code=400, detail="Invalid app")

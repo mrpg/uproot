@@ -5,7 +5,7 @@
 Compatibility layer that delegates to appendmuch Store.
 """
 
-from typing import TYPE_CHECKING, Any, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 import appendmuch
 
@@ -13,8 +13,6 @@ from uproot.constraints import ensure_not_none
 
 if TYPE_CHECKING:
     from appendmuch import Store
-
-    from uproot.storage import Storage
 
 
 STORE: Optional["Store"] = None
@@ -31,15 +29,6 @@ def set_store(store: "Store") -> None:
     MEMORY_HISTORY = store.cache
 
 
-def safe_deepcopy(value: Any) -> Any:
-    if ensure_not_none(STORE):
-        from appendmuch.utils import safe_deepcopy as sd
-
-        return sd(value, STORE.codec.immutable_types())
-
-    return value  # unreachable
-
-
 def get_namespace(
     namespace: tuple[str, ...],
     create: bool = False,
@@ -50,43 +39,6 @@ def get_namespace(
     return None  # unreachable
 
 
-def field_history_since(
-    namespace: tuple[str, ...],
-    field: str,
-    since: float,
-) -> list[Any]:
-    if ensure_not_none(STORE):
-        return STORE.field_history_since(namespace, field, since)
-
-    return []  # unreachable
-
-
 def load_database_into_memory() -> None:
     if ensure_not_none(STORE):
         STORE.load()
-
-
-def get_current_value(namespace: tuple[str, ...], field: str) -> Any:
-    if ensure_not_none(STORE):
-        return STORE.get_current_value(namespace, field)
-
-
-def db_request(
-    caller: Optional["Storage"],
-    action: str,
-    key: str = "",
-    value: Optional[Any] = None,
-    *,
-    context: Optional[str] = None,
-    extra: Optional[
-        Union[
-            str,
-            tuple[list[str], str],
-            tuple[Sequence[tuple[str, ...]], str],
-            tuple[str, float],
-            dict[str, Any],
-        ]
-    ] = None,
-) -> Any:
-    if ensure_not_none(STORE):
-        return STORE.db_request(caller, action, key, value, ctx=context, extra=extra)

@@ -257,7 +257,7 @@ async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> Non
         )
 
 
-def _adminchat_summary(pid: t.PlayerIdentifier) -> dict[str, Any]:
+def adminchat_summary(pid: t.PlayerIdentifier) -> dict[str, Any]:
     mid = chat.adminchat_for_player(pid)
 
     if mid is None or not chat.exists(mid):
@@ -298,7 +298,7 @@ async def adminchat_overview(sname: t.Sessionname) -> dict[str, dict[str, Any]]:
     session_exists(sname, False)
 
     with s.Session(sname) as session:
-        return {pid.uname: _adminchat_summary(pid) for pid in session._uproot_players}
+        return {pid.uname: adminchat_summary(pid) for pid in session._uproot_players}
 
 
 async def adminchat_thread(
@@ -327,7 +327,7 @@ async def adminchat_thread(
                 "show_page": player.get("show_page", -1),
                 "page_order": player.get("page_order", []),
             },
-            "chat": _adminchat_summary(pid),
+            "chat": adminchat_summary(pid),
             "messages": messages,
         }
 

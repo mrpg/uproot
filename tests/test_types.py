@@ -8,6 +8,7 @@ import pytest
 
 from uproot.constraints import valid_token
 from uproot.types import (
+    BoundedPulse,
     GroupIdentifier,
     Identifier,
     InternalPage,
@@ -15,7 +16,6 @@ from uproot.types import (
     NoshowPage,
     Page,
     PlayerIdentifier,
-    Pulse,
     SessionIdentifier,
     SmoothOperator,
     StorageBunch,
@@ -802,16 +802,16 @@ class TestSmoothOperatorABC:
 
 
 class TestPulseClass:
-    """Test the Pulse class."""
+    """Test the BoundedPulse class."""
 
     def test_pulse_init(self):
-        """Test Pulse initialization."""
-        pulse = Pulse()
+        """Test BoundedPulse initialization."""
+        pulse = BoundedPulse()
         assert not pulse.is_set()
 
     async def test_pulse_wait_with_data(self):
-        """Test Pulse wait returns data."""
-        pulse = Pulse()
+        """Test BoundedPulse wait returns data."""
+        pulse = BoundedPulse()
 
         async def set_pulse():
             await asyncio.sleep(0.01)
@@ -825,8 +825,8 @@ class TestPulseClass:
         assert data == "test_data"
 
     async def test_pulse_wait_without_data(self):
-        """Test Pulse wait returns None when no data set."""
-        pulse = Pulse()
+        """Test BoundedPulse wait returns None when no data set."""
+        pulse = BoundedPulse()
 
         async def set_pulse():
             await asyncio.sleep(0.01)

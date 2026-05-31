@@ -32,8 +32,8 @@ T = TypeVar("T")
 
 class TypeRegistry:
     def __init__(self) -> None:
-        self._equivalences: dict[type, Tuple[type, ...]] = {}
-        self._converters: dict[Tuple[type, type], Callable[..., Any]] = {}
+        self.equivalences: dict[type, Tuple[type, ...]] = {}
+        self.converters: dict[Tuple[type, type], Callable[..., Any]] = {}
 
     def register_equivalence(
         self,
@@ -41,17 +41,17 @@ class TypeRegistry:
         converters: dict[Tuple[type, type], Callable[..., Any]],
     ) -> None:
         for t in types:
-            self._equivalences[t] = types
+            self.equivalences[t] = types
         for (from_type, to_type), converter in converters.items():
-            self._converters[(from_type, to_type)] = converter
+            self.converters[(from_type, to_type)] = converter
 
     def get_equivalent_types(self, target_type: type) -> Tuple[type, ...]:
-        return self._equivalences.get(target_type, (target_type,))
+        return self.equivalences.get(target_type, (target_type,))
 
     def convert(self, value: Any, from_type: type, to_type: type) -> Any:
         if from_type == to_type:
             return value
-        converter = self._converters.get((from_type, to_type))
+        converter = self.converters.get((from_type, to_type))
         if converter:
             return converter(value)
         raise TypeError(f"No converter from {from_type} to {to_type}")
@@ -75,7 +75,7 @@ class TypeRegistry:
         return value
 
 
-_registry = TypeRegistry()
+registry = TypeRegistry()
 
 
 def to_player(p: Player | PlayerIdentifier) -> Player:
@@ -114,7 +114,7 @@ def to_sid(s: Session | SessionIdentifier) -> SessionIdentifier:
         raise TypeError
 
 
-_registry.register_equivalence(
+registry.register_equivalence(
     Player,
     PlayerIdentifier,
     converters={
@@ -123,7 +123,7 @@ _registry.register_equivalence(
     },
 )
 
-_registry.register_equivalence(
+registry.register_equivalence(
     Session,
     SessionIdentifier,
     converters={
@@ -153,17 +153,17 @@ def flexible(func: Callable[P1, T]) -> Callable[P2, T]:
             # Handle Union types (both typing.Union and X | Y syntax)
             if origin is Union or isinstance(expected_type, UnionType):
                 union_args = get_args(expected_type)
-                bound.arguments[param_name] = _registry.try_convert_for_union(
+                bound.arguments[param_name] = registry.try_convert_for_union(
                     value, union_args
                 )
             else:
                 # Original non-Union logic
-                equivalent_types = _registry.get_equivalent_types(expected_type)
+                equivalent_types = registry.get_equivalent_types(expected_type)
 
                 if len(equivalent_types) > 1:
                     value_type = type(value)
                     if value_type in equivalent_types and value_type != expected_type:
-                        bound.arguments[param_name] = _registry.convert(
+                        bound.arguments[param_name] = registry.convert(
                             value, value_type, expected_type
                         )
                     elif value_type not in equivalent_types:

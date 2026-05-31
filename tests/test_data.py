@@ -27,7 +27,7 @@ def test_value2json_unavailable():
 
 
 def test_value2json_available():
-    with patch("uproot.stable._encode") as mock_encode:
+    with patch("uproot.stable.encode_raw") as mock_encode:
         mock_encode.return_value = (None, b'{"test":"data"}')
         result = value2json({"test": "data"}, unavailable=False)
         assert result == '{"test":"data"}'

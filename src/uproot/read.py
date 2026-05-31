@@ -47,12 +47,12 @@ class Database:
 
     def __init__(self, path: str) -> None:
         driver = appendmuch.Sqlite3(str(path), table_prefix="uproot")
-        self._store = appendmuch.Store(driver, codec=CODEC)
-        self._store.load()
+        self.store = appendmuch.Store(driver, codec=CODEC)
+        self.store.load()
 
-        self._prev_store = d.STORE
-        d.STORE = self._store
-        cache.set_store(self._store)
+        self.prev_store = d.STORE
+        d.STORE = self.store
+        cache.set_store(self.store)
 
     # ── Navigation helpers ───────────────────────────────────────
 
@@ -79,9 +79,9 @@ class Database:
 
     def close(self) -> None:
         """Close the database and restore the previous global store."""
-        self._store.close()
-        d.STORE = self._prev_store
-        cache.set_store(self._prev_store)
+        self.store.close()
+        d.STORE = self.prev_store
+        cache.set_store(self.prev_store)
 
     def __enter__(self) -> Database:
         return self
@@ -90,7 +90,7 @@ class Database:
         self.close()
 
     def __repr__(self) -> str:
-        return f"Database({self._store.driver!r})"
+        return f"Database({self.store.driver!r})"
 
 
 def read(path: str) -> Database:

@@ -869,31 +869,27 @@ class BoundedPulse:
     """
 
     def __init__(self, maxsize: int = 1024) -> None:
-        self._queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=maxsize)
-        self._maxsize = maxsize
+        self.queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=maxsize)
+        self.maxsize = maxsize
 
     def set(self, data: Any = None) -> None:
         try:
-            self._queue.put_nowait(data)
+            self.queue.put_nowait(data)
         except asyncio.QueueFull:
             # Remove oldest item to make room for new one
             try:
-                self._queue.get_nowait()
-                self._queue.put_nowait(data)
+                self.queue.get_nowait()
+                self.queue.put_nowait(data)
             except asyncio.QueueEmpty:
                 # Race condition - queue became empty, try again
-                self._queue.put_nowait(data)
+                self.queue.put_nowait(data)
 
     async def wait(self) -> Any:
-        return await self._queue.get()
+        return await self.queue.get()
 
     def is_set(self) -> bool:
-        return not self._queue.empty()
+        return not self.queue.empty()
 
     def qsize(self) -> int:
         """Return approximate number of pending events."""
-        return self._queue.qsize()
-
-
-# Keep Pulse as alias for backward compatibility
-Pulse = BoundedPulse
+        return self.queue.qsize()

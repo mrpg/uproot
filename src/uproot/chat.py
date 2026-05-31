@@ -189,7 +189,7 @@ def ensure_adminchat(pid: PlayerIdentifier) -> ModelIdentifier:
     return chat
 
 
-def _adminchat_can_reply(
+def adminchat_can_reply(
     as_viewed_by: Optional[PlayerIdentifier],
 ) -> Optional[bool]:
     if as_viewed_by is None:
@@ -220,7 +220,7 @@ def show_adminchat_msg(
         "sender": sender_representation,
         "time": time,
         "text": msg.text,
-        "can_reply": _adminchat_can_reply(as_viewed_by),
+        "can_reply": adminchat_can_reply(as_viewed_by),
     }
 
 

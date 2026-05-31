@@ -143,7 +143,7 @@ def exported_constants(app: Any) -> dict[str, Any]:
 
 
 async def render(
-    _server: "FastAPI",
+    server: "FastAPI",
     request: "Request",
     player: Optional[Storage],
     page: type[Page],

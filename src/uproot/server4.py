@@ -178,7 +178,7 @@ class RoomClose(BaseModel):
 
 @router.get("/sessions/")
 async def list_sessions(
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, dict[str, Any]]:
     """List all sessions with their metadata."""
     return a.sessions()
@@ -187,7 +187,7 @@ async def list_sessions(
 @router.get("/session/{sname}/")
 async def get_session(
     sname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get detailed information about a specific session."""
     a.session_exists(sname)
@@ -211,7 +211,7 @@ async def get_session(
 @router.post("/sessions/", status_code=201)
 async def create_session(
     body: SessionCreate,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Create a new session with the specified configuration and players."""
     if body.config not in u.CONFIGS:
@@ -250,7 +250,7 @@ async def create_session(
 @router.patch("/session/{sname}/active/")
 async def toggle_session_active(
     sname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Toggle the active status of a session."""
     a.session_exists(sname)
@@ -263,7 +263,7 @@ async def toggle_session_active(
 @router.patch("/session/{sname}/testing/")
 async def toggle_session_testing(
     sname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Toggle the testing mode of a session."""
     a.session_exists(sname)
@@ -277,7 +277,7 @@ async def toggle_session_testing(
 async def update_session_description(
     sname: str,
     body: DescriptionUpdate,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Update the description of a session."""
     a.session_exists(sname)
@@ -294,7 +294,7 @@ async def update_session_description(
 async def update_session_settings(
     sname: str,
     body: SettingsUpdate,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Update the settings of a session."""
     a.session_exists(sname)
@@ -314,7 +314,7 @@ async def list_players(
     fields: list[str] = Query(
         default=["id", "page_order", "show_page", "started", "label"]
     ),
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, dict[str, Any]]:
     """Get specified fields for all players in a session."""
     a.session_exists(sname)
@@ -324,7 +324,7 @@ async def list_players(
 @router.get("/session/{sname}/players/online/")
 async def get_online_players(
     sname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get online status and info for all players in a session."""
     a.session_exists(sname)
@@ -335,7 +335,7 @@ async def get_online_players(
 async def set_player_fields(
     sname: str,
     body: PlayersFields,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Set arbitrary fields on specified players."""
     a.session_exists(sname)
@@ -348,7 +348,7 @@ async def set_player_fields(
 async def advance_players(
     sname: str,
     body: PlayersAction,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Advance specified players by one page."""
     a.session_exists(sname)
@@ -359,7 +359,7 @@ async def advance_players(
 async def revert_players(
     sname: str,
     body: PlayersAction,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Revert specified players by one page."""
     a.session_exists(sname)
@@ -370,7 +370,7 @@ async def revert_players(
 async def put_players_to_end(
     sname: str,
     body: PlayersAction,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Move specified players to the end of the experiment."""
     a.session_exists(sname)
@@ -381,7 +381,7 @@ async def put_players_to_end(
 async def reload_players(
     sname: str,
     body: PlayersAction,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Force page reload for specified players."""
     a.session_exists(sname)
@@ -394,7 +394,7 @@ async def reload_players(
 async def redirect_players(
     sname: str,
     body: PlayerRedirect,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Redirect specified players to an external URL."""
     a.session_exists(sname)
@@ -411,7 +411,7 @@ async def redirect_players(
 async def message_players(
     sname: str,
     body: PlayerMessage,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Send an admin message to specified players."""
     a.session_exists(sname)
@@ -424,7 +424,7 @@ async def message_players(
 async def get_player_adminchat(
     sname: str,
     uname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get admin chat metadata and transcript for one player."""
     a.session_exists(sname)
@@ -436,7 +436,7 @@ async def send_player_adminchat(
     sname: str,
     uname: str,
     body: AdminchatMessage,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Send an admin chat message to one player."""
     a.session_exists(sname)
@@ -448,7 +448,7 @@ async def set_player_adminchat_replies(
     sname: str,
     uname: str,
     body: AdminchatReplies,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Enable or disable a player's ability to reply in admin chat."""
     a.session_exists(sname)
@@ -459,7 +459,7 @@ async def set_player_adminchat_replies(
 async def broadcast_adminchat(
     sname: str,
     body: AdminchatBroadcast,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Send an admin chat message to multiple players at once."""
     a.session_exists(sname)
@@ -472,7 +472,7 @@ async def broadcast_adminchat(
 async def mark_players_dropout(
     sname: str,
     body: PlayersAction,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Mark specified players as manually dropped out."""
     a.session_exists(sname)
@@ -492,7 +492,7 @@ async def get_session_data(
     since: float = Query(
         default=0.0, description="Only return data updated since this epoch timestamp"
     ),
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get all session data in display format, optionally filtered by timestamp."""
     a.session_exists(sname)
@@ -512,7 +512,7 @@ async def download_session_csv(
     player_data_only: bool = Query(
         default=False, description="Restrict export to player data"
     ),
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
     """Download session data as CSV."""
     a.session_exists(sname)
@@ -542,7 +542,7 @@ async def download_session_jsonl(
     player_data_only: bool = Query(
         default=False, description="Restrict export to player data"
     ),
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> StreamingResponse:
     """Download session data as JSONL (streaming)."""
     a.session_exists(sname)
@@ -562,7 +562,7 @@ async def download_session_jsonl(
 @router.get("/session/{sname}/page-times/")
 async def get_page_times(
     sname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
     """Download page visit times as CSV."""
     a.session_exists(sname)
@@ -581,7 +581,7 @@ async def get_page_times(
 
 @router.get("/rooms/")
 async def list_rooms(
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, dict[str, Any]]:
     """List all rooms with their configuration."""
     return dict(a.rooms())
@@ -590,7 +590,7 @@ async def list_rooms(
 @router.get("/room/{roomname}/")
 async def get_room(
     roomname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get detailed information about a specific room."""
     a.room_exists(roomname)
@@ -610,7 +610,7 @@ async def get_room(
 @router.post("/rooms/", status_code=201)
 async def create_room(
     body: RoomCreate,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Create a new room."""
     if body.config and body.config not in u.CONFIGS:
@@ -643,7 +643,7 @@ async def create_room(
 async def update_room(
     roomname: str,
     body: RoomUpdate,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Update room settings (only when no session is associated)."""
     a.room_exists(roomname)
@@ -673,7 +673,7 @@ async def update_room(
 @router.delete("/room/{roomname}/")
 async def delete_room(
     roomname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Delete a room (only when no session is associated)."""
     a.room_exists(roomname)
@@ -689,7 +689,7 @@ async def delete_room(
 @router.post("/room/{roomname}/disassociate/")
 async def disassociate_room(
     roomname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Disassociate a room from its current session."""
     a.room_exists(roomname)
@@ -709,7 +709,7 @@ async def disassociate_room(
 async def set_room_open(
     roomname: str,
     body: RoomOpen,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Set a room's open status without requiring disassociation."""
     a.room_exists(roomname)
@@ -726,7 +726,7 @@ async def set_room_open(
 async def close_room(
     roomname: str,
     body: RoomClose,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Close a room, optionally disassociating its session first."""
     a.room_exists(roomname)
@@ -743,7 +743,7 @@ async def close_room(
 async def create_session_in_room(
     roomname: str,
     body: RoomSessionCreate,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Create a new session within a room."""
     a.room_exists(roomname)
@@ -812,7 +812,7 @@ async def create_session_in_room(
 @router.get("/room/{roomname}/online/")
 async def get_room_online(
     roomname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get online status for a room's waiting area."""
     a.room_exists(roomname)
@@ -826,7 +826,7 @@ async def get_room_online(
 
 @router.get("/configs/")
 async def list_configs(
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """List all available configurations and apps."""
     return a.configs()
@@ -835,7 +835,7 @@ async def list_configs(
 @router.get("/configs/{cname}/summary/")
 async def get_config_summary(
     cname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get a human-readable summary of a configuration."""
     if cname not in u.CONFIGS:
@@ -859,7 +859,7 @@ async def get_config_summary(
 
 @router.get("/announcements/")
 async def get_announcements(
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Fetch announcements from upstream."""
     try:
@@ -871,7 +871,7 @@ async def get_announcements(
 @router.get("/session/{sname}/digest/")
 async def get_session_digest(
     sname: str,
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get list of apps that have digest methods available."""
     a.session_exists(sname)
@@ -881,7 +881,7 @@ async def get_session_digest(
 
 @router.get("/auth/sessions/")
 async def get_auth_sessions(
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get information about active authentication sessions."""
     return a.get_active_auth_sessions()
@@ -889,7 +889,7 @@ async def get_auth_sessions(
 
 @router.get("/status/")
 async def get_status(
-    _bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get server status information."""
     dbsize_bytes = d.DATABASE.size()

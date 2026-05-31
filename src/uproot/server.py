@@ -197,7 +197,7 @@ async def robots(request: Request) -> PlainTextResponse:
 
 @validate_call(config={"arbitrary_types_allowed": True})
 def load_config(
-    _server: FastAPI,
+    server: FastAPI,
     config: str,
     apps: list[str],
     *,

@@ -1,21 +1,4 @@
-from uproot.cache import dbns2tuple, flatten, safe_deepcopy, tuple2dbns
-
-
-def test_safe_deepcopy_immutable():
-    immutable_values = [42, 3.14, "string", (1, 2, 3), frozenset([1, 2, 3]), True, None]
-
-    for value in immutable_values:
-        result = safe_deepcopy(value)
-        assert result is value  # Should return the same object for immutable types
-
-
-def test_safe_deepcopy_mutable():
-    mutable_list = [1, 2, [3, 4]]
-    result = safe_deepcopy(mutable_list)
-
-    assert result == mutable_list
-    assert result is not mutable_list  # Should be a different object
-    assert result[2] is not mutable_list[2]  # Deep copy
+from uproot.cache import dbns2tuple, flatten, tuple2dbns
 
 
 def test_tuple2dbns():

@@ -53,18 +53,18 @@ class Comparison:
 
 class FieldReferent:
     def __init__(self, path: Optional[list[str]] = None) -> None:
-        self._path = path or []
-        self._get = attrgetter(".".join(self._path))
+        self.components = path or []
+        self.getter = attrgetter(".".join(self.components))
 
     def __getattr__(self, name: str) -> "FieldReferent":
-        return FieldReferent(self._path + [name])
+        return FieldReferent(self.components + [name])
 
     def __repr__(self) -> str:
-        return f"FieldReferent(path={self._path})"
+        return f"FieldReferent(path={self.components})"
 
     @property
     def path(self) -> list[str]:
-        return self._path.copy()
+        return self.components.copy()
 
     def __gt__(self, rhs: Any) -> Comparison:
         return Comparison(">", self, rhs)
@@ -88,4 +88,4 @@ class FieldReferent:
         raise ValueError("You must compare the field directly against False.")
 
     def __call__(self, obj: object) -> Any:
-        return self._get(obj)
+        return self.getter(obj)
