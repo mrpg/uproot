@@ -172,7 +172,6 @@ def test_latest_with_group_by_keeps_storage_without_group_field():
             "!seq": 3,
             "round": 1,
             "choice": "A",
-            "!new": True,
         },
     ]
 
@@ -246,7 +245,6 @@ def test_latest_with_group_by_keeps_fields_from_before_group_value():
             "treatment": "high",
             "round": 1,
             "choice": "A",
-            "!new": True,
         },
         {
             "!storage": "player/session1/p1",
@@ -255,7 +253,6 @@ def test_latest_with_group_by_keeps_fields_from_before_group_value():
             "treatment": "high",
             "round": 2,
             "choice": "A",
-            "!new": False,
         },
     ]
 
@@ -299,99 +296,8 @@ def test_latest_with_group_by_does_not_emit_extra_row_after_group_unavailable():
             "!seq": 2,
             "round": 1,
             "choice": "A",
-            "!new": True,
         }
     ]
-
-
-def test_latest_fresh_all_fields_set_after_group():
-    test_data = sequenced(
-        [
-            {
-                "!storage": "player/session1/p1",
-                "!field": "round",
-                "!time": 1.0,
-                "!context": "",
-                "!unavailable": False,
-                "!data": 1,
-            },
-            {
-                "!storage": "player/session1/p1",
-                "!field": "choice",
-                "!time": 2.0,
-                "!context": "",
-                "!unavailable": False,
-                "!data": "A",
-            },
-            {
-                "!storage": "player/session1/p1",
-                "!field": "round",
-                "!time": 3.0,
-                "!context": "",
-                "!unavailable": False,
-                "!data": 2,
-            },
-            {
-                "!storage": "player/session1/p1",
-                "!field": "choice",
-                "!time": 4.0,
-                "!context": "",
-                "!unavailable": False,
-                "!data": "B",
-            },
-        ]
-    )
-
-    result = list(latest(test_data, group_by_fields=["round"]))
-
-    assert result[0]["!new"] is True
-    assert result[1]["!new"] is True
-
-
-def test_latest_fresh_uses_seq_for_same_timestamp():
-    test_data = [
-        {
-            "!storage": "player/session1/p1",
-            "!field": "choice",
-            "!time": 1.0,
-            "!seq": 1,
-            "!context": "",
-            "!unavailable": False,
-            "!data": "A",
-        },
-        {
-            "!storage": "player/session1/p1",
-            "!field": "round",
-            "!time": 1.0,
-            "!seq": 2,
-            "!context": "",
-            "!unavailable": False,
-            "!data": 1,
-        },
-    ]
-
-    result = list(latest(test_data, group_by_fields=["round"]))
-
-    assert result[0]["!new"] is False
-
-
-def test_latest_fresh_not_present_without_group_by():
-    test_data = sequenced(
-        [
-            {
-                "!storage": "player/session1/p1",
-                "!field": "choice",
-                "!time": 1.0,
-                "!context": "",
-                "!unavailable": False,
-                "!data": "A",
-            },
-        ]
-    )
-
-    result = list(latest(test_data))
-
-    assert "!new" not in result[0]
 
 
 def test_generate_data_player_data_only(monkeypatch):

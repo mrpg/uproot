@@ -191,14 +191,6 @@ def latest(
 
                 if all_fields_valid:
                     combination_key = repr(tuple(combination_values))
-
-                    group_seq = max(current_state[gf]["seq"] for gf in group_by_fields)
-                    state_snapshot["!new"] = any(
-                        fs["seq"] >= group_seq
-                        for f, fs in current_state.items()
-                        if f not in group_by_fields and not fs["unavailable"]
-                    )
-
                     seen_combinations[combination_key] = state_snapshot
             else:
                 # No grouping - track single latest state
