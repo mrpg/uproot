@@ -396,7 +396,9 @@ Room
                 </p>
                 {% endif %}
                 {% else %}
-                {% translate %}This room is not associated with a particular config{% endtranslate %}.
+                <p class="mb-0 text-body-tertiary">
+                    {% translate %}This room is not associated with a particular config{% endtranslate %}.
+                </p>
                 {% endif %}
             </div>
         </div>
@@ -409,7 +411,7 @@ Room
             <div class="bg-white border-0 card-header pb-1">
                 <h4 class="border-bottom border-uproot-light fw-semibold mb-0 mt-2 pb-3">{% translate %}Player URL{% endtranslate %}</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body pb-2">
                 <p>{% translate %}Players can use the following URL for entering this room{% endtranslate %}:</p>
                 <ul>
                     <li>
@@ -443,7 +445,9 @@ Room
                 </button>
                 </p>
                 {% else %}
-                {% translate %}This room is not associated with any labels{% endtranslate %}.
+                <p class="mb-0 text-body-tertiary">
+                    {% translate %}This room is not associated with any labels{% endtranslate %}.
+                </p>
                 {% endif %}
             </div>
         </div>
@@ -526,7 +530,7 @@ Room
                 </h4>
             </div>
             <div class="card-body">
-                <p class="text-body-secondary mb-0">
+                <p class="text-body-tertiary mb-0">
                     {% translate %}To edit room settings, first disassociate the session from this room.{% endtranslate %}
                 </p>
             </div>

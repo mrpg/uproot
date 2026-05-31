@@ -410,10 +410,17 @@ input[type="radio"].form-check-input {
     cursor: pointer;
 }
 
+#uproot-button-wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;  /* like .mt-4 */
+}
+
 [x-cloak] {
     display: none !important;
 }
 
+/* Ensure space between bottom and window border so that buttons can be pressed also on mobile devices */
 #uproot-main-container {
     margin-bottom: 250px;
 }

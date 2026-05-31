@@ -50,7 +50,7 @@
             <div class="card-body pb-2">
                 <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
                 {% if session.room is none %}
-                <p class="mb-2 pt-1">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
+                <p class="mb-2 pt-1 text-body-tertiary">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
                 {% else %}
                 <p class="mb-2 pt-1">{% translate %}This session is associated with a room.{% endtranslate %}</p>
                 <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
@@ -179,7 +179,9 @@
                         {% translate %}Testing elements are displayed for all participants.{% endtranslate %}
                     </b>
                     {% else %}
-                    {% translate %}Testing elements are disabled except for admins.{% endtranslate %}
+                    <span class="text-body-tertiary">{% translate %}
+                        Testing elements are disabled except for admins.{% endtranslate %}
+                    </span>
                     {% endif %}
                 </p>
                 {% if session.get("_uproot_simulate", False) %}

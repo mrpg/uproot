@@ -250,7 +250,8 @@ a:hover .not-yet-implemented {
    ============================================================================ */
 
 .adminchat-inbox {
-    border: 1px solid rgba(var(--bs-uproot-rgb), 0.18);
+    background-color: var(--bs-uproot-bg-subtle);
+    border: 1px solid var(--bs-uproot-border-subtle-light);
     border-radius: 0.75rem;
     display: flex;
     height: 62vh;
@@ -398,9 +399,6 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-inbox-main {
-    background:
-        radial-gradient(circle at top right, rgba(var(--bs-uproot-rgb), 0.06), transparent 28rem),
-        linear-gradient(180deg, #fff, rgba(var(--bs-uproot-rgb), 0.02));
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -476,8 +474,9 @@ a:hover .not-yet-implemented {
 
 .adminchat-bubble-admin {
     align-self: flex-end;
-    background: linear-gradient(135deg, rgba(var(--bs-uproot-rgb), 0.12), rgba(var(--bs-uproot-rgb), 0.22));
+    background-color: var(--bs-uproot-bg-light);
     border: 1px solid rgba(var(--bs-uproot-rgb), 0.18);
+    color: var(--bs-uproot-dark);
 }
 
 .adminchat-bubble-player {

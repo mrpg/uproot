@@ -1,8 +1,10 @@
 {% extends "Bare.html" %}
 
+
 {% if buttons is not defined %}
 {% set buttons = True %}
 {% endif %}
+
 
 {% block titlearea %}
 
@@ -14,10 +16,11 @@
 
 {% endblock titlearea %}
 
+
 {% block main2 %}
 
 {% if buttons %}
-<div class="d-flex justify-content-between my-3">
+<div id="uproot-button-wrapper">
     {% if page.allow_back %}
     <button type="button" id="uproot-button-back" class="btn btn-outline-secondary" onclick="uproot.goBack()">
         {% translate %}
