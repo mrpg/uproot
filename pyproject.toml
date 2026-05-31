@@ -15,7 +15,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "httpx==0.28.1",
-    "appendmuch @ git+https://github.com/mrpg/appendmuch.git@master",  # TODO: Pin exact version
+    "appendmuch==0.0.8",
     "click==8.4.1",
     "fastapi==0.136.1",
     "itsdangerous==2.2.0",
@@ -32,9 +32,6 @@ dependencies = [
     "websockets==16.0",
     "wtforms==3.2.2",
 ]
-
-[tool.uv]
-exclude-newer = "8 days"
 
 [project.urls]
 Homepage = "https://uproot.science/"
