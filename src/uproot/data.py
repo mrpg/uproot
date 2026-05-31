@@ -220,7 +220,16 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     for row in rows:
         csvfields.update(dict.fromkeys(row.keys()))
 
-    dw = pycsv.DictWriter(buffer, fieldnames=csvfields)
+    sorted_fields = sorted(
+        csvfields,
+        key=lambda f: (
+            (0, f)
+            if f.startswith("!")
+            else (2, f) if f in ("packages", "page_order") else (1, f)
+        ),
+    )
+
+    dw = pycsv.DictWriter(buffer, fieldnames=sorted_fields)
     dw.writeheader()
 
     for row in rows:
@@ -243,4 +252,13 @@ def json_ready_row(row: dict[str, Any]) -> dict[str, Any]:
 
 async def jsonl_out(rows: Iterable[dict[str, Any]]) -> AsyncGenerator[str, None]:
     for row in rows:
-        yield json.dumps(json_ready_row(row)).decode("utf-8") + "\n"
+        ready = json_ready_row(row)
+        sorted_keys = sorted(
+            ready,
+            key=lambda f: (
+                (0, f)
+                if f.startswith("!")
+                else (2, f) if f in ("packages", "page_order") else (1, f)
+            ),
+        )
+        yield json.dumps({k: ready[k] for k in sorted_keys}).decode("utf-8") + "\n"
