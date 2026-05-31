@@ -246,7 +246,7 @@ def test_latest_with_group_by_keeps_fields_from_before_group_value():
             "treatment": "high",
             "round": 1,
             "choice": "A",
-            "!new": False,
+            "!new": True,
         },
         {
             "!storage": "player/session1/p1",

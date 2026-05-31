@@ -193,7 +193,7 @@ def latest(
                     combination_key = repr(tuple(combination_values))
 
                     group_seq = max(current_state[gf]["seq"] for gf in group_by_fields)
-                    state_snapshot["!new"] = all(
+                    state_snapshot["!new"] = any(
                         fs["seq"] >= group_seq
                         for f, fs in current_state.items()
                         if f not in group_by_fields and not fs["unavailable"]
