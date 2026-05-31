@@ -27,6 +27,22 @@ def all_good(key: tuple[str, str]) -> bool:
 within = appendmuch.within
 
 
+def virtual_along(storage: "Storage") -> Any:
+    def along(field: str) -> Any:
+        return within.along(storage, field)
+
+    along.strict = lambda field: within.strict.along(storage, field)  # type: ignore[attr-defined]
+    return along
+
+
+def virtual_within(storage: "Storage") -> Any:
+    def within_context(**ctx: Any) -> Any:
+        return within(storage, **ctx)
+
+    within_context.strict = lambda **ctx: within.strict(storage, **ctx)  # type: ignore[attr-defined]
+    return within_context
+
+
 class Storage(appendmuch.Storage):
     def __init__(
         self,
@@ -178,9 +194,9 @@ def Admin() -> Storage:
     return Storage(
         "admin",
         virtual={
-            "along": lambda s: (lambda field: within.along(s, field)),
+            "along": virtual_along,
             "sessions": virtual_sessions,
-            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+            "within": virtual_within,
         },
     )
 
@@ -190,14 +206,14 @@ def Session(sname: Sessionname) -> Storage:
         "session",
         str(sname),
         virtual={
-            "along": lambda s: (lambda field: within.along(s, field)),
+            "along": virtual_along,
             "group": virtual_group,
             "groups": virtual_groups,
             "models": virtual_models,
             "player": virtual_player,
             "players": virtual_players,
             "settings": virtual_settings,
-            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+            "within": virtual_within,
         },
     )
 
@@ -208,10 +224,10 @@ def Group(sname: Sessionname, gname: str) -> Storage:
         str(sname),
         gname,
         virtual={
-            "along": lambda s: (lambda field: within.along(s, field)),
+            "along": virtual_along,
             "players": virtual_players,
             "session": lambda s: materialize(s._uproot_session),
-            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+            "within": virtual_within,
         },
     )
 
@@ -222,14 +238,14 @@ def Player(sname: Sessionname, uname: Username) -> Storage:
         str(sname),
         str(uname),
         virtual={
-            "along": lambda s: (lambda field: within.along(s, field)),
+            "along": virtual_along,
             "group": virtual_group,
             "others_in_session": virtual_others_in_session,
             "others_in_group": virtual_others_in_group,
             "other_in_session": virtual_other_in_session,
             "other_in_group": virtual_other_in_group,
             "session": lambda s: materialize(s._uproot_session),
-            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+            "within": virtual_within,
             "context": virtual_context,
         },
     )
@@ -241,8 +257,8 @@ def Model(sname: Sessionname, mname: str) -> Storage:
         str(sname),
         mname,
         virtual={
-            "along": lambda s: (lambda field: within.along(s, field)),
+            "along": virtual_along,
             "session": lambda s: materialize(s._uproot_session),
-            "within": lambda s: (lambda **ctx: within(s, **ctx)),
+            "within": virtual_within,
         },
     )

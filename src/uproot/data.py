@@ -43,9 +43,9 @@ def partial_matrix(
     everything: dict[tuple[str, ...], list[Value]],
 ) -> Iterator[dict[str, Any]]:
     previous_field: Optional[str]
-    previous_time: float
+    previous_seq: int
 
-    previous_field, previous_time = None, 0.0
+    previous_field, previous_seq = None, 0
 
     for k, values in everything.items():
         namespace = k[:-1]
@@ -53,23 +53,22 @@ def partial_matrix(
 
         for v in values:
             ensure(
-                previous_field != field or cast(float, v.time) >= previous_time,
+                previous_field != field or v.seq >= previous_seq,
                 RuntimeError,
-                "Time ordering violation in data stream",
+                "Sequence ordering violation in data stream",
             )  # guaranteed by contract
 
             yield {
                 "!storage": cache.tuple2dbns(namespace),
                 "!field": field,
                 "!time": v.time,
+                "!seq": v.seq,
                 "!context": v.context,
                 "!unavailable": v.unavailable,
                 "!data": v.data,
             }
 
-            previous_field, previous_time = field, cast(
-                float, v.time
-            )  # v.time is a float here because it's straight outta the DB
+            previous_field, previous_seq = field, v.seq
 
 
 def long_to_wide(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
@@ -78,6 +77,7 @@ def long_to_wide(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
             "!storage": row["!storage"],
             "!field": row["!field"],
             "!time": row["!time"],
+            "!seq": row["!seq"],
             "!context": row["!context"],
             "!unavailable": row["!unavailable"],
             row["!field"].strip('"'): row["!data"],  # ha!
@@ -148,8 +148,7 @@ def latest(
 
     # Process each storage
     for storage, changes in storage_changes.items():
-        # Sort by time (just to be safe)
-        changes.sort(key=lambda x: x["!time"])
+        changes.sort(key=lambda x: x["!seq"])
 
         # Build state evolution and track all seen combinations
         current_state: dict[str, dict[str, Any]] = {}
@@ -158,14 +157,19 @@ def latest(
 
         for change in changes:
             field = change["!field"]
+            seq = change["!seq"]
             # Update current state for this field
             current_state[field] = {
                 "data": change["!data"],
                 "unavailable": change["!unavailable"],
-                "time": change["!time"],
+                "seq": seq,
             }
 
-            state_snapshot = {"!storage": storage, "!time": change["!time"]}
+            state_snapshot = {
+                "!storage": storage,
+                "!time": change["!time"],
+                "!seq": seq,
+            }
 
             for f, field_state in current_state.items():
                 if not field_state["unavailable"]:
@@ -188,7 +192,13 @@ def latest(
                 if all_fields_valid:
                     combination_key = repr(tuple(combination_values))
 
-                    # Update latest state for this combination
+                    group_seq = max(current_state[gf]["seq"] for gf in group_by_fields)
+                    state_snapshot["!new"] = all(
+                        fs["seq"] >= group_seq
+                        for f, fs in current_state.items()
+                        if f not in group_by_fields and not fs["unavailable"]
+                    )
+
                     seen_combinations[combination_key] = state_snapshot
             else:
                 # No grouping - track single latest state

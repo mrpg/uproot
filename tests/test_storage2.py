@@ -45,6 +45,44 @@ def test_storage_constructors():
     assert model.__namespace__ == ("model", "test_session", "test_model")
 
 
+def test_virtual_within_strict_mode():
+    sid, pid = setup()
+    player = t.materialize(pid)
+
+    with player:
+        player.choice = "A"
+        player.round = 1
+
+    assert player.within(round=1).choice == "A"
+    expect_attribute_error(player.within.strict(round=1), "choice")
+
+
+def test_virtual_within_strict_is_valid_context_field_name():
+    sid, pid = setup()
+    player = t.materialize(pid)
+
+    with player:
+        player.strict = True
+        player.choice = "A"
+
+    assert player.within(strict=True).choice == "A"
+    assert player.within(strict=True).strict is True
+
+
+def test_virtual_along_strict_mode_accepts_strict_field_name():
+    sid, pid = setup()
+    player = t.materialize(pid)
+
+    with player:
+        player.strict = True
+        player.score = 10
+
+    results = list(player.along.strict("strict"))
+    assert len(results) == 1
+    assert results[0][0] is True
+    assert results[0][1].score == 10
+
+
 def test_field_access():
     sid, pid = setup()
 
