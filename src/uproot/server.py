@@ -190,9 +190,11 @@ async def favicon(request: Request) -> RedirectResponse:
     return RedirectResponse(f"{d.ROOT}/static/_uproot/favicon.ico", status_code=301)
 
 
-@uproot_server.get("/robots.txt")
-async def robots(request: Request) -> PlainTextResponse:
-    return PlainTextResponse(f"User-agent: *\nDisallow: {d.ROOT}/")
+if d.ROBOTS_TXT:
+
+    @uproot_server.get("/robots.txt")
+    async def robots(request: Request) -> PlainTextResponse:
+        return PlainTextResponse(f"User-agent: *\nDisallow: {d.ROOT}/")
 
 
 @validate_call(config={"arbitrary_types_allowed": True})

@@ -51,6 +51,12 @@ if ORIGIN is None:
     if heroku_domain := os.getenv("HEROKU_APP_DEFAULT_DOMAIN_NAME"):
         ORIGIN = f"https://{heroku_domain}"
 
+ROBOTS_TXT: bool = os.getenv("UPROOT_ROBOTS_TXT", "1").lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+)
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROJECT_METADATA: dict[str, Any] = {}
