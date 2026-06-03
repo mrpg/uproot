@@ -16,6 +16,7 @@ from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 from pydantic import validate_call
 from wtforms import Form as BaseForm
+from wtforms.widgets.core import clean_key, html_params
 
 import uproot as u
 import uproot.admin as a
@@ -92,6 +93,24 @@ def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
         "internalstatic": static_factory(),
         "projectstatic": static_factory("_project"),
     }
+
+
+def select_html_params(field: Any, class_: str) -> Any:
+    attrs = {}
+
+    if field.render_kw is not None:
+        attrs = {clean_key(k): v for k, v in field.render_kw.items()}
+
+    attrs["class"] = class_
+    attrs.setdefault("id", field.id)
+
+    validation_attrs = getattr(field.widget, "validation_attrs", ())
+
+    for attr in dir(field.flags):
+        if attr in validation_attrs and attr not in attrs:
+            attrs[attr] = getattr(field.flags, attr)
+
+    return html_params(name=field.name, **attrs)
 
 
 async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
@@ -547,3 +566,4 @@ ENV.filters["tojson"] = tojson_filter
 ENV.filters["to"] = to_filter
 ENV.filters["type"] = type_filter
 ENV.filters["unixtime2datetime"] = unixtime2datetime_filter
+ENV.globals["select_html_params"] = select_html_params
