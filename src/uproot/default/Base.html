@@ -19,7 +19,7 @@
 
 {% block main2 %}
 
-{% if buttons %}
+{% if buttons and not buttons_placed.placed %}
 <div id="uproot-button-wrapper">
     {% if page.allow_back %}
     <button type="button" id="uproot-button-back" class="btn btn-outline-secondary" onclick="uproot.goBack()">

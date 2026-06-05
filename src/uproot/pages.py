@@ -95,6 +95,37 @@ def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
     }
 
 
+def make_buttons(
+    translate: Callable[[str], str], allow_back: bool
+) -> tuple[Callable[..., Markup], Callable[..., Markup], dict[str, bool]]:
+    state: dict[str, bool] = {"placed": False}
+
+    def button_next(**kwargs: Any) -> Markup:
+        state["placed"] = True
+        label = kwargs.pop("label", None) or translate("Next")
+        kwargs.setdefault("class_", "btn btn-primary")
+        kwargs.setdefault("type", "submit")
+        kwargs.setdefault("id", "uproot-button-next")
+        return Markup(
+            f"<button {html_params(**kwargs)}>{Markup.escape(label)}</button>"
+        )
+
+    def button_back(**kwargs: Any) -> Markup:
+        state["placed"] = True
+        if not allow_back:
+            return Markup("")
+        label = kwargs.pop("label", None) or translate("Back")
+        kwargs.setdefault("class_", "btn btn-outline-secondary")
+        kwargs.setdefault("type", "button")
+        kwargs.setdefault("id", "uproot-button-back")
+        kwargs.setdefault("onclick", "uproot.goBack()")
+        return Markup(
+            f"<button {html_params(**kwargs)}>{Markup.escape(label)}</button>"
+        )
+
+    return button_next, button_back, state
+
+
 def select_html_params(field: Any, class_: str) -> Any:
     attrs = {}
 
@@ -254,6 +285,13 @@ async def render(
         | internal
     )
 
+    def translate(s: str) -> str:
+        return i18n.lookup(s, language)
+
+    button_next, button_back, buttons_placed = make_buttons(
+        translate, getattr(page, "allow_back", False)
+    )
+
     with session, group:
         context = (
             cast(
@@ -271,10 +309,13 @@ async def render(
             | {
                 "app": app,
                 "app_or_default": app_or_default,
+                "button_back": button_back,
+                "button_next": button_next,
+                "buttons_placed": buttons_placed,
                 "C": getattr(app, "C", {}),
                 "form": form,
                 "JSON_TERMS": i18n.json(cast(i18n.ISO639, language)),
-                "_": lambda s: i18n.lookup(s, language),
+                "_": translate,
                 "page": page,
                 "part": part,
                 "player": player,
