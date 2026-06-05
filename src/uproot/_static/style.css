@@ -536,6 +536,34 @@ div.without-anchoring-overlay {
     cursor: pointer;
 }
 
+/* RTL support for Bootstrap form-check (radio buttons, checkboxes) */
+[dir="rtl"] .form-check {
+    padding-left: 0;
+    padding-right: 1.5em;
+}
+[dir="rtl"] .form-check .form-check-input {
+    float: right;
+    margin-left: 0;
+    margin-right: -1.5em;
+}
+[dir="rtl"] .form-check-inline {
+    margin-right: 0;
+    margin-left: 1rem;
+}
+[dir="rtl"] .form-switch {
+    padding-left: 0;
+    padding-right: 2.5em;
+}
+[dir="rtl"] .form-switch .form-check-input {
+    float: right;
+    margin-left: 0;
+    margin-right: -2.5em;
+    background-position: right center;
+}
+[dir="rtl"] .form-switch .form-check-input:checked {
+    background-position: left center;
+}
+
 /* Print styles */
 @media print {
     /* Hide testing elements */
