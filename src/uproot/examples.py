@@ -6,7 +6,7 @@
 import os
 import shutil
 import stat
-import subprocess  # nosec B404  # git init command is safe
+import subprocess  # nosec B404
 from datetime import date
 from pathlib import Path
 
@@ -465,7 +465,7 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
 
     try:
         os.chmod(mainpath, os.stat(mainpath).st_mode | stat.S_IEXEC)
-    except Exception:  # nosec B110 - Best effort chmod, not critical if it fails
+    except Exception:  # nosec B110
         pass
 
     staticdir.mkdir(exist_ok=False)
@@ -505,7 +505,7 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
         git_dir = path / ".git"
         if not git_dir.exists():
             try:
-                subprocess.run(  # nosec B603 B607  # Hardcoded git command, no user input
+                subprocess.run(  # nosec B603 B607
                     ["git", "init"],
                     cwd=path,
                     check=True,

@@ -84,7 +84,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         import setproctitle
 
         setproctitle.setproctitle(f"[uproot server @ {d.HOST}:{d.PORT}]")
-    except Exception:  # nosec B110 - Optional feature, OK if setproctitle unavailable
+    except Exception:  # nosec B110
         pass
 
     if (la := len(d.ADMINS)) == 1:

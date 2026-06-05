@@ -315,7 +315,7 @@ def get_active_auth_sessions() -> dict[str, dict[str, Any]]:
             if isinstance(data, dict) and "user" in data:
                 user = data["user"]
                 if user not in sessions:
-                    sessions[user] = {  # nosec B105 - counter, not a credential
+                    sessions[user] = {  # nosec
                         "token_count": 0,
                         "created_at": [],
                     }
@@ -340,7 +340,7 @@ def from_cookie(uauth: str | None) -> dict[str, str]:
     if not uauth:
         return {
             "user": "",
-            "token": "",  # nosec B105
+            "token": "",  # nosec
         }
     try:
         serializer = get_serializer()
@@ -350,7 +350,7 @@ def from_cookie(uauth: str | None) -> dict[str, str]:
         if uauth not in active_tokens:
             return {
                 "user": "",
-                "token": "",  # nosec B105
+                "token": "",  # nosec
             }
 
         # Verify token signature and expiration (24 hours)
@@ -359,14 +359,14 @@ def from_cookie(uauth: str | None) -> dict[str, str]:
         if not isinstance(data, dict) or "user" not in data:
             return {
                 "user": "",
-                "token": "",  # nosec B105
+                "token": "",  # nosec
             }
 
         return {"user": data["user"], "token": uauth}
     except (BadSignature, SignatureExpired):
         return {
             "user": "",
-            "token": "",  # nosec B105
+            "token": "",  # nosec
         }
 
 

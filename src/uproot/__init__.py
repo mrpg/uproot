@@ -86,7 +86,7 @@ def set_offline(pid: PlayerIdentifier) -> None:
 
         del ONLINE[pid.sname][pid.uname]
         ONLINE_SORTED.remove((t, pid))
-    except Exception:  # nosec B110 - Best effort cleanup, failures are acceptable
+    except Exception:  # nosec B110
         pass
 
     e.set_attendance(pid)

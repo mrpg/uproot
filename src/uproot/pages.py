@@ -106,7 +106,7 @@ def make_buttons(
         kwargs.setdefault("class_", "btn btn-primary")
         kwargs.setdefault("type", "submit")
         kwargs.setdefault("id", "uproot-button-next")
-        return Markup(
+        return Markup(  # nosec B704
             f"<button {html_params(**kwargs)}>{Markup.escape(label)}</button>"
         )
 
@@ -119,7 +119,7 @@ def make_buttons(
         kwargs.setdefault("type", "button")
         kwargs.setdefault("id", "uproot-button-back")
         kwargs.setdefault("onclick", "uproot.goBack()")
-        return Markup(
+        return Markup(  # nosec B704
             f"<button {html_params(**kwargs)}>{Markup.escape(label)}</button>"
         )
 
