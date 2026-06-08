@@ -179,61 +179,71 @@
 {% block pre_container %}
 {% endblock pre_container %}
 
-<div id="uproot-main-container" class="container" x-data>
-    {% if show_testing %}
-    {% include "TestingHead.html" %}
-    {% endif %}
+<div id="uproot-wrapper" x-data>
+    {% block wrapper_content %}
+    <form id="uproot-form" method="post" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
+        <input type="hidden" name="_uproot_csrf" id="_uproot_csrf" value="">
+        <input type="hidden" name="_uproot_from" id="_uproot_from" value="">
 
-    {% block timeoutbox %}
-    <div
-        x-cloak
-        x-show="$store.uproot.timeout.active"
-        x-bind:class="'uproot-timeout-' + $store.uproot.timeout.level"
-        class="alert callout mb-4-5 mt-4 pe-4"
-        role="alert"
-        id="uproot-timeout">
-        <span id="uproot-time-remaining-preamble">
-            {% translate %}Remaining time on this page:{% endtranslate %}
-        </span>
-        <span id="uproot-time-remaining" x-text="$store.uproot.timeout.compact">__:__</span>
-    </div>
-    {% endblock timeoutbox %}
+        {% block wrapper_start %}
+        {% endblock wrapper_start %}
 
-    {% block start %}
-    {% endblock start %}
+        <div id="uproot-main-container" class="container">
+            {% if show_testing %}
+            {% include "TestingHead.html" %}
+            {% endif %}
 
-    {% block titlearea %}
-    {% endblock titlearea %}
+            {% block timeoutbox %}
+            <div
+                x-cloak
+                x-show="$store.uproot.timeout.active"
+                x-bind:class="'uproot-timeout-' + $store.uproot.timeout.level"
+                class="alert callout mb-4-5 mt-4 pe-4"
+                role="alert"
+                id="uproot-timeout">
+                <span id="uproot-time-remaining-preamble">
+                    {% translate %}Remaining time on this page:{% endtranslate %}
+                </span>
+                <span id="uproot-time-remaining" x-text="$store.uproot.timeout.compact">__:__</span>
+            </div>
+            {% endblock timeoutbox %}
 
-    <main id="uproot-main">
-        {% if _uproot_errors %}
-        {% for error in _uproot_errors %}
-        <div class="alert alert-danger uproot-main-error" role="alert">
-            {{ error }}
+            {% block start %}
+            {% endblock start %}
+
+            {% block titlearea %}
+            {% endblock titlearea %}
+
+            <main id="uproot-main">
+                {% if _uproot_errors %}
+                {% for error in _uproot_errors %}
+                <div class="alert alert-danger uproot-main-error" role="alert">
+                    {{ error }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% block main %}
+                {% endblock main %}
+                {% block main2 %}
+                {% endblock main2 %}
+
+                {% block main3 %}
+                {% endblock main3 %}
+            </main>
+
+            {% block postmain %}
+            {% endblock postmain %}
+
+            {% if show_testing %}
+            {% include "DataHistory.html" %}
+            {% endif %}
         </div>
-        {% endfor %}
-        {% endif %}
 
-        <form id="uproot-form" method="post" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
-            <input type="hidden" name="_uproot_csrf" id="_uproot_csrf" value="">
-            <input type="hidden" name="_uproot_from" id="_uproot_from" value="">
-
-            {% block main %}
-            {% endblock main %}
-            {% block main2 %}
-            {% endblock main2 %}
-        </form>
-
-        {% block main3 %}
-        {% endblock main3 %}
-    </main>
-
-    {% block footer %}
-    {% endblock footer %}
-
-    {% if show_testing %}
-    {% include "DataHistory.html" %}
-    {% endif %}
+        {% block wrapper_end %}
+        {% endblock wrapper_end %}
+    </form>
+    {% endblock wrapper_content %}
 </div>
 
 {% block late %}
@@ -241,6 +251,13 @@
 
 {% block late2 %}
 {% endblock late2 %}
+
+<footer>
+    {% block footer %}
+    <div id="uproot-spacer">
+    </div>
+    {% endblock footer %}
+</footer>
 
 <script>
     {% if player is not none and _uproot_simulate %}
