@@ -143,9 +143,16 @@
                 </h5>
             </div>
             <div class="modal-body">
+                <p>
                 {% translate %}
                 Connection with server lost. Please check your internet connection.
                 {% endtranslate %}
+                </p>
+                <p class="mb-0">
+                {% translate %}
+                If you are using a VPN, consider disabling it.
+                {% endtranslate %}
+                </p>
             </div>
             <div class="modal-footer">
                 <button type="button" id="connection-modal-reload-btn" class="btn btn-outline-danger" onclick="uproot.reload()">
