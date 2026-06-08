@@ -15,7 +15,32 @@ Please wait
 {% endblock title %}
 
 
-{% block main3 %}
+{% block wrapper_content %}
+
+<div id="uproot-main-container" class="container">
+    {% if show_testing %}
+    {% include "TestingHead.html" %}
+    {% endif %}
+
+    {{ self.timeoutbox() }}
+
+    {{ self.start() }}
+
+    {{ self.titlearea() }}
+
+    <main id="uproot-main">
+        {% if _uproot_errors %}
+        {% for error in _uproot_errors %}
+        <div class="alert alert-danger uproot-main-error" role="alert">
+            {{ error }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {{ self.main() }}
+        {{ self.main2() }}
+
+        {% block main3 %}
 
 {% include app_or_default(app, "RoomHelloInfo.html") ignore missing %}
 
@@ -119,4 +144,14 @@ Please wait
 
 {% endif %}
 
-{% endblock main3 %}
+        {% endblock main3 %}
+    </main>
+
+    {{ self.postmain() }}
+
+    {% if show_testing %}
+    {% include "DataHistory.html" %}
+    {% endif %}
+</div>
+
+{% endblock wrapper_content %}

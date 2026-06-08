@@ -367,9 +367,6 @@ main {
     margin-top: 1em;
     margin-bottom: 3em;
 }
-footer {
-    border-top: 1px solid lightgrey;
-}
 .hidden {
     display: none;
 }
@@ -421,8 +418,8 @@ input[type="radio"].form-check-input {
 }
 
 /* Ensure space between bottom and window border so that buttons can be pressed also on mobile devices */
-#uproot-main-container {
-    margin-bottom: 250px;
+#uproot-spacer {
+    height: 20em;
 }
 
 #uproot-timeout {
@@ -579,9 +576,9 @@ div.without-anchoring-overlay {
         display: none !important;
     }
 
-    /* Reset positioning for print layout */
-    #uproot-main-container {
-        margin-bottom: 0;
+    /* Reset bottom spacer for print layout */
+    #uproot-spacer {
+        height: 0;
     }
 
     /* Preserve background colors and images */
