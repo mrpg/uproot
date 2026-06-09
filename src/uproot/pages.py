@@ -502,7 +502,7 @@ async def validate(
         form = (await form_factory(page, player))(formdata)
 
         if not form.validate():
-            return form, False, [], {}
+            return form, False, [], {k: list(v) for k, v in form.errors.items()}
 
         errors_from_page = cast(
             str | list[str] | dict[str, str | list[str]],
