@@ -105,6 +105,7 @@ window.uproot = {
     isInitialized: false,
     keepAliveInterval: null,
     key: null,
+    lastTimeoutLevel: null,
     missing: new Set(),
     receive: null,
     root: null,
@@ -195,6 +196,15 @@ window.uproot = {
 
         const store = window.Alpine?.store?.("uproot");
         if (store) Object.assign(store.timeout, state);
+
+        if (active && level !== this.lastTimeoutLevel && (level === "warning" || level === "danger")) {
+            const announcer = document.getElementById("uproot-timeout-announcer");
+            const timeout = document.getElementById("uproot-timeout");
+            const label = timeout?.getAttribute("aria-label");
+            if (announcer) announcer.textContent = label ? `${label}: ${state.text}` : state.text;
+        }
+        this.lastTimeoutLevel = active ? level : null;
+
         window.dispatchEvent(new CustomEvent("UprootInternalPageTimeout", { detail: state }));
 
         return state;
@@ -827,6 +837,16 @@ window.uproot = {
                     return min;
                 }
 
+                const decimalPlaces = (value) => {
+                    const text = String(value);
+                    const exponentMatch = text.match(/e-(\d+)$/);
+                    if (exponentMatch) return Number(exponentMatch[1]);
+                    return text.includes(".") ? text.split(".")[1].length : 0;
+                };
+                const precision = Math.max(decimalPlaces(min), decimalPlaces(max), decimalPlaces(step));
+                const factor = 10 ** precision;
+                const roundToPrecision = (value) => Math.round((value + Number.EPSILON) * factor) / factor;
+
                 // Calculate percentage of click position, clamped to [0,1]
                 const percentage = Math.max(0, Math.min(1, clickX / sliderRect.width));
 
@@ -842,17 +862,14 @@ window.uproot = {
                 const stepsFromBase = Math.round((rawValue - stepBase) / step);
 
                 // Calculate final stepped value
-                let steppedValue = stepBase + (stepsFromBase * step);
-
-                // Handle floating point precision issues
-                steppedValue = Math.round(steppedValue / step) * step;
+                let steppedValue = roundToPrecision(stepBase + (stepsFromBase * step));
 
                 // Ensure value is within bounds
                 steppedValue = Math.max(min, Math.min(max, steppedValue));
 
                 // Final validation: ensure the value is actually valid according to step
                 const finalStepsFromBase = Math.round((steppedValue - stepBase) / step);
-                const validatedValue = stepBase + (finalStepsFromBase * step);
+                const validatedValue = roundToPrecision(stepBase + (finalStepsFromBase * step));
 
                 return Math.max(min, Math.min(max, validatedValue));
             };
@@ -883,6 +900,30 @@ window.uproot = {
             // Create overlay to hide slider and capture clicks
             const overlay = document.createElement("div");
             overlay.classList.add("without-anchoring-overlay");
+            overlay.setAttribute("tabindex", "0");
+            overlay.setAttribute("role", "button");
+
+            const labelEl = slider.labels?.[0];
+            if (labelEl) {
+                overlay.setAttribute("aria-label", labelEl.textContent.trim());
+            }
+            const sliderDescription = slider.getAttribute("aria-describedby");
+            if (sliderDescription) {
+                overlay.setAttribute("aria-describedby", sliderDescription);
+            }
+
+            const revealSlider = (value) => {
+                slider.value = value;
+                slider.dataset.interacted = "true";
+                hiddenInput.value = value;
+
+                overlay.remove();
+                slider.style.display = "block";
+                slider.focus();
+
+                slider.dispatchEvent(new Event("input", { bubbles: true }));
+                slider.dispatchEvent(new Event("change", { bubbles: true }));
+            };
 
             // Hide slider initially and reset width
             slider.style.display = "none";
@@ -892,20 +933,16 @@ window.uproot = {
             overlay.addEventListener("click", (e) => {
                 const rect = overlay.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
-                const steppedValue = calculateSteppedValue(clickX, rect);
+                revealSlider(calculateSteppedValue(clickX, rect));
+            });
 
-                // Set the calculated step-aligned value
-                slider.value = steppedValue;
-                slider.dataset.interacted = "true";
-                hiddenInput.value = steppedValue;
-
-                // Remove overlay and reveal slider
-                overlay.remove();
-                slider.style.display = "block";
-
-                // Dispatch events for consistency
-                slider.dispatchEvent(new Event("input", { bubbles: true }));
-                slider.dispatchEvent(new Event("change", { bubbles: true }));
+            // Add keyboard handler for accessibility
+            overlay.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    const rect = overlay.getBoundingClientRect();
+                    revealSlider(calculateSteppedValue(rect.width / 2, rect));
+                }
             });
 
             // Add overlay to wrapper
@@ -1008,6 +1045,7 @@ window.uproot = {
                         a.className = isActive ? "page-link bg-uproot border-uproot text-white" : "page-link text-uproot";
                         a.href = "#";
                         a.textContent = p;
+                        if (isActive) a.setAttribute("aria-current", "page");
                         a.addEventListener("click", (e) => {
                             e.preventDefault();
                             showPage(p);

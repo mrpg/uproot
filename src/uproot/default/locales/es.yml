@@ -25,8 +25,14 @@
 ? 'Close'
 : 'Cerrar'
 
+? 'Remaining time on this page'
+: 'Tiempo restante en esta página'
+
 ? 'Remaining time on this page:'
 : 'Tiempo restante en esta página:'
+
+? 'Skip to main content'
+: 'Ir al contenido principal'
 
 ? 'Error'
 : 'Error'

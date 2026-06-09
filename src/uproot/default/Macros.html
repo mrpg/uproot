@@ -1,6 +1,6 @@
-{% macro error(field) %}
+{% macro error(field, id="") %}
     {% if field.errors %}
-        <div class="card mt-2 text-bg-danger border-danger" role="alert">
+        <div class="card mt-2 text-bg-danger border-danger" role="alert"{% if id %} id="{{ id }}"{% endif %}>
             {% for error in field.errors %}
                 <div class="card-body pb-1 pt-1">
                     <small>{{ error }}</small>
@@ -17,8 +17,8 @@
 {% set translate = _ %}
 
 
-{% macro translated_label(label, class_) -%}
-    {{ label(text=translate(label.text | string) if label.text is not none else "", class_=class_) }}
+{% macro translated_label(label, class_, id=false) -%}
+    {{ label(text=translate(label.text | string) if label.text is not none else "", class_=class_, id=id) }}
 {%- endmacro %}
 
 
@@ -72,6 +72,9 @@
 
 
 {% macro field(field) %}
+    {% set desc_id = (field.id ~ "-description") if field.description else "" %}
+    {% set err_id = (field.id ~ "-errors") if field.errors else "" %}
+    {% set describedby = ((desc_id ~ " " ~ err_id) | trim) or false %}
     {% set ADDON_START = (field.addon_start is defined and field.addon_start is not none) %}
     {% set ADDON_END = (field.addon_end is defined and field.addon_end is not none) %}
     {% set ADDON_PRESENT = ADDON_START or ADDON_END %}
@@ -83,10 +86,10 @@
                 {% if field.render_kw and field.render_kw.get("class") %}
                     {% set noop = class_list.append(field.render_kw.get("class")) %}
                 {% endif %}
-                {{ field(class_=" ".join(class_list)) | safe }}
+                {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                 {{ translated_label(field.label, "form-check-label uproot-form-label") }}
                 {% if field.description %}
-                    <small class="form-text uproot-form-description">{{ translate(field.description) | safe }}</small>
+                    <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
                 {% endif %}
             </div>
         {% elif field.type == "DecimalRangeField" %}
@@ -111,7 +114,7 @@
                     {% if field.hide_popover is defined and not field.hide_popover %}
                     <div class="uproot-slider-popover-container"></div>
                     {% endif %}
-                    {{ field(class_=" ".join(class_list)) | safe }}
+                    {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                 </div>
                 {% if field.label_max is defined and field.label_max != "" %}
                     <div class="flex-shrink-0">
@@ -123,7 +126,7 @@
                 {% endif %}
             </div>
             {% if field.description %}
-                <small class="form-text uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "EmailField" %}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
@@ -133,17 +136,17 @@
                     {% set noop = class_list.append(field.render_kw.get("class")) %}
                 {% endif %}
                 {% if field.label_floating is defined and field.label_floating is not none %}
-                    {{ field(class_=" ".join(class_list), placeholder="e-mail") | safe }}
+                    {{ field(class_=" ".join(class_list), placeholder="e-mail", aria_describedby=describedby) | safe }}
                     <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ translate(field.label_floating) }}</label>
                 {% else %}
-                    {{ field(class_=" ".join(class_list)) | safe }}
+                    {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                 {% endif %}
             </div>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "LikertField" %}
-            <table class="table w-100 uproot-likert">
+            <table class="table w-100 uproot-likert"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
                 <caption class="caption-top p-0">
                     <span class="form-label uproot-form-label">{{ translate(field.label.text | string) if field.label.text is not none else "" }}</span>
                 </caption>
@@ -177,10 +180,11 @@
                 </tbody>
             </table>
             {% if field.description %}
-                <small class="form-text uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "RadioField" %}
-            {{ translated_label(field.label, "form-label uproot-form-label") }}
+            {{ translated_label(field.label, "form-label uproot-form-label", id=field.id ~ "-label") }}
+            <div role="radiogroup" aria-labelledby="{{ field.id }}-label"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
             {% for subfield in field %}
                 {% set div_class_list = ["form-check"] %}
                 {% if field.render_kw and field.render_kw.get("class") %}
@@ -191,13 +195,14 @@
                     {{ translated_label(subfield.label, "form-check-label") }}
                 </div>
             {% endfor %}
+            </div>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "BoundedChoiceField" %}
-            {{ translated_label(field.label, "form-label uproot-form-label") }}
+            {{ translated_label(field.label, "form-label uproot-form-label", id=field.id ~ "-label") }}
             <input type="hidden" name="{{ field.name }}" value="">
-            <div class="uproot-bounded-choice" data-bounded-min="{{ field.bounded_min }}" data-bounded-max="{{ field.bounded_max if field.bounded_max is not none else '' }}">
+            <div class="uproot-bounded-choice" role="group" aria-labelledby="{{ field.id }}-label"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} data-bounded-min="{{ field.bounded_min }}" data-bounded-max="{{ field.bounded_max if field.bounded_max is not none else '' }}">
             {% for subfield in field %}
                 {% set div_class_list = ["form-check"] %}
                 {% if field.render_kw and field.render_kw.get("class") %}
@@ -210,7 +215,7 @@
             {% endfor %}
             </div>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "SelectField" %}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
@@ -218,7 +223,7 @@
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set noop = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
-            <select {{ select_html_params(field, " ".join(class_list)) | safe }}>
+            <select {{ select_html_params(field, " ".join(class_list)) | safe }}{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
                 {% if field.has_groups() %}
                     {% for group, choices in field.iter_groups() %}
                         <optgroup label="{{ translate(group | string) if group is not none else '' }}">
@@ -234,7 +239,7 @@
                 {% endif %}
             </select>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "IBANField" or field.type == "StringField" or field.type == "TextAreaField" %}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
@@ -250,10 +255,10 @@
                         {% set noop = class_list.append(field.render_kw.get("class")) %}
                     {% endif %}
                     {% if field.label_floating is defined and field.label_floating is not none %}
-                        {{ field(class_=" ".join(class_list), placeholder="text") | safe }}
+                        {{ field(class_=" ".join(class_list), placeholder="text", aria_describedby=describedby) | safe }}
                         <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ translate(field.label_floating) }}</label>
                     {% else %}
-                        {{ field(class_=" ".join(class_list)) | safe }}
+                        {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                     {% endif %}
                 {% if field.label_floating is defined and field.label_floating is not none %}</div>{% endif %}
                 {% if ADDON_END %}
@@ -263,7 +268,7 @@
                 </div>
             {% endif %}
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% else %}
             {# DateField, FileField, IntegerField, DecimalField #}
@@ -278,7 +283,7 @@
                 {% if ADDON_START %}
                     <span class="input-group-text {{ field.class_addon_start }}">{{ field.addon_start }}</span>
                 {% endif %}
-                {{ field(class_=" ".join(class_list)) | safe }}
+                {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                 {% if ADDON_END %}
                     <span class="input-group-text {{ field.class_addon_end }}">{{ field.addon_end }}</span>
                 {% endif %}
@@ -286,10 +291,10 @@
                 </div>
             {% endif %}
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% endif %}
-        {{ error(field) }}
+        {{ error(field, err_id) }}
         </div>
     </div>
 {% endmacro %}

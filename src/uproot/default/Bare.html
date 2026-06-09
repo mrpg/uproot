@@ -64,6 +64,10 @@
 
 {% block TOPLEVELbody %}
 
+<a class="visually-hidden-focusable" href="#uproot-main">
+    {% translate %}Skip to main content{% endtranslate %}
+</a>
+
 <div class="modal fade" id="error-modal" tabindex="-1" aria-hidden="true" aria-modal="true" role="alertdialog">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -167,13 +171,16 @@
 {% endif %}
 
 <div id="uproot-buddy" hidden>
-    <img
-        src="{{ internalstatic('buddy.svg') }}"
-        width="142"
-        height="142"
+    <button type="button"
         onclick="uproot.adminMessage()"
-        alt="{% translate %}Open Chat with Research Coordinator{% endtranslate %}"
+        aria-label="{% translate %}Open Chat with Research Coordinator{% endtranslate %}"
         title="{% translate %}Open Chat with Research Coordinator{% endtranslate %}">
+        <img
+            src="{{ internalstatic('buddy.svg') }}"
+            width="142"
+            height="142"
+            alt="">
+    </button>
 </div>
 
 {% block pre_container %}
@@ -199,13 +206,16 @@
                 x-show="$store.uproot.timeout.active"
                 x-bind:class="'uproot-timeout-' + $store.uproot.timeout.level"
                 class="alert callout mb-4-5 mt-4 pe-4"
-                role="alert"
+                role="timer"
+                aria-label="{% translate %}Remaining time on this page{% endtranslate %}"
+                aria-atomic="true"
                 id="uproot-timeout">
                 <span id="uproot-time-remaining-preamble">
                     {% translate %}Remaining time on this page:{% endtranslate %}
                 </span>
                 <span id="uproot-time-remaining" x-text="$store.uproot.timeout.compact">__:__</span>
             </div>
+            <div id="uproot-timeout-announcer" class="visually-hidden" aria-live="assertive" aria-atomic="true"></div>
             {% endblock timeoutbox %}
 
             {% block start %}
@@ -214,7 +224,7 @@
             {% block titlearea %}
             {% endblock titlearea %}
 
-            <main id="uproot-main">
+            <main id="uproot-main" tabindex="-1">
                 {% if _uproot_errors %}
                 {% for error in _uproot_errors %}
                 <div class="alert alert-danger uproot-main-error" role="alert">

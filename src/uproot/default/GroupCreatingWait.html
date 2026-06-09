@@ -11,7 +11,7 @@ Please wait
 {% block main %}
 
 <div class="progress hidden" id="wait-progress-parent">
-    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" id="wait-progress"></div>
+    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" aria-label="{% translate %}Please wait{% endtranslate %}" id="wait-progress"></div>
 </div>
 
 {% include app_or_default(app, "GroupCreatingWaitInfo.html") ignore missing %}

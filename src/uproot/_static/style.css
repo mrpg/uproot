@@ -370,6 +370,21 @@ main {
 .hidden {
     display: none;
 }
+.visually-hidden,
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+.visually-hidden:not(caption),
+.visually-hidden-focusable:not(:focus):not(:focus-within):not(caption) {
+    position: absolute !important;
+}
 .uproot-form-label {
     font-weight: bold;
     display: block;
@@ -403,8 +418,11 @@ input[type="radio"].form-check-input {
     bottom: 2em;
     opacity: 0.9;
 }
-#uproot-buddy img {
+#uproot-buddy button {
+    background: none;
+    border: none;
     cursor: pointer;
+    padding: 0;
 }
 
 #uproot-button-wrapper {
