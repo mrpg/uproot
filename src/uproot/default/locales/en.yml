@@ -46,9 +46,6 @@
 ? 'You provided invalid credentials.'
 : 'You provided invalid credentials.'
 
-? '(Or you were too fast.)'
-: '(Or you were too fast.)'
-
 ? 'Dashboard'
 : 'Dashboard'
 
@@ -82,9 +79,6 @@
 ? 'Active sessions'
 : 'Active sessions'
 
-? 'Add'
-: 'Add'
-
 ? 'Admin area'
 : 'Admin area'
 
@@ -106,9 +100,6 @@
 ? 'Capacity'
 : 'Capacity'
 
-? 'Change'
-: 'Change'
-
 ? 'Change at'
 : 'Change at'
 
@@ -126,12 +117,6 @@
 
 ? 'Configs'
 : 'Configs'
-
-? 'Currently closed rooms'
-: 'Currently closed rooms'
-
-? 'Currently open rooms'
-: 'Currently open rooms'
 
 ? 'Data'
 : 'Data'
@@ -159,9 +144,6 @@
 
 ? 'Download database dump'
 : 'Download database dump'
-
-? 'Essential information'
-: 'Essential information'
 
 ? 'Existing session'
 : 'Existing session'
@@ -229,9 +211,6 @@
 ? 'N/A'
 : 'N/A'
 
-? 'New'
-: 'New'
-
 ? 'New room'
 : 'New room'
 
@@ -285,9 +264,6 @@
 
 ? 'Player URLs'
 : 'Player URLs'
-
-? 'Python version'
-: 'Python version'
 
 ? 'Recently seen'
 : 'Recently seen'
@@ -400,9 +376,6 @@
 ? 'Version'
 : 'Version'
 
-? 'Version information'
-: 'Version information'
-
 ? 'View data'
 : 'View data'
 
@@ -423,9 +396,6 @@
 
 ? 'Add grouping variable'
 : 'Add grouping variable'
-
-? 'Admin settings'
-: 'Admin settings'
 
 ? 'An error occurred.'
 : 'An error occurred.'
@@ -490,9 +460,6 @@
 ? 'Created #n# group(s).'
 : 'Created #n# group(s).'
 
-? 'Custom settings'
-: 'Custom settings'
-
 ? 'Delete room'
 : 'Delete room'
 
@@ -547,8 +514,8 @@
 ? 'Hide testing elements'
 : 'Hide testing elements'
 
-? "If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session."
-: "If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session."
+? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
+: 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 
 ? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
 : "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
@@ -573,9 +540,6 @@
 
 ? 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
 : 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
-
-? 'JSON is recommended for analysis.'
-: 'JSON is recommended for analysis.'
 
 ? 'Keep this page open and watch it at all times.'
 : 'Keep this page open and watch it at all times.'
@@ -625,9 +589,6 @@
 ? 'No rooms defined at this time.'
 : 'No rooms defined at this time.'
 
-? 'No settings'
-: 'No settings'
-
 ? 'Number of selected players must be divisible by group size.'
 : 'Number of selected players must be divisible by group size.'
 
@@ -637,14 +598,11 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'One or more labels exceed the maximum length of 128 characters.'
 
-? "One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify."
-: "One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify."
+? 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
 
 ? 'One row per player showing their final state: just the last/current value of every field.'
 : 'One row per player showing their final state: just the last/current value of every field.'
-
-? 'Only rooms defined in your <code class="fs-6">main.py</code> file will be automatically recreated after a database reset.'
-: 'Only rooms defined in your <code class="fs-6">main.py</code> file will be automatically recreated after a database reset.'
 
 ? 'Other data'
 : 'Other data'
@@ -709,12 +667,6 @@
 ? 'Save settings'
 : 'Save settings'
 
-? 'Session is active.'
-: 'Session is active.'
-
-? 'Session is inactive.'
-: 'Session is inactive.'
-
 ? 'Session name'
 : 'Session name'
 
@@ -735,12 +687,6 @@
 
 ? 'Target URL'
 : 'Target URL'
-
-? 'Testing is disabled.'
-: 'Testing is disabled.'
-
-? 'Testing is enabled.'
-: 'Testing is enabled.'
 
 ? 'The action has completed.'
 : 'The action has completed.'
@@ -775,11 +721,11 @@
 ? 'This page will advance automatically.'
 : 'This page will advance automatically.'
 
-? "This room’s capacity is infinite."
-: "This room’s capacity is infinite."
+? 'This room’s capacity is infinite.'
+: 'This room’s capacity is infinite.'
 
-? "This room’s capacity is {{ room.capacity }}."
-: "This room’s capacity is {{ room.capacity }}."
+? 'This room’s capacity is {{ room.capacity }}.'
+: 'This room’s capacity is {{ room.capacity }}.'
 
 ? 'To edit room settings, first disassociate the session from this room.'
 : 'To edit room settings, first disassociate the session from this room.'
@@ -819,9 +765,6 @@
 
 ? 'Variable'
 : 'Variable'
-
-? 'View digest'
-: 'View digest'
 
 ? 'You'
 : 'You'
@@ -865,9 +808,6 @@
 ? 'All'
 : 'All'
 
-? 'Back to session'
-: 'Back to session'
-
 ? 'Broadcast message'
 : 'Broadcast message'
 
@@ -888,9 +828,6 @@
 
 ? 'Filter players'
 : 'Filter players'
-
-? 'Live messaging with participants. Select players below, then compose.'
-: 'Live messaging with participants. Select players below, then compose.'
 
 ? 'Loading conversation...'
 : 'Loading conversation...'
@@ -952,20 +889,11 @@
 ? 'new'
 : 'new'
 
-? 'day'
-: 'day'
-
 ? 'days'
 : 'days'
 
-? 'hour'
-: 'hour'
-
 ? 'hours'
 : 'hours'
-
-? 'minute'
-: 'minute'
 
 ? 'minutes'
 : 'minutes'
@@ -975,3 +903,189 @@
 
 ? 'seconds'
 : 'seconds'
+
+? 'Actions'
+: 'Actions'
+
+? 'Automatic (CSV if tabular)'
+: 'Automatic (CSV if tabular)'
+
+? 'Change description'
+: 'Change description'
+
+? 'Close room'
+: 'Close room'
+
+? 'Closed rooms'
+: 'Closed rooms'
+
+? 'Custom settings applied via <span class="font-monospace">session.settings</span>.'
+: 'Custom settings applied via <span class="font-monospace">session.settings</span>.'
+
+? 'Disassociate &amp; close room'
+: 'Disassociate &amp; close room'
+
+? 'Display testing elements'
+: 'Display testing elements'
+
+? 'Documentation'
+: 'Documentation'
+
+? 'Free join'
+: 'Free join'
+
+? 'Here be dragons.'
+: 'Here be dragons.'
+
+? 'If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.'
+: 'If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.'
+
+? 'If you are using a VPN, consider disabling it.'
+: 'If you are using a VPN, consider disabling it.'
+
+? 'Individual URLs'
+: 'Individual URLs'
+
+? 'Initialize session'
+: 'Initialize session'
+
+? 'Invoke with data'
+: 'Invoke with data'
+
+? 'Invoke with data...'
+: 'Invoke with data...'
+
+? 'JSONL is recommended for analysis.'
+: 'JSONL is recommended for analysis.'
+
+? 'Limit capacity of resulting session'
+: 'Limit capacity of resulting session'
+
+? 'Mark session as active'
+: 'Mark session as active'
+
+? 'Mark session as inactive'
+: 'Mark session as inactive'
+
+? 'No custom entries in <span class="font-monospace">session.settings</span>.'
+: 'No custom entries in <span class="font-monospace">session.settings</span>.'
+
+? 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
+: 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
+
+? 'Open'
+: 'Open'
+
+? 'Open rooms'
+: 'Open rooms'
+
+? 'Output'
+: 'Output'
+
+? 'Pipeline data'
+: 'Pipeline data'
+
+? 'Pipeline options'
+: 'Pipeline options'
+
+? 'Pipelines'
+: 'Pipelines'
+
+? 'Please enter pipeline data.'
+: 'Please enter pipeline data.'
+
+? 'Pre-created player slots can always be claimed regardless of capacity. Use a capacity only to restrict a session from growing beyond a fixed number of players.'
+: 'Pre-created player slots can always be claimed regardless of capacity. Use a capacity only to restrict a session from growing beyond a fixed number of players.'
+
+? 'Reopen room'
+: 'Reopen room'
+
+? 'Restricted'
+: 'Restricted'
+
+? 'Resume accepting new participants into the existing session.'
+: 'Resume accepting new participants into the existing session.'
+
+? 'Room status'
+: 'Room status'
+
+? 'Run <code>new_player</code>'
+: 'Run <code>new_player</code>'
+
+? 'Run as JSONL'
+: 'Run as JSONL'
+
+? 'Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.'
+: 'Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.'
+
+? 'Run pipeline'
+: 'Run pipeline'
+
+? 'Send'
+: 'Send'
+
+? 'Session is initialized.'
+: 'Session is initialized.'
+
+? 'Session is marked as active.'
+: 'Session is marked as active.'
+
+? 'Session is marked as inactive.'
+: 'Session is marked as inactive.'
+
+? 'Session is not initialized.'
+: 'Session is not initialized.'
+
+? 'Session properties'
+: 'Session properties'
+
+? 'Session status'
+: 'Session status'
+
+? 'Simulate responses'
+: 'Simulate responses'
+
+? 'Simulating responses.'
+: 'Simulating responses.'
+
+? 'Status'
+: 'Status'
+
+? 'Stop accepting new participants while keeping the session active.'
+: 'Stop accepting new participants while keeping the session active.'
+
+? 'Testing elements are disabled except for admins.'
+: 'Testing elements are disabled except for admins.'
+
+? 'Testing elements are displayed for all participants.'
+: 'Testing elements are displayed for all participants.'
+
+? 'The data you entered cannot be properly encoded as JSON.'
+: 'The data you entered cannot be properly encoded as JSON.'
+
+? 'The number of players is not a multiple of #n#.'
+: 'The number of players is not a multiple of #n#.'
+
+? 'This creates a new session, with the current configuration preselected.'
+: 'This creates a new session, with the current configuration preselected.'
+
+? 'This is useful for testing and development purposes.'
+: 'This is useful for testing and development purposes.'
+
+? 'This room is closed. Players will wait until the room is opened or a session is created.'
+: 'This room is closed. Players will wait until the room is opened or a session is created.'
+
+? 'This room is open and will auto-create a session when the first player joins.'
+: 'This room is open and will auto-create a session when the first player joins.'
+
+? 'This room is open but has no config associated. Players will wait until a session is created manually.'
+: 'This room is open but has no config associated. Players will wait until a session is created manually.'
+
+? 'Use labels/Access Codes'
+: 'Use labels/Access Codes'
+
+? 'You are using the following Python version'
+: 'You are using the following Python version'
+
+? 'You must create a new session to disable simulating responses.'
+: 'You must create a new session to disable simulating responses.'

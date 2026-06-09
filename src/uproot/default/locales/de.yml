@@ -46,9 +46,6 @@
 ? 'You provided invalid credentials.'
 : 'Sie haben ungültige Anmeldedaten angegeben.'
 
-? '(Or you were too fast.)'
-: '(Oder Sie waren zu schnell.)'
-
 ? 'Dashboard'
 : 'Übersicht'
 
@@ -82,9 +79,6 @@
 ? 'Active sessions'
 : 'Aktive Sessions'
 
-? 'Add'
-: 'Hinzufügen'
-
 ? 'Admin area'
 : 'Administrationsbereich'
 
@@ -106,9 +100,6 @@
 ? 'Capacity'
 : 'Kapazität'
 
-? 'Change'
-: 'Ändern'
-
 ? 'Change at'
 : 'Ändern um'
 
@@ -126,12 +117,6 @@
 
 ? 'Configs'
 : 'Konfigurationen'
-
-? 'Currently closed rooms'
-: 'Derzeit geschlossene Räume'
-
-? 'Currently open rooms'
-: 'Derzeit offene Räume'
 
 ? 'Data'
 : 'Daten'
@@ -159,9 +144,6 @@
 
 ? 'Download database dump'
 : 'Datenbank-Export herunterladen'
-
-? 'Essential information'
-: 'Wesentliche Informationen'
 
 ? 'Existing session'
 : 'Vorhandene Session'
@@ -229,9 +211,6 @@
 ? 'N/A'
 : 'N/A'
 
-? 'New'
-: 'Neu'
-
 ? 'New room'
 : 'Neuer Raum'
 
@@ -285,9 +264,6 @@
 
 ? 'Player URLs'
 : 'Spieler-URLs'
-
-? 'Python version'
-: 'Python-Version'
 
 ? 'Recently seen'
 : 'Kürzlich gesehen'
@@ -400,9 +376,6 @@
 ? 'Version'
 : 'Version'
 
-? 'Version information'
-: 'Versionsinformationen'
-
 ? 'View data'
 : 'Daten ansehen'
 
@@ -423,9 +396,6 @@
 
 ? 'Add grouping variable'
 : 'Gruppierungsvariable hinzufügen'
-
-? 'Admin settings'
-: 'Administrationseinstellungen'
 
 ? 'An error occurred.'
 : 'Ein Fehler ist aufgetreten.'
@@ -490,9 +460,6 @@
 ? 'Created #n# group(s).'
 : '#n# Gruppe(n) erstellt.'
 
-? 'Custom settings'
-: 'Benutzerdefinierte Einstellungen'
-
 ? 'Delete room'
 : 'Raum löschen'
 
@@ -547,7 +514,7 @@
 ? 'Hide testing elements'
 : 'Testelemente ausblenden'
 
-? "If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session."
+? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'Wenn dieses Kästchen nicht aktiviert ist, wird die Kapazität des Raums nicht geändert. Dies bedeutet, dass neue Raumteilnehmer die Session vergrößern können.'
 
 ? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
@@ -573,9 +540,6 @@
 
 ? 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
 : 'Dies verschiebt diese Session in den Bereich „Inaktive Sessions“ auf der Seite „Sessions“ und blendet sie in der „Übersicht“ aus.'
-
-? 'JSON is recommended for analysis.'
-: 'JSON wird für die Analyse empfohlen.'
 
 ? 'Keep this page open and watch it at all times.'
 : 'Lassen Sie diese Seite offen und beobachten Sie sie jederzeit.'
@@ -625,9 +589,6 @@
 ? 'No rooms defined at this time.'
 : 'Derzeit keine Räume definiert.'
 
-? 'No settings'
-: 'Keine Einstellungen'
-
 ? 'Number of selected players must be divisible by group size.'
 : 'Die Anzahl der ausgewählten Spieler muss durch die Gruppengröße teilbar sein.'
 
@@ -637,14 +598,11 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'Ein oder mehrere Labels überschreiten die maximale Länge von 128 Zeichen.'
 
-? "One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify."
+? 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
 : 'Eine Zeile pro Spieler pro angegebener Gruppierung (z. B. pro Runde): zeigt den Zustand jedes Teilnehmers am Ende jeder Runde, Bedingung oder anderen von Ihnen angegebenen Gruppierung.'
 
 ? 'One row per player showing their final state: just the last/current value of every field.'
 : 'Eine Zeile pro Spieler mit dem Endzustand: nur der letzte/aktuelle Wert jedes Feldes.'
-
-? 'Only rooms defined in your <code class="fs-6">main.py</code> file will be automatically recreated after a database reset.'
-: 'Nur Räume, die in Ihrer <code class="fs-6">main.py</code>-Datei definiert sind, werden nach einem Datenbank-Reset automatisch neu erstellt.'
 
 ? 'Other data'
 : 'Sonstige Daten'
@@ -709,12 +667,6 @@
 ? 'Save settings'
 : 'Einstellungen speichern'
 
-? 'Session is active.'
-: 'Session ist aktiv.'
-
-? 'Session is inactive.'
-: 'Session ist inaktiv.'
-
 ? 'Session name'
 : 'Sessionname'
 
@@ -735,12 +687,6 @@
 
 ? 'Target URL'
 : 'Ziel-URL'
-
-? 'Testing is disabled.'
-: 'Testen ist deaktiviert.'
-
-? 'Testing is enabled.'
-: 'Testen ist aktiviert.'
 
 ? 'The action has completed.'
 : 'Die Aktion wurde abgeschlossen.'
@@ -775,10 +721,10 @@
 ? 'This page will advance automatically.'
 : 'Diese Seite wird automatisch weitergehen.'
 
-? "This room’s capacity is infinite."
+? 'This room’s capacity is infinite.'
 : 'Die Kapazität dieses Raums ist unbegrenzt.'
 
-? "This room’s capacity is {{ room.capacity }}."
+? 'This room’s capacity is {{ room.capacity }}.'
 : 'Die Kapazität dieses Raums beträgt {{ room.capacity }}.'
 
 ? 'To edit room settings, first disassociate the session from this room.'
@@ -819,9 +765,6 @@
 
 ? 'Variable'
 : 'Variable'
-
-? 'View digest'
-: 'Zusammenfassung ansehen'
 
 ? 'You'
 : 'Sie'
@@ -865,9 +808,6 @@
 ? 'All'
 : 'Alle'
 
-? 'Back to session'
-: 'Zurück zur Sitzung'
-
 ? 'Broadcast message'
 : 'Nachricht an alle'
 
@@ -888,9 +828,6 @@
 
 ? 'Filter players'
 : 'Spieler filtern'
-
-? 'Live messaging with participants. Select players below, then compose.'
-: 'Live-Nachrichten an Teilnehmer. Wählen Sie Spieler unten aus und verfassen Sie eine Nachricht.'
 
 ? 'Loading conversation...'
 : 'Unterhaltung wird geladen...'
@@ -952,20 +889,11 @@
 ? 'new'
 : 'neu'
 
-? 'day'
-: 'Tag'
-
 ? 'days'
 : 'Tage'
 
-? 'hour'
-: 'Stunde'
-
 ? 'hours'
 : 'Stunden'
-
-? 'minute'
-: 'Minute'
 
 ? 'minutes'
 : 'Minuten'
@@ -975,3 +903,189 @@
 
 ? 'seconds'
 : 'Sekunden'
+
+? 'Actions'
+: 'Aktionen'
+
+? 'Automatic (CSV if tabular)'
+: 'Automatisch (CSV bei tabellarischen Daten)'
+
+? 'Change description'
+: 'Beschreibung ändern'
+
+? 'Close room'
+: 'Raum schließen'
+
+? 'Closed rooms'
+: 'Geschlossene Räume'
+
+? 'Custom settings applied via <span class="font-monospace">session.settings</span>.'
+: 'Benutzerdefinierte Einstellungen über <span class="font-monospace">session.settings</span> angewendet.'
+
+? 'Disassociate &amp; close room'
+: 'Trennen &amp; Raum schließen'
+
+? 'Display testing elements'
+: 'Testelemente anzeigen'
+
+? 'Documentation'
+: 'Dokumentation'
+
+? 'Free join'
+: 'Freier Beitritt'
+
+? 'Here be dragons.'
+: 'Betreten auf eigene Gefahr.'
+
+? 'If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.'
+: 'Wenn aktiviert, wird die <code>simulate.js</code>-Datei der App ausgeführt, sobald Spielerseiten in dieser Session geladen werden.'
+
+? 'If you are using a VPN, consider disabling it.'
+: 'Wenn Sie ein VPN verwenden, erwägen Sie, es zu deaktivieren.'
+
+? 'Individual URLs'
+: 'Individuelle URLs'
+
+? 'Initialize session'
+: 'Session initialisieren'
+
+? 'Invoke with data'
+: 'Mit Daten aufrufen'
+
+? 'Invoke with data...'
+: 'Mit Daten aufrufen...'
+
+? 'JSONL is recommended for analysis.'
+: 'JSONL wird für Analysen empfohlen.'
+
+? 'Limit capacity of resulting session'
+: 'Kapazität der resultierenden Session begrenzen'
+
+? 'Mark session as active'
+: 'Session als aktiv markieren'
+
+? 'Mark session as inactive'
+: 'Session als inaktiv markieren'
+
+? 'No custom entries in <span class="font-monospace">session.settings</span>.'
+: 'Keine benutzerdefinierten Einträge in <span class="font-monospace">session.settings</span>.'
+
+? 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
+: 'Nur in Ihrer <code>main.py</code>-Datei definierte Räume werden nach einem Datenbank-Reset automatisch neu erstellt.'
+
+? 'Open'
+: 'Öffnen'
+
+? 'Open rooms'
+: 'Offene Räume'
+
+? 'Output'
+: 'Ausgabe'
+
+? 'Pipeline data'
+: 'Pipeline-Daten'
+
+? 'Pipeline options'
+: 'Pipeline-Optionen'
+
+? 'Pipelines'
+: 'Pipelines'
+
+? 'Please enter pipeline data.'
+: 'Bitte geben Sie Pipeline-Daten ein.'
+
+? 'Pre-created player slots can always be claimed regardless of capacity. Use a capacity only to restrict a session from growing beyond a fixed number of players.'
+: 'Vorab erstellte Spielerplätze können unabhängig von der Kapazität immer beansprucht werden. Verwenden Sie eine Kapazität nur, um zu verhindern, dass eine Session über eine feste Anzahl von Spielern hinaus wächst.'
+
+? 'Reopen room'
+: 'Raum wieder öffnen'
+
+? 'Restricted'
+: 'Beschränkt'
+
+? 'Resume accepting new participants into the existing session.'
+: 'Neue Teilnehmer wieder in die bestehende Session aufnehmen.'
+
+? 'Room status'
+: 'Raumstatus'
+
+? 'Run <code>new_player</code>'
+: '<code>new_player</code> ausführen'
+
+? 'Run as JSONL'
+: 'Als JSONL ausführen'
+
+? 'Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.'
+: 'new_session-Callbacks für alle Apps ausführen. Dies geschieht automatisch, wenn der erste Spieler beitritt, kann aber hier manuell ausgelöst werden. Dies kann nicht rückgängig gemacht werden.'
+
+? 'Run pipeline'
+: 'Pipeline ausführen'
+
+? 'Send'
+: 'Senden'
+
+? 'Session is initialized.'
+: 'Session ist initialisiert.'
+
+? 'Session is marked as active.'
+: 'Session ist als aktiv markiert.'
+
+? 'Session is marked as inactive.'
+: 'Session ist als inaktiv markiert.'
+
+? 'Session is not initialized.'
+: 'Session ist nicht initialisiert.'
+
+? 'Session properties'
+: 'Session-Eigenschaften'
+
+? 'Session status'
+: 'Session-Status'
+
+? 'Simulate responses'
+: 'Antworten simulieren'
+
+? 'Simulating responses.'
+: 'Antworten werden simuliert.'
+
+? 'Status'
+: 'Status'
+
+? 'Stop accepting new participants while keeping the session active.'
+: 'Keine neuen Teilnehmer mehr annehmen, aber die Session aktiv lassen.'
+
+? 'Testing elements are disabled except for admins.'
+: 'Testelemente sind deaktiviert, außer für Administratoren.'
+
+? 'Testing elements are displayed for all participants.'
+: 'Testelemente werden für alle Teilnehmer angezeigt.'
+
+? 'The data you entered cannot be properly encoded as JSON.'
+: 'Die eingegebenen Daten können nicht korrekt als JSON kodiert werden.'
+
+? 'The number of players is not a multiple of #n#.'
+: 'Die Anzahl der Spieler ist kein Vielfaches von #n#.'
+
+? 'This creates a new session, with the current configuration preselected.'
+: 'Dies erstellt eine neue Session, wobei die aktuelle Konfiguration vorausgewählt ist.'
+
+? 'This is useful for testing and development purposes.'
+: 'Dies ist nützlich für Test- und Entwicklungszwecke.'
+
+? 'This room is closed. Players will wait until the room is opened or a session is created.'
+: 'Dieser Raum ist geschlossen. Spieler warten, bis der Raum geöffnet oder eine Session erstellt wird.'
+
+? 'This room is open and will auto-create a session when the first player joins.'
+: 'Dieser Raum ist offen und erstellt automatisch eine Session, wenn der erste Spieler beitritt.'
+
+? 'This room is open but has no config associated. Players will wait until a session is created manually.'
+: 'Dieser Raum ist offen, hat aber keine zugehörige Konfiguration. Spieler warten, bis eine Session manuell erstellt wird.'
+
+? 'Use labels/Access Codes'
+: 'Labels/Zugangscodes verwenden'
+
+? 'You are using the following Python version'
+: 'Sie verwenden die folgende Python-Version'
+
+? 'You must create a new session to disable simulating responses.'
+: 'Sie müssen eine neue Session erstellen, um die Simulation von Antworten zu deaktivieren.'
