@@ -469,8 +469,8 @@
 ? 'Closed'
 : 'Closed'
 
-? 'Connection Lost'
-: 'Connection Lost'
+? 'Connection lost'
+: 'Connection lost'
 
 ? 'Connection with server lost. Please check your internet connection.'
 : 'Connection with server lost. Please check your internet connection.'

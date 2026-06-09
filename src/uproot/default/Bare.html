@@ -37,7 +37,7 @@
     {% if noautostart is not defined %}
     uproot.onStart(() => {
         {% if noconnectionlostmodal is not defined %}
-        // Enable Connection Lost modal monitoring first (includes startup failsafe)
+        // Enable Connection lost modal monitoring first (includes startup failsafe)
         uproot.enableConnectionLostModal();
         {% endif %}
 
@@ -138,7 +138,7 @@
             <div class="modal-header">
                 <h5 class="modal-title">
                     {% translate %}
-                    Connection Lost
+                    Connection lost
                     {% endtranslate %}
                 </h5>
             </div>

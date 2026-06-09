@@ -469,7 +469,7 @@
 ? 'Closed'
 : 'Geschlossen'
 
-? 'Connection Lost'
+? 'Connection lost'
 : 'Verbindung verloren'
 
 ? 'Connection with server lost. Please check your internet connection.'
