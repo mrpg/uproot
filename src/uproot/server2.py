@@ -51,7 +51,7 @@ import uproot.types as t
 from uproot.constraints import ensure
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
-from uproot.pages import static_factory, to_filter, tojson_filter
+from uproot.pages import static_factory, terms_url, to_filter, tojson_filter
 from uproot.storage import Admin, Session
 from uproot.types import ensure_awaitable
 from uproot.utils import safe_redirect_response
@@ -106,11 +106,11 @@ async def render(
         | {
             "deployment": d,
             "internalstatic": static_factory(),
-            "JSON_TERMS": i18n.json(d.LANGUAGE),
             "_": lambda s: i18n.lookup(s, d.LANGUAGE),
             "_uproot_errors": None,
             "_uproot_internal": context,
             "_uproot_js": context,
+            "uproot_terms_url": terms_url(d.LANGUAGE),
         }
     )
 

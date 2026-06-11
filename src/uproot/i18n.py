@@ -33,6 +33,7 @@ LOCALES_DIR = os.path.join(
 MISSING: set[tuple[str, ISO639]] = set()
 TERMS: dict[str, dict[ISO639, str]] = {}
 JSON: dict[ISO639, str] = {}
+VERSION: int = 0
 
 
 class TranslateLoader(BaseLoader):
@@ -123,7 +124,7 @@ def load(yaml_path: str) -> None:
     Args:
         yaml_path: Path to directory containing YAML files, or path to a single YAML file
     """
-    global TERMS, LANGUAGES
+    global TERMS, LANGUAGES, VERSION
 
     all_translations = {}
 
@@ -170,6 +171,8 @@ def load(yaml_path: str) -> None:
                     TERMS[key][lang] = lang_data[key]
 
         LANGUAGES.update(all_translations.keys())
+        JSON.clear()
+        VERSION += 1
 
 
 def load_defaults() -> None:
