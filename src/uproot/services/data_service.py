@@ -4,6 +4,7 @@
 """Data export and extraction service."""
 
 import asyncio
+from bisect import bisect_right
 from typing import (
     Annotated,
     Any,
@@ -13,8 +14,6 @@ from typing import (
     TypeAlias,
     cast,
 )
-
-from sortedcontainers import SortedList
 
 import uproot.cache as cache
 import uproot.data as data
@@ -241,13 +240,10 @@ def page_times(sname: t.Sessionname) -> str:
                     if not isinstance(show_page.data, int):
                         continue
 
-                    # Binary search to find the most recent page_order at or before show_page.time.
-                    # bisect_key_right returns the index where show_page.time would be inserted
-                    # after any existing entries with equal time (using the list's key function).
-                    # So (idx - 1) gives the last entry with time <= show_page.time.
+                    # Binary search for the last page_order with time <= show_page.time.
                     if page_orders:
-                        idx = cast(SortedList[t.Value], page_orders).bisect_key_right(  # type: ignore[attr-defined]
-                            show_page.time
+                        idx = bisect_right(
+                            page_orders, show_page.time, key=lambda v: v.time
                         )
                         if idx > 0:
                             last_order = page_orders[idx - 1].data
