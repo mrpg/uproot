@@ -237,7 +237,8 @@ def pipeline(session):
 
     rows = []
 
-    for group, players in prisoner_groups(session):
+    for group in session.groups(app="#APP#"):
+        players = group.players
         player1, player2 = players
 
         for member_id, player in enumerate(players):
@@ -261,35 +262,6 @@ def pipeline(session):
             )
 
     return rows
-
-
-def prisoner_groups(session):
-    # This function is only used by pipeline().
-
-    groups = []
-
-    for group in session.groups:
-        players = group.players
-
-        if len(players) == 2 and is_app_group(group, players):
-            groups.append((group, players))
-
-    return groups
-
-
-def is_app_group(group, players):
-    # This function is only used by prisoner_groups(), which is only used by pipeline().
-
-    with group:
-        if group.get("app") == "#APP#":
-            return True
-
-        gid = group.gid
-
-    return all(
-        player.within(app="#APP#").get("_uproot_group") == gid
-        for player in players
-    )
 
 
 page_order = [

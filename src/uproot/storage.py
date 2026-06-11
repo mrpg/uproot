@@ -153,10 +153,22 @@ def virtual_other_in_group(s: Storage) -> Storage:
     return cast(Storage, others[0])
 
 
-def virtual_groups(s: Storage) -> StorageBunch:
+class FilterableGroups(StorageBunch):
+    """StorageBunch that can be called with app= to filter by app."""
+
+    def __call__(self, *, app: str | None = None) -> StorageBunch:
+        if app is None:
+            return StorageBunch(self.l)
+
+        return StorageBunch([g for g in self.l if g.get("app") == app])
+
+
+def virtual_groups(s: Storage) -> FilterableGroups:
     if s.__namespace__[0] == "session":
         with s:
-            return StorageBunch([Group(s.name, gname) for gname in s._uproot_groups])
+            return FilterableGroups(
+                [Group(s.name, gname) for gname in s._uproot_groups]
+            )
     else:
         raise AttributeError
 
