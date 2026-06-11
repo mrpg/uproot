@@ -176,23 +176,20 @@
         title="{% translate %}Open Chat with Research Coordinator{% endtranslate %}">
 </div>
 
-{% block pre_container %}
-{% endblock pre_container %}
+{% block pre_form %}
+{% endblock pre_form %}
 
 <div id="uproot-wrapper" x-data>
-    {% block wrapper_content %}
-    <form id="uproot-form" method="post" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
-        <input type="hidden" name="_uproot_csrf" id="_uproot_csrf" value="">
-        <input type="hidden" name="_uproot_from" id="_uproot_from" value="">
 
-        {% block wrapper_start %}
-        {% endblock wrapper_start %}
-
-        <div id="uproot-main-container" class="container">
+    <header id="uproot-header">
+        <div id="uproot-block-header_start">
+            {% block header_start %}
+            {% endblock header_start %}
+        </div>
+        <div class="container" id="uproot-header-container">
             {% if show_testing %}
             {% include "TestingHead.html" %}
             {% endif %}
-
             {% block timeoutbox %}
             <div
                 x-cloak
@@ -207,12 +204,32 @@
                 <span id="uproot-time-remaining" x-text="$store.uproot.timeout.compact">__:__</span>
             </div>
             {% endblock timeoutbox %}
+        </div>
+        <div id="uproot-block-header_end">
+            {% block header_end %}
+            {% endblock header_end %}
+        </div>
+    </header>
 
-            {% block start %}
-            {% endblock start %}
+    {% block wrapper_content %}
+    <form id="uproot-form" method="post" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
+        <input type="hidden" name="_uproot_csrf" id="_uproot_csrf" value="">
+        <input type="hidden" name="_uproot_from" id="_uproot_from" value="">
 
-            {% block titlearea %}
-            {% endblock titlearea %}
+        {% block form_start %}
+        {% endblock form_start %}
+
+        <div id="uproot-main-container">
+
+            <div id="uproot-block-pre_main">
+                {% block pre_main %}
+                {% endblock pre_main %}
+            </div>
+
+            <div class="container" id="uproot-titlearea-container">
+                {% block titlearea %}
+                {% endblock titlearea %}
+            </div>
 
             <main id="uproot-main">
                 {% if _uproot_errors %}
@@ -223,25 +240,54 @@
                 {% endfor %}
                 {% endif %}
 
-                {% block main %}
-                {% endblock main %}
-                {% block main2 %}
-                {% endblock main2 %}
+                <section id="uproot-block-main">
+                    <div class="container" id="uproot-block-main-container">
+                        {% block main %}
+                        {% endblock main %}
+                    </div>
+                </section>
 
-                {% block main3 %}
-                {% endblock main3 %}
+                <section id="uproot-block-main-full-width">
+                    {% block main_full_width %}
+                    {% endblock main_full_width %}
+                </section>
+
+                <section id="uproot-block-main2">
+                    <div class="container" id="uproot-block-main-container2">
+                        {% block main2 %}
+                        {% endblock main2 %}
+                    </div>
+                </section>
+
+                <section id="uproot-block-main2-full-width">
+                    {% block main2_full_width %}
+                    {% endblock main2_full_width %}
+                </section>
+
+                <section id="uproot-block-main3">
+                    <div class="container" id="uproot-block-main-container3">
+                        {% block main3 %}
+                        {% endblock main3 %}
+                    </div>
+                </section>
             </main>
 
-            {% block postmain %}
-            {% endblock postmain %}
+            <div id="uproot-post_main">
+                {% block post_main %}
+                {% endblock post_main %}
+            </div>
 
             {% if show_testing %}
-            {% include "DataHistory.html" %}
+            <div class="container">
+                {% include "DataHistory.html" %}
+            </div>
             {% endif %}
         </div>
 
-        {% block wrapper_end %}
-        {% endblock wrapper_end %}
+        <div id="uproot-form_end">
+            {% block form_end %}
+            {% endblock form_end %}
+        </div>
     </form>
     {% endblock wrapper_content %}
 </div>
