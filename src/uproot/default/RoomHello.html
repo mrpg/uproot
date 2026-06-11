@@ -18,13 +18,7 @@ Please wait
 {% block wrapper_content %}
 
 <div id="uproot-main-container" class="container">
-    {% if show_testing %}
-    {% include "TestingHead.html" %}
-    {% endif %}
-
-    {{ self.timeoutbox() }}
-
-    {{ self.start() }}
+    {{ self.pre_main() }}
 
     {{ self.titlearea() }}
 
