@@ -81,6 +81,11 @@ def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     return localstatic
 
 
+def terms_url(language: i18n.ISO639) -> str:
+    language_path = urllib.parse.quote(str(language), safe="")
+    return f"{d.ROOT}/terms/{language_path}.js?v={i18n.VERSION}"
+
+
 def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
     if page is not None:
         return {
@@ -314,7 +319,6 @@ async def render(
                 "buttons_placed": buttons_placed,
                 "C": getattr(app, "C", {}),
                 "form": form,
-                "JSON_TERMS": i18n.json(cast(i18n.ISO639, language)),
                 "_": translate,
                 "page": page,
                 "part": part,
@@ -322,6 +326,7 @@ async def render(
                 "safe": Markup,
                 "session": session,
                 "show2path": show2path,
+                "uproot_terms_url": terms_url(cast(i18n.ISO639, language)),
                 "_uproot_errors": custom_errors,
                 "_uproot_field_errors": (
                     field_errors if field_errors is not None else {}
@@ -374,9 +379,9 @@ async def render_error(
     context = (
         BUILTINS
         | {
-            "JSON_TERMS": i18n.json(d.LANGUAGE),
             "_uproot_errors": None,
             "_uproot_js": internal,  # not a huge fan of this construction
+            "uproot_terms_url": terms_url(d.LANGUAGE),
         }
         | function_context(None)
         | internal

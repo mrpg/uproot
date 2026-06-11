@@ -27,11 +27,11 @@
 {% endif %}
 
 <script src="{{ internalstatic('uproot.js') }}"></script>
+{% if noterms is not defined %}
+<script src="{{ uproot_terms_url }}"></script>
+{% endif %}
 <script>
     uproot.vars = {{ _uproot_js | tojson | safe }};
-    {% if noterms is not defined %}
-    uproot.terms = {{ JSON_TERMS | safe }}; {# i18n.json() returns raw json #}
-    {% endif %}
     window.C = uproot.vars._uproot_internal?.C;
 
     {% if noautostart is not defined %}

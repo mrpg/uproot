@@ -6,6 +6,8 @@ This file implements player routes.
 """
 
 import asyncio
+import functools
+import hashlib
 import hmac
 import os.path
 import traceback
@@ -39,6 +41,7 @@ import uproot as u
 import uproot.admin as a
 import uproot.chat as chat
 import uproot.deployment as d
+import uproot.i18n as i18n
 import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
@@ -830,6 +833,30 @@ async def ws(
             if fname != "from_websocket":
                 new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
                 tasks[new_task] = (fname, factory)
+
+
+@functools.lru_cache(maxsize=64)
+def terms_body(language: str, version: int) -> tuple[str, str]:
+    payload = i18n.json(language)
+    body = f"window.uproot = window.uproot || {{}};\nwindow.uproot.terms = {payload};\n"
+    etag = hashlib.sha256(body.encode()).hexdigest()
+
+    return body, etag
+
+
+@router.get("/terms/{language}.js")
+async def terms(language: str) -> Response:
+    if language not in i18n.LANGUAGES:
+        body = "window.uproot = window.uproot || {};\nwindow.uproot.terms = {};\n"
+        return Response(body, media_type="application/javascript")
+
+    body, etag = terms_body(language, i18n.VERSION)
+
+    response = Response(body, media_type="application/javascript")
+    response.headers.setdefault("Cache-Control", "public, max-age=3600")
+    response.headers.setdefault("ETag", f'"{etag}"')
+
+    return response
 
 
 @router.get("/static/{realm}/{location:path}")
