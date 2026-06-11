@@ -250,7 +250,12 @@ code, .font-monospace {
 }
 /* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
 
-/* Extension of the Bootstrap .g-* classes */
+/* Extension of the Bootstrap .g* and .m* classes */
+/* 4.5 spacing value: 2.25rem */
+
+/* 4.5 spacing value: 2.25rem */
+
+/* Base gutter utilities */
 .g-4-5,
 .gx-4-5 {
   --bs-gutter-x: 2.25rem;
@@ -260,21 +265,204 @@ code, .font-monospace {
   --bs-gutter-y: 2.25rem;
 }
 
-/* Extension of the Bootstrap .m* classes */
+/* Base margin utilities */
 .m-4-5 {
-    margin: 2.25rem !important;
+  margin: 2.25rem !important;
 }
 .mb-4-5 {
-    margin-bottom: 2.25rem !important;
+  margin-bottom: 2.25rem !important;
 }
 .me-4-5 {
-    margin-right: 2.25rem !important;
+  margin-right: 2.25rem !important;
 }
 .ms-4-5 {
-    margin-left: 2.25rem !important;
+  margin-left: 2.25rem !important;
 }
 .mt-4-5 {
+  margin-top: 2.25rem !important;
+}
+.mx-4-5 {
+  margin-right: 2.25rem !important;
+  margin-left: 2.25rem !important;
+}
+.my-4-5 {
+  margin-top: 2.25rem !important;
+  margin-bottom: 2.25rem !important;
+}
+
+/* sm */
+@media (min-width: 576px) {
+  .g-sm-4-5,
+  .gx-sm-4-5 {
+    --bs-gutter-x: 2.25rem;
+  }
+  .g-sm-4-5,
+  .gy-sm-4-5 {
+    --bs-gutter-y: 2.25rem;
+  }
+  .m-sm-4-5 {
+    margin: 2.25rem !important;
+  }
+  .mb-sm-4-5 {
+    margin-bottom: 2.25rem !important;
+  }
+  .me-sm-4-5 {
+    margin-right: 2.25rem !important;
+  }
+  .ms-sm-4-5 {
+    margin-left: 2.25rem !important;
+  }
+  .mt-sm-4-5 {
     margin-top: 2.25rem !important;
+  }
+  .mx-sm-4-5 {
+    margin-right: 2.25rem !important;
+    margin-left: 2.25rem !important;
+  }
+  .my-sm-4-5 {
+    margin-top: 2.25rem !important;
+    margin-bottom: 2.25rem !important;
+  }
+}
+
+/* md */
+@media (min-width: 768px) {
+  .g-md-4-5,
+  .gx-md-4-5 {
+    --bs-gutter-x: 2.25rem;
+  }
+  .g-md-4-5,
+  .gy-md-4-5 {
+    --bs-gutter-y: 2.25rem;
+  }
+  .m-md-4-5 {
+    margin: 2.25rem !important;
+  }
+  .mb-md-4-5 {
+    margin-bottom: 2.25rem !important;
+  }
+  .me-md-4-5 {
+    margin-right: 2.25rem !important;
+  }
+  .ms-md-4-5 {
+    margin-left: 2.25rem !important;
+  }
+  .mt-md-4-5 {
+    margin-top: 2.25rem !important;
+  }
+  .mx-md-4-5 {
+    margin-right: 2.25rem !important;
+    margin-left: 2.25rem !important;
+  }
+  .my-md-4-5 {
+    margin-top: 2.25rem !important;
+    margin-bottom: 2.25rem !important;
+  }
+}
+
+/* lg */
+@media (min-width: 992px) {
+  .g-lg-4-5,
+  .gx-lg-4-5 {
+    --bs-gutter-x: 2.25rem;
+  }
+  .g-lg-4-5,
+  .gy-lg-4-5 {
+    --bs-gutter-y: 2.25rem;
+  }
+  .m-lg-4-5 {
+    margin: 2.25rem !important;
+  }
+  .mb-lg-4-5 {
+    margin-bottom: 2.25rem !important;
+  }
+  .me-lg-4-5 {
+    margin-right: 2.25rem !important;
+  }
+  .ms-lg-4-5 {
+    margin-left: 2.25rem !important;
+  }
+  .mt-lg-4-5 {
+    margin-top: 2.25rem !important;
+  }
+  .mx-lg-4-5 {
+    margin-right: 2.25rem !important;
+    margin-left: 2.25rem !important;
+  }
+  .my-lg-4-5 {
+    margin-top: 2.25rem !important;
+    margin-bottom: 2.25rem !important;
+  }
+}
+
+/* xl */
+@media (min-width: 1200px) {
+  .g-xl-4-5,
+  .gx-xl-4-5 {
+    --bs-gutter-x: 2.25rem;
+  }
+  .g-xl-4-5,
+  .gy-xl-4-5 {
+    --bs-gutter-y: 2.25rem;
+  }
+  .m-xl-4-5 {
+    margin: 2.25rem !important;
+  }
+  .mb-xl-4-5 {
+    margin-bottom: 2.25rem !important;
+  }
+  .me-xl-4-5 {
+    margin-right: 2.25rem !important;
+  }
+  .ms-xl-4-5 {
+    margin-left: 2.25rem !important;
+  }
+  .mt-xl-4-5 {
+    margin-top: 2.25rem !important;
+  }
+  .mx-xl-4-5 {
+    margin-right: 2.25rem !important;
+    margin-left: 2.25rem !important;
+  }
+  .my-xl-4-5 {
+    margin-top: 2.25rem !important;
+    margin-bottom: 2.25rem !important;
+  }
+}
+
+/* xxl */
+@media (min-width: 1400px) {
+  .g-xxl-4-5,
+  .gx-xxl-4-5 {
+    --bs-gutter-x: 2.25rem;
+  }
+  .g-xxl-4-5,
+  .gy-xxl-4-5 {
+    --bs-gutter-y: 2.25rem;
+  }
+  .m-xxl-4-5 {
+    margin: 2.25rem !important;
+  }
+  .mb-xxl-4-5 {
+    margin-bottom: 2.25rem !important;
+  }
+  .me-xxl-4-5 {
+    margin-right: 2.25rem !important;
+  }
+  .ms-xxl-4-5 {
+    margin-left: 2.25rem !important;
+  }
+  .mt-xxl-4-5 {
+    margin-top: 2.25rem !important;
+  }
+  .mx-xxl-4-5 {
+    margin-right: 2.25rem !important;
+    margin-left: 2.25rem !important;
+  }
+  .my-xxl-4-5 {
+    margin-top: 2.25rem !important;
+    margin-bottom: 2.25rem !important;
+  }
 }
 
 /* Extension of the Bootstrap .w-* classes */
