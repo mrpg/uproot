@@ -437,7 +437,7 @@ input[type="radio"].form-check-input {
 
 /* Ensure space between bottom and window border so that buttons can be pressed also on mobile devices */
 #uproot-spacer {
-    height: 20em;
+    height: 4rem;  /* Do not make too large, so that single-hand use of smartphones is not impacted */
 }
 
 #uproot-timeout {
