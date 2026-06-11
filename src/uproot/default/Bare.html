@@ -229,7 +229,7 @@
         {% block form_start %}
         {% endblock form_start %}
 
-        <div id="uproot-main-container">
+        <div id="uproot-main-wrapper">
 
             <div id="uproot-block-pre_main">
                 {% block pre_main %}
@@ -263,7 +263,7 @@
                 </section>
 
                 <section id="uproot-block-main2">
-                    <div class="container" id="uproot-block-main-container2">
+                    <div class="container" id="uproot-block-main2-container">
                         {% block main2 %}
                         {% endblock main2 %}
                     </div>
@@ -275,11 +275,16 @@
                 </section>
 
                 <section id="uproot-block-main3">
-                    <div class="container" id="uproot-block-main-container3">
+                    <div class="container" id="uproot-block-main3-container">
                         {% block main3 %}
                         {% endblock main3 %}
                     </div>
                 </section>
+
+                <div class="container" id="uproot-main-buttons-container">
+                    {% block uproot_main_buttons %}
+                    {% endblock uproot_main_buttons %}
+                </div>
             </main>
 
             <div id="uproot-block-post_main">
@@ -288,7 +293,7 @@
             </div>
 
             {% if show_testing %}
-            <div class="container">
+            <div class="container" id="uproot-data-history-container">
                 {% include "DataHistory.html" %}
             </div>
             {% endif %}
