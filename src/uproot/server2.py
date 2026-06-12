@@ -1278,6 +1278,7 @@ async def dummy(
 FUNS = {
     "adminchat_overview": a.adminchat_overview,
     "adminchat_thread": a.adminchat_thread,
+    "adjust_timeout": a.adjust_timeout,
     "adminmessage": a.adminmessage,
     "advance_by_one": a.advance_by_one,
     "announcements": a.announcements,

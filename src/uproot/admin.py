@@ -56,6 +56,7 @@ from uproot.services.data_service import (
 
 # Re-export from player service
 from uproot.services.player_service import (
+    adjust_timeout,
     adminchat_overview,
     adminchat_thread,
     adminmessage,
@@ -140,6 +141,7 @@ __all__ = [
     "update_description",
     "update_settings",
     # Player
+    "adjust_timeout",
     "adminchat_overview",
     "adminchat_thread",
     "adminmessage",

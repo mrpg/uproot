@@ -1648,6 +1648,10 @@ uproot.onInternalEvent("AdminMessaged", (event) => {
     uproot.adminMessage(entry.data);
 });
 
+uproot.onInternalEvent("AdminTimeoutChanged", (event) => {
+    uproot.setPageTimeout(event.detail.data);
+});
+
 uproot.onInternalEvent("AdminchatStateChanged", (event) => {
     const data = event.detail.data;
 

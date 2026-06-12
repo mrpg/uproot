@@ -3,6 +3,8 @@
 
 """Player operations service."""
 
+from math import isfinite
+from time import time
 from typing import Any
 
 import uproot as u
@@ -215,6 +217,43 @@ async def reload(sname: t.Sessionname, unames: list[str]) -> None:
                 },
             },
         )
+
+
+async def adjust_timeout(
+    sname: t.Sessionname, unames: list[str], delta: float = 60.0
+) -> None:
+    """Adjust the page timeout for selected players by delta seconds."""
+    session_exists(sname, False)
+
+    try:
+        finite = isfinite(delta)
+    except TypeError as e:
+        raise ValueError("Timeout adjustment must be finite") from e
+
+    if not finite:
+        raise ValueError("Timeout adjustment must be finite")
+
+    for uname in unames:
+        pid = t.PlayerIdentifier(sname, uname)
+
+        with t.materialize(pid) as player:
+            key = str(player.show_page)
+
+            if key in player._uproot_timeouts_until:
+                player._uproot_timeouts_until[key] += delta
+            else:
+                player._uproot_timeouts_until[key] = time() + delta
+
+            remaining = max(0.0, player._uproot_timeouts_until[key] - time())
+
+            q.enqueue(
+                tuple(pid),
+                {
+                    "source": "admin",
+                    "data": remaining,
+                    "event": "_uproot_AdminTimeoutChanged",
+                },
+            )
 
 
 async def redirect(sname: t.Sessionname, unames: list[str], url: str) -> None:

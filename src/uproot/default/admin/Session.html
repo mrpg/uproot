@@ -322,6 +322,11 @@
                         </span>
                     </li>
                     <li>
+                        <span class="dropdown-item" onclick="mmodal('adjust_timeout')" role="button">
+                            {% translate %}Adjust timeout{% endtranslate %}
+                        </span>
+                    </li>
+                    <li>
                         <span class="dropdown-item" onclick="runNewPlayer()" role="button">
                             {% translate %}Run <code>new_player</code>{% endtranslate %}
                         </span>
@@ -468,6 +473,24 @@
 </div>
 {% endcall %}
 
+<!-- Modal for adjusting timeout -->
+{% call modal(_, "adjust_timeout", title=_("Adjust timeout"), action_text=_("Apply"), action_handler="actuallyAdjustTimeout()") %}
+{{ player_count(_) }}
+<div class="mb-3">
+    <label for="timeout-delta" class="form-label">{% translate %}Adjustment in seconds{% endtranslate %}</label>
+    <div class="input-group" style="width: 200px;">
+        <button class="btn btn-outline-uproot" type="button" onclick="I('timeout-delta').stepDown()">
+            <i class="bi bi-dash"></i>
+        </button>
+        <input type="number" class="form-control text-center font-monospace" id="timeout-delta" value="60" step="1">
+        <button class="btn btn-outline-uproot" type="button" onclick="I('timeout-delta').stepUp()">
+            <i class="bi bi-plus"></i>
+        </button>
+    </div>
+    <div class="form-text">{% translate %}Use negative values to reduce the timeout.{% endtranslate %}</div>
+</div>
+{% endcall %}
+
 <!-- Modal for player URLs -->
 
 <div class="modal fade" id="urlModal" tabindex="-1" aria-labelledby="urlModalLabel" aria-hidden="true">
@@ -583,6 +606,19 @@
         } catch (error) {
             uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
         }
+    }
+
+    function actuallyAdjustTimeout() {
+        const seconds = parseFloat(I("timeout-delta").value);
+
+        if (!Number.isFinite(seconds)) {
+            return uproot.error(_("Please enter a valid number."));
+        }
+
+        window.bootstrap?.Modal.getOrCreateInstance(I("adjust_timeout-modal")).hide();
+        window.invokeFromMonitor("adjust_timeout", seconds).then(() => {
+            uproot.alert(_("The action has completed."));
+        });
     }
 
     {% if not session.get("_uproot_initialized", False) %}

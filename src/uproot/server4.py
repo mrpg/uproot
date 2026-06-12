@@ -86,6 +86,13 @@ class PlayerRedirect(BaseModel):
     )
 
 
+class PlayerTimeout(BaseModel):
+    """Request body for adjusting player timeouts."""
+
+    unames: list[str] = Field(..., min_length=1, description="List of usernames")
+    delta: float = Field(60.0, description="Timeout adjustment in seconds")
+
+
 class PlayerMessage(BaseModel):
     """Request body for sending admin messages to players."""
 
@@ -388,6 +395,23 @@ async def reload_players(
     await a.reload(sname, body.unames)
 
     return {"reloaded": body.unames}
+
+
+@router.post("/session/{sname}/players/timeout/")
+async def adjust_timeout(
+    sname: str,
+    body: PlayerTimeout,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Adjust the page timeout for specified players."""
+    a.session_exists(sname)
+
+    try:
+        await a.adjust_timeout(sname, body.unames, body.delta)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"adjusted": body.unames, "delta": body.delta}
 
 
 @router.post("/session/{sname}/players/redirect/")
