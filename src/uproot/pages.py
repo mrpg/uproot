@@ -131,6 +131,45 @@ def make_buttons(
     return button_next, button_back, state
 
 
+def make_timeout(
+    translate: Callable[[str], str],
+) -> tuple[Callable[..., Markup], Callable[..., Markup]]:
+    def timeout(**kwargs: Any) -> Markup:
+        extra = html_params(**kwargs) if kwargs else ""
+        space = " " if extra else ""
+        return Markup(  # nosec B704
+            f'<span x-text="$store.uproot.timeout.compact"{space}{extra}>__:__</span>'
+        )
+
+    def timeout_box(**kwargs: Any) -> Markup:
+        preamble = kwargs.pop("preamble", None) or translate(
+            "Remaining time on this page:"
+        )
+        aria_label = translate("Remaining time on this page")
+        class_ = kwargs.pop("class_", "alert callout mb-4-5 mt-4 pe-4")
+        kwargs.setdefault("id", "uproot-timeout")
+        time_id = kwargs.pop("time_id", "uproot-time-remaining")
+        preamble_id = kwargs.pop("preamble_id", "uproot-time-remaining-preamble")
+        extra = html_params(**kwargs) if kwargs else ""
+        space = " " if extra else ""
+        time_span = timeout(id=time_id)
+        return Markup(  # nosec B704
+            f"<div x-cloak"
+            f' x-show="$store.uproot.timeout.active"'
+            f" x-bind:class=\"'uproot-timeout-' + $store.uproot.timeout.level\""
+            f' class="{Markup.escape(class_)}"'
+            f' role="timer"'
+            f' aria-label="{Markup.escape(aria_label)}"'
+            f' aria-atomic="true"'
+            f"{space}{extra}>"
+            f'<span id="{Markup.escape(preamble_id)}">{Markup.escape(preamble)}</span> '
+            f"{time_span}"
+            f"</div>"
+        )
+
+    return timeout, timeout_box
+
+
 def select_html_params(field: Any, class_: str) -> Any:
     attrs = {}
 
@@ -296,6 +335,7 @@ async def render(
     button_next, button_back, buttons_placed = make_buttons(
         translate, getattr(page, "allow_back", False)
     )
+    timeout, timeout_box = make_timeout(translate)
 
     with session, group:
         context = (
@@ -317,6 +357,8 @@ async def render(
                 "button_back": button_back,
                 "button_next": button_next,
                 "buttons_placed": buttons_placed,
+                "timeout": timeout,
+                "timeout_box": timeout_box,
                 "C": getattr(app, "C", {}),
                 "form": form,
                 "_": translate,

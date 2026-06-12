@@ -198,20 +198,7 @@
             {% include "TestingHead.html" %}
             {% endif %}
             {% block timeoutbox %}
-            <div
-                x-cloak
-                x-show="$store.uproot.timeout.active"
-                x-bind:class="'uproot-timeout-' + $store.uproot.timeout.level"
-                class="alert callout mb-4-5 mt-4 pe-4"
-                role="timer"
-                aria-label="{% translate %}Remaining time on this page{% endtranslate %}"
-                aria-atomic="true"
-                id="uproot-timeout">
-                <span id="uproot-time-remaining-preamble">
-                    {% translate %}Remaining time on this page:{% endtranslate %}
-                </span>
-                <span id="uproot-time-remaining" x-text="$store.uproot.timeout.compact">__:__</span>
-            </div>
+            {{ timeout_box() }}
             <div id="uproot-timeout-announcer" class="visually-hidden" aria-live="assertive" aria-atomic="true"></div>
             {% endblock timeoutbox %}
         </div>
