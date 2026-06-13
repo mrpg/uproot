@@ -241,7 +241,7 @@
             {% if field.description %}
                 <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
-        {% elif field.type == "IBANField" or field.type == "StringField" or field.type == "TextAreaField" %}
+        {% elif field.type == "BICField" or field.type == "IBANField" or field.type == "StringField" or field.type == "TextAreaField" %}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
             {% if ADDON_PRESENT %}
                 <div class="input-group">
