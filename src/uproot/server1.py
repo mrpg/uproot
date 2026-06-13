@@ -908,7 +908,7 @@ async def app_queries(
             session=session,
         )
 
-        if type(result) is Response:
+        if isinstance(result, Response):
             return result
         else:
             return JSONResponse(result)
@@ -936,7 +936,7 @@ async def app_queries2(
             session=session,
         )
 
-        if type(result) is Response:
+        if isinstance(result, Response):
             return result
         else:
             return JSONResponse(result)
