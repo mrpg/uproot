@@ -496,7 +496,7 @@ code, .font-monospace {
 .uproot-likert-matrix .likert-scale-min {
   width: 45%;  /* Leave space between Likert matrix max/min labels */
 }
-.uproot-likert-matrix .likert-item,
+.uproot-likert-matrix .likert-item .form-text,
 .likert-scale-max, .likert-scale-min {
   font-weight: normal;
 }
