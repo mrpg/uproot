@@ -483,6 +483,14 @@ code, .font-monospace {
 .uproot-likert-matrix .likert-corner {
     width: 60%;
 }
+.uproot-likert-matrix .likert-scale-max {
+  width: 45%;  /* Leave space between Likert matrix max/min labels */
+  text-align: right;
+}
+.uproot-likert-matrix .likert-scale-min {
+  width: 45%;  /* Leave space between Likert matrix max/min labels */
+}
+
 
 /* In-text hyperlink with gray underline that turns black on hover */
 /* See https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css */
