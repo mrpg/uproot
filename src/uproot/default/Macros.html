@@ -53,7 +53,7 @@
         <tbody>
         {% for field_ in varargs %}
             <tr class="likert-item-row">
-                <th class="likert-item ps-0" scope="row">
+                <th class="likert-item pe-3 ps-0" scope="row">
                     <span class="form-label uproot-form-label">{{ translate(field_.label.text | string) if field_.label.text is not none else "" }}</span>
                     {% if field_.description %}
                         <small class="form-text text-body-secondary uproot-form-description">{{ translate(field_.description) | safe }}</small>
