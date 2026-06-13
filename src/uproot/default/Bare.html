@@ -230,11 +230,13 @@
 
             <main id="uproot-main" tabindex="-1">
                 {% if _uproot_errors %}
-                {% for error in _uproot_errors %}
-                <div class="alert alert-danger uproot-main-error" role="alert">
-                    {{ error }}
+                <div class="container" id="uproot-errors-container">
+                    {% for error in _uproot_errors %}
+                    <div class="alert alert-danger border-danger callout uproot-main-error" role="alert">
+                        {{ error }}
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
                 {% endif %}
 
                 <section id="uproot-block-main">
