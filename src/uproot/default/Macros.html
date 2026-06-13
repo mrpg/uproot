@@ -70,6 +70,68 @@
     </table>
 {% endmacro %}
 
+{% macro likert_grid() %}
+    {% set field0 = varargs.0 %}
+    {% set ncols = field0.max - field0.min + 1 %}
+    <div class="uproot-likert-grid" style="--likert-columns: {{ ncols }};">
+        {# Wide-mode scale row #}
+        {% if field0.label_min is not none or field0.label_max is not none %}
+            <div class="uproot-likert-grid-scale-corner"></div>
+            <div class="uproot-likert-grid-scale"
+                style="grid-column: span {{ ncols }};">
+                <span class="likert-scale-min">
+                    {{ translate(field0.label_min | string) if field0.label_min is not none else "" }}
+                </span>
+                <span class="likert-scale-max">
+                    {{ translate(field0.label_max | string) if field0.label_max is not none else "" }}
+                </span>
+            </div>
+        {% endif %}
+        {# Wide-mode choice-label row #}
+        <div class="uproot-likert-grid-header uproot-likert-grid-item-label"></div>
+        {% for subfield in field0 %}
+            <div class="uproot-likert-grid-header uproot-likert-grid-choice-label">
+                {% if field0.render_kw and field0.render_kw.get("class") %}
+                    <div class="{{ field0.render_kw.get('class') }}">
+                {% else %}
+                    <div class="text-body-tertiary text-center">
+                {% endif %}
+                    {{ translated_label(subfield.label, "form-check-label me-0") | replace("-", "−") }}
+                </div>
+            </div>
+        {% endfor %}
+        {# Item rows #}
+        {% for field_ in varargs %}
+            <div class="uproot-likert-grid-item-label">
+                <span class="form-label uproot-form-label">
+                    {{ translate(field_.label.text | string) if field_.label.text is not none else "" }}
+                </span>
+                {% if field_.description %}
+                    <small class="form-text text-body-secondary uproot-form-description">
+                        {{ translate(field_.description) | safe }}
+                    </small>
+                {% endif %}
+            </div>
+            {% for subfield in field_ %}
+                <div class="uproot-likert-grid-cell {% if loop.last %}uproot-likert-grid-cell-last{% endif %}">
+                    <span class="uproot-likert-grid-mobile-scale-label">
+                        {% if loop.first %}
+                            {{ translate(field0.label_min | string) if field0.label_min is not none else "" }}
+                        {% elif loop.last %}
+                            {{ translate(field0.label_max | string) if field0.label_max is not none else "" }}
+                        {% endif %}
+                    </span>
+                    <span class="uproot-likert-grid-radio">
+                        {{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                    </span>
+                    <span class="uproot-likert-grid-mobile-label">
+                        {{ translated_label(subfield.label, "form-check-label me-0") | replace("-", "−") }}
+                    </span>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endmacro %}
 
 {% macro field(field) %}
     {% set desc_id = (field.id ~ "-description") if field.description else "" %}
