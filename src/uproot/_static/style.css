@@ -153,6 +153,12 @@ td, th, *[style*="table-cell"], .d-table-cell {
 ol li::marker {
     --fvn-spacing: tabular-nums;  /* Probably unnecessary, most browsers’ default behavior */
 }
+.ffs-calt, .ffs-calt-on {
+    font-feature-settings: "calt" 1 !important;  /* Enable contextual alternates */
+}
+.ffs-calt-off {
+    font-feature-settings: "calt" 0 !important;  /* Disable contextual alternates */
+}
 .ffs-lnum, .fvn-lining-nums {
     --fvn-figure-style: lining-nums !important;
     /* Equivalent to font-feature-settings: "lnum" !important; */
