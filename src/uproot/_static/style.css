@@ -490,9 +490,11 @@ code, .font-monospace {
     display: block;
     border: 1px solid var(--bs-border-color);
     border-radius: var(--bs-border-radius-lg);
+    padding: 0.75rem 1rem;
 }
 .uproot-likert-responsive-caption {
     color: var(--bs-body-color);
+    grid-column: 1 / -1;
 }
 .uproot-likert-responsive-caption .form-label {
     margin-bottom: 0.5rem;  /* Like .mb-2 */
@@ -511,7 +513,6 @@ code, .font-monospace {
     column-gap: 0.5rem;
     display: grid;
     grid-template-columns: 50% auto 33%;
-    padding: 0.25rem 0;
 }
 .uproot-likert-responsive-mobile-scale-label {
     white-space: nowrap;
@@ -616,12 +617,6 @@ code, .font-monospace {
     }
 }
 @media (max-width: 991px) {  /* 1px less than Bootstrap’s -lg- breakpoint, since Bootstrap uses min-width */
-    .uproot-likert-responsive {
-        padding-bottom: 0.75rem;
-        padding-left: 1rem;  /* like .ps-3*/
-        padding-right: 1rem;  /* like .pe-3*/
-        padding-top: 0.75rem;
-    }
     .uproot-likert-grid {
         display: block;
     }

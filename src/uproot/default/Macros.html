@@ -226,15 +226,19 @@
                     #{{ field.id }}-likert-responsive .uproot-likert-responsive-scale-max {
                         display: block;
                     }
-                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-corner,
-                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-option-last {
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-corner {
                         border-bottom: 1px solid var(--bs-border-color);
                         display: block;
                     }
                     #{{ field.id }}-likert-responsive .uproot-likert-responsive-choice-label,
                     #{{ field.id }}-likert-responsive .uproot-likert-responsive-option {
                         display: block;
+                        padding-left: 0.33rem;
                         text-align: center;
+                    }
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-option {
+                        border-bottom: 1px solid var(--bs-border-color);
+                        padding-bottom: 0.33rem;
                     }
                     #{{ field.id }}-likert-responsive .uproot-likert-responsive-mobile-scale-label,
                     #{{ field.id }}-likert-responsive .uproot-likert-responsive-mobile-label {
@@ -243,7 +247,7 @@
                 }
             </style>
             <div id="{{ field.id }}-likert-responsive" class="uproot-likert-responsive"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} role="radiogroup" aria-labelledby="{{ field.id }}-label">
-                <div class="uproot-likert-responsive-caption" style="grid-column: 1 / -1;">
+                <div class="uproot-likert-responsive-caption">
                     <span class="form-label uproot-form-label" id="{{ field.id }}-label">{{ translate(field.label.text | string) if field.label.text is not none else "" }}</span>
                 </div>
                 <div class="uproot-likert-responsive-corner" aria-hidden="true"></div>
