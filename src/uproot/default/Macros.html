@@ -17,8 +17,12 @@
 {% set translate = _ %}
 
 
-{% macro translated_label(label, class_, id=false) -%}
-    {{ label(text=translate(label.text | string) if label.text is not none else "", class_=class_, id=id) }}
+{% macro translated_label(label, class_, id=false, replace_minus=false) -%}
+    {% set label_text = translate(label.text | string) if label.text is not none else "" %}
+    {% if replace_minus %}
+        {% set label_text = label_text | replace("-", "−") %}
+    {% endif %}
+    {{ label(text=label_text, class_=class_, id=id) }}
 {%- endmacro %}
 
 
@@ -44,7 +48,7 @@
                         {% else %}
                             <div class="text-body-tertiary text-center">
                         {% endif %}
-                        {{ translated_label(subfield.label, "form-check-label me-0") | replace("-", "−") }}
+                        {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
                         </div>
                     </th>
                 {% endfor %}
@@ -96,7 +100,7 @@
                 {% else %}
                     <div class="text-body-tertiary text-center">
                 {% endif %}
-                    {{ translated_label(subfield.label, "form-check-label me-0") | replace("-", "−") }}
+                    {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
                 </div>
             </div>
         {% endfor %}
@@ -125,7 +129,7 @@
                         {{ subfield(class_="form-check-input", data_uproot_radio="") }}
                     </span>
                     <span class="uproot-likert-grid-mobile-label">
-                        {{ translated_label(subfield.label, "form-check-label me-0") | replace("-", "−") }}
+                        {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
                     </span>
                 </div>
             {% endfor %}
@@ -222,7 +226,7 @@
                                 {% else %}
                                     <div class="text-body-tertiary">
                                 {% endif %}
-                                    {{ translated_label(subfield.label, "form-check-label me-0") | replace("-", "−") }}
+                                    {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
                                 </div>
                             </th>
                         {% endfor %}

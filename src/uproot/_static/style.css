@@ -601,7 +601,7 @@ code, .font-monospace {
         padding-right: 75%;
         text-align: right;
     }
-    .uproot-likert-grid-mobile-label .form−check−label {
+    .uproot-likert-grid-mobile-label .form-check-label {
         font-variant-numeric: tabular-nums;
     }
 }
