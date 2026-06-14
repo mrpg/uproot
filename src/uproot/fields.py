@@ -393,6 +393,41 @@ class LikertField(wtforms.fields.RadioField):
         )
 
 
+class LikertFieldResponsive(LikertField):
+    def __init__(
+        self,
+        *,
+        breakpoint: int = 992,
+        class_wrapper: str | None = None,
+        label: str = "",
+        label_max: str = "",
+        label_min: str = "",
+        max: int = 7,
+        min: int = 1,
+        optional: bool = False,
+        render_kw: dict[str, Any] | None = None,
+        description: str = "",
+        widget: Any | None = None,
+        default: Any | None = None,
+        **kwargs: Any,  # WTForms-internal use only
+    ) -> None:
+        self.breakpoint = breakpoint
+        super().__init__(
+            class_wrapper=class_wrapper,
+            label=label,
+            label_max=label_max,
+            label_min=label_min,
+            max=max,
+            min=min,
+            optional=optional,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
+            **kwargs,
+        )
+
+
 class RadioField(wtforms.fields.RadioField):
     def __init__(
         self,

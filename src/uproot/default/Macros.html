@@ -211,6 +211,75 @@
             {% if field.description %}
                 <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
+        {% elif field.type == "LikertFieldResponsive" %}
+            {% set ncols = field.max - field.min + 1 %}
+            {% set field_breakpoint = field.breakpoint | int %}
+            <style>
+                @media (min-width: {{ field_breakpoint }}px) {
+                    #{{ field.id }}-likert-responsive {
+                        border: 0;
+                        display: grid;
+                        grid-template-columns: max-content repeat({{ ncols }}, minmax(4ch, 1fr)) max-content;
+                        padding: 0;
+                    }
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-scale-min,
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-scale-max {
+                        display: block;
+                    }
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-corner,
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-option-last {
+                        border-bottom: 1px solid var(--bs-border-color);
+                        display: block;
+                    }
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-choice-label,
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-option {
+                        display: block;
+                        text-align: center;
+                    }
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-mobile-scale-label,
+                    #{{ field.id }}-likert-responsive .uproot-likert-responsive-mobile-label {
+                        display: none;
+                    }
+                }
+            </style>
+            <div id="{{ field.id }}-likert-responsive" class="uproot-likert-responsive"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} role="radiogroup" aria-labelledby="{{ field.id }}-label">
+                <div class="uproot-likert-responsive-caption" style="grid-column: 1 / -1;">
+                    <span class="form-label uproot-form-label" id="{{ field.id }}-label">{{ translate(field.label.text | string) if field.label.text is not none else "" }}</span>
+                </div>
+                <div class="uproot-likert-responsive-corner" aria-hidden="true"></div>
+                {% for subfield in field %}
+                    <div class="uproot-likert-responsive-choice-label">
+                        {% if field.render_kw and field.render_kw.get("class") %}
+                            <div class="{{ field.render_kw.get('class') }}">
+                        {% else %}
+                            <div class="text-body-tertiary">
+                        {% endif %}
+                            {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="uproot-likert-responsive-corner" aria-hidden="true"></div>
+                <div class="uproot-likert-responsive-scale-min">{{ translate(field.label_min | string) if field.label_min is not none else "" }}</div>
+                {% for subfield in field %}
+                    <div class="uproot-likert-responsive-option {% if loop.last %}uproot-likert-responsive-option-last{% endif %}">
+                        <span class="uproot-likert-responsive-mobile-scale-label">
+                            {% if loop.first %}
+                                {{ translate(field.label_min | string) if field.label_min is not none else "" }}
+                            {% elif loop.last %}
+                                {{ translate(field.label_max | string) if field.label_max is not none else "" }}
+                            {% endif %}
+                        </span>
+                        {{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                        <span class="uproot-likert-responsive-mobile-label">
+                            {{ translated_label(subfield.label, "form-check-label", replace_minus=true) }}
+                        </span>
+                    </div>
+                {% endfor %}
+                <div class="uproot-likert-responsive-scale-max">{{ translate(field.label_max | string) if field.label_max is not none else "" }}</div>
+            </div>
+            {% if field.description %}
+                <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+            {% endif %}
         {% elif field.type == "LikertField" %}
             <table class="table w-100 uproot-likert"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
                 <caption class="caption-top p-0">
