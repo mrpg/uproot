@@ -153,6 +153,12 @@ td, th, *[style*="table-cell"], .d-table-cell {
 ol li::marker {
     --fvn-spacing: tabular-nums;  /* Probably unnecessary, most browsers’ default behavior */
 }
+.ffs-calt, .ffs-calt-on {
+    font-feature-settings: "calt" 1 !important;  /* Enable contextual alternates */
+}
+.ffs-calt-off {
+    font-feature-settings: "calt" 0 !important;  /* Disable contextual alternates */
+}
 .ffs-lnum, .fvn-lining-nums {
     --fvn-figure-style: lining-nums !important;
     /* Equivalent to font-feature-settings: "lnum" !important; */
@@ -490,7 +496,115 @@ code, .font-monospace {
 .uproot-likert-matrix .likert-scale-min {
   width: 45%;  /* Leave space between Likert matrix max/min labels */
 }
+.uproot-likert-matrix .likert-item .form-text,
+.likert-scale-max, .likert-scale-min {
+  font-weight: normal;
+}
+.uproot-likert-matrix .form-label {
+    margin-bottom: 0;
+}
 
+/* Likert grid: Responsive Likert matrix */
+.uproot-likert-grid {
+    display: grid;
+    grid-template-columns:
+        55%
+        repeat(var(--likert-columns), minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+}
+.uproot-likert-grid-scale {
+    display: none;
+}
+.uproot-likert-grid-header,
+.uproot-likert-grid-item-label,
+.uproot-likert-grid-cell {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+.uproot-likert-grid-item-label .form-label {
+    margin-bottom: 0;
+}
+.uproot-likert-grid-choice-label,
+.uproot-likert-grid-cell {
+    text-align: center;
+}
+.uproot-likert-grid-choice-label {
+    font-weight: 600;
+}
+.uproot-likert-grid-mobile-label,
+.uproot-likert-grid-mobile-scale-label {
+    display: none;
+}
+.uproot-likert-grid-radio {
+    display: inline-flex;
+    justify-content: center;
+}
+@media (min-width: 992px) {
+    .uproot-likert-grid-scale {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.25rem;
+        padding: 0.25rem;
+    }
+    .uproot-likert-grid-item-label {
+        padding-left: 0;  /* flush with horizontal rules */
+        padding-right: 1rem;  /* like .pe-3 */
+    }
+}
+@media (max-width: 991px) {  /* 1px less than Bootstrap’s -lg- breakpoint, since Bootstrap uses min-width */
+    .uproot-likert-grid {
+        display: block;
+    }
+    .uproot-likert-grid-scale,
+    .uproot-likert-grid-scale-corner,
+    .uproot-likert-grid-header {
+        display: none;
+    }
+    .uproot-likert-grid-item-label {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.5rem 0.5rem 0 0;
+        margin-top: 1rem;
+        font-weight: 600;
+        text-align: left;
+    }
+    .uproot-likert-grid-cell {
+        display: grid;
+        grid-template-columns: 33% 33% auto;
+        align-items: center;
+        column-gap: 0.75rem;
+        padding-bottom: 0.25rem;
+        padding-top: 0.25rem;
+        text-align: left;
+        border-left: 1px solid var(--bs-border-color);
+        border-right: 1px solid var(--bs-border-color);
+        border-bottom: 0;
+    }
+    .uproot-likert-grid-cell-last {
+        border-radius: 0 0 0.5rem 0.5rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    .uproot-likert-grid-mobile-scale-label {
+        display: block;
+        grid-column: 1;
+        white-space: nowrap;
+    }
+    .uproot-likert-grid-radio {
+        grid-column: 2;
+        justify-self: center;
+    }
+    .uproot-likert-grid-mobile-label {
+        color: var(--bs-tertiary-color);
+        display: inline;
+        font-weight: 600;
+        grid-column: 3;
+        padding-right: 75%;
+        text-align: right;
+    }
+    .uproot-likert-grid-mobile-label .form−check−label {
+        font-variant-numeric: tabular-nums;
+    }
+}
 
 /* In-text hyperlink with gray underline that turns black on hover */
 /* See https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css */

@@ -722,3 +722,69 @@ class IBANField(wtforms.fields.StringField):
             default=default,
             **kwargs,  # Unpacks WTForms-internal kwargs
         )
+
+
+class BICValidator:
+    def __init__(self, message: str | None = None) -> None:
+        self.message = message or "Invalid BIC format."
+
+    def __call__(self, form: wtforms.Form, field: wtforms.Field) -> None:
+        from schwifty import BIC
+        from schwifty.exceptions import SchwiftyException
+
+        if field.data:
+            try:
+                BIC(field.data)
+            except SchwiftyException:
+                raise wtforms.validators.ValidationError(self.message)
+
+
+class BICField(wtforms.fields.StringField):
+    def __init__(
+        self,
+        *,
+        addon_start: str | None = None,
+        addon_end: str | None = None,
+        class_addon_start: str = "",
+        class_addon_end: str = "",
+        class_wrapper: str | None = None,
+        label: str = "",
+        label_floating: str | None = None,
+        optional: bool = False,
+        render_kw: dict[str, Any] | None = None,
+        description: str = "",
+        widget: Any | None = None,
+        default: Any | None = None,
+        **kwargs: Any,  # WTForms-internal use only
+    ) -> None:
+        if not optional:
+            v = [
+                wtforms.validators.InputRequired(),
+                BICValidator(),
+            ]
+        else:
+            v = [
+                wtforms.validators.Optional(),
+                BICValidator(),
+            ]
+
+        self.addon_start = addon_start
+        self.addon_end = addon_end
+        self.class_addon_start = class_addon_start
+        self.class_addon_end = class_addon_end
+        self.class_wrapper = class_wrapper
+        self.label_floating = label_floating
+
+        if render_kw is None:
+            render_kw = {}
+        render_kw["autocomplete"] = "off"
+
+        super().__init__(
+            label=label,
+            validators=v,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
+        )
