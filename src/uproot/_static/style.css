@@ -256,9 +256,13 @@ code, .font-monospace {
 }
 /* Mapping to common OpenType weight names according to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
 
-/* Extension of the Bootstrap .g* and .m* classes */
-/* 4.5 spacing value: 2.25rem */
+/* Extension of the Bootstrap .rounded-* classes */
+.rounded-0-1 {
+    border-radius: 1px !important;
+        /* tiny border-radius so the element appears to have sharp corners without creating the visual illusion of protruding corners */
+}
 
+/* Extension of the Bootstrap .g* and .m* classes */
 /* 4.5 spacing value: 2.25rem */
 
 /* Base gutter utilities */

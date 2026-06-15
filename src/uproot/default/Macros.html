@@ -1,6 +1,6 @@
 {% macro error(field, id="") %}
     {% if field.errors %}
-        <div class="card mt-2 text-bg-danger border-danger" role="alert"{% if id %} id="{{ id }}"{% endif %}>
+        <div class="card mt-2 text-bg-danger border-danger rounded-0-1" role="alert"{% if id %} id="{{ id }}"{% endif %}>
             {% for error in field.errors %}
                 <div class="card-body pb-1 pt-1">
                     <small>{{ error }}</small>
@@ -11,7 +11,7 @@
 {% endmacro %}
 
 
-{% macro error_class(field) %}{% if field.errors %}alert alert-danger uproot-error text-black{% endif %}{% endmacro %}
+{% macro error_class(field) %}{% if field.errors %}alert alert-danger border-danger callout uproot-error text-black{% endif %}{% endmacro %}
 
 
 {% set translate = _ %}
