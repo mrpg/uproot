@@ -539,12 +539,12 @@ code, .font-monospace {
 .uproot-likert-responsive-mobile-label {
     color: var(--bs-tertiary-color);
     font-weight: 600;
-    padding-right: 50%;
+    padding-right: 1rem;  /* like .pe-3 */
     text-align: right;
-    text-wrap: nowrap;
 }
 .uproot-likert-responsive-mobile-label .form-check-label {
     font-variant-numeric: tabular-nums !important;
+    text-wrap: nowrap;
 }
 .uproot-likert-responsive-choice-label,
 .uproot-likert-responsive-option {
@@ -563,11 +563,11 @@ code, .font-monospace {
     padding: 0.5rem 0;
 }
 .uproot-likert-responsive-scale-min {
-    padding-right: 1rem;
+    padding-right: 2rem;  /* beetwen .pe-4 and .pe-5, ensures sufficient separation from the radio buttons */
     text-align: right;
 }
 .uproot-likert-responsive-scale-max {
-    padding-left: 1rem;
+    padding-left: 2rem;  /* beetwen .ps-4 and .ps-5, ensures sufficient separation from the radio buttons */
     text-align: left;
 }
 .uproot-likert-matrix .likert-corner {

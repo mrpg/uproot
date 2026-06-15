@@ -28,11 +28,12 @@
 
 {% macro likert_matrix() %}
     {% set field0 = varargs.0 %}
+    {% set ncols = field0.choices | length %}
     <table class="table w-100 uproot-likert-matrix">
         <thead>
             <tr class="likert-scale-row">
                 <th class="border-0 likert-corner" aria-hidden="true" scope="col"></th>
-                <th class="likert-scale border-0" colspan="{{ field0.max - field0.min + 1 }}" scope="colgroup">
+                <th class="likert-scale border-0" colspan="{{ ncols }}" scope="colgroup">
                     <div class="d-flex justify-content-between">
                         <span class="likert-scale-min">{{ translate(field0.label_min | string) if field0.label_min is not none else "" }}</span>
                         <span class="likert-scale-max">{{ translate(field0.label_max | string) if field0.label_max is not none else "" }}</span>
@@ -76,7 +77,7 @@
 
 {% macro likert_grid() %}
     {% set field0 = varargs.0 %}
-    {% set ncols = field0.max - field0.min + 1 %}
+    {% set ncols = field0.choices | length %}
     {% set grid_breakpoint = kwargs.get("breakpoint", 992) | int %}  {# default: Bootstrap’s lg breakpoint #}
     {% set grid_narrow_breakpoint = grid_breakpoint - 1 %}
     {% set grid_id = field0.id ~ "-likert-grid" %}
@@ -368,7 +369,7 @@
                 <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "LikertFieldResponsive" %}
-            {% set ncols = field.max - field.min + 1 %}
+            {% set ncols = field.choices | length %}
             {% set field_breakpoint = field.breakpoint | int %}
             <style>
                 @media (min-width: {{ field_breakpoint }}px) {
