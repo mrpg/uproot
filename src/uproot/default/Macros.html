@@ -91,8 +91,11 @@
             #{{ grid_id }} .uproot-likert-grid-scale {
                 display: flex;
                 justify-content: space-between;
-                gap: 0.25rem;
+                gap: 20%;  {# ensure clear separation of label_min and label_max #}
                 padding: 0.25rem;
+            }
+            #{{ grid_id }} .uproot-likert-grid-scale .likert-scale-max {
+                text-align: right;
             }
             #{{ grid_id }} .uproot-likert-grid-scale-corner,
             #{{ grid_id }} .uproot-likert-grid-header {
