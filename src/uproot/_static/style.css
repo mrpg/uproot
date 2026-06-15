@@ -492,6 +492,9 @@ code, .font-monospace {
     border-radius: var(--bs-border-radius-lg);
     padding: 0.75rem 1rem;
 }
+.uproot-likert-responsive .uproot-form-description {
+    margin-top: 1rem;  /* like .mt-3 */
+}
 .uproot-likert-responsive-caption {
     color: var(--bs-body-color);
     grid-column: 1 / -1;
@@ -509,19 +512,32 @@ code, .font-monospace {
     font-weight: 600;
 }
 .uproot-likert-responsive-option {
-    align-items: center;
+    align-items: baseline;
     column-gap: 0.5rem;
     display: grid;
-    grid-template-columns: 50% auto 33%;
+    grid-template-columns: 2em min(4ch, 20%) auto;
+}
+.uproot-likert-responsive-option-min {
+    align-items: last baseline;
+}
+.uproot-likert-responsive-option-max {
+    align-items: first baseline;
 }
 .uproot-likert-responsive-mobile-scale-label {
-    white-space: nowrap;
+    padding-right: 1rem;  /* like .pe-3 */
+}
+.uproot-likert-responsive-mobile-scale-label-min {
+    align-self: last baseline;
+}
+.uproot-likert-responsive-mobile-scale-label-max {
+    align-self: first baseline;
 }
 .uproot-likert-responsive-mobile-label {
     color: var(--bs-tertiary-color);
     font-weight: 600;
     padding-right: 50%;
     text-align: right;
+    text-wrap: nowrap;
 }
 .uproot-likert-responsive-mobile-label .form-check-label {
     font-variant-numeric: tabular-nums !important;
@@ -600,9 +616,13 @@ code, .font-monospace {
 .uproot-likert-grid-mobile-scale-label {
     display: none;
 }
-.uproot-likert-grid-radio {
-    display: inline-flex;
-    justify-content: center;
+.uproot-likert-grid-row-before-description {
+    border-bottom: 0;
+}
+.uproot-likert-grid-description {
+    border-bottom: 1px solid var(--bs-border-color);
+    margin-top: -0.25rem;  /* like .mn-1 */
+    padding-bottom: 1rem;  /* like .pb-3 */
 }
 @media (min-width: 992px) {  /* Equals Bootstrap’s -lg- breakpoint */
     .uproot-likert-grid-scale {
@@ -619,6 +639,18 @@ code, .font-monospace {
 @media (max-width: 991px) {  /* 1px less than Bootstrap’s -lg- breakpoint, since Bootstrap uses min-width */
     .uproot-likert-grid {
         display: block;
+    }
+    .uproot-likert-grid .uproot-form-description {
+        margin-top: 0.5rem;  /* like .mt-2 */
+        padding-bottom: 0.75rem;  /* between .pb-2 and .pb-3 */
+    }
+    .uproot-likert-grid-description {
+        border-left: 1px solid var(--bs-border-color);
+        border-right: 1px solid var(--bs-border-color);
+        border-bottom: 1px solid var(--bs-border-color);
+        border-radius: 0 0 0.5rem 0.5rem;
+        margin-top: 0 !important;
+        padding: 0.5rem 1rem;
     }
     .uproot-likert-grid-scale,
     .uproot-likert-grid-scale-corner,
@@ -638,32 +670,33 @@ code, .font-monospace {
         border-right: 1px solid var(--bs-border-color);
         border-bottom: 0;
         display: grid;
-        grid-template-columns: 33% 33% auto;
-        align-items: center;
+        grid-template-columns: 2em min(4ch, 20%) auto;
+        align-items: baseline;
         column-gap: 0;
         padding-bottom: 0;
-        padding-top: 0.33rem;
+        padding-top: 0.5rem;  /* like .pt-3 */
         text-align: left;
     }
+    .uproot-likert-grid-cell-first {
+        align-items: last baseline;
+    }
     .uproot-likert-grid-cell-last {
+        align-items: first baseline;
         border-radius: 0 0 0.5rem 0.5rem;
         border-bottom: 1px solid var(--bs-border-color);
-        padding-bottom: 0.25rem;
+        padding-bottom: 1rem;  /* like .pb-3 */
     }
-    .uproot-likert-grid-mobile-scale-label {
-        border-bottom: 1px solid var(--bs-border-color);
-        display: block;
-        grid-column: 1;
-        height: 2em;
-        padding-top: 0.1em;
-        white-space: nowrap;
+    .uproot-likert-grid-cell-before-description {
+        border-bottom: 0;
+        border-radius: 0;
+        padding-bottom: 0;
     }
     .uproot-likert-grid-radio {
         border-bottom: 1px solid var(--bs-border-color);
-        grid-column: 2;
-        height: 2em;
+        grid-column: 1;
         justify-self: center;
-        padding-bottom: 0.33rem;
+        padding-bottom: 0.5rem;  /* like .pb-3 */
+        text-align: left;
         width: 100%;
     }
     .uproot-likert-grid-mobile-label {
@@ -671,11 +704,17 @@ code, .font-monospace {
         color: var(--bs-tertiary-color);
         display: inline;
         font-weight: 600;
-        grid-column: 3;
-        height: 2em;
-        padding-bottom: 0.33rem;
-        padding-right: 75%;
+        grid-column: 2;
+        padding-bottom: 0.5rem;  /* like .pb-3 */
         text-align: right;
+    }
+    .uproot-likert-grid-mobile-scale-label {
+        border-bottom: 1px solid var(--bs-border-color);
+        display: block;
+        grid-column: 3;
+        padding-bottom: 0.5rem;  /* like .pb-3 */
+        padding-left: 2rem;  /* like .ps-5 */
+        white-space: nowrap;
     }
     .uproot-likert-grid-cell-last .uproot-likert-grid-mobile-scale-label,
     .uproot-likert-grid-cell-last .uproot-likert-grid-radio,
