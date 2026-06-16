@@ -1189,9 +1189,10 @@ async def status(
         dbsize = float(dbsize_bytes) / (1024**2)
 
     for term, lang in sorted(i18n.MISSING):
-        if term not in missing:
-            missing[term] = []
-        missing[term].append(lang)
+        if isinstance(term, str):
+            if term not in missing:
+                missing[term] = []
+            missing[term].append(lang)
 
     sessions = a.get_active_auth_sessions()
 
