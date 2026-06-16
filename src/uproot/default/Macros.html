@@ -406,8 +406,9 @@
                     }
                 }
             </style>
-            <div id="{{ field.id }}-likert-responsive" class="uproot-likert-responsive"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} role="radiogroup" aria-labelledby="{{ field.id }}-label">
-                {% if field.label.text != "" %}
+            {% set has_label = field.label.text is not none and field.label.text != "" %}
+            <div id="{{ field.id }}-likert-responsive" class="uproot-likert-responsive"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} role="radiogroup"{% if has_label %} aria-labelledby="{{ field.id }}-label"{% endif %}>
+                {% if has_label %}
                     <div class="uproot-likert-responsive-caption">
                         <span class="form-label uproot-form-label" id="{{ field.id }}-label">{{ translate(field.label.text | string) if field.label.text is not none else "" }}</span>
                     </div>
