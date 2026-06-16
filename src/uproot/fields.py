@@ -345,6 +345,7 @@ class LikertField(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
+        choices: list[tuple[Any, str] | Any] | dict[Any, str] | None = None,
         class_wrapper: str | None = None,
         label: str = "",
         label_max: str = "",
@@ -358,17 +359,21 @@ class LikertField(wtforms.fields.RadioField):
         default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
-        choices = [(i, str(i)) for i in range(min, max + 1)]
-        if not optional:
-            v = [
-                wtforms.validators.InputRequired(),
-                wtforms.validators.NumberRange(min=min, max=max),
-            ]
+        if choices is None:
+            choices = [(i, str(i)) for i in range(min, max + 1)]
+            range_validator = wtforms.validators.NumberRange(min=min, max=max)
+        elif isinstance(choices, dict):
+            choices = [*choices.items()]
+            range_validator = None
         else:
-            v = [
-                wtforms.validators.Optional(),
-                wtforms.validators.NumberRange(min=min, max=max),
-            ]
+            range_validator = None
+
+        if not optional:
+            v = [wtforms.validators.InputRequired()]
+        else:
+            v = [wtforms.validators.Optional()]
+        if range_validator is not None:
+            v.append(range_validator)
 
         self.class_wrapper = class_wrapper
         self.label_max = label_max
@@ -398,6 +403,7 @@ class LikertFieldResponsive(LikertField):
         self,
         *,
         breakpoint: int = 992,
+        choices: list[tuple[Any, str] | Any] | dict[Any, str] | None = None,
         class_wrapper: str | None = None,
         label: str = "",
         label_max: str = "",
@@ -413,6 +419,7 @@ class LikertFieldResponsive(LikertField):
     ) -> None:
         self.breakpoint = breakpoint
         super().__init__(
+            choices=choices,
             class_wrapper=class_wrapper,
             label=label,
             label_max=label_max,

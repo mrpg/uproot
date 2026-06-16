@@ -1,6 +1,6 @@
 {% macro error(field, id="") %}
     {% if field.errors %}
-        <div class="card mt-2 text-bg-danger border-danger" role="alert"{% if id %} id="{{ id }}"{% endif %}>
+        <div class="card mt-2 text-bg-danger border-danger rounded-0-1" role="alert"{% if id %} id="{{ id }}"{% endif %}>
             {% for error in field.errors %}
                 <div class="card-body pb-1 pt-1">
                     <small>{{ error }}</small>
@@ -11,7 +11,7 @@
 {% endmacro %}
 
 
-{% macro error_class(field) %}{% if field.errors %}alert alert-danger uproot-error text-black{% endif %}{% endmacro %}
+{% macro error_class(field) %}{% if field.errors %}alert alert-danger border-danger callout uproot-error text-black{% endif %}{% endmacro %}
 
 
 {% set translate = _ %}
@@ -28,11 +28,12 @@
 
 {% macro likert_matrix() %}
     {% set field0 = varargs.0 %}
+    {% set ncols = field0.choices | length %}
     <table class="table w-100 uproot-likert-matrix">
         <thead>
             <tr class="likert-scale-row">
                 <th class="border-0 likert-corner" aria-hidden="true" scope="col"></th>
-                <th class="likert-scale border-0" colspan="{{ field0.max - field0.min + 1 }}" scope="colgroup">
+                <th class="likert-scale border-0" colspan="{{ ncols }}" scope="colgroup">
                     <div class="d-flex justify-content-between">
                         <span class="likert-scale-min">{{ translate(field0.label_min | string) if field0.label_min is not none else "" }}</span>
                         <span class="likert-scale-max">{{ translate(field0.label_max | string) if field0.label_max is not none else "" }}</span>
@@ -60,7 +61,7 @@
                 <th class="likert-item pe-3 ps-0" scope="row">
                     <span class="form-label uproot-form-label">{{ translate(field_.label.text | string) if field_.label.text is not none else "" }}</span>
                     {% if field_.description %}
-                        <small class="form-text text-body-secondary uproot-form-description">{{ translate(field_.description) | safe }}</small>
+                        <small class="form-text uproot-form-description">{{ translate(field_.description) | safe }}</small>
                     {% endif %}
                 </th>
                 {% for subfield in field_ %}
@@ -76,8 +77,161 @@
 
 {% macro likert_grid() %}
     {% set field0 = varargs.0 %}
-    {% set ncols = field0.max - field0.min + 1 %}
-    <div class="uproot-likert-grid" style="--likert-columns: {{ ncols }};">
+    {% set ncols = field0.choices | length %}
+    {% set grid_breakpoint = kwargs.get("breakpoint", 992) | int %}  {# default: Bootstrap’s lg breakpoint #}
+    {% set grid_narrow_breakpoint = grid_breakpoint - 1 %}
+    {% set grid_id = field0.id ~ "-likert-grid" %}
+    <style>
+        @media (min-width: {{ grid_breakpoint }}px) {
+            #{{ grid_id }} {
+                display: grid;
+                grid-template-columns:
+                    55%
+                    repeat(var(--likert-columns), minmax(0, 1fr));
+            }
+            #{{ grid_id }} .uproot-likert-grid-scale {
+                display: flex;
+                justify-content: space-between;
+                gap: 20%;  {# ensure clear separation of label_min and label_max #}
+                padding: 0.25rem;
+            }
+            #{{ grid_id }} .uproot-likert-grid-scale .likert-scale-max {
+                text-align: right;
+            }
+            #{{ grid_id }} .uproot-likert-grid-scale-corner,
+            #{{ grid_id }} .uproot-likert-grid-header {
+                display: block;
+            }
+            #{{ grid_id }} .uproot-likert-grid-item-label {
+                border-left: 0;
+                border-right: 0;
+                border-top: 0;
+                border-radius: 0;
+                margin-top: 0;
+                padding-left: 0;
+                padding-right: 2rem;  {# like .pe-5, ensuring sufficient separation from radio buttons #}
+                text-align: left;
+            }
+            #{{ grid_id }} .uproot-likert-grid-cell {
+                border-left: 0;
+                border-right: 0;
+                border-radius: 0;
+                display: block;
+            }
+            #{{ grid_id }} .uproot-likert-grid-row-before-description {
+                border-bottom: 0;
+            }
+            #{{ grid_id }} .uproot-likert-grid-description {
+                border-left: 0;
+                border-right: 0;
+                border-radius: 0;
+                border-bottom: 1px solid var(--bs-border-color);
+                margin-top: -0.25rem;
+                padding-bottom: 1rem;
+            }
+            #{{ grid_id }} .uproot-likert-grid-radio {
+                border-bottom: 0;
+                grid-column: auto;
+                justify-self: initial;
+                padding-bottom: 0;
+                text-align: initial;
+                width: auto;
+            }
+        }
+        @media (max-width: {{ grid_narrow_breakpoint }}px) {
+            #{{ grid_id }} {
+                display: block;
+            }
+            #{{ grid_id }} .uproot-form-description {
+                margin-top: 0.5rem;
+                padding-bottom: 0.75rem;
+            }
+            #{{ grid_id }} .uproot-likert-grid-description {
+                border-left: 1px solid var(--bs-border-color);
+                border-right: 1px solid var(--bs-border-color);
+                border-bottom: 1px solid var(--bs-border-color);
+                border-radius: 0 0 0.5rem 0.5rem;
+                margin-top: 0 !important;
+                padding-bottom: 0.75rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+                padding-top: 0.5rem;
+            }
+            #{{ grid_id }} .uproot-likert-grid-scale,
+            #{{ grid_id }} .uproot-likert-grid-scale-corner,
+            #{{ grid_id }} .uproot-likert-grid-header {
+                display: none;
+            }
+            #{{ grid_id }} .uproot-likert-grid-item-label {
+                border: 1px solid var(--bs-border-color);
+                border-bottom: 0;
+                border-radius: 0.5rem 0.5rem 0 0;
+                margin-top: 1rem;
+                font-weight: 600;
+                text-align: left;
+            }
+            #{{ grid_id }} .uproot-likert-grid-cell {
+                border-left: 1px solid var(--bs-border-color);
+                border-right: 1px solid var(--bs-border-color);
+                border-bottom: 0;
+                display: grid;
+                grid-template-columns: 2em min(4ch, 20%) auto;
+                align-items: baseline;
+                column-gap: 0;
+                padding-bottom: 0;
+                padding-top: 0.5rem;
+                text-align: left;
+            }
+            #{{ grid_id }} .uproot-likert-grid-cell-first {
+                align-items: last baseline;
+            }
+            #{{ grid_id }} .uproot-likert-grid-cell-last {
+                align-items: first baseline;
+                border-radius: 0 0 0.5rem 0.5rem;
+                border-bottom: 1px solid var(--bs-border-color);
+                padding-bottom: 1rem;
+            }
+            #{{ grid_id }} .uproot-likert-grid-cell-before-description {
+                border-bottom: 0;
+                border-radius: 0;
+                padding-bottom: 0;
+            }
+            #{{ grid_id }} .uproot-likert-grid-radio {
+                border-bottom: 1px solid var(--bs-border-color);
+                grid-column: 1;
+                justify-self: center;
+                padding-bottom: 0.5rem;
+                text-align: left;
+                width: 100%;
+            }
+            #{{ grid_id }} .uproot-likert-grid-mobile-label {
+                border-bottom: 1px solid var(--bs-border-color);
+                color: var(--bs-tertiary-color);
+                display: inline;
+                font-weight: 600;
+                grid-column: 2;
+                padding-bottom: 0.5rem;
+                text-align: right;
+            }
+            #{{ grid_id }} .uproot-likert-grid-mobile-scale-label {
+                border-bottom: 1px solid var(--bs-border-color);
+                display: block;
+                grid-column: 3;
+                padding-bottom: 0.5rem;
+                padding-left: 2rem;
+                white-space: nowrap;
+            }
+            #{{ grid_id }} .uproot-likert-grid-cell-last .uproot-likert-grid-mobile-scale-label,
+            #{{ grid_id }} .uproot-likert-grid-cell-last .uproot-likert-grid-radio,
+            #{{ grid_id }} .uproot-likert-grid-cell-last .uproot-likert-grid-mobile-label {
+                border-bottom: 0;
+            }
+            #{{ grid_id }} .uproot-likert-grid-mobile-label .form-check-label {
+                font-variant-numeric: tabular-nums;
+            }
+        }
+    </style>
+    <div id="{{ grid_id }}" class="uproot-likert-grid" style="--likert-columns: {{ ncols }};">
         {# Wide-mode scale row #}
         {% if field0.label_min is not none or field0.label_max is not none %}
             <div class="uproot-likert-grid-scale-corner"></div>
@@ -106,33 +260,36 @@
         {% endfor %}
         {# Item rows #}
         {% for field_ in varargs %}
-            <div class="uproot-likert-grid-item-label">
+            <div class="uproot-likert-grid-item-label{% if field_.description %} uproot-likert-grid-row-before-description{% endif %}">
                 <span class="form-label uproot-form-label">
                     {{ translate(field_.label.text | string) if field_.label.text is not none else "" }}
                 </span>
-                {% if field_.description %}
-                    <small class="form-text text-body-secondary uproot-form-description">
-                        {{ translate(field_.description) | safe }}
-                    </small>
-                {% endif %}
             </div>
             {% for subfield in field_ %}
-                <div class="uproot-likert-grid-cell {% if loop.last %}uproot-likert-grid-cell-last{% endif %}">
+                <div class="uproot-likert-grid-cell{% if field_.description %} uproot-likert-grid-row-before-description{% endif %}{% if loop.first %} uproot-likert-grid-cell-first{% elif loop.last %} uproot-likert-grid-cell-last{% if field_.description %}  uproot-likert-grid-cell-before-description{% endif %}{% endif %}">
+                    <span class="uproot-likert-grid-radio">
+                        &#8239;{{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                        {# for consistent vertical spacing and optical margin alignment #}
+                    </span>
+                    <span class="uproot-likert-grid-mobile-label">
+                        {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
+                    </span>
                     <span class="uproot-likert-grid-mobile-scale-label">
                         {% if loop.first %}
                             {{ translate(field0.label_min | string) if field0.label_min is not none else "" }}
                         {% elif loop.last %}
                             {{ translate(field0.label_max | string) if field0.label_max is not none else "" }}
+                        {% else %}
+                            &nbsp;  {# for consistent vertical spacing #}
                         {% endif %}
-                    </span>
-                    <span class="uproot-likert-grid-radio">
-                        {{ subfield(class_="form-check-input", data_uproot_radio="") }}
-                    </span>
-                    <span class="uproot-likert-grid-mobile-label">
-                        {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
                     </span>
                 </div>
             {% endfor %}
+            {% if field_.description %}
+                <small class="form-text uproot-form-description uproot-likert-grid-description" style="grid-column: 1 / -1;">
+                    {{ translate(field_.description) | safe }}
+                </small>
+            {% endif %}
         {% endfor %}
     </div>
 {% endmacro %}
@@ -212,7 +369,7 @@
                 <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "LikertFieldResponsive" %}
-            {% set ncols = field.max - field.min + 1 %}
+            {% set ncols = field.choices | length %}
             {% set field_breakpoint = field.breakpoint | int %}
             <style>
                 @media (min-width: {{ field_breakpoint }}px) {
@@ -221,6 +378,9 @@
                         display: grid;
                         grid-template-columns: max-content repeat({{ ncols }}, minmax(4ch, 1fr)) max-content;
                         padding: 0;
+                    }
+                    #{{ field.id }}-likert-responsive .uproot-form-description {
+                        grid-column: span {{ ncols + 2 }};
                     }
                     #{{ field.id }}-likert-responsive .uproot-likert-responsive-scale-min,
                     #{{ field.id }}-likert-responsive .uproot-likert-responsive-scale-max {
@@ -247,9 +407,11 @@
                 }
             </style>
             <div id="{{ field.id }}-likert-responsive" class="uproot-likert-responsive"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} role="radiogroup" aria-labelledby="{{ field.id }}-label">
-                <div class="uproot-likert-responsive-caption">
-                    <span class="form-label uproot-form-label" id="{{ field.id }}-label">{{ translate(field.label.text | string) if field.label.text is not none else "" }}</span>
-                </div>
+                {% if field.label.text != "" %}
+                    <div class="uproot-likert-responsive-caption">
+                        <span class="form-label uproot-form-label" id="{{ field.id }}-label">{{ translate(field.label.text | string) if field.label.text is not none else "" }}</span>
+                    </div>
+                {% endif %}
                 <div class="uproot-likert-responsive-corner" aria-hidden="true"></div>
                 {% for subfield in field %}
                     <div class="uproot-likert-responsive-choice-label">
@@ -265,25 +427,28 @@
                 <div class="uproot-likert-responsive-corner" aria-hidden="true"></div>
                 <div class="uproot-likert-responsive-scale-min">{{ translate(field.label_min | string) if field.label_min is not none else "" }}</div>
                 {% for subfield in field %}
-                    <div class="uproot-likert-responsive-option {% if loop.last %}uproot-likert-responsive-option-last{% endif %}">
-                        <span class="uproot-likert-responsive-mobile-scale-label">
+                    <div class="uproot-likert-responsive-option{% if loop.first %} uproot-likert-responsive-option-min{% elif loop.last %} uproot-likert-responsive-option-max{% endif %}{% if loop.last %} uproot-likert-responsive-option-last{% endif %}">
+                        <span>
+                            &#8239;{{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                            {# for consistent vertical spacing and optical margin alignment #}
+                        </span>
+                        <span class="uproot-likert-responsive-mobile-label">
+                            {{ translated_label(subfield.label, "form-check-label", replace_minus=true) }}
+                        </span>
+                        <span class="uproot-likert-responsive-mobile-scale-label{% if loop.first %} uproot-likert-responsive-mobile-scale-label-min{% elif loop.last %} uproot-likert-responsive-mobile-scale-label-max{% endif %}">
                             {% if loop.first %}
                                 {{ translate(field.label_min | string) if field.label_min is not none else "" }}
                             {% elif loop.last %}
                                 {{ translate(field.label_max | string) if field.label_max is not none else "" }}
                             {% endif %}
                         </span>
-                        {{ subfield(class_="form-check-input", data_uproot_radio="") }}
-                        <span class="uproot-likert-responsive-mobile-label">
-                            {{ translated_label(subfield.label, "form-check-label", replace_minus=true) }}
-                        </span>
                     </div>
                 {% endfor %}
                 <div class="uproot-likert-responsive-scale-max">{{ translate(field.label_max | string) if field.label_max is not none else "" }}</div>
+                {% if field.description %}
+                    <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                {% endif %}
             </div>
-            {% if field.description %}
-                <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
-            {% endif %}
         {% elif field.type == "LikertField" %}
             <table class="table w-100 uproot-likert"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
                 <caption class="caption-top p-0">
