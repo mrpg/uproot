@@ -3,6 +3,7 @@
 
 import builtins
 import os
+import re
 import time
 import traceback
 import urllib.parse
@@ -11,8 +12,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
+import mistune
 import orjson
-from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
+from jinja2 import (
+    BaseLoader,
+    ChoiceLoader,
+    Environment,
+    FileSystemLoader,
+    StrictUndefined,
+    TemplateNotFound,
+    nodes,
+)
+from jinja2.ext import Extension
+from jinja2.parser import Parser
 from markupsafe import Markup
 from pydantic import validate_call
 from wtforms import Form as BaseForm
@@ -42,15 +54,86 @@ BUILTINS = {
     if callable(getattr(builtins, fname))
 }
 
+H1_PATTERN = re.compile(r"<h1>(.*?)</h1>\s*", re.DOTALL)
+
+
+class MarkdownLoader(BaseLoader):
+    def __init__(self, base_loader: BaseLoader) -> None:
+        self.base_loader = base_loader
+
+    def get_source(
+        self, environment: Environment, template: str
+    ) -> tuple[str, str | None, Callable[[], bool] | None]:
+        title_template = template.endswith(".md:title")
+        source_template = (
+            template.removesuffix(":title") if title_template else template
+        )
+        source, filename, uptodate = self.base_loader.get_source(
+            environment, source_template
+        )
+
+        if source_template.endswith(".md"):
+            html = cast(str, mistune.html(source))
+
+            h1s = H1_PATTERN.findall(html)
+            if title_template:
+                return (
+                    h1s[0].strip() if len(h1s) == 1 else "",
+                    filename,
+                    uptodate,
+                )
+
+            return (
+                H1_PATTERN.sub("", html, count=1) if len(h1s) == 1 else html,
+                filename,
+                uptodate,
+            )
+
+        return source, filename, uptodate
+
+
+class IncludeMarkdownExtension(Extension):
+    tags = {"include_markdown"}
+
+    def parse(self, parser: Parser) -> nodes.Node:
+        lineno = next(parser.stream).lineno
+        filename_node = parser.parse_expression()
+
+        if isinstance(filename_node, nodes.Const) and "$Page" in filename_node.value:
+            parts = filename_node.value.split("$Page")
+            concat_parts: list[nodes.Expr] = []
+            for i, part in enumerate(parts):
+                if i > 0:
+                    concat_parts.append(
+                        nodes.Getattr(nodes.Name("page", "load"), "__module__", "load")
+                    )
+                    concat_parts.append(nodes.Const("/"))
+                    concat_parts.append(
+                        nodes.Getattr(nodes.Name("page", "load"), "__name__", "load")
+                    )
+                if part:
+                    concat_parts.append(nodes.Const(part))
+
+            template_expr: nodes.Expr = nodes.Concat(concat_parts)
+        else:
+            template_expr = filename_node
+
+        return nodes.Include(template_expr, True, False).set_lineno(lineno)
+
+
 ENV = Environment(
-    loader=i18n.TranslateLoader(
-        ChoiceLoader(
-            [
-                FileSystemLoader(d.PATH),
-                FileSystemLoader(
-                    os.path.join(os.path.dirname(os.path.abspath(__file__)), "default")
-                ),
-            ]
+    loader=MarkdownLoader(
+        i18n.TranslateLoader(
+            ChoiceLoader(
+                [
+                    FileSystemLoader(d.PATH),
+                    FileSystemLoader(
+                        os.path.join(
+                            os.path.dirname(os.path.abspath(__file__)), "default"
+                        )
+                    ),
+                ]
+            )
         )
     ),
     autoescape=True,
@@ -59,6 +142,7 @@ ENV = Environment(
     auto_reload=True,
     enable_async=True,
     lstrip_blocks=True,
+    extensions=[IncludeMarkdownExtension],
 )
 
 
@@ -479,7 +563,19 @@ def truepath(page: type[Page]) -> str:
         return f"#{page.__name__}"
 
     if not hasattr(page, "template"):
-        return f"{page.__module__}/{page.__name__}.html"
+        html_path = f"{page.__module__}/{page.__name__}.html"
+
+        try:
+            ENV.get_template(html_path)
+        except TemplateNotFound:
+            md_path = f"{page.__module__}/{page.__name__}.md"
+            try:
+                ENV.get_template(md_path)
+                return "BaseMarkdown.html"
+            except TemplateNotFound:
+                pass
+
+        return html_path
 
     return page.template
 

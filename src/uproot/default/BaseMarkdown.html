@@ -1,0 +1,9 @@
+{% extends "Base.html" %}
+
+{% block title %}{% include_markdown '$Page.md:title' %}{% endblock title %}
+
+{% block main %}
+
+{% include_markdown '$Page.md' %}
+
+{% endblock main %}
