@@ -20,6 +20,7 @@ dependencies = [
     "fastapi==0.136.3",
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
+    "mistune==3.2.1",
     "orjson==3.11.8",  # This works with rustc 1.90 available on OpenBSD (orjson>=3.11.9 requires rustc 1.95)
     "pydantic==2.13.4",
     "strictyaml==1.7.3",
