@@ -1095,3 +1095,18 @@
 
 ? 'You must create a new session to disable simulating responses.'
 : 'You must create a new session to disable simulating responses.'
+
+? 'Adjust timeout'
+: 'Adjust timeout'
+
+? 'Time adjustment (seconds)'
+: 'Time adjustment (seconds)'
+
+? 'Apply'
+: 'Apply'
+
+? 'Please enter a valid number.'
+: 'Please enter a valid number.'
+
+? 'Use negative values to reduce the timeout.'
+: 'Use negative values to reduce the timeout.'

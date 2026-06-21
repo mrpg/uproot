@@ -2,13 +2,14 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-"""Check that all translation keys used in HTML/JS files exist in en.yml.
+"""Check that all translation keys used in HTML/JS/Python files exist in en.yml.
 
 Usage:
     python check_translations.py          # report only
     python check_translations.py --fix    # remove superfluous keys, add missing ones
 """
 
+import ast
 import os
 import re
 import sys
@@ -78,7 +79,7 @@ def write_yml(filepath: str, entries: list[tuple[str, str]]) -> None:
 
 def collect_html_files() -> list[str]:
     result = []
-    for root, _, files in os.walk(SRC_DIR):
+    for root, directories, files in os.walk(SRC_DIR):
         for f in files:
             if f.endswith(".html"):
                 result.append(os.path.join(root, f))
@@ -87,9 +88,18 @@ def collect_html_files() -> list[str]:
 
 def collect_js_files() -> list[str]:
     result = []
-    for root, _, files in os.walk(SRC_DIR):
+    for root, directories, files in os.walk(SRC_DIR):
         for f in files:
             if f.endswith(".js") and "vendor" not in root:
+                result.append(os.path.join(root, f))
+    return sorted(result)
+
+
+def collect_python_files() -> list[str]:
+    result = []
+    for root, directories, files in os.walk(SRC_DIR):
+        for f in files:
+            if f.endswith(".py"):
                 result.append(os.path.join(root, f))
     return sorted(result)
 
@@ -117,6 +127,25 @@ def find_underscore_calls(filepath: str) -> list[tuple[str, int]]:
         key = m.group(1) if m.group(1) is not None else m.group(2)
         line = content[: m.start()].count("\n") + 1
         results.append((key, line))
+    return results
+
+
+def find_python_translate_calls(filepath: str) -> list[tuple[str, int]]:
+    """Return literal keys from translate("...") calls in Python files."""
+    with open(filepath, "r", encoding="utf-8") as f:
+        tree = ast.parse(f.read(), filename=filepath)
+
+    results = []
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "translate"
+            and node.args
+            and isinstance(node.args[0], ast.Constant)
+            and isinstance(node.args[0].value, str)
+        ):
+            results.append((node.args[0].value, node.lineno))
     return results
 
 
@@ -149,6 +178,7 @@ def main() -> int:
 
     html_files = collect_html_files()
     js_files = collect_js_files()
+    python_files = collect_python_files()
 
     # Check {% translate %} blocks in HTML files
     for filepath in html_files:
@@ -160,6 +190,13 @@ def main() -> int:
     # Check _('...') / _("...") calls in HTML and JS files
     for filepath in html_files + js_files:
         for key, line in find_underscore_calls(filepath):
+            used_keys.add(key)
+            if key not in en_keys:
+                missing.append((filepath, key, line))
+
+    # Check translate("...") calls in Python files
+    for filepath in python_files:
+        for key, line in find_python_translate_calls(filepath):
             used_keys.add(key)
             if key not in en_keys:
                 missing.append((filepath, key, line))

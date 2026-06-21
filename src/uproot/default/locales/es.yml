@@ -1095,3 +1095,18 @@
 
 ? 'You must create a new session to disable simulating responses.'
 : 'Debe crear una nueva sesión para desactivar la simulación de respuestas.'
+
+? 'Adjust timeout'
+: 'Ajustar el tiempo límite'
+
+? 'Time adjustment (seconds)'
+: 'Ajuste en segundos'
+
+? 'Apply'
+: 'Aplicar'
+
+? 'Please enter a valid number.'
+: 'Por favor ingrese un número válido.'
+
+? 'Use negative values to reduce the timeout.'
+: 'Utilice valores negativos para reducir el tiempo límite.'

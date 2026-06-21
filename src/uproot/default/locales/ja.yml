@@ -1095,3 +1095,18 @@
 
 ? 'You must create a new session to disable simulating responses.'
 : '回答のシミュレートを無効にするには新しいセッションを作成する必要があります。'
+
+? 'Adjust timeout'
+: 'タイムアウトを調整'
+
+? 'Time adjustment (seconds)'
+: '調整値（秒）'
+
+? 'Apply'
+: '適用'
+
+? 'Please enter a valid number.'
+: '有効な数値を入力してください。'
+
+? 'Use negative values to reduce the timeout.'
+: '負の値を入力するとタイムアウトが短くなります。'
