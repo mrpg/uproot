@@ -1,0 +1,1097 @@
+? 'The Use of Knowledge in Society'
+: 'The Use of Knowledge in Society'
+
+? 'Welcome'
+: 'ようこそ'
+
+? 'Please wait'
+: 'お待ちください'
+
+? 'Next'
+: '次へ'
+
+? 'Back'
+: '戻る'
+
+? 'End'
+: '終了'
+
+? 'You have reached the end of this study.'
+: 'この研究は終了しました。'
+
+? 'You may now close this page.'
+: 'このページを閉じていただいて構いません。'
+
+? 'Close'
+: '閉じる'
+
+? 'Remaining time on this page'
+: 'このページの残り時間'
+
+? 'Remaining time on this page:'
+: 'このページの残り時間:'
+
+? 'Skip to main content'
+: 'メインコンテンツへスキップ'
+
+? 'Error'
+: 'エラー'
+
+? 'Login'
+: 'ログイン'
+
+? 'Username'
+: 'ユーザー名'
+
+? 'Password'
+: 'パスワード'
+
+? 'Submit'
+: '送信'
+
+? 'You provided invalid credentials.'
+: '認証情報が正しくありません。'
+
+? 'Dashboard'
+: 'ダッシュボード'
+
+? 'Send message'
+: 'メッセージを送信'
+
+? 'Insert fields'
+: 'フィールドを挿入'
+
+? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
+: 'フィールドの挿入は推奨されません。この機能はテスト時または緊急時にのみ使用してください。手動によるフィールド挿入はデータベースに取り消し不可能な形で記録されます。'
+
+? 'Mark as dropout'
+: '脱落として記録'
+
+? 'Put to end'
+: '終了状態にする'
+
+? 'Advance by one page'
+: '1ページ進める'
+
+? 'Revert by one page'
+: '1ページ戻す'
+
+? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
+: '有効なJSON<i>オブジェクト</i>を入力してください。例えば、以下はフィールド<code>foo</code>（整数）と<code>bar</code>（リスト）を挿入します:'
+
+? 'Active logins'
+: 'アクティブなログイン'
+
+? 'Active sessions'
+: 'アクティブなセッション'
+
+? 'Admin area'
+: '管理エリア'
+
+? 'Any app'
+: 'すべてのアプリ'
+
+? 'Apps'
+: 'アプリ'
+
+? 'Associated config'
+: '関連付けられた構成'
+
+? 'Associated labels'
+: '関連付けられたラベル'
+
+? 'Associated room'
+: '関連付けられたルーム'
+
+? 'Capacity'
+: '定員'
+
+? 'Change at'
+: '変更日時'
+
+? 'Chat with Research Coordinator'
+: 'リサーチコーディネーターとチャット'
+
+? 'Check for important annoucements'
+: '重要なお知らせを確認'
+
+? 'Config'
+: '構成'
+
+? 'Config or app'
+: '構成またはアプリ'
+
+? 'Configs'
+: '構成'
+
+? 'Data'
+: 'データ'
+
+? 'Database'
+: 'データベース'
+
+? 'Database driver'
+: 'データベースドライバ'
+
+? 'Database size'
+: 'データベースサイズ'
+
+? 'Description'
+: '説明'
+
+? 'Disassociate room and session'
+: 'ルームとセッションの関連付けを解除'
+
+? 'Download'
+: 'ダウンロード'
+
+? 'Download data'
+: 'データをダウンロード'
+
+? 'Download database dump'
+: 'データベースダンプをダウンロード'
+
+? 'Existing session'
+: '既存のセッション'
+
+? 'Field'
+: 'フィールド'
+
+? 'Filter by app'
+: 'アプリで絞り込み'
+
+? 'Filter by round'
+: 'ラウンドで絞り込み'
+
+? 'For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.'
+: '記録と再現のため、各セッションは作成時にインストールされていたパッケージを自動的に保存します。<code>session.packages</code>を参照してください。'
+
+? 'Full-screen table'
+: 'フルスクリーン表示'
+
+? 'Full-width table'
+: '全幅表示'
+
+? 'Hide information for uproot developers'
+: 'uproot開発者向け情報を非表示'
+
+? 'If the next page is not shown, it will be skipped.'
+: '次のページが表示されていない場合、スキップされます。'
+
+? 'If the previous page was not shown, this will return to the current page.'
+: '前のページが表示されていなかった場合、現在のページに戻ります。'
+
+? 'Individual player URLs'
+: '個別プレイヤーURL'
+
+? 'Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'プレイヤー名を1行に1つずつ入力してください。プレイヤー名の数はプレイヤー数と一致する必要があります。各プレイヤー名には次の文字のみ使用できます: <code>A-Za-z0-9-._</code>'
+
+? 'Installed packages'
+: 'インストール済みパッケージ'
+
+? 'It may be re-imported using <code>uproot restore</code>.'
+: '<code>uproot restore</code>を使用して再インポートできます。'
+
+? 'Join mode'
+: '参加モード'
+
+? 'Labels'
+: 'ラベル'
+
+? 'Logged in at (UTC)'
+: 'ログイン日時 (UTC)'
+
+? 'Logout'
+: 'ログアウト'
+
+? 'Log out all'
+: '全員ログアウト'
+
+? 'Manage players'
+: 'プレイヤー管理'
+
+? 'Multiview'
+: 'マルチビュー'
+
+? 'N/A'
+: '該当なし'
+
+? 'New room'
+: '新規ルーム'
+
+? 'New session'
+: '新規セッション'
+
+? 'No active authentication sessions found.'
+: 'アクティブな認証セッションはありません。'
+
+? 'No data available'
+: 'データがありません'
+
+? 'None'
+: 'なし'
+
+? 'Normal table'
+: '通常表示'
+
+? 'Normal-width table'
+: '通常幅表示'
+
+? 'Not recently seen'
+: '最近確認されていない'
+
+? 'Number of players'
+: 'プレイヤー数'
+
+? 'room is Open'
+: '受付中'
+
+? 'Open Chat with Research Coordinator'
+: 'リサーチコーディネーターとのチャットを開く'
+
+? 'Package'
+: 'パッケージ'
+
+? 'Player monitor'
+: 'プレイヤーモニター'
+
+? 'player(s)'
+: '人'
+
+? 'Players'
+: 'プレイヤー'
+
+? 'Players can use the following URL for entering this room'
+: 'プレイヤーは以下のURLからこのルームに参加できます'
+
+? 'Player URL'
+: 'プレイヤーURL'
+
+? 'Player URLs'
+: 'プレイヤーURL'
+
+? 'Recently seen'
+: '最近確認済み'
+
+? 'Refresh'
+: '更新'
+
+? 'Reload players’ pages'
+: 'プレイヤーのページを再読み込み'
+
+? 'restricted'
+: '制限あり'
+
+? 'Room'
+: 'ルーム'
+
+? 'Rooms'
+: 'ルーム'
+
+? 'Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.'
+: 'ラベルが未設定のルームではランダムなラベルが自動的に割り当てられるか、ルームのURLで<code>?label=mylabel42</code>を通じて指定された有効なラベルが使用されます。'
+
+? 'Save changes'
+: '変更を保存'
+
+? 'Server status'
+: 'サーバーステータス'
+
+? 'Session'
+: 'セッション'
+
+? 'Sessions'
+: 'セッション'
+
+? 'Show current state'
+: '現在の状態を表示'
+
+? 'Show individual URLs'
+: '個別URLを表示'
+
+? 'Show information for uproot developers'
+: 'uproot開発者向け情報を表示'
+
+? 'Show testing elements'
+: 'テスト要素を表示'
+
+? 'Started'
+: '開始済み'
+
+? 'Study'
+: '研究'
+
+? 'Testing elements are shown only to logged-in admins or in testing sessions (not enabled by default, configurable in session settings).'
+: 'テスト要素はログイン中の管理者またはテストセッションでのみ表示されます（デフォルトでは無効、セッション設定で構成可能）。'
+
+? 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'セッション名には次の文字のみ使用できます: <code>A-Za-z0-9-._</code>'
+
+? 'The sessionwide URL is'
+: 'セッション共通URLは以下の通りです'
+
+? 'This creates a complete machine-readable record of all data.'
+: 'すべてのデータの完全な機械可読レコードを作成します。'
+
+? 'This opens a new browser tab displaying the current pages of the selected players.'
+: '選択したプレイヤーの現在のページを新しいブラウザタブで表示します。'
+
+? 'This room is associated with the following config'
+: 'このルームは以下の構成に関連付けられています'
+
+? 'This room is associated with the following labels'
+: 'このルームは以下のラベルに関連付けられています'
+
+? 'This room is associated with the following session'
+: 'このルームは以下のセッションに関連付けられています'
+
+? 'This room is not associated with any labels'
+: 'このルームにはラベルが関連付けられていません'
+
+? 'This room is not associated with a particular config'
+: 'このルームには特定の構成が関連付けられていません'
+
+? 'This session is associated with a room.'
+: 'このセッションはルームに関連付けられています。'
+
+? 'This session is not associated with a room.'
+: 'このセッションはルームに関連付けられていません。'
+
+? 'This terminates the study for the selected player(s).'
+: '選択したプレイヤーの研究を終了します。'
+
+? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
+: '<code>watch_for_dropout()</code>で登録されたすべての脱落ハンドラを実行します。'
+
+? 'Total'
+: '合計'
+
+? 'URLs copied to clipboard'
+: 'URLをクリップボードにコピーしました'
+
+? 'User'
+: 'ユーザー'
+
+? 'Value'
+: '値'
+
+? 'version'
+: 'バージョン'
+
+? 'Version'
+: 'バージョン'
+
+? 'View data'
+: 'データを表示'
+
+? 'You are currently running'
+: '現在実行しているのは'
+
+? 'You have selected'
+: '選択したプレイヤー：'
+
+? ' and '
+: 'と'
+
+? ', '
+: '、'
+
+? '<i>AdminDigest.html</i> must not extend <i>Base.html</i> or <i>Bare.html</i>. It must <i>only</i> have a <i>main</i> block.'
+: '<i>AdminDigest.html</i>は<i>Base.html</i>や<i>Bare.html</i>を継承してはいけません。<i>main</i>ブロック<i>のみ</i>を持つ必要があります。'
+
+? 'Add grouping variable'
+: 'グルーピング変数を追加'
+
+? 'An error occurred.'
+: 'エラーが発生しました。'
+
+? 'An internal server error has occurred.'
+: '内部サーバーエラーが発生しました。'
+
+? 'Announcement for your version'
+: 'ご利用バージョンのお知らせ'
+
+? 'Apply grouping'
+: 'グルーピングを適用'
+
+? 'Apply reasonable filters'
+: '適切なフィルタを適用'
+
+? 'Restrict export to player data'
+: 'エクスポートをプレイヤーデータに限定'
+
+? 'Associate with a particular config'
+: '特定の構成に関連付ける'
+
+? 'Associate with an existing session'
+: '既存のセッションに関連付ける'
+
+? 'Beginning of Part {{ part }}'
+: 'パート{{ part }}の開始'
+
+? 'CSV is the better choice for spreadsheet applications.'
+: '表計算アプリケーションにはCSVが適しています。'
+
+? 'Change settings'
+: '設定を変更'
+
+? 'Click again to unselect.'
+: 'もう一度クリックすると選択を解除します。'
+
+? 'Click “Next” to proceed to Part {{ part }}.'
+: '「次へ」をクリックしてパート{{ part }}に進んでください。'
+
+? 'Closed'
+: '受付停止中'
+
+? 'Connection lost'
+: '接続が切断されました'
+
+? 'Connection with server lost. Please check your internet connection.'
+: 'サーバーとの接続が切断されました。インターネット接続を確認してください。'
+
+? 'Copy URLs as plain text'
+: 'URLをプレーンテキストとしてコピー'
+
+? 'Exports only data stored on players.'
+: 'プレイヤーに保存されたデータのみをエクスポートします。'
+
+? 'Create groups of size'
+: 'グループサイズ'
+
+? 'Created'
+: '作成日時'
+
+? 'Created #n# group(s).'
+: '#n#個のグループを作成しました。'
+
+? 'Delete room'
+: 'ルームを削除'
+
+? 'Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”'
+: 'どのラベルが「オンライン」であるかの判定は正確ではありません。uprootはさまざまなヒューリスティクスとアルゴリズムを使用して、どのラベルが「最近確認済み」であるかをベストエフォートで推定します。'
+
+? 'Digest'
+: 'ダイジェスト'
+
+? 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
+: '各行は変更を表し、すべてのフィールドがそれぞれの列になります。ほとんどのセルは空で、そのタイムスタンプで実際に変更されたフィールドのみに値が入ります。'
+
+? 'Enter new description:'
+: '新しい説明を入力:'
+
+? 'Environment variables'
+: '環境変数'
+
+? 'Example Title'
+: 'タイトル例'
+
+? 'Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.'
+: 'uproot内部フィールドの除外・名前変更・変換を行い、実験変数と参加者の回答に焦点を当てたクリーンなデータを提供します。'
+
+? 'File type'
+: 'ファイル形式'
+
+? 'Filters'
+: 'フィルタ'
+
+? 'Format'
+: 'フォーマット'
+
+? 'General announcement'
+: '一般のお知らせ'
+
+? 'Get help'
+: 'ヘルプ'
+
+? 'Group players'
+: 'プレイヤーをグループ化'
+
+? 'Group size must be at least 1.'
+: 'グループサイズは1以上である必要があります。'
+
+? 'Grouping variable'
+: 'グルーピング変数'
+
+? 'Groups'
+: 'グループ'
+
+? 'Hide testing elements'
+: 'テスト要素を非表示'
+
+? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
+: 'このチェックを外すと、ルームの定員は変更されません。これにより、新たな参加者がセッションを拡大できます。'
+
+? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
+: "uprootが有用であれば、学術論文で<a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>引用</a>してください。"
+
+? 'Inactive sessions'
+: '非アクティブなセッション'
+
+? 'Individual label URLs'
+: '個別ラベルURL'
+
+? 'Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.'
+: '入力はJavaScript式として評価されます。コメント、計算、変数などを使用できます。結果はJSONシリアライズ可能である必要があります。'
+
+? 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels. If no labels are entered, any Access Code will be accepted.'
+: 'ラベルを1行に1つずつ入力してください。各ラベルは128文字以内で、次の文字のみ使用できます: <code>A-Za-z0-9-._</code> ラベルを設定すると、一致するラベルを持つプレイヤーのみがルームにアクセスできます。ラベルが未入力の場合、すべてのアクセスコードが受け入れられます。'
+
+? 'Internal Server Error'
+: '内部サーバーエラー'
+
+? 'It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”'
+: '「セッション」ページの「アクティブなセッション」セクションに移動し、「ダッシュボード」に表示します。'
+
+? 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
+: '「セッション」ページの「非アクティブなセッション」セクションに移動し、「ダッシュボード」から非表示にします。'
+
+? 'Keep this page open and watch it at all times.'
+: 'このページを常に開いたまま監視してください。'
+
+? 'Label'
+: 'ラベル'
+
+? 'Last changed'
+: '最終更新'
+
+? 'Latest'
+: '最新'
+
+? 'Latest &times; Field(s)'
+: '最新 &times; フィールド'
+
+? 'Log in as admin to view more information on this page.'
+: '管理者としてログインすると、このページの詳細情報を表示できます。'
+
+? 'Main data'
+: 'メインデータ'
+
+? 'Maximum players'
+: '最大プレイヤー数'
+
+? 'Multi View'
+: 'マルチビュー'
+
+? 'No action selected.'
+: 'アクションが選択されていません。'
+
+? 'No active sessions at this time.'
+: '現在アクティブなセッションはありません。'
+
+? 'No apps defined at this time.'
+: '現在定義されたアプリはありません。'
+
+? 'No configs defined at this time.'
+: '現在定義された構成はありません。'
+
+? 'No more spots available'
+: '空きがありません'
+
+? 'No players selected.'
+: 'プレイヤーが選択されていません。'
+
+? 'No rooms defined at this time.'
+: '現在定義されたルームはありません。'
+
+? 'Number of selected players must be divisible by group size.'
+: '選択したプレイヤー数はグループサイズで割り切れる必要があります。'
+
+? 'OK'
+: 'OK'
+
+? 'One or more labels exceed the maximum length of 128 characters.'
+: '1つ以上のラベルが最大長128文字を超えています。'
+
+? 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: '指定した区分（ラウンドや条件など）ごとにプレイヤー1人につき1行で、各区分の終了時点における参加者の状態を表示します。'
+
+? 'One row per player showing their final state: just the last/current value of every field.'
+: 'プレイヤーごとに1行で最終状態を表示: 全フィールドの最新/現在の値のみ。'
+
+? 'Other data'
+: 'その他のデータ'
+
+? 'Page times'
+: 'ページ滞在時間'
+
+? 'Player ID'
+: 'プレイヤーID'
+
+? 'Please enter your Access Code.'
+: 'アクセスコードを入力してください。'
+
+? 'Please keep this page open.'
+: 'このページを開いたままにしてください。'
+
+? 'Please note that a room created this way will disappear when you reset the database.'
+: 'この方法で作成したルームはデータベースをリセットすると消えますのでご注意ください。'
+
+? 'Pre-formatted citation'
+: '整形済み引用'
+
+? 'Put all selected players in the same group'
+: '選択した全プレイヤーを同じグループに入れる'
+
+? 'Raw event log where every single change to any field becomes its own row.'
+: '全フィールドへのすべての変更が個別の行となる生イベントログ。'
+
+? 'Redirect players'
+: 'プレイヤーをリダイレクト'
+
+? 'Redirect to URL'
+: 'URLにリダイレクト'
+
+? 'Regrettably, this study has reached capacity.'
+: '申し訳ございませんが、この研究は定員に達しました。'
+
+? 'Reload'
+: '再読み込み'
+
+? 'Remove'
+: '削除'
+
+? 'Report a bug'
+: 'バグを報告'
+
+? 'Reset group assignment for #n# player(s).'
+: '#n#人のプレイヤーのグループ割り当てをリセットしました。'
+
+? 'Reset group assignment for selected players'
+: '選択したプレイヤーのグループ割り当てをリセット'
+
+? 'Room name'
+: 'ルーム名'
+
+? 'Room settings'
+: 'ルーム設定'
+
+? 'Save'
+: '保存'
+
+? 'Save settings'
+: '設定を保存'
+
+? 'Session name'
+: 'セッション名'
+
+? 'Settings'
+: '設定'
+
+? 'Shuffle players before grouping'
+: 'グループ分け前にプレイヤーをシャッフル'
+
+? 'Sparse'
+: 'スパース'
+
+? 'Start this config immediately'
+: 'この構成を即座に開始'
+
+? 'Submit praise'
+: '称賛を送信'
+
+? 'Target URL'
+: 'ターゲットURL'
+
+? 'The action has completed.'
+: 'アクションが完了しました。'
+
+? 'The number of players you entered is invalid.'
+: '入力されたプレイヤー数が無効です。'
+
+? 'The player names you entered are invalid.'
+: '入力されたプレイヤー名が無効です。'
+
+? 'The room name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'ルーム名には次の文字のみ使用できます: <code>A-Za-z0-9-._</code>'
+
+? 'The room name you entered already exists.'
+: '入力されたルーム名は既に存在します。'
+
+? 'The room name you entered is invalid.'
+: '入力されたルーム名が無効です。'
+
+? 'The session must exist. This can be used to add players to an existing session.'
+: 'セッションが存在している必要があります。既存のセッションにプレイヤーを追加するために使用できます。'
+
+? 'The session name you entered is invalid.'
+: '入力されたセッション名が無効です。'
+
+? 'The session you entered does not exist.'
+: '入力されたセッションは存在しません。'
+
+? 'The settings you entered cannot be properly encoded as JSON.'
+: '入力された設定はJSONとして正しくエンコードできません。'
+
+? 'This page will advance automatically.'
+: 'このページは自動的に進みます。'
+
+? 'This room’s capacity is infinite.'
+: 'このルームの定員は無制限です。'
+
+? 'This room’s capacity is {{ room.capacity }}.'
+: 'このルームの定員は{{ room.capacity }}人です。'
+
+? 'To edit room settings, first disassociate the session from this room.'
+: 'ルーム設定を編集するには、まずこのルームからセッションの関連付けを解除してください。'
+
+? 'Toggling this has purely cosmetical consequences:'
+: 'この切り替えは見た目のみに影響します:'
+
+? 'Toggling this will hide this session’s testing elements for everyone except admins.'
+: 'この切り替えにより、管理者以外の全員に対してこのセッションのテスト要素が非表示になります。'
+
+? 'Toggling this will show this session’s testing elements for everyone.'
+: 'この切り替えにより、全員に対してこのセッションのテスト要素が表示されます。'
+
+? 'Too many players selected (#n#). The maximum number of players that can be displayed in multiview is #m#.'
+: '選択したプレイヤーが多すぎます（#n#人）。マルチビューで表示できる最大プレイヤー数は#m#人です。'
+
+? 'Type'
+: '型'
+
+? 'Type your message'
+: 'メッセージを入力'
+
+? 'URL'
+: 'URL'
+
+? 'URL must start with http:// or https://'
+: 'URLはhttp://またはhttps://で始まる必要があります'
+
+? 'Ultra Long'
+: 'ウルトラロング'
+
+? 'Unknown'
+: '不明'
+
+? 'Unset or deleted'
+: '未設定または削除済み'
+
+? 'Variable'
+: '変数'
+
+? 'You'
+: 'あなた'
+
+? 'You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.'
+: 'uprootをフラグ<code>--unsafe</code>で実行しています。このフラグは誰でも管理者としてログインできるため、<code>localhost</code>で実行する場合のみ使用してください。'
+
+? 'You are running version #i_am#. The current version is #recommended#.'
+: '実行中のバージョンは#i_am#です。最新バージョンは#recommended#です。'
+
+? 'You cannot create a session with #n1# players but #n2# player names.'
+: 'プレイヤー数#n1#人でプレイヤー名#n2#個のセッションは作成できません。'
+
+? 'Your version appears to be up to date.'
+: 'バージョンは最新のようです。'
+
+? 'Your version is outdated. Please update as soon as possible.'
+: 'バージョンが古くなっています。できるだけ早く更新してください。'
+
+? 'e.g.,'
+: '例:'
+
+? 'free join'
+: '制限なし'
+
+? 'unset'
+: '未設定'
+
+? 'uproot docs'
+: 'uprootドキュメント'
+
+? 'uproot examples'
+: 'uprootサンプル'
+
+? 'uproot on GitHub'
+: 'uproot on GitHub'
+
+? 'Admin chat'
+: '管理者チャット'
+
+? 'All'
+: 'すべて'
+
+? 'Broadcast message'
+: '一斉送信メッセージ'
+
+? 'Click a player in the sidebar, or check multiple to broadcast.'
+: 'サイドバーでプレイヤーをクリックするか、複数選択して一斉送信してください。'
+
+? 'Disable admin chat replies'
+: '管理者チャットの返信を無効化'
+
+? 'Disabled admin chat replies for #n# player(s).'
+: '#n#人のプレイヤーの管理者チャット返信を無効にしました。'
+
+? 'Enable admin chat replies'
+: '管理者チャットの返信を有効化'
+
+? 'Enabled admin chat replies for #n# player(s).'
+: '#n#人のプレイヤーの管理者チャット返信を有効にしました。'
+
+? 'Filter players'
+: 'プレイヤーを絞り込み'
+
+? 'Loading conversation...'
+: '会話を読み込み中...'
+
+? 'Message'
+: 'メッセージ'
+
+? 'No label'
+: 'ラベルなし'
+
+? 'No messages yet'
+: 'メッセージはまだありません'
+
+? 'No players found'
+: 'プレイヤーが見つかりません'
+
+? 'Open player page'
+: 'プレイヤーページを開く'
+
+? 'Player can reply'
+: 'プレイヤー返信可'
+
+? 'Research Coordinator'
+: 'リサーチコーディネーター'
+
+? 'Select'
+: '選択'
+
+? 'Select a player'
+: 'プレイヤーを選択'
+
+? 'Send the first message to open this channel.'
+: '最初のメッセージを送信して会話を開始してください。'
+
+? 'Send to #n# players'
+: '#n#人のプレイヤーに送信'
+
+? 'Toggle monitor'
+: 'モニター切替'
+
+? 'Type a message for this participant'
+: 'この参加者へのメッセージを入力'
+
+? 'Type a message that will be sent to all selected players'
+: '選択した全プレイヤーに送信するメッセージを入力'
+
+? 'With messages'
+: 'メッセージあり'
+
+? 'players'
+: 'プレイヤー'
+
+? 'read-only'
+: '読み取り専用'
+
+? 'replies on'
+: '返信オン'
+
+? 'new'
+: '新規'
+
+? 'days'
+: '日'
+
+? 'hours'
+: '時間'
+
+? 'minutes'
+: '分'
+
+? 'second'
+: '秒'
+
+? 'seconds'
+: '秒'
+
+? 'Actions'
+: 'アクション'
+
+? 'Automatic (CSV if tabular)'
+: '自動（表形式の場合CSV）'
+
+? 'Change description'
+: '説明を変更'
+
+? 'Close room'
+: 'ルームの受付を停止'
+
+? 'Closed rooms'
+: '受付停止中のルーム'
+
+? 'Custom settings applied via <span class="font-monospace">session.settings</span>.'
+: '<span class="font-monospace">session.settings</span>経由で適用されたカスタム設定。'
+
+? 'Disassociate &amp; close room'
+: '関連付けを解除してルームの受付を停止'
+
+? 'Display testing elements'
+: 'テスト要素を表示'
+
+? 'Documentation'
+: 'ドキュメント'
+
+? 'Free join'
+: '制限なし'
+
+? 'Here be dragons.'
+: '危険区域。'
+
+? 'If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.'
+: '有効にすると、このセッションでプレイヤーページが読み込まれるたびにアプリの<code>simulate.js</code>ファイルが実行されます。'
+
+? 'If you are using a VPN, consider disabling it.'
+: 'VPNを使用している場合は、無効にすることを検討してください。'
+
+? 'Individual URLs'
+: '個別URL'
+
+? 'Initialize session'
+: 'セッションを初期化'
+
+? 'Invoke with data'
+: 'データを指定して実行'
+
+? 'Invoke with data...'
+: 'データを指定して実行...'
+
+? 'JSONL is recommended for analysis.'
+: '分析にはJSONLを推奨します。'
+
+? 'Limit capacity of resulting session'
+: '作成されるセッションの定員を制限'
+
+? 'Mark session as active'
+: 'セッションをアクティブにする'
+
+? 'Mark session as inactive'
+: 'セッションを非アクティブにする'
+
+? 'No custom entries in <span class="font-monospace">session.settings</span>.'
+: '<span class="font-monospace">session.settings</span>にカスタムエントリはありません。'
+
+? 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
+: '<code>main.py</code>ファイルで定義されたルームのみがデータベースリセット後に自動的に再作成されます。'
+
+? 'Open'
+: '受付中'
+
+? 'Open rooms'
+: '受付中のルーム'
+
+? 'Output'
+: '出力'
+
+? 'Pipeline data'
+: 'パイプラインデータ'
+
+? 'Pipeline options'
+: 'パイプラインオプション'
+
+? 'Pipelines'
+: 'パイプライン'
+
+? 'Please enter pipeline data.'
+: 'パイプラインデータを入力してください。'
+
+? 'Pre-created player slots can always be claimed regardless of capacity. Use a capacity only to restrict a session from growing beyond a fixed number of players.'
+: '事前作成されたプレイヤースロットは定員に関係なく常に使用できます。定員は、セッションが固定のプレイヤー数を超えて拡大するのを制限する場合にのみ使用してください。'
+
+? 'Reopen room'
+: 'ルームの受付を再開'
+
+? 'Restricted'
+: '制限あり'
+
+? 'Resume accepting new participants into the existing session.'
+: '既存のセッションへの新規参加者の受け入れを再開します。'
+
+? 'Room status'
+: 'ルームステータス'
+
+? 'Run <code>new_player</code>'
+: '<code>new_player</code>を実行'
+
+? 'Run as JSONL'
+: 'JSONLで実行'
+
+? 'Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.'
+: '全アプリのnew_sessionコールバックを実行します。最初のプレイヤーが参加すると自動的に実行されますが、ここで手動でトリガーできます。この操作は元に戻せません。'
+
+? 'Run pipeline'
+: 'パイプラインを実行'
+
+? 'Send'
+: '送信'
+
+? 'Session is initialized.'
+: 'セッションは初期化済みです。'
+
+? 'Session is marked as active.'
+: 'セッションはアクティブです。'
+
+? 'Session is marked as inactive.'
+: 'セッションは非アクティブです。'
+
+? 'Session is not initialized.'
+: 'セッションは未初期化です。'
+
+? 'Session properties'
+: 'セッションプロパティ'
+
+? 'Session status'
+: 'セッションステータス'
+
+? 'Simulate responses'
+: '回答をシミュレート'
+
+? 'Simulating responses.'
+: '回答をシミュレート中。'
+
+? 'Status'
+: 'ステータス'
+
+? 'Stop accepting new participants while keeping the session active.'
+: 'セッションをアクティブに保ちながら新規参加者の受け入れを停止します。'
+
+? 'Testing elements are disabled except for admins.'
+: 'テスト要素は管理者以外に対して無効です。'
+
+? 'Testing elements are displayed for all participants.'
+: 'テスト要素は全参加者に表示されています。'
+
+? 'The data you entered cannot be properly encoded as JSON.'
+: '入力されたデータはJSONとして正しくエンコードできません。'
+
+? 'The number of players is not a multiple of #n#.'
+: 'プレイヤー数が#n#の倍数ではありません。'
+
+? 'This creates a new session, with the current configuration preselected.'
+: '現在の構成が事前選択された状態で新しいセッションを作成します。'
+
+? 'This is useful for testing and development purposes.'
+: 'テストや開発目的に便利です。'
+
+? 'This room is closed. Players will wait until the room is opened or a session is created.'
+: 'このルームは受付を停止しています。ルームの受付が再開されるかセッションが作成されるまで、プレイヤーは待機します。'
+
+? 'This room is open and will auto-create a session when the first player joins.'
+: 'このルームは受付中で、最初のプレイヤーが参加するとセッションが自動作成されます。'
+
+? 'This room is open but has no config associated. Players will wait until a session is created manually.'
+: 'このルームは受付中ですが構成が関連付けられていません。セッションが手動で作成されるまで、プレイヤーは待機します。'
+
+? 'Use labels/Access Codes'
+: 'ラベル/アクセスコードを使用'
+
+? 'You are using the following Python version'
+: '使用中のPythonバージョン'
+
+? 'You must create a new session to disable simulating responses.'
+: '回答のシミュレートを無効にするには新しいセッションを作成する必要があります。'
