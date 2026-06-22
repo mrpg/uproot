@@ -12,6 +12,7 @@ import hmac
 import importlib.metadata
 import os
 import sys
+from datetime import datetime, timezone
 from time import perf_counter as now
 from typing import Any, Optional, cast
 from urllib.parse import quote
@@ -940,10 +941,13 @@ async def session_page_times(
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M")
     return Response(
         a.page_times(sname),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={sname}-page-times.csv"},
+        headers={
+            "Content-Disposition": f"attachment; filename={sname}-page-times_{stamp}.csv"
+        },
     )
 
 
@@ -1101,6 +1105,8 @@ async def session_data_download(
 ) -> Response:
     a.session_exists(sname)
 
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M")
+
     if filetype == "csv":
         t0 = now()
         csv = a.generate_csv(sname, format, gvar, filters, player_data_only)
@@ -1113,13 +1119,17 @@ async def session_data_download(
         return Response(
             csv,
             media_type="text/csv",
-            headers={"Content-Disposition": f"attachment; filename={sname}.csv"},
+            headers={
+                "Content-Disposition": f"attachment; filename={sname}_{format}_{stamp}.csv"
+            },
         )
     elif filetype == "jsonl":
         return StreamingResponse(
             a.generate_jsonl(sname, format, gvar, filters, player_data_only),
             media_type="application/jsonl",
-            headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
+            headers={
+                "Content-Disposition": f"attachment; filename={sname}_{format}_{stamp}.jsonl"
+            },
         )
     else:
         raise NotImplementedError
