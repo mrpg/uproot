@@ -341,7 +341,7 @@ class IntegerField(wtforms.fields.IntegerField):
         )
 
 
-class LikertField(wtforms.fields.RadioField):
+class LikertFieldClassic(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
@@ -398,7 +398,7 @@ class LikertField(wtforms.fields.RadioField):
         )
 
 
-class LikertFieldResponsive(LikertField):
+class LikertField(LikertFieldClassic):
     def __init__(
         self,
         *,

@@ -368,7 +368,7 @@
             {% if field.description %}
                 <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
-        {% elif field.type == "LikertFieldResponsive" %}
+        {% elif field.type == "LikertField" %}
             {% set ncols = field.choices | length %}
             {% set field_breakpoint = field.breakpoint | int %}
             <style>
@@ -450,7 +450,7 @@
                     <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
                 {% endif %}
             </div>
-        {% elif field.type == "LikertField" %}
+        {% elif field.type == "LikertFieldClassic" %}
             <table class="table w-100 uproot-likert"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
                 <caption class="caption-top p-0">
                     <span class="form-label uproot-form-label">{{ translate(field.label.text | string) if field.label.text is not none else "" }}</span>
