@@ -64,6 +64,7 @@ def create_session(
         session.room = None
         session._uproot_settings = settings
         session.sid = sid
+        session._uproot_simulate = False
         session._uproot_testing = False
         session._uproot_secret = t.token_unchecked(8)
         session._uproot_session = t.identify(session)
