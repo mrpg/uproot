@@ -256,7 +256,7 @@ def valid_player(sname: t.Sessionname, uname: str) -> Storage:
 def initialize(player: Storage) -> None:
 
     with player.session as session:
-        if not session.get("_uproot_initialized", False):
+        if not session._uproot_initialized:
             for appname in session.apps:
                 app = u.APPS[appname]
 
@@ -265,7 +265,7 @@ def initialize(player: Storage) -> None:
 
             session._uproot_initialized = True
 
-    if not player.get("_uproot_initialized", False):
+    if not player._uproot_initialized:
         for appname in u.CONFIGS[player.config]:
             app = u.APPS[appname]
 

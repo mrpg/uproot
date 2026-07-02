@@ -85,7 +85,7 @@ async def run_new_player(sname: t.Sessionname, unames: list[str]) -> None:
     session_exists(sname, False)
 
     with s.Session(sname) as session:
-        if not session.get("_uproot_initialized", False):
+        if not session._uproot_initialized:
             for appname in session.apps:
                 app = u.APPS[appname]
 
@@ -98,7 +98,7 @@ async def run_new_player(sname: t.Sessionname, unames: list[str]) -> None:
         pid = t.PlayerIdentifier(sname, uname)
 
         with t.materialize(pid) as player:
-            if player.get("_uproot_initialized", False):
+            if player._uproot_initialized:
                 continue
 
             for appname in u.CONFIGS[player.config]:

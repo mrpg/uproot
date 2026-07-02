@@ -81,7 +81,7 @@ async def run_new_session(sname: t.Sessionname) -> None:
     session_exists(sname, False)
 
     with s.Session(sname) as session:
-        if session.get("_uproot_initialized", False):
+        if session._uproot_initialized:
             raise HTTPException(status_code=400, detail="Session already initialized")
 
         for appname in session.apps:

@@ -167,7 +167,7 @@
                     {% endif %}
                 </p>
                 <p class="mb-2">
-                    {% if session.get("_uproot_initialized", False) %}
+                    {% if session._uproot_initialized %}
                     {% translate %}Session is initialized.{% endtranslate %}
                     {% else %}
                     <span class="text-body-tertiary">{% translate %}Session is not initialized.{% endtranslate %}</span>
@@ -184,7 +184,7 @@
                     </span>
                     {% endif %}
                 </p>
-                {% if session.get("_uproot_simulate", False) %}
+                {% if session._uproot_simulate %}
                 <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2">
                     <p class="mb-1 fw-bold text-danger">
                         {% translate %}Simulating responses.{% endtranslate %}
@@ -241,7 +241,7 @@
                             {% endif %}
                         </button>
                     </p>
-                    {% if not session.get("_uproot_initialized", False) %}
+                    {% if not session._uproot_initialized %}
                     <p class="mb-2">
                         <button class="btn btn-sm btn-uproot flex-grow-0 text-nowrap"
                             data-bs-toggle="popover"
@@ -621,7 +621,7 @@
         });
     }
 
-    {% if not session.get("_uproot_initialized", False) %}
+    {% if not session._uproot_initialized %}
     let sessionInitializationReloadPending = false;
 
     function reloadAfterPlayerStart(event) {

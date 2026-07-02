@@ -64,6 +64,7 @@ def create_session(
         session.room = None
         session._uproot_settings = settings
         session.sid = sid
+        session._uproot_initialized = False
         session._uproot_simulate = False
         session._uproot_testing = False
         session._uproot_secret = t.token_unchecked(8)
@@ -97,6 +98,7 @@ def create_model(
     with s.Model(*mid) as model:
         model.id = len(session._uproot_models)
         model.mid = mid
+        model._uproot_on_message = []
         model._uproot_session = t.identify(session)
 
         if data is not None:
@@ -220,10 +222,12 @@ def initialize_player(
         player._uproot_adminchat_replies = False
         player._uproot_dropout = False
         player._uproot_group = None
+        player._uproot_initialized = False
         player._uproot_key = t.uuid()
         player._uproot_part = 0
         player._uproot_session = t.SessionIdentifier(pid.sname)
         player._uproot_timeouts_until = {}
+        player._uproot_watch = []
 
         if data is not None:
             for k, v in data.items():
