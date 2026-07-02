@@ -27,6 +27,8 @@ DisplayValue: TypeAlias = tuple[
     Annotated[str, "displaystr"],
     Annotated[str, "context"],
 ]
+DataRows: TypeAlias = Iterator[dict[str, Any]]
+DataTransformer: TypeAlias = Callable[..., DataRows]
 
 
 def everything_from_session(
@@ -117,60 +119,53 @@ async def everything_from_session_display(
     return retval, last_update
 
 
+def data_rows_for_session(sname: t.Sessionname, filters: bool) -> DataRows:
+    rows: DataRows = data.partial_matrix(everything_from_session(sname))
+
+    if filters:
+        rows = data.reasonable_filters(rows)
+
+    return rows
+
+
 def generate_data(
     sname: t.Sessionname,
     format: str,
     gvar: list[str],
     filters: bool,
-    player_data_only: bool = False,
 ) -> tuple[
-    Iterator[dict[str, Any]],
-    Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]],
-    dict[str, list[str]],
+    DataRows,
+    DataTransformer,
+    dict[str, Any],
 ]:
     """Generate data in the specified format."""
     gvar = [gv for gv in gvar if gv]
 
-    # Initialize to satisfy static analysis (case _ will raise if no match)
-    transformer: Callable[[Iterator[dict[str, Any]]], Iterator[dict[str, Any]]]
-    transkwargs: dict[str, Any]
-
     match format:
         case "ultralong":
-            transkwargs_ul: dict[str, Any] = {}
-            transformer, transkwargs = data.noop, transkwargs_ul
+            return data_rows_for_session(sname, filters), data.noop, {}
         case "sparse":
-            transkwargs_sp: dict[str, Any] = {}
-            transformer, transkwargs = data.long_to_wide, transkwargs_sp
+            return data_rows_for_session(sname, filters), data.long_to_wide, {}
         case "latest":
-            transformer, transkwargs = data.latest, {"group_by_fields": gvar}
+            return (
+                data_rows_for_session(sname, filters),
+                data.latest,
+                {"group_by_fields": gvar},
+            )
         case _:
             raise NotImplementedError
 
-    alldata = data.partial_matrix(everything_from_session(sname))
 
-    if player_data_only:
-        alldata = data.player_storage_only(alldata)
-
-    if filters:
-        alldata = data.reasonable_filters(alldata)
-
-    return alldata, transformer, transkwargs
-
-
-def generate_csv(
+def generate_briefcase(
     sname: t.Sessionname,
     format: str,
     gvar: list[str],
     filters: bool,
-    player_data_only: bool = False,
-) -> str:
-    """Generate CSV data for a session."""
-    alldata, transformer, transkwargs = generate_data(
-        sname, format, gvar, filters, player_data_only
-    )
+) -> bytes:
+    """Generate a ZIP briefcase of per-storage CSV files for a session."""
+    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
 
-    return data.csv_out(transformer(alldata, **transkwargs))
+    return data.briefcase_out(transformer(alldata, **transkwargs))
 
 
 def is_custom_data_export(value: Any) -> bool:
@@ -208,12 +203,9 @@ async def generate_jsonl(
     format: str,
     gvar: list[str],
     filters: bool,
-    player_data_only: bool = False,
 ) -> AsyncGenerator[str, None]:
     """Generate JSONL data for a session as an async generator."""
-    alldata, transformer, transkwargs = generate_data(
-        sname, format, gvar, filters, player_data_only
-    )
+    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
 
     async for chunk in data.jsonl_out(transformer(alldata, **transkwargs)):
         yield chunk

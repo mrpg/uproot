@@ -525,20 +525,17 @@ async def get_session_data(
     return {"data": data, "last_update": last_update}
 
 
-@router.get("/session/{sname}/data/csv/")
-async def download_session_csv(
+@router.get("/session/{sname}/data/zip/")
+async def download_session_zip(
     sname: str,
     format: str = Query(
         default="ultralong", description="Export format: ultralong, sparse, or latest"
     ),
     gvar: list[str] = Query(default=[], description="Group-by variables"),
     filters: bool = Query(default=False, description="Apply reasonable filters"),
-    player_data_only: bool = Query(
-        default=False, description="Restrict export to player data"
-    ),
     bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
-    """Download session data as CSV."""
+    """Download session data as a ZIP briefcase of per-storage CSV files."""
     a.session_exists(sname)
 
     if format not in ("ultralong", "sparse", "latest"):
@@ -546,12 +543,12 @@ async def download_session_csv(
             status_code=400, detail="Invalid format. Use: ultralong, sparse, or latest"
         )
 
-    csv_data = a.generate_csv(sname, format, gvar, filters, player_data_only)
+    briefcase = a.generate_briefcase(sname, format, gvar, filters)
 
     return Response(
-        csv_data,
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={sname}.csv"},
+        briefcase,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={sname}.zip"},
     )
 
 
@@ -563,9 +560,6 @@ async def download_session_jsonl(
     ),
     gvar: list[str] = Query(default=[], description="Group-by variables"),
     filters: bool = Query(default=False, description="Apply reasonable filters"),
-    player_data_only: bool = Query(
-        default=False, description="Restrict export to player data"
-    ),
     bauth: None = Depends(a.require_bearer_token),
 ) -> StreamingResponse:
     """Download session data as JSONL (streaming)."""
@@ -577,7 +571,7 @@ async def download_session_jsonl(
         )
 
     return StreamingResponse(
-        a.generate_jsonl(sname, format, gvar, filters, player_data_only),
+        a.generate_jsonl(sname, format, gvar, filters),
         media_type="application/jsonl",
         headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
     )

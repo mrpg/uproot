@@ -418,9 +418,6 @@
 ? 'Apply reasonable filters'
 : 'Apply reasonable filters'
 
-? 'Restrict export to player data'
-: 'Restrict export to player data'
-
 ? 'Associate with a particular config'
 : 'Associate with a particular config'
 
@@ -453,9 +450,6 @@
 
 ? 'Copy URLs as plain text'
 : 'Copy URLs as plain text'
-
-? 'Exports only data stored on players.'
-: 'Exports only data stored on players.'
 
 ? 'Create groups of size'
 : 'Create groups of size'
@@ -1110,3 +1104,6 @@
 
 ? 'Use negative values to reduce the timeout.'
 : 'Use negative values to reduce the timeout.'
+
+? 'You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.'
+: 'You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.'

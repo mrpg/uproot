@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import csv as pycsv
-from io import StringIO
+from io import BytesIO, StringIO
 from typing import Any, AsyncGenerator, Iterable, Iterator, Optional, cast
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import orjson as json
 
@@ -11,7 +12,7 @@ import uproot.deployment as d
 from uproot import cache
 from uproot.constraints import ensure
 from uproot.stable import encode_raw
-from uproot.types import Value
+from uproot.types import Value, sha256
 
 
 def value2json(data: Any, unavailable: bool = False) -> str:
@@ -123,12 +124,6 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
         yield row
 
 
-def player_storage_only(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
-    for row in pm:
-        if row["!storage"].startswith("player/"):
-            yield row
-
-
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: Optional[list[str]] = None
 ) -> Iterator[dict[str, Any]]:
@@ -231,6 +226,52 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
                 for k, v in row.items()
             }
         )
+
+    return buffer.getvalue()
+
+
+def split_by_storage_kind(
+    rows: Iterable[dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    """Partition rows by the first component of their "!storage" namespace."""
+    kinds: dict[str, list[dict[str, Any]]] = {}
+
+    for row in rows:
+        kind = row["!storage"].split("/", 1)[0]
+        kinds.setdefault(kind, []).append(row)
+
+    return kinds
+
+
+def briefcase_extras(zf: ZipFile, contents: dict[str, bytes]) -> None:
+    """Add general non-data files to a briefcase.
+
+    For now, this writes a SHA256SUMS file that `sha256sum -c` can verify.
+    """
+    zf.writestr(
+        "SHA256SUMS",
+        "".join(f"{sha256(blob)}  {name}\n" for name, blob in contents.items()),
+    )
+
+
+def briefcase_out(rows: Iterable[dict[str, Any]]) -> bytes:
+    """Create a ZIP "briefcase" with one CSV per storage kind (player.csv, …).
+
+    Each CSV only contains columns for the fields that actually occur within
+    its own storage kind.
+    """
+    buffer = BytesIO()
+
+    with ZipFile(buffer, "w", ZIP_DEFLATED) as zf:
+        contents = {
+            f"{kind}.csv": csv_out(kindrows).encode("utf-8")
+            for kind, kindrows in sorted(split_by_storage_kind(rows).items())
+        }
+
+        for name, blob in contents.items():
+            zf.writestr(name, blob)
+
+        briefcase_extras(zf, contents)
 
     return buffer.getvalue()
 
