@@ -418,9 +418,6 @@
 ? 'Apply reasonable filters'
 : '適切なフィルタを適用'
 
-? 'Restrict export to player data'
-: 'エクスポートをプレイヤーデータに限定'
-
 ? 'Associate with a particular config'
 : '特定の構成に関連付ける'
 
@@ -453,9 +450,6 @@
 
 ? 'Copy URLs as plain text'
 : 'URLをプレーンテキストとしてコピー'
-
-? 'Exports only data stored on players.'
-: 'プレイヤーに保存されたデータのみをエクスポートします。'
 
 ? 'Create groups of size'
 : 'グループサイズ'
@@ -1110,3 +1104,6 @@
 
 ? 'Use negative values to reduce the timeout.'
 : '負の値を入力するとタイムアウトが短くなります。'
+
+? 'You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.'
+: 'ストレージごとに1つのCSVファイル(player.csv、session.csvなど)を含むZIPアーカイブをダウンロードできます。'

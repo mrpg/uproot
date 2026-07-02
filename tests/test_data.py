@@ -1,24 +1,27 @@
 import random
 from datetime import date, datetime, time
+from io import BytesIO
 from unittest.mock import patch
+from zipfile import ZipFile
 
 import orjson as json
 import pytest
 from sortedcontainers import SortedList
 
 from uproot.data import (
+    briefcase_out,
     csv_out,
     json2csv,
     jsonl_out,
     latest,
     long_to_wide,
     noop,
-    player_storage_only,
+    split_by_storage_kind,
     value2json,
 )
 from uproot.services import data_service, session_service
 from uproot.stable import decode, encode
-from uproot.types import Value
+from uproot.types import Value, sha256
 
 
 def sequenced(rows):
@@ -119,7 +122,7 @@ def test_long_to_wide_quoted_field():
     assert result[0]["quoted_field"] == "test_data"
 
 
-def test_player_storage_only():
+def test_split_by_storage_kind():
     test_data = [
         {"!storage": "player/session1/p1", "!field": "choice"},
         {"!storage": "session/session1", "!field": "players"},
@@ -127,9 +130,13 @@ def test_player_storage_only():
         {"!storage": "player/session1/p2", "!field": "choice"},
     ]
 
-    result = list(player_storage_only(test_data))
+    result = split_by_storage_kind(test_data)
 
-    assert result == [test_data[0], test_data[3]]
+    assert result == {
+        "player": [test_data[0], test_data[3]],
+        "session": [test_data[1]],
+        "group": [test_data[2]],
+    }
 
 
 def test_latest_with_group_by_keeps_storage_without_group_field():
@@ -300,7 +307,48 @@ def test_latest_with_group_by_does_not_emit_extra_row_after_group_unavailable():
     ]
 
 
-def test_generate_data_player_data_only(monkeypatch):
+def test_briefcase_out():
+    test_data = sequenced(
+        [
+            {
+                "!storage": "player/session1/p1",
+                "!field": "choice",
+                "!time": 1.0,
+                "!context": "",
+                "!unavailable": False,
+                "!data": "A",
+            },
+            {
+                "!storage": "session/session1",
+                "!field": "players",
+                "!time": 2.0,
+                "!context": "",
+                "!unavailable": False,
+                "!data": ["p1"],
+            },
+        ]
+    )
+
+    briefcase = briefcase_out(latest(test_data))
+
+    with ZipFile(BytesIO(briefcase)) as zf:
+        assert sorted(zf.namelist()) == ["SHA256SUMS", "player.csv", "session.csv"]
+
+        player_csv = zf.read("player.csv").decode("utf-8")
+        session_csv = zf.read("session.csv").decode("utf-8")
+        sums = zf.read("SHA256SUMS").decode("utf-8")
+
+    # Columns must not leak across storage kinds
+    assert "choice" in player_csv and "players" not in player_csv
+    assert "players" in session_csv and "choice" not in session_csv
+
+    for line in sums.strip().split("\n"):
+        digest, name = line.split("  ")
+        with ZipFile(BytesIO(briefcase)) as zf:
+            assert sha256(zf.read(name)) == digest
+
+
+def test_generate_briefcase(monkeypatch):
     session_data = {
         ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
         ("session", "session1", "players"): [Value(2.0, False, ["p1"], "")],
@@ -312,17 +360,10 @@ def test_generate_data_player_data_only(monkeypatch):
         lambda sname: session_data,
     )
 
-    alldata, transformer, transkwargs = data_service.generate_data(
-        "session1",
-        "ultralong",
-        [],
-        False,
-        player_data_only=True,
-    )
+    briefcase = data_service.generate_briefcase("session1", "ultralong", [], False)
 
-    assert transformer is noop
-    assert transkwargs == {}
-    assert [row["!storage"] for row in alldata] == ["player/session1/p1"]
+    with ZipFile(BytesIO(briefcase)) as zf:
+        assert sorted(zf.namelist()) == ["SHA256SUMS", "player.csv", "session.csv"]
 
 
 def test_csv_out():
