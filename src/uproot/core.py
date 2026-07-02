@@ -6,6 +6,7 @@
 # created, initialized, and so on.
 
 import importlib.metadata
+import sys
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, cast
 
@@ -60,7 +61,7 @@ def create_session(
         session.packages = {
             dist.metadata["name"]: dist.version
             for dist in importlib.metadata.distributions()
-        }
+        } | {"python": sys.version}
         session.room = None
         session._uproot_settings = settings
         session.sid = sid
