@@ -1034,13 +1034,43 @@ async def session_pipeline(
     sname: t.Sessionname,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
+    from pathlib import Path
+
+    from markupsafe import Markup
+
     a.session_exists(sname)
 
     available = a.get_pipelines(sname)
     ensure(bool(available), ValueError, "No pipeline available")
 
+    html = {}
+
+    with Session(sname) as session:
+        for appname in available:
+            app = u.APPS[appname]
+            pipeline_template = Path(".") / appname / "AdminPipeline.html"
+
+            if not pipeline_template.exists():
+                continue
+
+            context = BUILTINS | {
+                "__panic__": True,
+                "session": session,
+                "internalstatic": static_factory(),
+                "projectstatic": static_factory("_project"),
+                "appstatic": static_factory(appname),
+                "C": getattr(app, "C", {}),
+            }
+
+            html[appname] = Markup(  # nosec B704
+                await PENV.get_template(str(pipeline_template)).render_async(**context)
+            )
+
     return HTMLResponse(
-        await render("SessionPipelines.html", {"sname": sname, "apps": available})
+        await render(
+            "SessionPipelines.html",
+            {"sname": sname, "apps": available, "subhtml": html},
+        )
     )
 
 

@@ -23,6 +23,11 @@
 <h3>{{ appname }}</h3>
 
 <div class="mb-5">
+    {% if appname in subhtml %}
+    <div class="mb-3">
+    {{ subhtml[appname] }}
+    </div>
+    {% endif %}
     <div class="btn-group">
         <button
             type="button"
