@@ -7,8 +7,8 @@
 // Constants
 // ============================================================================
 
-const EXTRA_FIELDS = ["started", "label", "round", "_uproot_group", "member_id"];
-const MONITOR_PRIORITY_FIELDS = ["id", "label", "player", "page", "progress", "lastSeen", "round", "group", "member_id"];
+const EXTRA_FIELDS = ["started", "label", "round", "_uproot_group", "member_id", "_uproot_dropout"];
+const MONITOR_PRIORITY_FIELDS = ["id", "label", "player", "page", "progress", "lastSeen", "dropout", "round", "group", "member_id"];
 const MAX_MULTIVIEW_PLAYERS = 48;
 const HEARTBEAT_DURATION_MS = 5000;
 const UPDATE_DEBOUNCE_MS = 150;
@@ -68,9 +68,16 @@ function updateSessionStore() {
         if (showPage >= 0) started++;
     }
 
+    let dropouts = 0;
+
+    for (const fields of Object.values(uproot.vars.extraData || {})) {
+        if (fields.dropout === true) dropouts++;
+    }
+
     const store = Alpine.store("session");
     store.totalPlayers = total;
     store.startedCount = started;
+    store.dropoutCount = dropouts;
 }
 
 function reshapeAndUpdateExtraData(data) {
@@ -80,6 +87,11 @@ function reshapeAndUpdateExtraData(data) {
         if (value._uproot_group !== undefined) {
             value.group = (value._uproot_group !== null) ? value._uproot_group.gname : null;
             delete value._uproot_group;
+        }
+
+        if (value._uproot_dropout !== undefined) {
+            value.dropout = value._uproot_dropout === true;
+            delete value._uproot_dropout;
         }
 
         // Remove started field if present (we derive it from showPage instead)
@@ -122,6 +134,7 @@ function createTable(containerId) {
         height: "100%",
         layout: "fitColumns",
         placeholder: "No players available",
+        rowFormatter: formatDropoutRow,
         rowHeight: monitorState.rowHeight
     });
 
@@ -203,6 +216,14 @@ function createMonitorColumns(data) {
             column.formatter = formatProgressCell;
         } else if (field === "lastSeen") {
             column.formatter = formatLastSeenCell;
+        } else if (field === "dropout") {
+            column.formatter = formatDropoutCell;
+            column.hozAlign = "center";
+            column.width = 120;
+            column.sorter = "boolean";
+            column.headerFilter = "tickCross";
+            column.headerFilterParams = { tristate: true };
+            column.headerFilterEmptyCheck = (value) => value === null;
         }
 
         columns.push(column);
@@ -255,6 +276,20 @@ function formatProgressCell(cell) {
         ? data.pageOrder.join(" → ")
         : "";
     return `<span title="${tooltip}">${cell.getValue()}</span>`;
+}
+
+function formatDropoutCell(cell) {
+    if (cell.getValue() !== true) {
+        return "";
+    }
+    return `<span class="dropout-badge"><i class="bi bi-person-x-fill"></i>${_("Dropout")}</span>`;
+}
+
+/**
+ * Row formatter: visually marks entire rows of players who dropped out.
+ */
+function formatDropoutRow(row) {
+    row.getElement().classList.toggle("row-dropout", row.getData().dropout === true);
 }
 
 function formatLastSeenCell(cell) {

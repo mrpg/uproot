@@ -134,6 +134,12 @@
                         <span class="d-table-cell pe-4 pt-1 text-nowrap">{% translate %}Started{% endtranslate %}</span>
                         <span class="d-table-cell pt-1 text-end" x-text="$store.session.startedCount"></span>
                     </p>
+                    <p class="d-table-row">
+                        <span class="d-table-cell pe-4 pt-1 text-nowrap">{% translate %}Dropouts{% endtranslate %}</span>
+                        <span class="d-table-cell pt-1 text-end"
+                            :class="$store.session.dropoutCount > 0 ? 'fw-semibold text-danger' : ''"
+                            x-text="$store.session.dropoutCount"></span>
+                    </p>
                 </div>
                 <h6 class="fw-semibold mb-3">{% translate %}Player URLs{% endtranslate %}</h6>
                 <p class="mb-2">{% translate %}The sessionwide URL is{% endtranslate %}:</p>
@@ -548,6 +554,7 @@
         Alpine.store("session", {
             totalPlayers: {{ len(session.players) }},
             startedCount: "?",
+            dropoutCount: "?",
             selectedCount: 0
         });
     });
