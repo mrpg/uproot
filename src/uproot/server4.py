@@ -8,14 +8,21 @@ All endpoints require Bearer token authentication via the Authorization header.
 Tokens are configured in deployment.API_KEYS.
 """
 
+import hmac
 import importlib.metadata
 import os
 import sys
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any, Optional, TypeAlias
 
 import orjson
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import PlainTextResponse, Response, StreamingResponse
+from fastapi.responses import (
+    HTMLResponse,
+    PlainTextResponse,
+    Response,
+    StreamingResponse,
+)
 from pydantic import BaseModel, Field
 
 import uproot as u
@@ -25,10 +32,13 @@ import uproot.deployment as d
 import uproot.i18n as i18n
 import uproot.rooms as r
 import uproot.types as t
-from uproot.storage import Admin, Session
+from uproot.pages import BUILTINS
+from uproot.pages import ENV as PENV
+from uproot.pages import static_factory
+from uproot.storage import Admin, Session, Storage
 
 router = APIRouter(prefix=f"{d.ROOT}/admin/api/v1")
-
+Session_: TypeAlias = Storage
 
 # =============================================================================
 # Pydantic Models for Request/Response Validation
@@ -202,6 +212,22 @@ class PlayersChatReplies(BaseModel):
     enabled: bool = Field(..., description="Whether player replies are enabled")
 
 
+class AuthLogin(BaseModel):
+    """Request body for creating the same browser admin session as /admin/login/."""
+
+    user: str = Field("admin", description="Admin username")
+    pw: str = Field("", description="Admin password")
+    token: str = Field("", description="Auto-login token")
+    pow_challenge: str = Field("", description="Proof-of-work challenge")
+    pow_solution: str = Field("", description="Proof-of-work solution")
+
+
+class AuthToken(BaseModel):
+    """Request body naming a browser admin auth token."""
+
+    auth_token: str = Field(..., description="Value of the uauth browser cookie")
+
+
 def ensure_config_exists(config: str) -> None:
     if config not in u.CONFIGS:
         raise HTTPException(status_code=400, detail="Invalid configuration")
@@ -339,6 +365,96 @@ def missing_i18n_terms() -> dict[str, list[str]]:
         missing[term_str].append(lang)
 
     return missing
+
+
+def valid_export_format(format: str) -> None:
+    if format not in ("ultralong", "sparse", "latest"):
+        raise HTTPException(
+            status_code=400, detail="Invalid format. Use: ultralong, sparse, or latest"
+        )
+
+
+def csv_export_response(
+    sname: str,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+    player_data_only: bool,
+) -> Response:
+    valid_export_format(format)
+    csv_data = a.generate_csv(sname, format, gvar, filters, player_data_only)
+
+    return Response(
+        csv_data,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={sname}.csv"},
+    )
+
+
+def jsonl_export_response(
+    sname: str,
+    format: str,
+    gvar: list[str],
+    filters: bool,
+    player_data_only: bool,
+) -> StreamingResponse:
+    valid_export_format(format)
+
+    return StreamingResponse(
+        a.generate_jsonl(sname, format, gvar, filters, player_data_only),
+        media_type="application/jsonl",
+        headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
+    )
+
+
+def admin_app_template(appname: str, template_name: str) -> Path:
+    template_path = Path(".") / appname / template_name
+    if not template_path.exists():
+        raise HTTPException(status_code=404, detail=f"{template_name} not found")
+
+    return template_path
+
+
+def admin_app_context(
+    appname: str, session: Session_, data: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    return (
+        (data or {})
+        | BUILTINS
+        | {
+            "__panic__": True,
+            "session": session,
+            "internalstatic": static_factory(),
+            "projectstatic": static_factory("_project"),
+            "appstatic": static_factory(appname),
+            "C": getattr(u.APPS[appname], "C", {}),
+        }
+    )
+
+
+async def rendered_digest_fragment(sname: str, appname: str) -> str:
+    if appname not in a.get_digest(sname):
+        raise HTTPException(status_code=404, detail="Digest not found")
+
+    template_path = admin_app_template(appname, "AdminDigest.html")
+    app = u.APPS[appname]
+
+    with Session(sname) as session:
+        value = await t.ensure_awaitable(app.digest, session=session)
+        data = value if isinstance(value, dict) else {"data": value}
+        context = admin_app_context(appname, session, data)
+        return await PENV.get_template(str(template_path)).render_async(**context)
+
+
+async def rendered_pipeline_fragment(sname: str, appname: str) -> str:
+    if appname not in a.get_pipelines(sname):
+        raise HTTPException(status_code=404, detail="Pipeline not found")
+
+    template_path = admin_app_template(appname, "AdminPipeline.html")
+
+    with Session(sname) as session:
+        context = admin_app_context(appname, session)
+        return await PENV.get_template(str(template_path)).render_async(**context)
 
 
 # =============================================================================
@@ -767,6 +883,32 @@ async def get_session_data(
     return {"data": data, "last_update": last_update}
 
 
+@router.get("/sessions/{sname}/data/export/")
+async def download_session_export(
+    sname: str,
+    format: str = Query(
+        default="latest", description="Export format: ultralong, sparse, or latest"
+    ),
+    filetype: str = Query(default="csv", description="Export file type: csv or jsonl"),
+    gvar: list[str] = Query(default=[], description="Group-by variables"),
+    filters: bool = Query(default=True, description="Apply reasonable filters"),
+    player_data_only: bool = Query(
+        default=False, description="Restrict export to player data"
+    ),
+    bauth: None = Depends(a.require_bearer_token),
+) -> Response:
+    """Download session data using the same format/filetype controls as the admin UI."""
+    a.session_exists(sname)
+
+    if filetype == "csv":
+        return csv_export_response(sname, format, gvar, filters, player_data_only)
+
+    if filetype == "jsonl":
+        return jsonl_export_response(sname, format, gvar, filters, player_data_only)
+
+    raise HTTPException(status_code=400, detail="Invalid filetype. Use: csv or jsonl")
+
+
 @router.get("/sessions/{sname}/data/csv/")
 async def download_session_csv(
     sname: str,
@@ -783,18 +925,7 @@ async def download_session_csv(
     """Download session data as CSV."""
     a.session_exists(sname)
 
-    if format not in ("ultralong", "sparse", "latest"):
-        raise HTTPException(
-            status_code=400, detail="Invalid format. Use: ultralong, sparse, or latest"
-        )
-
-    csv_data = a.generate_csv(sname, format, gvar, filters, player_data_only)
-
-    return Response(
-        csv_data,
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={sname}.csv"},
-    )
+    return csv_export_response(sname, format, gvar, filters, player_data_only)
 
 
 @router.get("/sessions/{sname}/data/jsonl/")
@@ -813,16 +944,7 @@ async def download_session_jsonl(
     """Download session data as JSONL (streaming)."""
     a.session_exists(sname)
 
-    if format not in ("ultralong", "sparse", "latest"):
-        raise HTTPException(
-            status_code=400, detail="Invalid format. Use: ultralong, sparse, or latest"
-        )
-
-    return StreamingResponse(
-        a.generate_jsonl(sname, format, gvar, filters, player_data_only),
-        media_type="application/jsonl",
-        headers={"Content-Disposition": f"attachment; filename={sname}.jsonl"},
-    )
+    return jsonl_export_response(sname, format, gvar, filters, player_data_only)
 
 
 @router.get("/sessions/{sname}/page-times/")
@@ -860,6 +982,21 @@ async def get_session_digests(
     return {"apps": available, "digests": digests}
 
 
+@router.get("/sessions/{sname}/digests/html/")
+async def get_session_digest_fragments(
+    sname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Render the app-authored AdminDigest.html fragments shown by the admin UI."""
+    a.session_exists(sname)
+    fragments = {}
+
+    for appname in a.get_digest(sname):
+        fragments[appname] = await rendered_digest_fragment(sname, appname)
+
+    return {"apps": list(fragments), "html": fragments}
+
+
 @router.get("/sessions/{sname}/digests/{appname}/")
 async def get_session_digest(
     sname: str,
@@ -880,6 +1017,17 @@ async def get_session_digest(
     return {"app": appname, "digest": api_value(digest)}
 
 
+@router.get("/sessions/{sname}/digests/{appname}/html/")
+async def get_session_digest_fragment(
+    sname: str,
+    appname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> HTMLResponse:
+    """Render one app-authored AdminDigest.html fragment."""
+    a.session_exists(sname)
+    return HTMLResponse(await rendered_digest_fragment(sname, appname))
+
+
 @router.get("/sessions/{sname}/pipelines/")
 async def list_session_pipelines(
     sname: str,
@@ -890,8 +1038,35 @@ async def list_session_pipelines(
     return {"apps": a.get_pipelines(sname)}
 
 
-@router.post("/sessions/{sname}/pipelines/{appname}/runs/")
-async def run_session_pipeline(
+@router.get("/sessions/{sname}/pipelines/html/")
+async def list_session_pipeline_fragments(
+    sname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Render app-authored AdminPipeline.html fragments shown by the admin UI."""
+    a.session_exists(sname)
+    fragments = {}
+
+    for appname in a.get_pipelines(sname):
+        template_path = Path(".") / appname / "AdminPipeline.html"
+        if template_path.exists():
+            fragments[appname] = await rendered_pipeline_fragment(sname, appname)
+
+    return {"apps": a.get_pipelines(sname), "html": fragments}
+
+
+@router.get("/sessions/{sname}/pipelines/{appname}/html/")
+async def get_session_pipeline_fragment(
+    sname: str,
+    appname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> HTMLResponse:
+    """Render one app-authored AdminPipeline.html fragment."""
+    a.session_exists(sname)
+    return HTMLResponse(await rendered_pipeline_fragment(sname, appname))
+
+
+async def run_session_pipeline_response(
     request: Request,
     sname: str,
     appname: str,
@@ -932,6 +1107,30 @@ async def run_session_pipeline(
         media_type="application/jsonl",
         headers={"Content-Disposition": f"attachment; filename={filename}.jsonl"},
     )
+
+
+@router.get("/sessions/{sname}/pipelines/{appname}/runs/")
+async def get_session_pipeline_run(
+    request: Request,
+    sname: str,
+    appname: str,
+    filetype: str = Query(default="csv", description="Export file type: csv or jsonl"),
+    bauth: None = Depends(a.require_bearer_token),
+) -> Response:
+    """Run an app pipeline without custom JSON data, matching the admin UI button."""
+    return await run_session_pipeline_response(request, sname, appname, filetype, bauth)
+
+
+@router.post("/sessions/{sname}/pipelines/{appname}/runs/")
+async def create_session_pipeline_run(
+    request: Request,
+    sname: str,
+    appname: str,
+    filetype: str = Query(default="csv", description="Export file type: csv or jsonl"),
+    bauth: None = Depends(a.require_bearer_token),
+) -> Response:
+    """Run an app pipeline, optionally passing a JSON request body."""
+    return await run_session_pipeline_response(request, sname, appname, filetype, bauth)
 
 
 # =============================================================================
@@ -1264,12 +1463,86 @@ async def get_praise(
         raise HTTPException(status_code=502, detail="Failed to fetch praise")
 
 
+@router.get("/auth/challenge/")
+async def get_auth_challenge() -> dict[str, Any]:
+    """Issue the same login proof-of-work challenge used by the admin UI."""
+    pow_challenge, pow_difficulty = a.make_pow_challenge()
+
+    return {
+        "pow_challenge": pow_challenge,
+        "pow_difficulty": pow_difficulty,
+        "login_token_enabled": d.LOGIN_TOKEN is not None,
+    }
+
+
+@router.post("/auth/login/", status_code=201)
+async def create_auth_session(body: AuthLogin) -> dict[str, Any]:
+    """Create the same browser admin session token as submitting /admin/login/."""
+    auth_token = None
+
+    if body.token and body.user == "admin" and d.LOGIN_TOKEN is not None:
+        if hmac.compare_digest(body.token, d.LOGIN_TOKEN):
+            a.ensure_globals()
+            auth_token = a.create_auth_token_for_user(body.user)
+    else:
+        if not a.verify_pow(body.pow_challenge, body.pow_solution, body.user):
+            raise HTTPException(status_code=401, detail="Invalid proof of work")
+
+        auth_token = await a.create_auth_token_async(body.user, body.pw)
+
+    if auth_token is None:
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+    session = a.from_cookie(auth_token)
+
+    return {
+        "user": session["user"],
+        "auth_token": auth_token,
+        "cookie": {
+            "name": "uauth",
+            "value": auth_token,
+            "max_age": 86400,
+            "path": f"{d.ROOT}/",
+            "httponly": True,
+            "samesite": "strict",
+        },
+    }
+
+
 @router.get("/auth/sessions/")
 async def get_auth_sessions(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get information about active authentication sessions."""
     return a.get_active_auth_sessions()
+
+
+@router.delete("/auth/tokens/current/")
+async def revoke_current_auth_session(
+    body: AuthToken,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Revoke one browser admin session token, matching /admin/logout/."""
+    session = a.from_cookie(body.auth_token)
+    if not session["user"]:
+        raise HTTPException(status_code=404, detail="Auth token not found")
+
+    revoked = a.revoke_auth_token(body.auth_token)
+    return {"user": session["user"], "revoked": revoked}
+
+
+@router.delete("/auth/tokens/")
+async def revoke_current_user_auth_sessions(
+    body: AuthToken,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Revoke all browser admin sessions for the user named by one token."""
+    session = a.from_cookie(body.auth_token)
+    if not session["user"]:
+        raise HTTPException(status_code=404, detail="Auth token not found")
+
+    revoked_count = a.revoke_all_user_tokens(session["user"])
+    return {"user": session["user"], "revoked": revoked_count}
 
 
 @router.delete("/auth/sessions/{user}/")
