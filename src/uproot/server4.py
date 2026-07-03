@@ -9,16 +9,20 @@ Tokens are configured in deployment.API_KEYS.
 """
 
 import importlib.metadata
+import os
+import sys
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import Response, StreamingResponse
+import orjson
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import PlainTextResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 import uproot as u
 import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
+import uproot.i18n as i18n
 import uproot.rooms as r
 import uproot.types as t
 from uproot.storage import Admin, Session
@@ -35,7 +39,7 @@ class SessionCreate(BaseModel):
     """Request body for creating a new session."""
 
     config: str = Field(..., description="Configuration name")
-    n_players: int = Field(..., ge=1, description="Number of players to create")
+    n_players: int = Field(..., ge=0, description="Number of players to create")
     sname: Optional[str] = Field(
         None, description="Custom session name (auto-generated if omitted)"
     )
@@ -143,7 +147,7 @@ class RoomSessionCreate(BaseModel):
     """Request body for creating a session within a room."""
 
     config: str = Field(..., description="Configuration name")
-    n_players: int = Field(..., ge=1, description="Number of players")
+    n_players: int = Field(..., ge=0, description="Number of players")
     assignees: Optional[list[str]] = Field(
         None, description="Labels to assign to players"
     )
@@ -160,7 +164,7 @@ class RoomUpdate(BaseModel):
     config: Optional[str] = Field(None, description="Default configuration")
     labels: Optional[list[str]] = Field(None, description="Allowed labels")
     capacity: Optional[int] = Field(None, ge=1, description="Maximum capacity")
-    open: bool = Field(False, description="Whether the room is open")
+    open: Optional[bool] = Field(None, description="Whether the room is open")
 
 
 class RoomOpen(BaseModel):
@@ -178,6 +182,165 @@ class RoomClose(BaseModel):
     )
 
 
+class PlayersGroup(BaseModel):
+    """Request body for grouping player actions."""
+
+    unames: list[str] = Field(..., min_length=1, description="List of usernames")
+    action: str = Field(
+        ...,
+        description="Grouping action: same_group, reset, or by_size",
+    )
+    group_size: int = Field(1, ge=1, description="Group size for by_size")
+    shuffle: bool = Field(False, description="Shuffle players before grouping")
+    reload: bool = Field(False, description="Whether to trigger page reload")
+
+
+class PlayersChatReplies(BaseModel):
+    """Request body for toggling admin chat replies for multiple players."""
+
+    unames: list[str] = Field(..., min_length=1, description="List of usernames")
+    enabled: bool = Field(..., description="Whether player replies are enabled")
+
+
+def ensure_config_exists(config: str) -> None:
+    if config not in u.CONFIGS:
+        raise HTTPException(status_code=400, detail="Invalid configuration")
+
+
+def ensure_unames_count(n_players: int, unames: Optional[list[str]]) -> None:
+    if unames is not None and len(unames) != n_players:
+        raise HTTPException(
+            status_code=400,
+            detail="Number of player names must match n_players",
+        )
+
+
+def ensure_assignees_count(n_players: int, assignees: Optional[list[str]]) -> None:
+    if assignees is not None and len(assignees) > n_players:
+        raise HTTPException(
+            status_code=400,
+            detail="Number of assignees cannot exceed n_players",
+        )
+
+
+def create_room_payload(
+    name: str,
+    config: Optional[str],
+    labels: Optional[list[str]],
+    capacity: Optional[int],
+    open: bool,
+    sname: Optional[str],
+) -> dict[str, Any]:
+    try:
+        return r.room(
+            name=name,
+            config=config,
+            labels=labels,
+            capacity=capacity,
+            open=open,
+            sname=sname,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def api_value(value: Any) -> Any:
+    try:
+        orjson.dumps(value)
+        return value
+    except TypeError:
+        return a.pipeline_result_display(value)
+
+
+def room_detail(roomname: str) -> dict[str, Any]:
+    with Admin() as admin:
+        room = admin.rooms[roomname]
+        payload = {
+            "name": roomname,
+            "config": room.get("config"),
+            "labels": room.get("labels"),
+            "capacity": room.get("capacity"),
+            "open": room.get("open"),
+            "sname": room.get("sname"),
+            "urls": {
+                "room": f"{d.ROOT}/room/{roomname}/",
+                "label_template": f"{d.ROOT}/room/{roomname}/?label={{label}}",
+            },
+        }
+
+    if payload["sname"] is not None:
+        with Session(payload["sname"]) as session:
+            payload["n_players"] = len(session._uproot_players)
+
+    return payload
+
+
+def session_detail(sname: str) -> dict[str, Any]:
+    with Session(sname) as session:
+        players = [pid.uname for pid in session._uproot_players]
+        groups = [
+            gid.gname if hasattr(gid, "gname") else gid
+            for gid in session._uproot_groups
+        ]
+        models = [
+            mid.mname if hasattr(mid, "mname") else mid
+            for mid in session._uproot_models
+        ]
+
+        return {
+            "sname": session.name,
+            "config": session.config,
+            "active": session.active,
+            "testing": session._uproot_testing,
+            "initialized": session._uproot_initialized,
+            "simulate": session._uproot_simulate,
+            "description": session.description,
+            "room": session.room,
+            "settings": session.settings,
+            "secret": session._uproot_secret,
+            "n_players": len(players),
+            "n_groups": len(groups),
+            "n_models": len(models),
+            "players": players,
+            "groups": groups,
+            "models": models,
+            "apps": session.apps,
+            "urls": {
+                "session": f"{d.ROOT}/s/{sname}/{session._uproot_secret}/",
+                "player_template": f"{d.ROOT}/p/{sname}/{{uname}}/",
+            },
+        }
+
+
+async def pipeline_data_from_request(request: Request) -> tuple[Any, bool]:
+    if request.method != "POST":
+        return None, False
+
+    body = await request.body()
+    if not body.strip():
+        return None, False
+
+    try:
+        return orjson.loads(body), True
+    except orjson.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=400, detail="Pipeline data must be valid JSON"
+        ) from exc
+
+
+def missing_i18n_terms() -> dict[str, list[str]]:
+    missing: dict[str, list[str]] = {}
+
+    for term, lang in sorted(i18n.MISSING):
+        term_str = str(term)
+
+        if term_str not in missing:
+            missing[term_str] = []
+        missing[term_str].append(lang)
+
+    return missing
+
+
 # =============================================================================
 # Sessions API
 # =============================================================================
@@ -191,28 +354,14 @@ async def list_sessions(
     return a.sessions()
 
 
-@router.get("/session/{sname}/")
+@router.get("/sessions/{sname}/")
 async def get_session(
     sname: str,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get detailed information about a specific session."""
     a.session_exists(sname)
-
-    with Session(sname) as session:
-        return {
-            "sname": session.name,
-            "config": session.config,
-            "active": session.active,
-            "testing": session._uproot_testing,
-            "description": session.description,
-            "room": session.room,
-            "settings": session.settings,
-            "n_players": len(session._uproot_players),
-            "n_groups": len(session._uproot_groups),
-            "n_models": len(session._uproot_models),
-            "apps": session.apps,
-        }
+    return session_detail(sname)
 
 
 @router.post("/sessions/", status_code=201)
@@ -221,8 +370,8 @@ async def create_session(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Create a new session with the specified configuration and players."""
-    if body.config not in u.CONFIGS:
-        raise HTTPException(status_code=400, detail="Invalid configuration")
+    ensure_config_exists(body.config)
+    ensure_unames_count(body.n_players, body.unames)
 
     settings_parsed = (
         body.settings
@@ -254,7 +403,7 @@ async def create_session(
     return {"sname": sid.sname, "created": True}
 
 
-@router.patch("/session/{sname}/active/")
+@router.patch("/sessions/{sname}/active/")
 async def toggle_session_active(
     sname: str,
     bauth: None = Depends(a.require_bearer_token),
@@ -267,7 +416,7 @@ async def toggle_session_active(
         return {"active": session.active}
 
 
-@router.patch("/session/{sname}/testing/")
+@router.patch("/sessions/{sname}/testing/")
 async def toggle_session_testing(
     sname: str,
     bauth: None = Depends(a.require_bearer_token),
@@ -280,7 +429,20 @@ async def toggle_session_testing(
         return {"testing": session._uproot_testing}
 
 
-@router.patch("/session/{sname}/description/")
+@router.post("/sessions/{sname}/initialize/")
+async def initialize_session(
+    sname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Run new_session callbacks for a session that has not been initialized."""
+    a.session_exists(sname)
+    await a.run_new_session(sname)
+
+    with Session(sname) as session:
+        return {"initialized": session._uproot_initialized}
+
+
+@router.patch("/sessions/{sname}/description/")
 async def update_session_description(
     sname: str,
     body: DescriptionUpdate,
@@ -297,7 +459,7 @@ async def update_session_description(
     return {"description": body.description if body.description else None}
 
 
-@router.patch("/session/{sname}/settings/")
+@router.patch("/sessions/{sname}/settings/")
 async def update_session_settings(
     sname: str,
     body: SettingsUpdate,
@@ -315,7 +477,7 @@ async def update_session_settings(
 # =============================================================================
 
 
-@router.get("/session/{sname}/players/")
+@router.get("/sessions/{sname}/players/")
 async def list_players(
     sname: str,
     fields: list[str] = Query(
@@ -328,7 +490,7 @@ async def list_players(
     return await a.fields_from_all(sname, fields)
 
 
-@router.get("/session/{sname}/players/online/")
+@router.get("/sessions/{sname}/players/online/")
 async def get_online_players(
     sname: str,
     bauth: None = Depends(a.require_bearer_token),
@@ -338,7 +500,31 @@ async def get_online_players(
     return await a.info_online(sname)
 
 
-@router.patch("/session/{sname}/players/fields/")
+@router.get("/sessions/{sname}/multiview/")
+async def get_multiview_players(
+    sname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Get player metadata needed to reproduce the admin multiview."""
+    a.session_exists(sname)
+    players = []
+
+    with Session(sname) as session:
+        for player_id, pid in enumerate(session._uproot_players):
+            with t.materialize(pid) as player:
+                players.append(
+                    {
+                        "id": player_id,
+                        "uname": player.name,
+                        "label": player.label,
+                        "url": f"{d.ROOT}/p/{sname}/{player.name}/",
+                    }
+                )
+
+    return {"sname": sname, "players": players}
+
+
+@router.patch("/sessions/{sname}/players/fields/")
 async def set_player_fields(
     sname: str,
     body: PlayersFields,
@@ -351,7 +537,7 @@ async def set_player_fields(
     return {"updated": body.unames, "fields": list(body.fields.keys())}
 
 
-@router.post("/session/{sname}/players/advance/")
+@router.post("/sessions/{sname}/players/advance/")
 async def advance_players(
     sname: str,
     body: PlayersAction,
@@ -362,7 +548,7 @@ async def advance_players(
     return await a.advance_by_one(sname, body.unames)
 
 
-@router.post("/session/{sname}/players/revert/")
+@router.post("/sessions/{sname}/players/revert/")
 async def revert_players(
     sname: str,
     body: PlayersAction,
@@ -373,7 +559,7 @@ async def revert_players(
     return await a.revert_by_one(sname, body.unames)
 
 
-@router.post("/session/{sname}/players/end/")
+@router.post("/sessions/{sname}/players/end/")
 async def put_players_to_end(
     sname: str,
     body: PlayersAction,
@@ -384,7 +570,7 @@ async def put_players_to_end(
     return await a.put_to_end(sname, body.unames)
 
 
-@router.post("/session/{sname}/players/reload/")
+@router.post("/sessions/{sname}/players/reload/")
 async def reload_players(
     sname: str,
     body: PlayersAction,
@@ -397,7 +583,7 @@ async def reload_players(
     return {"reloaded": body.unames}
 
 
-@router.post("/session/{sname}/players/timeout/")
+@router.post("/sessions/{sname}/players/timeout/")
 async def adjust_timeout(
     sname: str,
     body: PlayerTimeout,
@@ -414,7 +600,7 @@ async def adjust_timeout(
     return {"adjusted": body.unames, "delta": body.delta}
 
 
-@router.post("/session/{sname}/players/redirect/")
+@router.post("/sessions/{sname}/players/redirect/")
 async def redirect_players(
     sname: str,
     body: PlayerRedirect,
@@ -431,7 +617,7 @@ async def redirect_players(
     return {"redirected": body.unames, "url": body.url}
 
 
-@router.post("/session/{sname}/players/message/")
+@router.post("/sessions/{sname}/players/message/")
 async def message_players(
     sname: str,
     body: PlayerMessage,
@@ -444,7 +630,52 @@ async def message_players(
     return {"messaged": body.unames}
 
 
-@router.get("/session/{sname}/player/{uname}/chat/")
+@router.post("/sessions/{sname}/players/initialize/")
+async def initialize_players(
+    sname: str,
+    body: PlayersAction,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Run new_player callbacks for players that have not been initialized."""
+    a.session_exists(sname)
+    await a.run_new_player(sname, body.unames)
+
+    return {"initialized": body.unames}
+
+
+@router.post("/sessions/{sname}/players/group/")
+async def group_players(
+    sname: str,
+    body: PlayersGroup,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Manage group assignments for selected players."""
+    a.session_exists(sname)
+
+    try:
+        return await a.group_players(
+            sname,
+            body.unames,
+            body.action,
+            body.group_size,
+            body.shuffle,
+            body.reload,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/sessions/{sname}/admin-chat/")
+async def get_adminchat_overview(
+    sname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, dict[str, Any]]:
+    """Summarize admin chat state for each player in a session."""
+    a.session_exists(sname)
+    return await a.adminchat_overview(sname)
+
+
+@router.get("/sessions/{sname}/players/{uname}/admin-chat/")
 async def get_player_adminchat(
     sname: str,
     uname: str,
@@ -455,7 +686,7 @@ async def get_player_adminchat(
     return await a.adminchat_thread(sname, uname)
 
 
-@router.post("/session/{sname}/player/{uname}/chat/")
+@router.post("/sessions/{sname}/players/{uname}/admin-chat/")
 async def send_player_adminchat(
     sname: str,
     uname: str,
@@ -467,7 +698,7 @@ async def send_player_adminchat(
     return await a.send_adminchat(sname, uname, body.message, body.enable_replies)
 
 
-@router.patch("/session/{sname}/player/{uname}/chat/replies/")
+@router.patch("/sessions/{sname}/players/{uname}/admin-chat/replies/")
 async def set_player_adminchat_replies(
     sname: str,
     uname: str,
@@ -479,7 +710,7 @@ async def set_player_adminchat_replies(
     return await a.set_adminchat_replies(sname, uname, body.enabled)
 
 
-@router.post("/session/{sname}/players/chat/")
+@router.post("/sessions/{sname}/players/admin-chat/")
 async def broadcast_adminchat(
     sname: str,
     body: AdminchatBroadcast,
@@ -492,7 +723,18 @@ async def broadcast_adminchat(
     )
 
 
-@router.post("/session/{sname}/players/dropout/")
+@router.patch("/sessions/{sname}/players/admin-chat/replies/")
+async def set_players_adminchat_replies(
+    sname: str,
+    body: PlayersChatReplies,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Enable or disable admin chat replies for multiple players."""
+    a.session_exists(sname)
+    return await a.set_adminchat_replies_for_players(sname, body.unames, body.enabled)
+
+
+@router.post("/sessions/{sname}/players/dropout/")
 async def mark_players_dropout(
     sname: str,
     body: PlayersAction,
@@ -510,7 +752,7 @@ async def mark_players_dropout(
 # =============================================================================
 
 
-@router.get("/session/{sname}/data/")
+@router.get("/sessions/{sname}/data/")
 async def get_session_data(
     sname: str,
     since: float = Query(
@@ -525,7 +767,7 @@ async def get_session_data(
     return {"data": data, "last_update": last_update}
 
 
-@router.get("/session/{sname}/data/csv/")
+@router.get("/sessions/{sname}/data/csv/")
 async def download_session_csv(
     sname: str,
     format: str = Query(
@@ -555,7 +797,7 @@ async def download_session_csv(
     )
 
 
-@router.get("/session/{sname}/data/jsonl/")
+@router.get("/sessions/{sname}/data/jsonl/")
 async def download_session_jsonl(
     sname: str,
     format: str = Query(
@@ -583,7 +825,7 @@ async def download_session_jsonl(
     )
 
 
-@router.get("/session/{sname}/page-times/")
+@router.get("/sessions/{sname}/page-times/")
 async def get_page_times(
     sname: str,
     bauth: None = Depends(a.require_bearer_token),
@@ -595,6 +837,100 @@ async def get_page_times(
         a.page_times(sname),
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={sname}-page-times.csv"},
+    )
+
+
+@router.get("/sessions/{sname}/digests/")
+async def get_session_digests(
+    sname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Run all available app digests for a session."""
+    a.session_exists(sname)
+    available = a.get_digest(sname)
+    digests = {}
+
+    with Session(sname) as session:
+        for appname in available:
+            app = u.APPS[appname]
+            digests[appname] = api_value(
+                await t.ensure_awaitable(app.digest, session=session)
+            )
+
+    return {"apps": available, "digests": digests}
+
+
+@router.get("/sessions/{sname}/digests/{appname}/")
+async def get_session_digest(
+    sname: str,
+    appname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Run one app digest for a session."""
+    a.session_exists(sname)
+
+    if appname not in a.get_digest(sname):
+        raise HTTPException(status_code=404, detail="Digest not found")
+
+    app = u.APPS[appname]
+
+    with Session(sname) as session:
+        digest = await t.ensure_awaitable(app.digest, session=session)
+
+    return {"app": appname, "digest": api_value(digest)}
+
+
+@router.get("/sessions/{sname}/pipelines/")
+async def list_session_pipelines(
+    sname: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """List apps that provide a pipeline for a session."""
+    a.session_exists(sname)
+    return {"apps": a.get_pipelines(sname)}
+
+
+@router.post("/sessions/{sname}/pipelines/{appname}/runs/")
+async def run_session_pipeline(
+    request: Request,
+    sname: str,
+    appname: str,
+    filetype: str = Query(default="csv", description="Export file type: csv or jsonl"),
+    bauth: None = Depends(a.require_bearer_token),
+) -> Response:
+    """Run an app pipeline, optionally passing a JSON request body."""
+    a.session_exists(sname)
+
+    if appname not in a.get_pipelines(sname):
+        raise HTTPException(status_code=404, detail="Pipeline not found")
+
+    pipeline_data, data_was_provided = await pipeline_data_from_request(request)
+
+    try:
+        result = await a.run_pipeline(sname, appname, pipeline_data, data_was_provided)
+    except a.PipelineInvocationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if not a.is_custom_data_export(result):
+        return PlainTextResponse(a.pipeline_result_display(result))
+
+    if filetype not in ("csv", "jsonl"):
+        raise HTTPException(status_code=400, detail="Invalid filetype")
+
+    rows = result
+    filename = f"{sname}-{appname}"
+
+    if filetype == "csv":
+        return Response(
+            a.generate_custom_csv(rows),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
+        )
+
+    return StreamingResponse(
+        a.generate_custom_jsonl(rows),
+        media_type="application/jsonl",
+        headers={"Content-Disposition": f"attachment; filename={filename}.jsonl"},
     )
 
 
@@ -611,24 +947,14 @@ async def list_rooms(
     return dict(a.rooms())
 
 
-@router.get("/room/{roomname}/")
+@router.get("/rooms/{roomname}/")
 async def get_room(
     roomname: str,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get detailed information about a specific room."""
     a.room_exists(roomname)
-
-    with Admin() as admin:
-        room = admin.rooms[roomname]
-        return {
-            "name": roomname,
-            "config": room.get("config"),
-            "labels": room.get("labels"),
-            "capacity": room.get("capacity"),
-            "open": room.get("open"),
-            "sname": room.get("sname"),
-        }
+    return room_detail(roomname)
 
 
 @router.post("/rooms/", status_code=201)
@@ -637,8 +963,8 @@ async def create_room(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Create a new room."""
-    if body.config and body.config not in u.CONFIGS:
-        raise HTTPException(status_code=400, detail="Invalid configuration")
+    if body.config:
+        ensure_config_exists(body.config)
 
     if body.sname:
         a.session_exists(body.sname)
@@ -647,7 +973,7 @@ async def create_room(
         if body.name in admin.rooms:
             raise HTTPException(status_code=400, detail="Room name already exists")
 
-        admin.rooms[body.name] = r.room(
+        admin.rooms[body.name] = create_room_payload(
             name=body.name,
             config=body.config,
             labels=body.labels,
@@ -660,10 +986,10 @@ async def create_room(
         with Session(body.sname) as session:
             session.room = body.name
 
-    return {"name": body.name, "created": True}
+    return room_detail(body.name) | {"created": True}
 
 
-@router.patch("/room/{roomname}/")
+@router.patch("/rooms/{roomname}/")
 async def update_room(
     roomname: str,
     body: RoomUpdate,
@@ -672,29 +998,43 @@ async def update_room(
     """Update room settings (only when no session is associated)."""
     a.room_exists(roomname)
 
-    if body.config and body.config not in u.CONFIGS:
-        raise HTTPException(status_code=400, detail="Invalid configuration")
-
     with Admin() as admin:
-        if admin.rooms[roomname]["sname"] is not None:
+        current = admin.rooms[roomname]
+
+        if current["sname"] is not None:
             raise HTTPException(
                 status_code=400,
                 detail="Cannot edit room settings while a session is associated",
             )
 
-        admin.rooms[roomname] = r.room(
+        if body.open is None and "open" in body.model_fields_set:
+            raise HTTPException(status_code=400, detail="open cannot be null")
+
+        config = body.config if "config" in body.model_fields_set else current["config"]
+        labels = body.labels if "labels" in body.model_fields_set else current["labels"]
+        capacity = (
+            body.capacity
+            if "capacity" in body.model_fields_set
+            else current["capacity"]
+        )
+        open_status = body.open if "open" in body.model_fields_set else current["open"]
+
+        if config:
+            ensure_config_exists(config)
+
+        admin.rooms[roomname] = create_room_payload(
             name=roomname,
-            config=body.config,
-            labels=body.labels,
-            capacity=body.capacity,
-            open=body.open,
+            config=config,
+            labels=labels,
+            capacity=capacity,
+            open=bool(open_status),
             sname=None,
         )
 
-    return {"name": roomname, "updated": True}
+    return room_detail(roomname) | {"updated": True}
 
 
-@router.delete("/room/{roomname}/")
+@router.delete("/rooms/{roomname}/")
 async def delete_room(
     roomname: str,
     bauth: None = Depends(a.require_bearer_token),
@@ -710,7 +1050,7 @@ async def delete_room(
     return {"name": roomname, "deleted": True}
 
 
-@router.post("/room/{roomname}/disassociate/")
+@router.delete("/rooms/{roomname}/sessions/")
 async def disassociate_room(
     roomname: str,
     bauth: None = Depends(a.require_bearer_token),
@@ -726,10 +1066,10 @@ async def disassociate_room(
 
     await a.disassociate(roomname, sname)
 
-    return {"name": roomname, "disassociated": True}
+    return room_detail(roomname) | {"disassociated": True}
 
 
-@router.patch("/room/{roomname}/open/")
+@router.patch("/rooms/{roomname}/open/")
 async def set_room_open(
     roomname: str,
     body: RoomOpen,
@@ -743,10 +1083,10 @@ async def set_room_open(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return {"name": roomname, "open": body.open}
+    return room_detail(roomname) | {"open": body.open}
 
 
-@router.post("/room/{roomname}/close/")
+@router.post("/rooms/{roomname}/close/")
 async def close_room(
     roomname: str,
     body: RoomClose,
@@ -760,10 +1100,13 @@ async def close_room(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return {"name": roomname, "closed": True, "disassociated": body.disassociate}
+    return room_detail(roomname) | {
+        "closed": True,
+        "disassociated": body.disassociate,
+    }
 
 
-@router.post("/room/{roomname}/session/", status_code=201)
+@router.post("/rooms/{roomname}/sessions/", status_code=201)
 async def create_session_in_room(
     roomname: str,
     body: RoomSessionCreate,
@@ -771,9 +1114,9 @@ async def create_session_in_room(
 ) -> dict[str, Any]:
     """Create a new session within a room."""
     a.room_exists(roomname)
-
-    if body.config not in u.CONFIGS:
-        raise HTTPException(status_code=400, detail="Invalid configuration")
+    ensure_config_exists(body.config)
+    ensure_unames_count(body.n_players, body.unames)
+    ensure_assignees_count(body.n_players, body.assignees)
 
     with Admin() as admin:
         if admin.rooms[roomname]["sname"] is not None:
@@ -792,10 +1135,9 @@ async def create_session_in_room(
     data: list[Any] = []
 
     if body.n_players > len(assignees_list):
-        for _ in range(body.n_players - len(assignees_list)):
-            assignees_list.append(None)
+        assignees_list.extend([None] * (body.n_players - len(assignees_list)))
 
-    for _, label in zip(range(body.n_players), assignees_list):
+    for label in assignees_list[: body.n_players]:
         if label is None:
             data.append({})
         else:
@@ -830,10 +1172,13 @@ async def create_session_in_room(
 
     r.start(roomname)
 
-    return {"sname": sid.sname, "roomname": roomname, "created": True}
+    return session_detail(sid.sname) | {
+        "roomname": roomname,
+        "created": True,
+    }
 
 
-@router.get("/room/{roomname}/online/")
+@router.get("/rooms/{roomname}/online/")
 async def get_room_online(
     roomname: str,
     bauth: None = Depends(a.require_bearer_token),
@@ -848,6 +1193,22 @@ async def get_room_online(
 # =============================================================================
 
 
+@router.get("/dashboard/")
+async def get_dashboard(
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Get the same top-level aggregate shown on the admin dashboard."""
+    sessions = a.sessions()
+
+    return {
+        "configs": a.configs(),
+        "rooms": a.rooms(),
+        "active_sessions": {
+            sname: sinfo for sname, sinfo in sessions.items() if sinfo["active"]
+        },
+    }
+
+
 @router.get("/configs/")
 async def list_configs(
     bauth: None = Depends(a.require_bearer_token),
@@ -856,12 +1217,12 @@ async def list_configs(
     return a.configs()
 
 
-@router.get("/configs/{cname}/summary/")
-async def get_config_summary(
+@router.get("/configs/{cname}/")
+async def get_config(
     cname: str,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
-    """Get a human-readable summary of a configuration."""
+    """Get details for a configuration."""
     if cname not in u.CONFIGS:
         raise HTTPException(status_code=404, detail="Configuration not found")
 
@@ -892,15 +1253,15 @@ async def get_announcements(
         return {"error": "Failed to fetch announcements"}
 
 
-@router.get("/session/{sname}/digest/")
-async def get_session_digest(
-    sname: str,
+@router.get("/praise/")
+async def get_praise(
     bauth: None = Depends(a.require_bearer_token),
-) -> dict[str, Any]:
-    """Get list of apps that have digest methods available."""
-    a.session_exists(sname)
-
-    return {"apps": a.get_digest(sname)}
+) -> PlainTextResponse:
+    """Fetch the same praise text shown by the admin UI."""
+    try:
+        return PlainTextResponse(await a.praise())
+    except Exception:
+        raise HTTPException(status_code=502, detail="Failed to fetch praise")
 
 
 @router.get("/auth/sessions/")
@@ -911,6 +1272,28 @@ async def get_auth_sessions(
     return a.get_active_auth_sessions()
 
 
+@router.delete("/auth/sessions/{user}/")
+async def revoke_user_auth_sessions(
+    user: str,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Revoke all browser admin sessions for one user."""
+    revoked_count = a.revoke_all_user_tokens(user)
+    return {"user": user, "revoked": revoked_count}
+
+
+@router.get("/database/dump/")
+async def dump_database(
+    bauth: None = Depends(a.require_bearer_token),
+) -> StreamingResponse:
+    """Download a complete machine-readable database dump."""
+    return StreamingResponse(
+        d.DATABASE.dump(),
+        media_type="application/msgpack",
+        headers={"Content-Disposition": "attachment; filename=uproot.msgpack"},
+    )
+
+
 @router.get("/status/")
 async def get_status(
     bauth: None = Depends(a.require_bearer_token),
@@ -918,13 +1301,25 @@ async def get_status(
     """Get server status information."""
     dbsize_bytes = d.DATABASE.size()
     dbsize = float(dbsize_bytes) / (1024**2) if dbsize_bytes is not None else None
+    packages = {
+        dist.metadata["name"]: dist.version
+        for dist in importlib.metadata.distributions()
+    }
 
     return {
-        "version": u.__version__,
-        "database_size_mb": dbsize,
-        "packages": {
-            dist.metadata["name"]: dist.version
-            for dist in importlib.metadata.distributions()
+        "versions": {
+            "uproot": u.__version__,
+            "python": sys.version,
         },
+        "database": {
+            "driver": d.DATABASE.__class__.__name__,
+            "size_bytes": dbsize_bytes,
+            "size_mb": dbsize,
+        },
+        "auth_sessions": a.get_active_auth_sessions(),
+        "packages": packages,
+        "environment": dict(sorted(os.environ.items())),
+        "missing_i18n": missing_i18n_terms(),
         "public_demo": d.PUBLIC_DEMO,
+        "unsafe": d.UNSAFE,
     }
