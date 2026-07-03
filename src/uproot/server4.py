@@ -10,7 +10,6 @@ Tokens are configured in deployment.API_KEYS.
 
 import hmac
 import importlib.metadata
-import os
 import sys
 from pathlib import Path
 from typing import Any, Optional, TypeAlias
@@ -1591,7 +1590,6 @@ async def get_status(
         },
         "auth_sessions": a.get_active_auth_sessions(),
         "packages": packages,
-        "environment": dict(sorted(os.environ.items())),
         "missing_i18n": missing_i18n_terms(),
         "public_demo": d.PUBLIC_DEMO,
         "unsafe": d.UNSAFE,
