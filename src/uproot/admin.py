@@ -85,6 +85,7 @@ from uproot.services.room_service import (
     ensure_session_available_for_room,
     room_exists,
     rooms,
+    set_room_capacity,
     set_room_open,
 )
 
@@ -168,6 +169,7 @@ __all__ = [
     "ensure_session_available_for_room",
     "room_exists",
     "rooms",
+    "set_room_capacity",
     "set_room_open",
     # Data
     "DisplayValue",

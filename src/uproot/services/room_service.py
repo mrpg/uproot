@@ -121,6 +121,17 @@ async def set_room_open(roomname: str, open: bool) -> None:
         r.reset(roomname)
 
 
+async def set_room_capacity(roomname: str, capacity: int | None) -> None:
+    """Set a room's capacity, even while a session is associated."""
+    room_exists(roomname, False)
+
+    if capacity is not None and capacity < 1:
+        raise ValueError("Capacity must be at least 1")
+
+    with s.Admin() as admin:
+        admin.rooms[roomname]["capacity"] = capacity
+
+
 async def delete_room(roomname: str) -> None:
     """Delete a room."""
     room_exists(roomname, False)

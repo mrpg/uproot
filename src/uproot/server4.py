@@ -197,6 +197,14 @@ class RoomOpen(BaseModel):
     open: bool = Field(..., description="Whether the room should be open")
 
 
+class RoomCapacity(BaseModel):
+    """Request body for setting a room's capacity."""
+
+    capacity: Optional[int] = Field(
+        ..., ge=1, description="Maximum capacity (null for unlimited)"
+    )
+
+
 class RoomClose(BaseModel):
     """Request body for closing a room."""
 
@@ -1326,6 +1334,23 @@ async def set_room_open(
         raise HTTPException(status_code=400, detail=str(e))
 
     return room_detail(roomname) | {"open": body.open}
+
+
+@router.patch("/rooms/{roomname}/capacity/")
+async def set_room_capacity(
+    roomname: str,
+    body: RoomCapacity,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Set a room's capacity, even while a session is associated."""
+    a.room_exists(roomname)
+
+    try:
+        await a.set_room_capacity(roomname, body.capacity)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return room_detail(roomname)
 
 
 @router.post("/rooms/{roomname}/close/")

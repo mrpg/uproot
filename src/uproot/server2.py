@@ -1363,6 +1363,7 @@ FUNS = {
     "send_adminchat_to_players": a.send_adminchat_to_players,
     "set_adminchat_replies": a.set_adminchat_replies,
     "set_adminchat_replies_for_players": a.set_adminchat_replies_for_players,
+    "set_room_capacity": a.set_room_capacity,
     "set_room_open": a.set_room_open,
     "update_description": a.update_description,
     "update_settings": a.update_settings,
