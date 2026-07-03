@@ -712,8 +712,8 @@
 ? 'The room name you entered is invalid.'
 : '入力されたルーム名が無効です。'
 
-? 'The session must exist. This can be used to add players to an existing session.'
-: 'セッションが存在している必要があります。既存のセッションにプレイヤーを追加するために使用できます。'
+? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
+: 'セッションが存在している必要があります。既存のセッションにプレイヤーを追加するために使用できます。ルームは直ちに開かれます。'
 
 ? 'The session name you entered is invalid.'
 : '入力されたセッション名が無効です。'

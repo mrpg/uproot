@@ -712,8 +712,8 @@
 ? 'The room name you entered is invalid.'
 : 'El nombre de sala ingresado no es válido.'
 
-? 'The session must exist. This can be used to add players to an existing session.'
-: 'La sesión debe existir. Esto se puede usar para añadir jugadores a una sesión existente.'
+? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
+: 'La sesión debe existir. Esto se puede usar para añadir jugadores a una sesión existente. La sala se abrirá inmediatamente.'
 
 ? 'The session name you entered is invalid.'
 : 'El nombre de sesión ingresado no es válido.'

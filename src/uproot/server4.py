@@ -70,7 +70,13 @@ class RoomCreate(BaseModel):
         None, description="Allowed labels for participants"
     )
     capacity: Optional[int] = Field(None, ge=1, description="Maximum capacity")
-    open: bool = Field(False, description="Whether the room is open for joining")
+    open: Optional[bool] = Field(
+        None,
+        description=(
+            "Whether the room is open for joining "
+            "(defaults to true if sname is given, false otherwise)"
+        ),
+    )
     sname: Optional[str] = Field(None, description="Associated session name")
 
 
@@ -173,7 +179,16 @@ class RoomUpdate(BaseModel):
     config: Optional[str] = Field(None, description="Default configuration")
     labels: Optional[list[str]] = Field(None, description="Allowed labels")
     capacity: Optional[int] = Field(None, ge=1, description="Maximum capacity")
-    open: Optional[bool] = Field(None, description="Whether the room is open")
+    open: Optional[bool] = Field(
+        None,
+        description=(
+            "Whether the room is open "
+            "(defaults to true if sname is given, otherwise unchanged)"
+        ),
+    )
+    sname: Optional[str] = Field(
+        None, description="Existing session to associate with the room"
+    )
 
 
 class RoomOpen(BaseModel):
@@ -1165,7 +1180,11 @@ async def create_room(
         ensure_config_exists(body.config)
 
     if body.sname:
-        a.session_exists(body.sname)
+        a.ensure_session_available_for_room(body.sname, body.name)
+
+    # Unless overridden, associating an existing session opens the room: the
+    # point of the association is to admit players into that session right away.
+    open_status = bool(body.sname) if body.open is None else body.open
 
     with Admin() as admin:
         if body.name in admin.rooms:
@@ -1176,13 +1195,16 @@ async def create_room(
             config=body.config,
             labels=body.labels,
             capacity=body.capacity,
-            open=body.open,
+            open=open_status,
             sname=body.sname,
         )
 
     if body.sname:
         with Session(body.sname) as session:
             session.room = body.name
+
+        if open_status:
+            r.start(body.name)
 
     return room_detail(body.name) | {"created": True}
 
@@ -1193,8 +1215,12 @@ async def update_room(
     body: RoomUpdate,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
-    """Update room settings (only when no session is associated)."""
+    """Update room settings, optionally associating an existing session
+    (only when no session is currently associated)."""
     a.room_exists(roomname)
+
+    if body.sname:
+        a.ensure_session_available_for_room(body.sname, roomname)
 
     with Admin() as admin:
         current = admin.rooms[roomname]
@@ -1215,7 +1241,17 @@ async def update_room(
             if "capacity" in body.model_fields_set
             else current["capacity"]
         )
-        open_status = body.open if "open" in body.model_fields_set else current["open"]
+        sname = body.sname or None
+
+        if "open" in body.model_fields_set:
+            open_status = body.open
+        elif sname:
+            # Unless overridden, associating an existing session opens the
+            # room: the point of the association is to admit players into
+            # that session right away.
+            open_status = True
+        else:
+            open_status = current["open"]
 
         if config:
             ensure_config_exists(config)
@@ -1226,8 +1262,16 @@ async def update_room(
             labels=labels,
             capacity=capacity,
             open=bool(open_status),
-            sname=None,
+            sname=sname,
         )
+
+    if sname:
+        with Session(sname) as session:
+            session.room = roomname
+
+        if open_status:
+            # Release players already waiting on this room's hello page
+            r.start(roomname)
 
     return room_detail(roomname) | {"updated": True}
 

@@ -600,12 +600,12 @@ async def new_room2(
     labels: str = Form(""),
     use_labels: Optional[bool] = Form(False),
     capacity: str = Form(""),
-    sname: str = Form(""),
+    room_sname: str = Form(""),
     open: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     config_ = config.strip() or None
-    sname_ = sname.strip() or None
+    sname_ = room_sname.strip() or None
     capacity_ = int(capacity) if capacity.strip() else None
     labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
 
@@ -613,24 +613,28 @@ async def new_room2(
         labels_list = []
 
     if sname_:
-        a.session_exists(sname_)
+        a.ensure_session_available_for_room(sname_, name)
 
     with Admin() as admin:
         if name in admin.rooms:
             raise HTTPException(status_code=400, detail="Room name already exists")
 
+        # Associating an existing session opens the room: the point of the
+        # association is to admit players into that session right away.
         admin.rooms[name] = r.room(
             name=name,
             config=config_,
             labels=labels_list,
             capacity=capacity_,
-            open=bool(open),
+            open=bool(open) or sname_ is not None,
             sname=sname_,
         )
 
     if sname_:
         with Session(sname_) as session:
             session.room = name
+
+        r.start(name)
 
     redirect_url = f"{d.ROOT}/admin/room/{quote(name, safe='')}/"
 
@@ -664,6 +668,7 @@ async def roommain(
                     "room": room,
                     "configs": a.configs(),
                     "configs_extra": u.CONFIGS_EXTRA,
+                    "sessions_available": admin._uproot_sessions,
                 }
                 | extra
                 | await a.info_online(f"^{roomname}"),
@@ -760,17 +765,22 @@ async def update_room_settings(
     labels: str = Form(""),
     use_labels: Optional[bool] = Form(False),
     capacity: str = Form(""),
+    room_sname: str = Form(""),
     open: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.room_exists(roomname)
 
     config_ = config.strip() or None
+    sname_ = room_sname.strip() or None
     capacity_ = int(capacity) if capacity.strip() else None
     labels_list = [a.strip() for a in labels.split("\n") if a.strip()] or None
 
     if use_labels and labels_list is None:
         labels_list = []
+
+    if sname_:
+        a.ensure_session_available_for_room(sname_, roomname)
 
     with Admin() as admin:
         ensure(
@@ -779,14 +789,23 @@ async def update_room_settings(
             "Cannot edit room settings while a session is associated",
         )
 
+        # Associating an existing session opens the room: the point of the
+        # association is to admit players into that session right away.
         admin.rooms[roomname] = r.room(
             name=roomname,
             config=config_,
             labels=labels_list,
             capacity=capacity_,
-            open=bool(open),
-            sname=None,
+            open=bool(open) or sname_ is not None,
+            sname=sname_,
         )
+
+    if sname_:
+        with Session(sname_) as session:
+            session.room = roomname
+
+        # Release players already waiting on this room's hello page
+        r.start(roomname)
 
     redirect_url = f"{d.ROOT}/admin/room/{quote(roomname, safe='')}/"
 

@@ -712,8 +712,8 @@
 ? 'The room name you entered is invalid.'
 : 'The room name you entered is invalid.'
 
-? 'The session must exist. This can be used to add players to an existing session.'
-: 'The session must exist. This can be used to add players to an existing session.'
+? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
+: 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
 
 ? 'The session name you entered is invalid.'
 : 'The session name you entered is invalid.'

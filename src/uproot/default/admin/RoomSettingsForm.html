@@ -16,21 +16,12 @@
 {% endif %}
 
 <div class="{% if not editing %}mt-4{% endif %}" x-data="{useConfig: {% if room and room.config %}true{% else %}false{% endif %}, useSession: false}">
-    {% if not editing %}
     <div class="form-check" x-show="!useSession">
         <input class="form-check-input" type="checkbox" id="use_config"
             {% if room and room.config %}checked{% endif %}
             @click="useConfig = !useConfig; const sel = I('room-config-select-input') || I('configs-apps-select'); if (sel) sel.disabled = !useConfig;">
         <label for="use_config">{% translate %}Associate with a particular config{% endtranslate %}</label>
     </div>
-    {% else %}
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="use_config"
-            {% if room and room.config %}checked{% endif %}
-            @click="useConfig = !useConfig; const sel = I('room-config-select-input') || I('configs-apps-select'); if (sel) sel.disabled = !useConfig;">
-        <label for="use_config">{% translate %}Associate with a particular config{% endtranslate %}</label>
-    </div>
-    {% endif %}
     <div x-show="useConfig">
         <div class="form-floating mt-3" id="room-config-select"></div>
 
@@ -41,23 +32,23 @@
         </div>
     </div>
 
-    {% if not editing %}
+    {# The field is called "room_sname" to avoid colliding with SessionCreate's "sname" when both are in the same form (Room.html) #}
     <div class="form-check mt-3" x-show="!useConfig">
         <input class="form-check-input" type="checkbox" id="use_session"
-            @click="useSession = !useSession; if (!useSession) { I('sname').value = ''; }">
+            @click="useSession = !useSession; if (!useSession) { I('room-sname').value = ''; }">
         <label for="use_session">{% translate %}Associate with an existing session{% endtranslate %}</label>
     </div>
     <div class="form-floating mt-3" x-show="useSession">
-        <input class="font-monospace form-control" type="text" id="sname" name="sname" placeholder="Session name">
-        <label for="sname">{% translate %}Session name{% endtranslate %}</label>
+        <input class="font-monospace form-control" type="text" id="room-sname" name="room_sname" placeholder="Session name">
+        <label for="room-sname">{% translate %}Session name{% endtranslate %}</label>
         <small class="d-block form-text pt-2">
             {% translate %}
             The session must exist.
             This can be used to add players to an existing session.
+            The room will be opened immediately.
             {% endtranslate %}
         </small>
     </div>
-    {% endif %}
 </div>
 
 <div x-data="{useLabels: {% if room and room.labels is not none %}true{% else %}false{% endif %}}">

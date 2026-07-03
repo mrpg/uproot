@@ -39,6 +39,34 @@ def rooms() -> SortedDict[str, dict[str, Any]]:
         return SortedDict(cast(dict[str, Any], admin.rooms))
 
 
+def ensure_session_available_for_room(
+    sname: t.Sessionname, roomname: str, raise_http: bool = True
+) -> None:
+    """Check that a session can be associated with a room."""
+    session_exists(sname, raise_http)
+
+    with s.Admin() as admin:
+        for other_roomname, room in admin.rooms.items():
+            if other_roomname != roomname and room.get("sname") == sname:
+                if raise_http:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Session is already associated with another room",
+                    )
+                raise ValueError("Session is already associated with another room")
+
+    with s.Session(sname) as session:
+        associated_room = session.room
+
+    if associated_room is not None and associated_room != roomname:
+        if raise_http:
+            raise HTTPException(
+                status_code=400,
+                detail="Session is already associated with another room",
+            )
+        raise ValueError("Session is already associated with another room")
+
+
 async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     """Disassociate a session from a room."""
     room_exists(roomname, False)

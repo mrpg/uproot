@@ -303,7 +303,7 @@ Room
     });
 
     function saveRoomSettings() {
-        let labelsValid = true;
+        let labelsValid = true, snameValid = true;
 
         const labelsValue = I("labels").value.trim();
         if (labelsValue) {
@@ -311,8 +311,17 @@ Room
             labelsValid = labels.every(label => label.length <= 128);
         }
 
+        // Validate session name if entered
+        const snameValue = I("room-sname").value.trim();
+        if (snameValue) {
+            snameValid = uproot.vars.sessions_available.includes(snameValue);
+        }
+
         if (!labelsValid) {
             uproot.error(_("One or more labels exceed the maximum length of 128 characters."));
+        }
+        else if (!snameValid) {
+            uproot.error(_("The session you entered does not exist."));
         }
         else {
             // Disable the SessionCreate config select to prevent it from being submitted
