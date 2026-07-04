@@ -398,14 +398,17 @@ def valid_export_format(format: str) -> None:
 
 def briefcase_export_response(
     sname: str,
-    format: str,
     gvar: list[str],
     filters: bool,
+    filetype: str,
 ) -> Response:
-    valid_export_format(format)
+    if filetype not in ("csv", "jsonl"):
+        raise HTTPException(
+            status_code=400, detail="Invalid filetype. Use: csv or jsonl"
+        )
 
     return Response(
-        a.generate_briefcase(sname, format, gvar, filters),
+        a.generate_briefcase(sname, gvar, filters, filetype),
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename={sname}.zip"},
     )
@@ -905,43 +908,23 @@ async def get_session_data(
 @router.get("/sessions/{sname}/data/export/")
 async def download_session_export(
     sname: str,
-    format: str = Query(
-        default="latest", description="Export format: ultralong, sparse, or latest"
-    ),
     filetype: str = Query(default="csv", description="Export file type: csv or jsonl"),
-    gvar: list[str] = Query(default=[], description="Group-by variables"),
+    gvar: list[str] = Query(
+        default=[],
+        description="Group-by variables for the optional grouped latest format",
+    ),
     filters: bool = Query(default=True, description="Apply reasonable filters"),
     bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
-    """Download session data using the same format/filetype controls as the admin UI.
+    """Download a ZIP briefcase of session data, as in the admin UI.
 
-    The csv filetype yields a ZIP briefcase of per-storage CSV files.
+    The briefcase always contains the ultralong, sparse, and latest formats
+    as per-storage CSV or JSONL files; passing gvar adds a grouped latest
+    format on top.
     """
     a.session_exists(sname)
 
-    if filetype == "csv":
-        return briefcase_export_response(sname, format, gvar, filters)
-
-    if filetype == "jsonl":
-        return jsonl_export_response(sname, format, gvar, filters)
-
-    raise HTTPException(status_code=400, detail="Invalid filetype. Use: csv or jsonl")
-
-
-@router.get("/sessions/{sname}/data/zip/")
-async def download_session_zip(
-    sname: str,
-    format: str = Query(
-        default="ultralong", description="Export format: ultralong, sparse, or latest"
-    ),
-    gvar: list[str] = Query(default=[], description="Group-by variables"),
-    filters: bool = Query(default=False, description="Apply reasonable filters"),
-    bauth: None = Depends(a.require_bearer_token),
-) -> Response:
-    """Download session data as a ZIP briefcase of per-storage CSV files."""
-    a.session_exists(sname)
-
-    return briefcase_export_response(sname, format, gvar, filters)
+    return briefcase_export_response(sname, gvar, filters, filetype)
 
 
 @router.get("/sessions/{sname}/data/jsonl/")

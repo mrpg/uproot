@@ -475,9 +475,6 @@
 ? 'Enter new description:'
 : 'Neue Beschreibung eingeben:'
 
-? 'Environment variables'
-: 'Umgebungsvariablen'
-
 ? 'Example Title'
 : 'Beispieltitel'
 
@@ -489,9 +486,6 @@
 
 ? 'Filters'
 : 'Filter'
-
-? 'Format'
-: 'Format'
 
 ? 'General announcement'
 : 'Allgemeine Ankündigung'
@@ -597,9 +591,6 @@
 
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'Ein oder mehrere Labels überschreiten die maximale Länge von 128 Zeichen.'
-
-? 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
-: 'Eine Zeile pro Spieler pro angegebener Gruppierung (z. B. pro Runde): zeigt den Zustand jedes Teilnehmers am Ende jeder Runde, Bedingung oder anderen von Ihnen angegebenen Gruppierung.'
 
 ? 'One row per player showing their final state: just the last/current value of every field.'
 : 'Eine Zeile pro Spieler mit dem Endzustand: nur der letzte/aktuelle Wert jedes Feldes.'
@@ -762,9 +753,6 @@
 
 ? 'Unset or deleted'
 : 'Nicht gesetzt oder gelöscht'
-
-? 'Variable'
-: 'Variable'
 
 ? 'You'
 : 'Sie'
@@ -1105,5 +1093,32 @@
 ? 'Use negative values to reduce the timeout.'
 : 'Verwenden Sie negative Werte, um das Zeitlimit zu verringern.'
 
-? 'You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.'
-: 'Sie erhalten ein ZIP-Archiv, das eine CSV-Datei pro Storage enthält, z. B. player.csv und session.csv.'
+? 'Capacity must be at least 1.'
+: 'Die Kapazität muss mindestens 1 betragen.'
+
+? 'Dropout'
+: 'Dropout'
+
+? 'Dropouts'
+: 'Dropouts'
+
+? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
+: 'Jedes Format besteht aus einer CSV-Datei pro Storage, z. B. latest/player.csv.'
+
+? 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
+: 'Jedes Format besteht aus einer JSONL-Datei pro Storage, z. B. latest/player.jsonl.'
+
+? 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
+: 'Jeder Download ist ein ZIP-Archiv, das alle drei zentralen Formate sowie eine README.txt und eine SHA256SUMS-Datei zur Integritätsprüfung enthält.'
+
+? 'Formats'
+: 'Formate'
+
+? 'Limit capacity'
+: 'Kapazität begrenzen'
+
+? 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: 'Fügt optional eine Zeile pro Spieler pro angegebener Gruppierung hinzu (z. B. pro Runde): zeigt den Zustand jedes Teilnehmers am Ende jeder Runde, Bedingung oder anderen von Ihnen angegebenen Gruppierung.'
+
+? 'Set'
+: 'Festlegen'

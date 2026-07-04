@@ -329,23 +329,74 @@ def test_briefcase_out():
         ]
     )
 
-    briefcase = briefcase_out(latest(test_data))
+    briefcase = briefcase_out(
+        {"latest": latest(test_data)},
+        wrapper="session1",
+        filetype="csv",
+        readme="hello",
+    )
 
     with ZipFile(BytesIO(briefcase)) as zf:
-        assert sorted(zf.namelist()) == ["SHA256SUMS", "player.csv", "session.csv"]
+        assert sorted(zf.namelist()) == [
+            "session1/README.txt",
+            "session1/SHA256SUMS",
+            "session1/latest/player.csv",
+            "session1/latest/session.csv",
+        ]
 
-        player_csv = zf.read("player.csv").decode("utf-8")
-        session_csv = zf.read("session.csv").decode("utf-8")
-        sums = zf.read("SHA256SUMS").decode("utf-8")
+        player_csv = zf.read("session1/latest/player.csv").decode("utf-8")
+        session_csv = zf.read("session1/latest/session.csv").decode("utf-8")
+        sums = zf.read("session1/SHA256SUMS").decode("utf-8")
+
+        assert zf.read("session1/README.txt").decode("utf-8") == "hello"
 
     # Columns must not leak across storage kinds
     assert "choice" in player_csv and "players" not in player_csv
     assert "players" in session_csv and "choice" not in session_csv
 
-    for line in sums.strip().split("\n"):
-        digest, name = line.split("  ")
-        with ZipFile(BytesIO(briefcase)) as zf:
-            assert sha256(zf.read(name)) == digest
+    # SHA256SUMS covers every file, with paths relative to the wrapper
+    with ZipFile(BytesIO(briefcase)) as zf:
+        hashed = set()
+
+        for line in sums.strip().split("\n"):
+            digest, name = line.split("  ")
+            assert sha256(zf.read(f"session1/{name}")) == digest
+            hashed.add(f"session1/{name}")
+
+        assert hashed == set(zf.namelist()) - {"session1/SHA256SUMS"}
+
+
+def test_briefcase_out_jsonl():
+    test_data = sequenced(
+        [
+            {
+                "!storage": "player/session1/p1",
+                "!field": "choice",
+                "!time": 1.0,
+                "!context": "",
+                "!unavailable": False,
+                "!data": "A",
+            },
+        ]
+    )
+
+    briefcase = briefcase_out(
+        {"ultralong": noop(test_data)},
+        wrapper="session1",
+        filetype="jsonl",
+        readme="hello",
+    )
+
+    with ZipFile(BytesIO(briefcase)) as zf:
+        line = zf.read("session1/ultralong/player.jsonl").decode("utf-8")
+
+    assert json.loads(line)["!field"] == "choice"
+
+
+def test_grouped_format_name():
+    assert data_service.grouped_format_name(["app", "round"]) == "latest_by_app_round"
+    assert data_service.grouped_format_name(["a/b", "x y"]) == "latest_by_a-b_x-y"
+    assert data_service.grouped_format_name(["!!!"]) == "latest_grouped"
 
 
 def test_generate_briefcase(monkeypatch):
@@ -360,10 +411,53 @@ def test_generate_briefcase(monkeypatch):
         lambda sname: session_data,
     )
 
-    briefcase = data_service.generate_briefcase("session1", "ultralong", [], False)
+    briefcase = data_service.generate_briefcase("session1", [], False)
 
     with ZipFile(BytesIO(briefcase)) as zf:
-        assert sorted(zf.namelist()) == ["SHA256SUMS", "player.csv", "session.csv"]
+        assert sorted(zf.namelist()) == [
+            "session1/README.txt",
+            "session1/SHA256SUMS",
+            "session1/latest/player.csv",
+            "session1/latest/session.csv",
+            "session1/sparse/player.csv",
+            "session1/sparse/session.csv",
+            "session1/ultralong/player.csv",
+            "session1/ultralong/session.csv",
+        ]
+
+        readme = zf.read("session1/README.txt").decode("utf-8")
+
+    assert "https://uproot.science/running/export/" in readme
+    assert "sha256sum -c SHA256SUMS" in readme
+
+
+def test_generate_briefcase_grouped(monkeypatch):
+    session_data = {
+        ("player", "session1", "p1", "round"): [Value(1.0, False, 1, "")],
+        ("player", "session1", "p1", "choice"): [Value(2.0, False, "A", "")],
+    }
+
+    monkeypatch.setattr(
+        data_service,
+        "everything_from_session",
+        lambda sname: session_data,
+    )
+
+    briefcase = data_service.generate_briefcase("session1", ["round"], False, "jsonl")
+
+    with ZipFile(BytesIO(briefcase)) as zf:
+        assert sorted(zf.namelist()) == [
+            "session1/README.txt",
+            "session1/SHA256SUMS",
+            "session1/latest/player.jsonl",
+            "session1/latest_by_round/player.jsonl",
+            "session1/sparse/player.jsonl",
+            "session1/ultralong/player.jsonl",
+        ]
+
+        readme = zf.read("session1/README.txt").decode("utf-8")
+
+    assert "latest_by_round/" in readme
 
 
 def test_csv_out():

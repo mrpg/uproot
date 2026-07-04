@@ -4,7 +4,9 @@
 """Data export and extraction service."""
 
 import asyncio
+import re
 from bisect import bisect_right
+from datetime import datetime, timezone
 from typing import (
     Annotated,
     Any,
@@ -15,6 +17,7 @@ from typing import (
     cast,
 )
 
+import uproot
 import uproot.cache as cache
 import uproot.data as data
 import uproot.storage as s
@@ -156,16 +159,98 @@ def generate_data(
             raise NotImplementedError
 
 
-def generate_briefcase(
-    sname: t.Sessionname,
-    format: str,
+def grouped_format_name(gvar: list[str]) -> str:
+    """Directory name for the optional grouped "latest" format."""
+    parts = [re.sub(r"[^A-Za-z0-9.-]+", "-", gv).strip("-") for gv in gvar]
+    parts = [part for part in parts if part]
+
+    if not parts:
+        return "latest_grouped"
+
+    return "latest_by_" + "_".join(parts)
+
+
+def briefcase_readme(
+    sname: str,
+    filetype: str,
     gvar: list[str],
     filters: bool,
-) -> bytes:
-    """Generate a ZIP briefcase of per-storage CSV files for a session."""
-    alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
+) -> str:
+    """Compose the README.txt included in every briefcase."""
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    title = f'Data export of uproot session "{sname}"'
 
-    return data.briefcase_out(transformer(alldata, **transkwargs))
+    grouped = ""
+    if gvar:
+        grouped = (
+            f"{grouped_format_name(gvar)}/\n"
+            f"    One row per storage and per combination of "
+            f"({', '.join(gvar)}): the\n"
+            f"    state as it was at the end of each combination.\n\n"
+        )
+
+    if filters:
+        filtered = (
+            "Reasonable filters were applied: uproot-internal fields were\n"
+            "excluded, renamed or transformed."
+        )
+    else:
+        filtered = "No filters were applied: uproot-internal fields are included as-is."
+
+    return (
+        f"{title}\n"
+        f"{'=' * len(title)}\n\n"
+        f"Created {stamp} by uproot {uproot.__version__}.\n\n"
+        f"Each directory in this archive contains the full session data in one\n"
+        f"format, split into one {filetype.upper()} file per storage kind\n"
+        f"(player.{filetype}, session.{filetype}, ...).\n\n"
+        f"ultralong/\n"
+        f"    Raw event log: every single change to any field is its own row.\n\n"
+        f"sparse/\n"
+        f"    Each row represents a change, with every field as its own column;\n"
+        f"    only the fields that actually changed at that timestamp are\n"
+        f"    filled in.\n\n"
+        f"latest/\n"
+        f"    One row per storage (e.g., per player) showing the final state:\n"
+        f"    the last value of every field.\n\n"
+        f"{grouped}"
+        f"{filtered}\n\n"
+        f"SHA256SUMS lists the SHA-256 hash of every file in this archive.\n"
+        f"Verify the files' integrity from within this directory using\n\n"
+        f"    sha256sum -c SHA256SUMS\n\n"
+        f"For more details, see https://uproot.science/running/export/\n"
+    )
+
+
+def generate_briefcase(
+    sname: t.Sessionname,
+    gvar: list[str],
+    filters: bool,
+    filetype: str = "csv",
+) -> bytes:
+    """Generate a ZIP briefcase containing all key formats for a session.
+
+    The briefcase always contains the ultralong, sparse, and latest formats;
+    a non-empty `gvar` adds a grouped "latest" format on top.
+    """
+    gvar = [gv for gv in gvar if gv]
+    rows = list(data_rows_for_session(sname, filters))
+
+    formats: dict[str, DataRows] = {
+        "ultralong": data.noop(rows),
+        "sparse": data.long_to_wide(rows),
+        "latest": data.latest(rows),
+    }
+
+    if gvar:
+        formats[grouped_format_name(gvar)] = data.latest(rows, group_by_fields=gvar)
+
+    return data.briefcase_out(
+        formats,
+        wrapper=str(sname),
+        filetype=filetype,
+        readme=briefcase_readme(str(sname), filetype, gvar, filters),
+    )
 
 
 def is_custom_data_export(value: Any) -> bool:

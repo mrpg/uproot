@@ -475,9 +475,6 @@
 ? 'Enter new description:'
 : 'Enter new description:'
 
-? 'Environment variables'
-: 'Environment variables'
-
 ? 'Example Title'
 : 'Example Title'
 
@@ -489,9 +486,6 @@
 
 ? 'Filters'
 : 'Filters'
-
-? 'Format'
-: 'Format'
 
 ? 'General announcement'
 : 'General announcement'
@@ -597,9 +591,6 @@
 
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'One or more labels exceed the maximum length of 128 characters.'
-
-? 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
-: 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
 
 ? 'One row per player showing their final state: just the last/current value of every field.'
 : 'One row per player showing their final state: just the last/current value of every field.'
@@ -762,9 +753,6 @@
 
 ? 'Unset or deleted'
 : 'Unset or deleted'
-
-? 'Variable'
-: 'Variable'
 
 ? 'You'
 : 'You'
@@ -1105,5 +1093,32 @@
 ? 'Use negative values to reduce the timeout.'
 : 'Use negative values to reduce the timeout.'
 
-? 'You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.'
-: 'You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.'
+? 'Capacity must be at least 1.'
+: 'Capacity must be at least 1.'
+
+? 'Dropout'
+: 'Dropout'
+
+? 'Dropouts'
+: 'Dropouts'
+
+? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
+: 'Each format comes as one CSV file per storage, such as latest/player.csv.'
+
+? 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
+: 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
+
+? 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
+: 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
+
+? 'Formats'
+: 'Formats'
+
+? 'Limit capacity'
+: 'Limit capacity'
+
+? 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+
+? 'Set'
+: 'Set'

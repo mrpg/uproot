@@ -1145,42 +1145,29 @@ async def session_pipeline_run(
 async def session_data_download(
     request: Request,
     sname: t.Sessionname,
-    format: str,
     filetype: str,
     gvar: list[str] = Query(default=[]),
     filters: bool = Query(default=False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
     a.session_exists(sname)
+    ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
 
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M")
 
-    if filetype == "csv":
-        t0 = now()
-        briefcase = a.generate_briefcase(sname, format, gvar, filters)
+    t0 = now()
+    briefcase = a.generate_briefcase(sname, gvar, filters, filetype)
 
-        d.LOGGER.debug(
-            "generate_briefcase took %.5f seconds",
-            now() - t0,
-        )
+    d.LOGGER.debug(
+        "generate_briefcase took %.5f seconds",
+        now() - t0,
+    )
 
-        return Response(
-            briefcase,
-            media_type="application/zip",
-            headers={
-                "Content-Disposition": f"attachment; filename={sname}_{format}_{stamp}.zip"
-            },
-        )
-    elif filetype == "jsonl":
-        return StreamingResponse(
-            a.generate_jsonl(sname, format, gvar, filters),
-            media_type="application/jsonl",
-            headers={
-                "Content-Disposition": f"attachment; filename={sname}_{format}_{stamp}.jsonl"
-            },
-        )
-    else:
-        raise NotImplementedError
+    return Response(
+        briefcase,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={sname}_{stamp}.zip"},
+    )
 
 
 # Particular session: view data

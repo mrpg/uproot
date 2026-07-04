@@ -26,7 +26,7 @@
 <h3 class="mb-3">{% translate %}Main data{% endtranslate %}</h3>
 
 <form method="get" action="get/" target="_blank" x-data="{
-    dataFormat: 'latest',
+    grouped: false,
     groupVars: [
         { id: 'group-var-app', value: 'app', example: 'app' },
         { id: 'group-var-round', value: 'round', example: 'round' },
@@ -35,31 +35,33 @@
 }">
     <div class="gx-xl-4-5 row">
         <!-- Column 1 -->
-        <div class="col-12 col-xl-4 mb-4">
+        <div class="col-12 col-xl-6 mb-4">
             <h4 class="mb-3">
-                {% translate %}Format{% endtranslate %}
+                {% translate %}Formats{% endtranslate %}
             </h4>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" name="format" id="format-ultralong" value="ultralong" @change="dataFormat = 'ultralong'">
-                <label class="form-check-label" for="format-ultralong">{% translate %}Ultra Long{% endtranslate %}</label>
+            <p class="text-secondary">
+                {% translate %}
+                Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.
+                {% endtranslate %}
+            </p>
+            <div class="mb-3">
+                <span class="fw-semibold">{% translate %}Ultra Long{% endtranslate %}</span>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Raw event log where every single change to any field becomes its own row.
                     {% endtranslate %}
                 </div>
             </div>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" name="format" id="format-sparse" value="sparse" @change="dataFormat = 'sparse'">
-                <label class="form-check-label" for="format-sparse">{% translate %}Sparse{% endtranslate %}</label>
+            <div class="mb-3">
+                <span class="fw-semibold">{% translate %}Sparse{% endtranslate %}</span>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.
                     {% endtranslate %}
                 </div>
             </div>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" name="format" id="format-latest" value="latest" checked @change="dataFormat = 'latest'">
-                <label class="form-check-label" for="format-latest">{% translate %}Latest{% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
+            <div class="mb-3">
+                <span class="fw-semibold">{% translate %}Latest{% endtranslate %}</span> <span class="badge rounded-pill bg-uproot ms-1">Beta</span>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     One row per player showing their final state: just the last/current value of every field.
@@ -67,19 +69,19 @@
                 </div>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="format" id="format-latest-fields" value="latest" @change="dataFormat = 'latest-fields'">
+                <input class="form-check-input" type="checkbox" id="format-latest-fields" x-model="grouped">
                 <label class="form-check-label" for="format-latest-fields">{% translate %}Latest &times; Field(s){% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
-                    One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.
+                    Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.
                     {% endtranslate %}
                 </div>
-                <div id="customInputs" class="my-4" style="display: none;" x-show="dataFormat === 'latest-fields'">
+                <div id="customInputs" class="my-4" style="display: none;" x-show="grouped">
                     <div id="inputContainer">
                         <template x-for="(groupVar, index) in groupVars" :key="groupVar.id">
                         <div class="input-group mb-2">
                             <div class="form-floating">
-                                <input type="text" class="font-monospace form-control" :id="groupVar.id" name="gvar" placeholder="grouping variable" x-model="groupVar.value" disabled :disabled="dataFormat !== 'latest-fields'">
+                                <input type="text" class="font-monospace form-control" :id="groupVar.id" name="gvar" placeholder="grouping variable" x-model="groupVar.value" disabled :disabled="!grouped">
                                 <label :for="groupVar.id">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace" x-text="groupVar.example"></span>)</label>
                             </div>
                             <button type="button" class="btn btn-outline-danger remove-input" @click="if (groupVars.length > 1) groupVars.splice(index, 1)">{% translate %}Remove{% endtranslate %}</button>
@@ -93,8 +95,27 @@
             </div>
         </div>
         <!-- Column 2 -->
-        <div class="col-12 col-xl-4 mb-4">
+        <div class="col-12 col-xl-6 mb-4">
             <h4 class="mb-3">
+                {% translate %}File type{% endtranslate %}
+            </h4>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv" checked>
+                <label class="form-check-label" for="filetype-csv">CSV</label>
+                <div class="form-text mt-2 text-secondary">
+                    {% translate %}CSV is the better choice for spreadsheet applications.{% endtranslate %}
+                    {% translate %}Each format comes as one CSV file per storage, such as latest/player.csv.{% endtranslate %}
+                </div>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" id="filetype-jsonl" name="filetype" value="jsonl">
+                <label class="form-check-label" for="filetype-jsonl">JSONL</label>
+                <div class="form-text mt-2 text-secondary">
+                    {% translate %}JSONL is recommended for analysis.{% endtranslate %}
+                    {% translate %}Each format comes as one JSONL file per storage, such as latest/player.jsonl.{% endtranslate %}
+                </div>
+            </div>
+            <h4 class="mb-3 mt-4">
                 {% translate %}Filters{% endtranslate %}
             </h4>
             <div class="form-check">
@@ -106,27 +127,6 @@
                     {% translate %}
                     Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.
                     {% endtranslate %}
-                </div>
-            </div>
-        </div>
-        <!-- Column 3 -->
-        <div class="col-12 col-xl-4 mb-4">
-            <h4 class="mb-3">
-                {% translate %}File type{% endtranslate %}
-            </h4>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv" checked>
-                <label class="form-check-label" for="filetype-csv">CSV</label>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}CSV is the better choice for spreadsheet applications.{% endtranslate %}
-                    {% translate %}You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.{% endtranslate %}
-                </div>
-            </div>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" id="filetype-jsonl" name="filetype" value="jsonl">
-                <label class="form-check-label" for="filetype-jsonl">JSONL</label>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}JSONL is recommended for analysis.{% endtranslate %}
                 </div>
             </div>
         </div>

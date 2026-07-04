@@ -3,7 +3,7 @@
 
 import csv as pycsv
 from io import BytesIO, StringIO
-from typing import Any, AsyncGenerator, Iterable, Iterator, Optional, cast
+from typing import Any, AsyncGenerator, Iterable, Iterator, Mapping, Optional, cast
 from zipfile import ZIP_DEFLATED, ZipFile
 
 import orjson as json
@@ -198,6 +198,17 @@ def latest(
         yield from seen_combinations.values()
 
 
+def column_order(field: str) -> tuple[int, str]:
+    """Sort key that puts !-columns first and bulky columns last."""
+    if field.startswith("!"):
+        return (0, field)
+
+    if field in ("packages", "page_order"):
+        return (2, field)
+
+    return (1, field)
+
+
 def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     rows = list(rows)
 
@@ -207,14 +218,7 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     for row in rows:
         csvfields.update(dict.fromkeys(row.keys()))
 
-    sorted_fields = sorted(
-        csvfields,
-        key=lambda f: (
-            (0, f)
-            if f.startswith("!")
-            else (2, f) if f in ("packages", "page_order") else (1, f)
-        ),
-    )
+    sorted_fields = sorted(csvfields, key=column_order)
 
     dw = pycsv.DictWriter(buffer, fieldnames=sorted_fields)
     dw.writeheader()
@@ -243,35 +247,55 @@ def split_by_storage_kind(
     return kinds
 
 
-def briefcase_extras(zf: ZipFile, contents: dict[str, bytes]) -> None:
+def rows_to_bytes(rows: Iterable[dict[str, Any]], filetype: str) -> bytes:
+    """Serialize rows to a CSV or JSONL file body."""
+    ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
+
+    if filetype == "csv":
+        return csv_out(rows).encode("utf-8")
+
+    return "".join(jsonl_line(row) for row in rows).encode("utf-8")
+
+
+def briefcase_extras(zf: ZipFile, wrapper: str, contents: dict[str, bytes]) -> None:
     """Add general non-data files to a briefcase.
 
-    For now, this writes a SHA256SUMS file that `sha256sum -c` can verify.
+    For now, this writes a SHA256SUMS file that `sha256sum -c` can verify
+    from within the extracted wrapper directory.
     """
     zf.writestr(
-        "SHA256SUMS",
+        f"{wrapper}/SHA256SUMS",
         "".join(f"{sha256(blob)}  {name}\n" for name, blob in contents.items()),
     )
 
 
-def briefcase_out(rows: Iterable[dict[str, Any]]) -> bytes:
-    """Create a ZIP "briefcase" with one CSV per storage kind (player.csv, …).
+def briefcase_out(
+    formats: Mapping[str, Iterable[dict[str, Any]]],
+    wrapper: str,
+    filetype: str,
+    readme: str,
+) -> bytes:
+    """Create a ZIP "briefcase" wrapped in a single top-level directory.
 
-    Each CSV only contains columns for the fields that actually occur within
-    its own storage kind.
+    Each entry in `formats` becomes its own subdirectory holding one file per
+    storage kind (player.csv, session.csv, …). Each file only contains columns
+    for the fields that actually occur within its own storage kind. A
+    README.txt and a SHA256SUMS file covering every other file sit directly
+    inside the wrapper directory.
     """
     buffer = BytesIO()
 
-    with ZipFile(buffer, "w", ZIP_DEFLATED) as zf:
-        contents = {
-            f"{kind}.csv": csv_out(kindrows).encode("utf-8")
-            for kind, kindrows in sorted(split_by_storage_kind(rows).items())
-        }
+    with ZipFile(buffer, "w", ZIP_DEFLATED, compresslevel=9) as zf:
+        contents = {"README.txt": readme.encode("utf-8")}
+
+        for fmt, rows in formats.items():
+            for kind, kindrows in sorted(split_by_storage_kind(rows).items()):
+                contents[f"{fmt}/{kind}.{filetype}"] = rows_to_bytes(kindrows, filetype)
 
         for name, blob in contents.items():
-            zf.writestr(name, blob)
+            zf.writestr(f"{wrapper}/{name}", blob)
 
-        briefcase_extras(zf, contents)
+        briefcase_extras(zf, wrapper, contents)
 
     return buffer.getvalue()
 
@@ -283,15 +307,13 @@ def json_ready_row(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def jsonl_line(row: dict[str, Any]) -> str:
+    ready = json_ready_row(row)
+    sorted_keys = sorted(ready, key=column_order)
+
+    return json.dumps({k: ready[k] for k in sorted_keys}).decode("utf-8") + "\n"
+
+
 async def jsonl_out(rows: Iterable[dict[str, Any]]) -> AsyncGenerator[str, None]:
     for row in rows:
-        ready = json_ready_row(row)
-        sorted_keys = sorted(
-            ready,
-            key=lambda f: (
-                (0, f)
-                if f.startswith("!")
-                else (2, f) if f in ("packages", "page_order") else (1, f)
-            ),
-        )
-        yield json.dumps({k: ready[k] for k in sorted_keys}).decode("utf-8") + "\n"
+        yield jsonl_line(row)

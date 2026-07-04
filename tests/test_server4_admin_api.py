@@ -110,7 +110,6 @@ async def test_data_export_matches_admin_ui_filetype_switch() -> None:
 
     csv_response = await api.download_session_export(
         sname,
-        "latest",
         "csv",
         ["label"],
         True,
@@ -118,7 +117,6 @@ async def test_data_export_matches_admin_ui_filetype_switch() -> None:
     )
     jsonl_response = await api.download_session_export(
         sname,
-        "latest",
         "jsonl",
         ["label"],
         True,
@@ -126,12 +124,11 @@ async def test_data_export_matches_admin_ui_filetype_switch() -> None:
     )
 
     assert csv_response.media_type == "application/zip"
-    assert jsonl_response.media_type == "application/jsonl"
+    assert jsonl_response.media_type == "application/zip"
 
     with pytest.raises(HTTPException) as excinfo:
         await api.download_session_export(
             sname,
-            "latest",
             "xlsx",
             [],
             True,

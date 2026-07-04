@@ -475,9 +475,6 @@
 ? 'Enter new description:'
 : '新しい説明を入力:'
 
-? 'Environment variables'
-: '環境変数'
-
 ? 'Example Title'
 : 'タイトル例'
 
@@ -489,9 +486,6 @@
 
 ? 'Filters'
 : 'フィルタ'
-
-? 'Format'
-: 'フォーマット'
 
 ? 'General announcement'
 : '一般のお知らせ'
@@ -597,9 +591,6 @@
 
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : '1つ以上のラベルが最大長128文字を超えています。'
-
-? 'One row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
-: '指定した区分（ラウンドや条件など）ごとにプレイヤー1人につき1行で、各区分の終了時点における参加者の状態を表示します。'
 
 ? 'One row per player showing their final state: just the last/current value of every field.'
 : 'プレイヤーごとに1行で最終状態を表示: 全フィールドの最新/現在の値のみ。'
@@ -762,9 +753,6 @@
 
 ? 'Unset or deleted'
 : '未設定または削除済み'
-
-? 'Variable'
-: '変数'
 
 ? 'You'
 : 'あなた'
@@ -1105,5 +1093,32 @@
 ? 'Use negative values to reduce the timeout.'
 : '負の値を入力するとタイムアウトが短くなります。'
 
-? 'You will receive a ZIP archive containing one CSV file per storage, such as player.csv and session.csv.'
-: 'ストレージごとに1つのCSVファイル(player.csv、session.csvなど)を含むZIPアーカイブをダウンロードできます。'
+? 'Capacity must be at least 1.'
+: '定員は1以上でなければなりません。'
+
+? 'Dropout'
+: '脱落'
+
+? 'Dropouts'
+: '脱落者'
+
+? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
+: '各フォーマットはストレージごとに1つのCSVファイル（latest/player.csvなど）で構成されます。'
+
+? 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
+: '各フォーマットはストレージごとに1つのJSONLファイル（latest/player.jsonlなど）で構成されます。'
+
+? 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
+: 'ダウンロードされるのは、3つの主要フォーマットすべてに加え、README.txtと整合性検証用のSHA256SUMSファイルを含むZIPアーカイブです。'
+
+? 'Formats'
+: 'フォーマット'
+
+? 'Limit capacity'
+: '定員を制限する'
+
+? 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: 'オプションで、指定した区分（ラウンドや条件など）ごとにプレイヤー1人につき1行を追加し、各区分の終了時点における参加者の状態を表示します。'
+
+? 'Set'
+: '設定'
