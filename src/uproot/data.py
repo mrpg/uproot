@@ -285,7 +285,7 @@ def briefcase_out(
     """
     buffer = BytesIO()
 
-    with ZipFile(buffer, "w", ZIP_DEFLATED, compresslevel=9) as zf:
+    with ZipFile(buffer, "w", ZIP_DEFLATED, compresslevel=1) as zf:
         contents = {"README.txt": readme.encode("utf-8")}
 
         for fmt, rows in formats.items():
