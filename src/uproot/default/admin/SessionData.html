@@ -9,7 +9,7 @@
         {% endtranslate %}
         <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
         <span class="fw-light text-secondary">&rsaquo; {% translate %}Download data{% endtranslate %}</span>
-        <a class="ms-2 text-body-tertiary link-underline-opacity-0" href="https://uproot.science/running/export/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-5"></i></a></h2>
+        <a class="ms-2 text-body-tertiary link-underline-opacity-0" href="https://uproot.science/running/export/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-5"></i></a>
     </h2>
     <div class="d-flex flex-wrap gap-2">
         {% if has_pipelines %}
@@ -40,38 +40,19 @@
             <h4 class="mb-3">
                 {% translate %}Formats{% endtranslate %}
             </h4>
-            <p class="text-secondary">
+            <p class="mb-5 text-secondary">
                 {% translate %}
-                Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.
+                Every download is a ZIP archive containing three key formats and additional files.
                 {% endtranslate %}
+                <a class="link-secondary" href="https://uproot.science/running/export/" target="_blank">
+                    {% translate %}
+                    Learn more.
+                    {% endtranslate %}
+                </a>
             </p>
-            <div class="mb-3">
-                <span class="fw-semibold">{% translate %}Ultra Long{% endtranslate %}</span>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}
-                    Raw event log where every single change to any field becomes its own row.
-                    {% endtranslate %}
-                </div>
-            </div>
-            <div class="mb-3">
-                <span class="fw-semibold">{% translate %}Sparse{% endtranslate %}</span>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}
-                    Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.
-                    {% endtranslate %}
-                </div>
-            </div>
-            <div class="mb-3">
-                <span class="fw-semibold">{% translate %}Latest{% endtranslate %}</span> <span class="badge rounded-pill bg-uproot ms-1">Beta</span>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}
-                    One row per player showing their final state: just the last/current value of every field.
-                    {% endtranslate %}
-                </div>
-            </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="format-latest-fields" x-model="grouped">
-                <label class="form-check-label" for="format-latest-fields">{% translate %}Latest &times; Field(s){% endtranslate %} <span class="badge rounded-pill bg-uproot ms-1">Beta</span></label>
+                <label class="form-check-label" for="format-latest-fields">{% translate %}Latest &times; Field(s){% endtranslate %}</label>
                 <div class="form-text mt-2 text-secondary">
                     {% translate %}
                     Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.
@@ -111,12 +92,8 @@
             <div class="form-check mb-3">
                 <input class="form-check-input" type="radio" id="filetype-jsonl" name="filetype" value="jsonl">
                 <label class="form-check-label" for="filetype-jsonl">JSONL</label>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}JSONL is recommended for analysis.{% endtranslate %}
-                    {% translate %}Each format comes as one JSONL file per storage, such as latest/player.jsonl.{% endtranslate %}
-                </div>
             </div>
-            <h4 class="mb-3 mt-4">
+            <h4 class="mb-3 mt-5">
                 {% translate %}Filters{% endtranslate %}
             </h4>
             <div class="form-check">

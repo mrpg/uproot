@@ -469,9 +469,6 @@
 ? 'Digest'
 : 'ダイジェスト'
 
-? 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
-: '各行は変更を表し、すべてのフィールドがそれぞれの列になります。ほとんどのセルは空で、そのタイムスタンプで実際に変更されたフィールドのみに値が入ります。'
-
 ? 'Enter new description:'
 : '新しい説明を入力:'
 
@@ -544,11 +541,11 @@
 ? 'Last changed'
 : '最終更新'
 
-? 'Latest'
-: '最新'
-
 ? 'Latest &times; Field(s)'
 : '最新 &times; フィールド'
+
+? 'Learn more.'
+: '詳細を見る。'
 
 ? 'Log in as admin to view more information on this page.'
 : '管理者としてログインすると、このページの詳細情報を表示できます。'
@@ -592,9 +589,6 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : '1つ以上のラベルが最大長128文字を超えています。'
 
-? 'One row per player showing their final state: just the last/current value of every field.'
-: 'プレイヤーごとに1行で最終状態を表示: 全フィールドの最新/現在の値のみ。'
-
 ? 'Other data'
 : 'その他のデータ'
 
@@ -618,9 +612,6 @@
 
 ? 'Put all selected players in the same group'
 : '選択した全プレイヤーを同じグループに入れる'
-
-? 'Raw event log where every single change to any field becomes its own row.'
-: '全フィールドへのすべての変更が個別の行となる生イベントログ。'
 
 ? 'Redirect players'
 : 'プレイヤーをリダイレクト'
@@ -666,9 +657,6 @@
 
 ? 'Shuffle players before grouping'
 : 'グループ分け前にプレイヤーをシャッフル'
-
-? 'Sparse'
-: 'スパース'
 
 ? 'Start this config immediately'
 : 'この構成を即座に開始'
@@ -744,9 +732,6 @@
 
 ? 'URL must start with http:// or https://'
 : 'URLはhttp://またはhttps://で始まる必要があります'
-
-? 'Ultra Long'
-: 'ウルトラロング'
 
 ? 'Unknown'
 : '不明'
@@ -943,9 +928,6 @@
 ? 'Invoke with data...'
 : 'データを指定して実行...'
 
-? 'JSONL is recommended for analysis.'
-: '分析にはJSONLを推奨します。'
-
 ? 'Limit capacity of resulting session'
 : '作成されるセッションの定員を制限'
 
@@ -1105,11 +1087,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : '各フォーマットはストレージごとに1つのCSVファイル（latest/player.csvなど）で構成されます。'
 
-? 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
-: '各フォーマットはストレージごとに1つのJSONLファイル（latest/player.jsonlなど）で構成されます。'
-
-? 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
-: 'ダウンロードされるのは、3つの主要フォーマットすべてに加え、README.txtと整合性検証用のSHA256SUMSファイルを含むZIPアーカイブです。'
+? 'Every download is a ZIP archive containing three key formats and additional files.'
+: 'ダウンロードされるのは、3つの主要フォーマットと追加ファイルを含むZIPアーカイブです。'
 
 ? 'Formats'
 : 'フォーマット'

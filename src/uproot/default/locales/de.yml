@@ -469,9 +469,6 @@
 ? 'Digest'
 : 'Zusammenfassung'
 
-? 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
-: 'Jede Zeile repräsentiert eine Änderung, wobei jedes mögliche Feld eine eigene Spalte hat: Die meisten Zellen sind leer, und nur die Felder, die sich zu diesem Zeitpunkt tatsächlich geändert haben, werden ausgefüllt.'
-
 ? 'Enter new description:'
 : 'Neue Beschreibung eingeben:'
 
@@ -544,11 +541,11 @@
 ? 'Last changed'
 : 'Zuletzt geändert'
 
-? 'Latest'
-: 'Aktuellste'
-
 ? 'Latest &times; Field(s)'
 : 'Aktuellste &times; Feld(er)'
+
+? 'Learn more.'
+: 'Mehr erfahren.'
 
 ? 'Log in as admin to view more information on this page.'
 : 'Melden Sie sich als Administrator an, um weitere Informationen auf dieser Seite anzuzeigen.'
@@ -592,9 +589,6 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'Ein oder mehrere Labels überschreiten die maximale Länge von 128 Zeichen.'
 
-? 'One row per player showing their final state: just the last/current value of every field.'
-: 'Eine Zeile pro Spieler mit dem Endzustand: nur der letzte/aktuelle Wert jedes Feldes.'
-
 ? 'Other data'
 : 'Sonstige Daten'
 
@@ -618,9 +612,6 @@
 
 ? 'Put all selected players in the same group'
 : 'Alle ausgewählten Spieler in dieselbe Gruppe setzen'
-
-? 'Raw event log where every single change to any field becomes its own row.'
-: 'Rohes Ereignisprotokoll, bei dem jede einzelne Änderung an einem Feld zu einer eigenen Zeile wird.'
 
 ? 'Redirect players'
 : 'Spieler weiterleiten'
@@ -666,9 +657,6 @@
 
 ? 'Shuffle players before grouping'
 : 'Spieler vor dem Gruppieren mischen'
-
-? 'Sparse'
-: 'Dünnbesetzt'
 
 ? 'Start this config immediately'
 : 'Diese Konfiguration sofort starten'
@@ -744,9 +732,6 @@
 
 ? 'URL must start with http:// or https://'
 : 'URL muss mit http:// oder https:// beginnen'
-
-? 'Ultra Long'
-: 'Ultralang'
 
 ? 'Unknown'
 : 'Unbekannt'
@@ -943,9 +928,6 @@
 ? 'Invoke with data...'
 : 'Mit Daten aufrufen...'
 
-? 'JSONL is recommended for analysis.'
-: 'JSONL wird für Analysen empfohlen.'
-
 ? 'Limit capacity of resulting session'
 : 'Kapazität der resultierenden Session begrenzen'
 
@@ -1105,11 +1087,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Jedes Format besteht aus einer CSV-Datei pro Storage, z. B. latest/player.csv.'
 
-? 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
-: 'Jedes Format besteht aus einer JSONL-Datei pro Storage, z. B. latest/player.jsonl.'
-
-? 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
-: 'Jeder Download ist ein ZIP-Archiv, das alle drei zentralen Formate sowie eine README.txt und eine SHA256SUMS-Datei zur Integritätsprüfung enthält.'
+? 'Every download is a ZIP archive containing three key formats and additional files.'
+: 'Jeder Download ist ein ZIP-Archiv mit drei zentralen Formaten und zusätzlichen Dateien.'
 
 ? 'Formats'
 : 'Formate'

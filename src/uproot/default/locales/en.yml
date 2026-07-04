@@ -469,9 +469,6 @@
 ? 'Digest'
 : 'Digest'
 
-? 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
-: 'Each row represents a change, with every possible field as its own column: most cells are empty, and only the fields that actually changed at that timestamp get filled in.'
-
 ? 'Enter new description:'
 : 'Enter new description:'
 
@@ -544,11 +541,11 @@
 ? 'Last changed'
 : 'Last changed'
 
-? 'Latest'
-: 'Latest'
-
 ? 'Latest &times; Field(s)'
 : 'Latest &times; Field(s)'
+
+? 'Learn more.'
+: 'Learn more.'
 
 ? 'Log in as admin to view more information on this page.'
 : 'Log in as admin to view more information on this page.'
@@ -592,9 +589,6 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'One or more labels exceed the maximum length of 128 characters.'
 
-? 'One row per player showing their final state: just the last/current value of every field.'
-: 'One row per player showing their final state: just the last/current value of every field.'
-
 ? 'Other data'
 : 'Other data'
 
@@ -618,9 +612,6 @@
 
 ? 'Put all selected players in the same group'
 : 'Put all selected players in the same group'
-
-? 'Raw event log where every single change to any field becomes its own row.'
-: 'Raw event log where every single change to any field becomes its own row.'
 
 ? 'Redirect players'
 : 'Redirect players'
@@ -666,9 +657,6 @@
 
 ? 'Shuffle players before grouping'
 : 'Shuffle players before grouping'
-
-? 'Sparse'
-: 'Sparse'
 
 ? 'Start this config immediately'
 : 'Start this config immediately'
@@ -744,9 +732,6 @@
 
 ? 'URL must start with http:// or https://'
 : 'URL must start with http:// or https://'
-
-? 'Ultra Long'
-: 'Ultra Long'
 
 ? 'Unknown'
 : 'Unknown'
@@ -943,9 +928,6 @@
 ? 'Invoke with data...'
 : 'Invoke with data...'
 
-? 'JSONL is recommended for analysis.'
-: 'JSONL is recommended for analysis.'
-
 ? 'Limit capacity of resulting session'
 : 'Limit capacity of resulting session'
 
@@ -1105,11 +1087,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 
-? 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
-: 'Each format comes as one JSONL file per storage, such as latest/player.jsonl.'
-
-? 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
-: 'Every download is a ZIP archive containing all three key formats, plus a README.txt and a SHA256SUMS file for verifying integrity.'
+? 'Every download is a ZIP archive containing three key formats and additional files.'
+: 'Every download is a ZIP archive containing three key formats and additional files.'
 
 ? 'Formats'
 : 'Formats'
