@@ -134,24 +134,18 @@ def restore(app: FastAPI, admin: s.Storage) -> None:
         with s.Session(sname) as session:
             for pid in session._uproot_players:
                 with s.Player(pid.sname, pid.uname) as player:
-                    # Handle watches
-                    watches = getattr(player, "_uproot_watch", None)
-                    if watches is not None:
-                        for watch in cast(list[list[Any]], watches):
-                            u.WATCH.add((pid, *watch))
+                    for watch in cast(list[list[Any]], player._uproot_watch):
+                        u.WATCH.add((pid, *watch))
 
             for mname in session._uproot_models:
                 with s.Model(sname, mname) as model_:
-                    hooks = getattr(model_, "_uproot_on_message", None)
+                    for hook in cast(list[list[str]], model_._uproot_on_message):
+                        key = (sname, mname)
+                        entries = u.CHAT_HOOKS.setdefault(key, [])
+                        pair = (hook[0], hook[1])
 
-                    if hooks is not None:
-                        for hook in cast(list[list[str]], hooks):
-                            key = (sname, mname)
-                            entries = u.CHAT_HOOKS.setdefault(key, [])
-                            pair = (hook[0], hook[1])
-
-                            if pair not in entries:
-                                entries.append(pair)
+                        if pair not in entries:
+                            entries.append(pair)
 
 
 def here(

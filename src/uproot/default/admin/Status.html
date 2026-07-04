@@ -170,31 +170,6 @@ Server status
     <div class="col-12 col-xl-6 mb-4-5">
         <div class="card h-100">
             <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Environment variables{% endtranslate %}</h4>
-            </div>
-            <div class="card-body pt-2">
-                <table class="mb-0 table table-hover table-sm" style="table-layout: fixed">
-                    <thead>
-                        <tr>
-                            <th class="col-6 fw-semibold ps-0" scope="col">{% translate %}Variable{% endtranslate %}</th>
-                            <th class="fw-semibold pe-0" scope="col">{% translate %}Value{% endtranslate %}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="font-monospace">
-                        {% for name, value in environ.items() %}
-                        <tr>
-                            <td class="ps-0">{{ name }}</td>
-                            <td class="pe-0">{{ value }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-xl-6 mb-4-5">
-        <div class="card h-100">
-            <div class="bg-white border-0 card-header pb-1">
                 <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Installed packages{% endtranslate %}</h4>
             </div>
             <div class="card-body pt-2">

@@ -459,10 +459,10 @@ async def render(
                 ),
                 "_uproot_js": jsvars,
                 "_uproot_simulate": bool(
-                    player is not None and session.get("_uproot_simulate", False)  # type: ignore[attr-defined]
+                    player is not None and session._uproot_simulate  # type: ignore[attr-defined]
                 ),
                 "show_testing": sname is not None
-                and (is_admin or getattr(session, "_uproot_testing", False)),
+                and (is_admin or cast(Storage, session)._uproot_testing),
             }
             | function_context(page)
             | internal

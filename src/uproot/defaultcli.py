@@ -217,13 +217,19 @@ Examples:
   uproot api sessions                          # List sessions
   uproot api sessions/mysession                # Get session details
   uproot api rooms                             # List rooms
+  uproot api rooms/waiting-room                # Get room details
   uproot api configs                           # List configurations
-  uproot api sessions/mysession/players        # Get players
+  uproot api configs/myconfig                  # Get configuration details
+  uproot api dashboard                         # Get dashboard aggregate
+  uproot api status                            # Get server status
+  uproot api sessions/mysession/players        # Get player fields
   uproot api sessions/mysession/players/online # Get online players
+  uproot api sessions/mysession/pipelines      # List pipelines
 
   uproot api -X POST sessions -d '{"config":"myconfig","n_players":4}'
   uproot api -X PATCH sessions/mysession/active
   uproot api -X POST sessions/mysession/players/advance -d '{"unames":["ABC"]}'
+  uproot api -X POST sessions/mysession/pipelines/myapp/runs -d '{"round":1}'
 
 For HTTPS or non-default servers:
   uproot api -u https://example.com/ sessions

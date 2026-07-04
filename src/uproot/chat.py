@@ -412,9 +412,6 @@ def on_message(
     pair = (fun.__module__, fun.__name__)
 
     with model(chat) as m:
-        if not hasattr(m, "_uproot_on_message"):
-            m._uproot_on_message = []
-
         if pair not in m._uproot_on_message:
             m._uproot_on_message.append(list(pair))
 

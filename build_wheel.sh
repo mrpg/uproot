@@ -1,3 +1,3 @@
 #!/bin/sh
 
-pip wheel . -w dist/
+uv run pip wheel . -w dist/

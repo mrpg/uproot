@@ -706,8 +706,8 @@
 ? 'The room name you entered is invalid.'
 : 'Der eingegebene Raumname ist ungültig.'
 
-? 'The session must exist. This can be used to add players to an existing session.'
-: 'Die Session muss existieren. Dies kann zum Hinzufügen von Spielern zu einer bestehenden Session verwendet werden.'
+? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
+: 'Die Session muss existieren. Dies kann zum Hinzufügen von Spielern zu einer bestehenden Session verwendet werden. Der Raum wird sofort geöffnet.'
 
 ? 'The session name you entered is invalid.'
 : 'Der eingegebene Sessionname ist ungültig.'

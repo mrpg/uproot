@@ -598,6 +598,33 @@ a:hover .not-yet-implemented {
     padding: 11px !important;
 }
 
+/* Dropout indication in the player monitor */
+#data-table .tabulator-row.row-dropout {
+    background-color: rgba(var(--bs-danger-rgb), 0.06);
+}
+#data-table .tabulator-row.row-dropout:hover {
+    background-color: rgba(var(--bs-danger-rgb), 0.12);
+}
+
+.dropout-badge {
+    align-items: center;
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-danger-rgb), 0.4);
+    border-radius: 2em;
+    color: var(--bs-danger-text-emphasis);
+    display: inline-flex;
+    font-family: var(--bs-body-font-family);
+    font-size: 0.72rem;
+    font-weight: 600;
+    gap: 0.35em;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    padding: 0.35em 0.7em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
 /* Sorted column styling */
 .tabulator-col[aria-sort="ascending"] .tabulator-col-content,
 .tabulator-col[aria-sort="descending"] .tabulator-col-content {

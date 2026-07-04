@@ -486,8 +486,7 @@ def verify_bearer_token(authorization: Optional[str]) -> bool:
     # Extract the token
     token = authorization[7:]  # Remove "Bearer " prefix
 
-    # Check if the token is in the API_KEYS set
-    return token in d.API_KEYS
+    return any(hmac.compare_digest(token, key) for key in d.API_KEYS)
 
 
 def require_bearer_token(authorization: Optional[str] = Header(None)) -> None:

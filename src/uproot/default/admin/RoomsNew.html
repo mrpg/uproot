@@ -65,7 +65,7 @@ New room
         }
 
         // Validate session name if entered
-        const snameValue = I("sname").value.trim();
+        const snameValue = I("room-sname").value.trim();
         if (snameValue) {
             snameValid = uproot.vars.sessions_available.includes(snameValue);
         }

@@ -96,6 +96,7 @@ dev = [
     "pytest-cov==7.1.0",
     "radon==6.0.1",
     "ruff==0.15.16",
+    "twine==6.2.0",
 ]
 iban = [
     "schwifty==2026.3.0"
@@ -150,6 +151,7 @@ DEP002 = [
     "ruff",
     # Runtime dependencies not directly imported
     "python-multipart",  # Required by FastAPI for form data
+    "twine",  # Used for publishing
     "websockets",  # Required for WebSocket support
 ]
 DEP003 = [

@@ -357,9 +357,6 @@ def watch_for_dropout(
         "Function must be callable and tolerance must be int or float",
     )
 
-    if not hasattr(player, "_uproot_watch"):
-        player._uproot_watch = []
-
     player._uproot_watch.append(list(triplet))
 
     u.WATCH.add((cast(t.PlayerIdentifier, t.identify(player)), *triplet))
