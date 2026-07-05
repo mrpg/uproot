@@ -152,7 +152,6 @@ def find_python_translate_calls(filepath: str) -> list[tuple[str, int]]:
 def fix_yml_files(missing_keys: set[str], superfluous_keys: set[str]) -> None:
     """Remove superfluous keys and add missing keys to all YAML files."""
     for filepath in collect_yml_files():
-        is_en = os.path.basename(filepath).startswith("en")
         entries = read_yml_entries(filepath)
 
         # Remove superfluous keys
@@ -161,7 +160,7 @@ def fix_yml_files(missing_keys: set[str], superfluous_keys: set[str]) -> None:
         # Add missing keys
         existing = {k for k, _ in entries}
         for key in sorted(missing_keys - existing):
-            value = key if is_en else "TODO"
+            value = key
             entries.append((key, value))
 
         write_yml(filepath, entries)
