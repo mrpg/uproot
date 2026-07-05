@@ -446,6 +446,11 @@ async def render(
                 "C": getattr(app, "C", {}),
                 "form": form,
                 "_": translate,
+                "md_path": (
+                    page.template
+                    if hasattr(page, "template") and page.template.endswith(".md")
+                    else f"{page.__module__}/{page.__name__}.md"
+                ),
                 "page": page,
                 "part": part,
                 "player": player,
@@ -576,6 +581,9 @@ def truepath(page: type[Page]) -> str:
                 pass
 
         return html_path
+
+    if page.template.endswith(".md"):
+        return "BaseMarkdown.html"
 
     return page.template
 
