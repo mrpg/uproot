@@ -17,10 +17,14 @@
 1. Verify release artifacts: `uv run twine check dist/*`.
 1. Upload to PyPI: `uv run twine upload dist/*`.
 
-## Versioning policy
+# Versioning policy
 
 1. uproot follows [Semantic Versioning](https://semver.org/). Versions are represented by Git tags with the `v` prefix, for example `v1.0.0`.
 1. Version `1.0.0` is the first release recommended for public use.
-1. Versions `0.x.y` are development versions. The first development release is `0.1.0`; `0.0.1` is not formally assigned and only denotes everything before `0.1.0`.
+1. Versions `0.x.y` are development versions. The first development release is `0.1.0`.
 1. Development versions do not use SemVer pre-release identifiers.
 1. Avoid the term "pre-alpha"; use "initial development" instead.
+
+# Versions
+
+- `0.0.1` (not formally assigned; denotes all initial-development versions before `0.1.0`)
