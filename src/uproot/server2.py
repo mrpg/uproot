@@ -5,8 +5,6 @@
 This file implements admin routes.
 """
 
-# TODO: CSRF protection?
-
 import asyncio
 import hmac
 import importlib.metadata
