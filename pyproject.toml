@@ -78,7 +78,7 @@ skip = ["tests", "build", "dist", ".venv", "venv"]
 
 [project.optional-dependencies]
 pg = [
-    "appendmuch[pg]",  # TODO: Fix actual version
+    "appendmuch[pg]==0.1.0",
 ]
 dev = [
     "bandit==1.9.4",

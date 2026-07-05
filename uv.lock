@@ -2038,7 +2038,7 @@ pg = [
 [package.metadata]
 requires-dist = [
     { name = "appendmuch", specifier = "==0.1.0" },
-    { name = "appendmuch", extras = ["pg"], marker = "extra == 'pg'" },
+    { name = "appendmuch", extras = ["pg"], marker = "extra == 'pg'", specifier = "==0.1.0" },
     { name = "bandit", marker = "extra == 'dev'", specifier = "==1.9.4" },
     { name = "black", marker = "extra == 'dev'", specifier = "==26.5.1" },
     { name = "click", specifier = "==8.4.2" },
