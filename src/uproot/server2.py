@@ -52,6 +52,7 @@ from uproot.constraints import ensure
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
 from uproot.pages import static_factory, terms_url, to_filter, tojson_filter
+from uproot.security import require_same_origin_websocket
 from uproot.storage import Admin, Session
 from uproot.types import ensure_awaitable
 from uproot.utils import safe_redirect_response
@@ -154,6 +155,8 @@ async def home(
 
 @router.websocket("/ws/")
 async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
+    require_same_origin_websocket(websocket)
+
     if not d.UNSAFE:
         if uauth is None:
             raise HTTPException(status_code=403, detail="No authentication token")

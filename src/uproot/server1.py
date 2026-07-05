@@ -56,6 +56,7 @@ from uproot.pages import (
     validate,
     verify_csrf,
 )
+from uproot.security import require_same_origin_websocket
 from uproot.storage import (
     Player,
     Session,
@@ -583,6 +584,7 @@ async def ws(
     player: Storage = Depends(valid_player),
     uauth: Optional[str] = Cookie(None),
 ) -> None:
+    require_same_origin_websocket(websocket)
     await websocket.accept()
 
     pid = cast(t.PlayerIdentifier, t.identify(player))

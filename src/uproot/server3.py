@@ -28,6 +28,7 @@ import uproot.rooms as ur
 import uproot.types as t
 from uproot.constraints import ensure, valid_token
 from uproot.pages import path2page, render
+from uproot.security import require_same_origin_websocket
 from uproot.storage import Admin, Player, Session
 from uproot.utils import safe_redirect_response
 
@@ -195,6 +196,8 @@ async def ws(
     roomname: str,
     label: str = "",
 ) -> None:
+    require_same_origin_websocket(websocket)
+
     label = ur.constrain_label(label)
 
     with Admin() as admin:
