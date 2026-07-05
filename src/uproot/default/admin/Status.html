@@ -242,6 +242,11 @@ Server status
         const i_am = parseVersion(uproot.vars.versions.uproot);
 
         uproot.invoke("announcements").then((data) => {
+            if (data.error) {
+                uproot.alert(`<p>${_("Announcements could not be fetched.")} ${_("Please visit")} <a href="https://uproot.science/" target="_blank">uproot.science</a>.</p>`);
+                return;
+            }
+
             const recommended = parseVersion(data.recommendedVersion);
             let safeHTML = "<p>";
 

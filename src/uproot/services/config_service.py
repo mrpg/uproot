@@ -3,12 +3,14 @@
 
 """Configuration management service."""
 
+from time import time
 from typing import Any, cast
 
 import httpx
 from sortedcontainers import SortedDict
 
 import uproot as u
+import uproot.storage as s
 
 
 def config_summary(cname: str) -> str:
@@ -52,9 +54,17 @@ async def announcements() -> dict[str, Any]:
     """Fetch announcements from the upstream repository."""
     ANNOUNCEMENTS_URL = "https://raw.githubusercontent.com/mrpg/uproot/refs/heads/main/announcements.json"
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(ANNOUNCEMENTS_URL)
-        return cast(dict[str, Any], response.json())
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(ANNOUNCEMENTS_URL)
+            data = cast(dict[str, Any], response.json())
+    except Exception:
+        return {"error": True}
+
+    with s.Admin() as admin:
+        admin.announcements_queried = time()
+
+    return data
 
 
 async def praise() -> str:

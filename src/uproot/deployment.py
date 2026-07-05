@@ -4,6 +4,7 @@
 import logging
 import os
 import secrets
+from time import perf_counter
 from types import EllipsisType
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -59,6 +60,7 @@ ROBOTS_TXT: bool = os.getenv("UPROOT_ROBOTS_TXT", "1").lower() not in (
 )
 PATH: str = os.getcwd()
 PORT: int = 8000
+PROCESS_START: float = perf_counter()
 PROJECT_METADATA: dict[str, Any] = {}
 PUBLIC_DEMO: bool = False
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")

@@ -12,6 +12,22 @@ Dashboard
 
 {% block main %}
 
+{% if nudge_announcements %}
+<div class="alert alert-warning border-warning text-black callout mb-4 d-flex align-items-center">
+    <i class="bi bi-megaphone me-2"></i>
+    <div>
+        {% translate %}
+        You have not checked for important announcements recently.
+        {% endtranslate %}
+        <a class="alert-link" href="../status/">
+            {% translate %}
+            Check now.
+            {% endtranslate %}
+        </a>
+    </div>
+</div>
+{% endif %}
+
 <div class="gx-xl-4-5 pt-2 row">
     <div class="col-12 col-xl-6">
         <h3 class="mb-4">

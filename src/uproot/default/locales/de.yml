@@ -113,7 +113,10 @@
 : 'Chat mit Studienleitung'
 
 ? 'Check for important annoucements'
-: 'Auf wichtige Ankündigungen prüfen'
+: 'Nach wichtigen Ankündigungen suchen'
+
+? 'Check now.'
+: 'Jetzt prüfen'
 
 ? 'Config'
 : 'Konfiguration'
@@ -1101,3 +1104,12 @@
 
 ? 'Set'
 : 'Festlegen'
+
+? 'Announcements could not be fetched.'
+: 'Die Ankündigungen konnten nicht geladen werden.'
+
+? 'Please visit'
+: 'Bitte besuchen Sie'
+
+? 'You have not checked for important announcements recently.'
+: 'Sie haben schon länger nicht mehr geprüft, ob es wichtige Ankündigungen gibt.'

@@ -115,6 +115,9 @@
 ? 'Check for important annoucements'
 : '重要なお知らせを確認'
 
+? 'Check now.'
+: '今すぐ確認'
+
 ? 'Config'
 : '構成'
 
@@ -1101,3 +1104,12 @@
 
 ? 'Set'
 : '設定'
+
+? 'Announcements could not be fetched.'
+: 'お知らせを読み込めませんでした。'
+
+? 'Please visit'
+: '次のサイトをご覧ください：'
+
+? 'You have not checked for important announcements recently.'
+: '重要なお知らせをしばらく確認していません。'

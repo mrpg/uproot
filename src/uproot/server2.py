@@ -14,6 +14,7 @@ import os
 import sys
 from datetime import datetime, timezone
 from time import perf_counter as now
+from time import time
 from typing import Any, Optional, cast
 from urllib.parse import quote
 
@@ -534,6 +535,14 @@ async def dashboard(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
+    nudge_announcements = False
+
+    if not d.PUBLIC_DEMO and now() - d.PROCESS_START > 600:
+        with Admin() as admin:
+            queried = getattr(admin, "announcements_queried", None)
+
+        nudge_announcements = queried is None or time() - queried > 7 * 86400
+
     return HTMLResponse(
         await render(
             "Dashboard.html",
@@ -544,7 +553,8 @@ async def dashboard(
                     sname: sinfo
                     for sname, sinfo in a.sessions().items()
                     if sinfo["active"]
-                },  # To avoid clutter, Dashboard shows active sessions only
+                },
+                "nudge_announcements": nudge_announcements,
             },
         )
     )

@@ -113,7 +113,10 @@
 : 'Chat con Coordinador de Investigación'
 
 ? 'Check for important annoucements'
-: 'Verificar anuncios importantes'
+: 'Revisar avisos importantes'
+
+? 'Check now.'
+: 'Revisar ahora'
 
 ? 'Config'
 : 'Configuración'
@@ -1101,3 +1104,12 @@
 
 ? 'Set'
 : 'Establecer'
+
+? 'Announcements could not be fetched.'
+: 'No se pudieron cargar los avisos.'
+
+? 'Please visit'
+: 'Visite'
+
+? 'You have not checked for important announcements recently.'
+: 'Hace tiempo que no revisa los avisos importantes.'
