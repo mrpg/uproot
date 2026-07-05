@@ -255,7 +255,7 @@ Server status
 
         uproot.invoke("announcements").then((data) => {
             if (data.error) {
-                uproot.alert(`<p>${_("We couldn't load announcements.")} ${_("Please visit")} <a href="https://uproot.science/" target="_blank">uproot.science</a>.</p>`);
+                uproot.alert(`<p>${_("We couldn't load announcements.")} ${_("Please visit")} <a class="link-uproot" href="https://uproot.science/" target="_blank">uproot.science</a>.</p>`);
                 return;
             }
 
