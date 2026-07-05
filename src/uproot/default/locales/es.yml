@@ -112,7 +112,7 @@
 ? 'Chat with Research Coordinator'
 : 'Chat con Coordinador de Investigación'
 
-? 'Check for important annoucements'
+? 'Check for important announcements'
 : 'Revisar avisos importantes'
 
 ? 'Check now.'
@@ -1105,7 +1105,7 @@
 ? 'Set'
 : 'Establecer'
 
-? 'Announcements could not be fetched.'
+? 'We couldn''t load announcements.'
 : 'No se pudieron cargar los avisos.'
 
 ? 'Please visit'

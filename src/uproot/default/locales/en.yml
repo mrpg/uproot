@@ -112,11 +112,11 @@
 ? 'Chat with Research Coordinator'
 : 'Chat with Research Coordinator'
 
-? 'Check for important annoucements'
+? 'Check for important announcements'
 : 'Check for important announcements'
 
 ? 'Check now.'
-: 'Check now'
+: 'Check now.'
 
 ? 'Config'
 : 'Config'
@@ -1105,11 +1105,11 @@
 ? 'Set'
 : 'Set'
 
-? 'Announcements could not be fetched.'
+? 'We couldn''t load announcements.'
 : 'We couldn''t load announcements.'
 
 ? 'Please visit'
 : 'Please visit'
 
 ? 'You have not checked for important announcements recently.'
-: 'You haven''t checked for important announcements recently.'
+: 'You have not checked for important announcements recently.'

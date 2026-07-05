@@ -112,7 +112,7 @@
 ? 'Chat with Research Coordinator'
 : 'リサーチコーディネーターとチャット'
 
-? 'Check for important annoucements'
+? 'Check for important announcements'
 : '重要なお知らせを確認'
 
 ? 'Check now.'
@@ -1105,7 +1105,7 @@
 ? 'Set'
 : '設定'
 
-? 'Announcements could not be fetched.'
+? 'We couldn''t load announcements.'
 : 'お知らせを読み込めませんでした。'
 
 ? 'Please visit'

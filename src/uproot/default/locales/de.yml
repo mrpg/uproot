@@ -112,7 +112,7 @@
 ? 'Chat with Research Coordinator'
 : 'Chat mit Studienleitung'
 
-? 'Check for important annoucements'
+? 'Check for important announcements'
 : 'Nach wichtigen Ankündigungen suchen'
 
 ? 'Check now.'
@@ -1105,7 +1105,7 @@
 ? 'Set'
 : 'Festlegen'
 
-? 'Announcements could not be fetched.'
+? 'We couldn''t load announcements.'
 : 'Die Ankündigungen konnten nicht geladen werden.'
 
 ? 'Please visit'
