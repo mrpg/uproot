@@ -50,6 +50,7 @@ async def test_markdown_page_uses_h1_as_rendered_title():
 
     rendered = await environment.get_template("BaseMarkdown.html").render_async(
         page=ExamplePage,
+        md_path=markdown_path(ExamplePage),
         name="<Alice>",
         value="<strong>",
     )
@@ -77,7 +78,8 @@ async def test_multiple_markdown_h1s_do_not_create_uproot_title():
     )
 
     rendered = await environment.get_template("BaseMarkdown.html").render_async(
-        page=ExamplePage
+        page=ExamplePage,
+        md_path=markdown_path(ExamplePage),
     )
 
     assert 'id="uproot-title"' not in rendered
@@ -103,6 +105,42 @@ def test_truepath_falls_back_to_markdown_but_prefers_html(monkeypatch):
 
     assert pages.truepath(MarkdownPage) == "BaseMarkdown.html"
     assert pages.truepath(HtmlPage) == f"{HtmlPage.__module__}/{HtmlPage.__name__}.html"
+
+
+def test_truepath_explicit_md_template(monkeypatch):
+    class CustomPage:
+        template = "shared/custom.md"
+
+    environment = make_environment({"shared/custom.md": "# Custom\n"})
+    monkeypatch.setattr(pages, "ENV", environment)
+
+    assert pages.truepath(CustomPage) == "BaseMarkdown.html"
+
+
+async def test_explicit_md_template_renders(monkeypatch):
+    class CustomPage:
+        template = "shared/info.md"
+
+    environment = make_environment(
+        {
+            "shared/info.md": "# Info\n\nSome **details**.\n",
+            "Base.html": (
+                "{% set page_title %}{% block title %}{% endblock title %}"
+                "{% endset %}"
+                '{% if page_title %}<h1 id="uproot-title">'
+                "{{ page_title }}</h1>{% endif %}"
+                "<main>{% block main %}{% endblock main %}</main>"
+            ),
+        }
+    )
+
+    rendered = await environment.get_template("BaseMarkdown.html").render_async(
+        page=CustomPage,
+        md_path="shared/info.md",
+    )
+
+    assert '<h1 id="uproot-title">Info</h1>' in rendered
+    assert "<p>Some <strong>details</strong>.</p>" in rendered
 
 
 def test_truepath_populates_template_cache(monkeypatch):
@@ -152,6 +190,7 @@ async def test_markdown_translation_preserves_markdown(monkeypatch):
 
     rendered = await environment.get_template("BaseMarkdown.html").render_async(
         page=ExamplePage,
+        md_path=markdown_path(ExamplePage),
         _uproot_internal={"language": "de"},
     )
 
