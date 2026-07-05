@@ -54,6 +54,41 @@ Server status
             </div>
         </div>
     </div>
+    <div class="col-12 col-xl-6 mb-4-5">
+        <div class="card h-100">
+            <div class="bg-white border-0 card-header pb-1">
+                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">uproot {% translate %}version{% endtranslate %}</h4>
+            </div>
+            <div class="card-body pb-3">
+                <p>
+                    {% translate %}You are currently running{% endtranslate %}
+                    uproot {{ versions.uproot }}.
+                </p>
+
+                {% if nudge_announcements %}
+                <div class="alert alert-warning border-warning text-black callout mb-4 d-flex align-items-center">
+                    <i class="bi bi-megaphone me-2"></i>
+                    <div>
+                        {% translate %}
+                        You have not checked for important announcements recently.
+                        {% endtranslate %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <p class="mb-1">
+                    <button type="button" class="btn btn-outline-uproot btn-sm fw-semibold" onclick="announcements()">
+                        {% translate %}
+                        Check for important announcements
+                        {% endtranslate %}
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="gx-lg-4-5 row">
     <div class="col-12 col-lg-6 mb-4-5">
         <div class="card h-100">
             <div class="card-header bg-white border-0 card-header pb-1">
@@ -127,29 +162,6 @@ Server status
                     </a>
                 </p>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="gx-lg-4-5 row">
-    <div class="col-12 col-xl-6 mb-4-5">
-        <div class="card h-100">
-            <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">uproot {% translate %}version{% endtranslate %}</h4>
-            </div>
-            <div class="card-body pb-3">
-                <p>
-                    {% translate %}You are currently running{% endtranslate %}
-                    uproot {{ versions.uproot }}.
-                </p>
-                <p class="mb-1">
-                    <button type="button" class="btn btn-outline-uproot btn-sm fw-semibold" onclick="announcements()">
-                        {% translate %}
-                        Check for important announcements
-                        {% endtranslate %}
-                    </button>
-                </p>
             </div>
         </div>
     </div>

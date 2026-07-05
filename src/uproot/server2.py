@@ -527,6 +527,16 @@ def auth_cookie_secure(request: Request, x_forwarded_proto: str = "") -> bool:
     return request.url.scheme == "https"
 
 
+def nudge_announcements() -> bool:
+    if not d.PUBLIC_DEMO and now() - d.PROCESS_START > 600:
+        with Admin() as admin:
+            queried = admin.get("announcements_queried")
+
+        return queried is None or time() - queried > 7 * 86400
+
+    return False
+
+
 # Dashboard
 
 
@@ -535,14 +545,6 @@ async def dashboard(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    nudge_announcements = False
-
-    if not d.PUBLIC_DEMO and now() - d.PROCESS_START > 600:
-        with Admin() as admin:
-            queried = getattr(admin, "announcements_queried", None)
-
-        nudge_announcements = queried is None or time() - queried > 7 * 86400
-
     return HTMLResponse(
         await render(
             "Dashboard.html",
@@ -554,7 +556,7 @@ async def dashboard(
                     for sname, sinfo in a.sessions().items()
                     if sinfo["active"]
                 },
-                "nudge_announcements": nudge_announcements,
+                "nudge_announcements": nudge_announcements(),
             },
         )
     )
@@ -1264,6 +1266,7 @@ async def status(
                         "uproot": u.__version__,
                         "python": sys.version,
                     },
+                    "nudge_announcements": nudge_announcements(),
                 },
                 {
                     "packages": SortedDict(
