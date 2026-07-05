@@ -1,6 +1,7 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from time import time
 from typing import Any, Callable, Optional, Sequence, cast
 from uuid import UUID
 
@@ -323,6 +324,7 @@ async def notify(
         recipients = players(mid)
 
     msg = Message(sender=pid, text=msgtext)  # type: ignore[call-arg]
+    message_time = time()
 
     for p in recipients:
         q.enqueue(
@@ -332,7 +334,7 @@ async def notify(
                 "data": show_msg(
                     mid,
                     msg_id,
-                    d.DATABASE.now,  # HACK: approximate time
+                    message_time,
                     msg,
                     p,
                 ),
@@ -365,6 +367,7 @@ async def notify_adminchat(
 
     recipients = players(mid)
     msg = Message(sender=pid, text=msgtext)  # type: ignore[call-arg]
+    message_time = time()
 
     for recipient in recipients:
         q.enqueue(
@@ -374,7 +377,7 @@ async def notify_adminchat(
                 "data": show_adminchat_msg(
                     mid,
                     msg_id,
-                    d.DATABASE.now,
+                    message_time,
                     msg,
                     recipient,
                 ),
@@ -387,7 +390,7 @@ async def notify_adminchat(
             adminchat_event(
                 recipients[0],
                 kind="message",
-                message=show_adminchat_msg(mid, msg_id, d.DATABASE.now, msg, None),
+                message=show_adminchat_msg(mid, msg_id, message_time, msg, None),
             )
         )
 
