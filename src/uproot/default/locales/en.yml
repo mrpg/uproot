@@ -1113,3 +1113,9 @@
 
 ? 'You have not checked for important announcements recently.'
 : 'You have not checked for important announcements recently.'
+
+? 'uproot never phones home.'
+: 'uproot never phones home.'
+
+? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'
+: 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'

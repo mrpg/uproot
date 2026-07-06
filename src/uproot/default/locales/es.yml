@@ -1113,3 +1113,9 @@
 
 ? 'You have not checked for important announcements recently.'
 : 'Hace tiempo que no revisa los avisos importantes.'
+
+? 'uproot never phones home.'
+: 'uproot nunca se conecta a servidores externos por su cuenta.'
+
+? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'
+: 'Al hacer clic en este botón, su servidor de uproot simplemente consulta en GitHub si los desarrolladores han publicado alguna novedad relevante.'

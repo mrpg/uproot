@@ -1113,3 +1113,9 @@
 
 ? 'You have not checked for important announcements recently.'
 : '重要なお知らせをしばらく確認していません。'
+
+? 'uproot never phones home.'
+: 'uprootが自動的に外部と通信することは一切ありません。'
+
+? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'
+: 'このボタンを押した場合にのみ、uprootサーバーがGitHub上で開発者からの関連するお知らせの有無を確認します。'

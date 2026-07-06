@@ -1113,3 +1113,9 @@
 
 ? 'You have not checked for important announcements recently.'
 : 'Sie haben schon länger nicht mehr geprüft, ob es wichtige Ankündigungen gibt.'
+
+? 'uproot never phones home.'
+: 'uproot telefoniert niemals nach Hause.'
+
+? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'
+: 'Wenn Sie hier klicken, prüft Ihr uproot-Server lediglich, ob die Entwickler relevante Neuigkeiten auf GitHub veröffentlicht haben.'
