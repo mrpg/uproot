@@ -118,7 +118,7 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
         await asyncio.sleep(interval)
 
 
-def synchronize_rooms(app: FastAPI, admin: s.Storage) -> None:
+def synchronize_rooms(admin: s.Storage) -> None:
     if not hasattr(admin, "rooms"):
         admin.rooms = {}
 

@@ -63,6 +63,7 @@ PORT: int = 8000
 PROCESS_START: float = perf_counter()
 PROJECT_METADATA: dict[str, Any] = {}
 PUBLIC_DEMO: bool = False
+QUICK_ROOM: Optional[str] = None
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"

@@ -54,6 +54,7 @@ def show_help() -> None:
     print()
     print("Project commands (require main.py in current directory):")
     print("  run          Run this uproot project")
+    print("  start        Create and open a quick room, then run this uproot project")
     print("  reset        Reset database")
     print("  dump         Dump database to file")
     print("  restore      Restore database from file")
@@ -184,6 +185,7 @@ def main() -> None:
         "reset",
         "restore",
         "run",
+        "start",
     ]
 
     parser = argparse.ArgumentParser(prog="uproot", add_help=False)

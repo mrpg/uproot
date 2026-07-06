@@ -14,6 +14,7 @@ from typing import (
     Optional,
     cast,
 )
+from urllib.parse import quote
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -71,7 +72,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     with Admin() as admin:
         c.create_admin(admin)
-        j.synchronize_rooms(app, admin)
+        j.synchronize_rooms(admin)
         j.restore(app, admin)
 
     if d.ORIGIN is None:
@@ -133,6 +134,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
             )
 
             print(file=stderr)
+
+    if d.QUICK_ROOM is not None:
+        print(
+            "Room:\n\t",
+            f"{d.ORIGIN}{d.ROOT}/room/{quote(d.QUICK_ROOM, safe='')}/",
+            file=stderr,
+        )
+        print(file=stderr)
 
     tasks = []
 

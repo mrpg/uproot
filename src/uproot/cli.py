@@ -10,7 +10,7 @@ import time
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
+from typing import Collection, Generator
 
 import click
 import httpx
@@ -65,6 +65,130 @@ def set_ulimit() -> None:
             resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
         except (OSError, ValueError):
             pass
+
+
+def configure_server(host: str, port: int, unsafe: bool, public_demo: bool) -> None:
+    if public_demo and not unsafe:
+        raise click.ClickException(
+            "If you use --public-demo, you MUST also use --unsafe."
+        )
+
+    d.HOST = host
+    d.PORT = port
+    d.UNSAFE = unsafe
+    d.PUBLIC_DEMO = public_demo
+
+
+def run_server(host: str, port: int) -> None:
+    set_ulimit()
+
+    uvicorn.run(
+        "main:uproot_server",
+        host=host,
+        port=port,
+        workers=1,  # must be 1
+        **d.UVICORN_KWARGS,
+    )
+
+
+def project_configs() -> list[str]:
+    import uproot as u
+
+    return sorted(config for config in u.CONFIGS if not config.startswith("~"))
+
+
+def resolve_start_config(config_arg: str | None, config: str | None) -> str:
+    if config_arg and config:
+        raise click.ClickException(
+            "Pass the config either as CONFIG or --config, not both."
+        )
+
+    selected_config = config or config_arg
+    configs = project_configs()
+    config_list = ", ".join(configs)
+
+    if selected_config:
+        if selected_config not in configs:
+            if config_list:
+                raise click.ClickException(
+                    f"Unknown config {selected_config!r}. Available configs: {config_list}"
+                )
+
+            raise click.ClickException(f"Unknown config {selected_config!r}.")
+
+        return selected_config
+
+    if len(configs) == 1:
+        return configs[0]
+
+    if configs:
+        raise click.ClickException(
+            f"Multiple configs are loaded. Pass one explicitly: {config_list}"
+        )
+
+    raise click.ClickException("No project configs are loaded.")
+
+
+def quick_room_number(roomname: str) -> int | None:
+    if not roomname.startswith("quick"):
+        return None
+
+    suffix = roomname.removeprefix("quick")
+    if not suffix.isdigit():
+        return None
+
+    return int(suffix)
+
+
+def next_quick_roomname(roomnames: Collection[str]) -> str:
+    highest = 0
+
+    for roomname in roomnames:
+        number = quick_room_number(roomname)
+
+        if number is not None:
+            highest = max(highest, number)
+
+    return f"quick{highest + 1}"
+
+
+def create_quick_room(config: str, simulate: bool) -> str:
+    import uproot as u
+    import uproot.core as c
+    import uproot.jobs as j
+    import uproot.rooms as r
+    from uproot.cache import load_database_into_memory
+    from uproot.storage import Admin, Session
+
+    d.DATABASE.ensure()
+    load_database_into_memory()
+
+    with Admin() as admin:
+        c.create_admin(admin)
+        j.synchronize_rooms(admin)
+
+        roomname = next_quick_roomname(admin.rooms)
+        sid = c.create_session(
+            admin,
+            config,
+            settings=u.CONFIGS_EXTRA.get(config, {}).get("settings", {}),
+        )
+        admin.rooms[roomname] = r.room(
+            roomname,
+            config=config,
+            open=True,
+            sname=sid.sname,
+        )
+
+    with Session(sid.sname) as session:
+        session.room = roomname
+
+        if simulate:
+            session._uproot_simulate = True
+
+    r.start(roomname)
+
+    return roomname
 
 
 async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
@@ -135,23 +259,35 @@ def run(
     unsafe: bool,
     public_demo: bool,
 ) -> None:
-    if public_demo and not unsafe:
-        raise RuntimeError("If you use --public-demo, you MUST also use --unsafe.")
+    configure_server(host, port, unsafe, public_demo)
+    run_server(host, port)
 
-    d.HOST = host
-    d.PORT = port
-    d.UNSAFE = unsafe
-    d.PUBLIC_DEMO = public_demo
 
-    set_ulimit()
-
-    uvicorn.run(
-        "main:uproot_server",
-        host=host,
-        port=port,
-        workers=1,  # must be 1
-        **d.UVICORN_KWARGS,
-    )
+# fmt: off
+@click.command(help="Create and open a quick room, then run this uproot project")
+@click.option("--host", "-h", default="127.0.0.1", show_default="127.0.0.1", help="Host")
+@click.option("--port", "-p", default=8000, show_default=8000, help="Port")
+@click.option("--unsafe", default=False, is_flag=True, help="Run without admin authentication")
+@click.option("--public-demo", default=False, is_flag=True, help="Run a public demo (use with --unsafe)")
+@click.option("--config", "-c", default=None, help="Config to start")
+@click.option("--simulate", default=False, is_flag=True, help="Enable simulation for the quick room session")
+@click.argument("config_arg", required=False, metavar="CONFIG")
+@click.pass_context
+# fmt: on
+def start(
+    ctx: click.Context,
+    host: str,
+    port: int,
+    unsafe: bool,
+    public_demo: bool,
+    config: str | None,
+    simulate: bool,
+    config_arg: str | None,
+) -> None:
+    configure_server(host, port, unsafe, public_demo)
+    selected_config = resolve_start_config(config_arg, config)
+    d.QUICK_ROOM = create_quick_room(selected_config, simulate)
+    run_server(host, port)
 
 
 # fmt: off
@@ -247,3 +383,4 @@ cli.add_command(newpage)
 cli.add_command(reset)
 cli.add_command(restore)
 cli.add_command(run)
+cli.add_command(start)
