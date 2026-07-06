@@ -9,9 +9,11 @@ from typing import Any
 
 import uproot as u
 import uproot.chat as chat
+import uproot.deployment as d
 import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
+from uproot.core import resolve_page_order
 from uproot.services.session_service import session_exists
 
 
@@ -85,38 +87,100 @@ async def run_new_player(sname: t.Sessionname, unames: list[str]) -> None:
     session_exists(sname, False)
 
     with s.Session(sname) as session:
-        if not session._uproot_initialized:
-            for appname in session.apps:
-                app = u.APPS[appname]
-
-                if hasattr(app, "new_session"):
-                    app.new_session(session)
-
-            session._uproot_initialized = True
+        run_new_session_callbacks(session)
 
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
         with t.materialize(pid) as player:
-            if player._uproot_initialized:
-                continue
-
-            for appname in u.CONFIGS[player.config]:
-                app = u.APPS[appname]
-
-                if hasattr(app, "new_player"):
-                    app.new_player(player=player)
-
-            player._uproot_initialized = True
+            prepare_player_callbacks(player)
 
 
-async def mark_dropout(sname: t.Sessionname, unames: list[str]) -> None:
+def run_new_session_callbacks(session: s.Storage) -> None:
+    if session._uproot_initialized:
+        return
+
+    for appname in session.apps:
+        app = u.APPS[appname]
+
+        if hasattr(app, "new_session"):
+            app.new_session(session)
+
+    session._uproot_initialized = True
+
+
+def run_new_player_callbacks(player: s.Storage) -> None:
+    if player._uproot_initialized:
+        return
+
+    for appname in u.CONFIGS[player.config]:
+        app = u.APPS[appname]
+
+        if hasattr(app, "new_player"):
+            app.new_player(player=player)
+
+    player._uproot_initialized = True
+
+
+def prepare_player_callbacks(player: s.Storage) -> None:
+    run_new_player_callbacks(player)
+    player.page_order = resolve_page_order(player, player.config)
+
+
+async def run_dropout_handlers(pid: t.PlayerIdentifier, player: s.Storage) -> None:
+    """Run and clear registered dropout handlers for a player."""
+    watches = list(player.get("_uproot_watch", []))
+
+    for watch in watches:
+        tolerance, fmodule, fname = watch
+
+        try:
+            if player.show_page != len(player.page_order):
+                await t.ensure_awaitable(
+                    t.optional_call,
+                    u.APPS[fmodule],
+                    fname,
+                    player=player,
+                )
+        except Exception:
+            d.LOGGER.exception(f"Exception in dropout handler {fmodule}.{fname}")
+        finally:
+            u.WATCH.discard((pid, tolerance, fmodule, fname))
+
+            if watch in player._uproot_watch:
+                player._uproot_watch.remove(watch)
+
+
+async def mark_dropout(
+    sname: t.Sessionname, unames: list[str]
+) -> dict[str, dict[t.Username, Any]]:
     """Mark players as dropouts."""
     session_exists(sname, False)
 
-    for uname in unames:
-        pid = t.PlayerIdentifier(sname, uname)
-        u.MANUAL_DROPOUTS.add(pid)
+    with s.Session(sname) as session:
+        session_players = set(session._uproot_players)
+
+    pids = [t.PlayerIdentifier(sname, uname) for uname in unames]
+    invalid_unames = [pid.uname for pid in pids if pid not in session_players]
+
+    if invalid_unames:
+        raise ValueError(
+            f"Player {invalid_unames[0]!r} does not exist in session {sname!r}"
+        )
+
+    with s.Session(sname) as session:
+        run_new_session_callbacks(session)
+
+    for pid in pids:
+        u.set_offline(pid)
+        u.MANUAL_DROPOUTS.discard(pid)
+
+        with t.materialize(pid) as player:
+            prepare_player_callbacks(player)
+            player._uproot_dropout = True
+            await run_dropout_handlers(pid, player)
+
+    return await info_online(sname)
 
 
 async def advance_by_one(

@@ -880,9 +880,13 @@ async def mark_players_dropout(
 ) -> dict[str, Any]:
     """Mark specified players as manually dropped out."""
     a.session_exists(sname)
-    await a.mark_dropout(sname, body.unames)
+    info_online = await a.mark_dropout(sname, body.unames)
 
-    return {"marked_dropout": body.unames}
+    return {
+        "marked_dropout": body.unames,
+        "info": info_online["info"],
+        "online": info_online["online"],
+    }
 
 
 # =============================================================================

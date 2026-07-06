@@ -282,7 +282,7 @@ function formatDropoutCell(cell) {
     if (cell.getValue() !== true) {
         return "";
     }
-    return `<span class="dropout-badge"><i class="bi bi-person-x-fill"></i>${_("Dropout")}</span>`;
+    return `<span class="dropout-status"><i class="bi bi-person-x-fill" aria-hidden="true"></i>${_("Dropout")}</span>`;
 }
 
 /**

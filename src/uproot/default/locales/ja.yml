@@ -367,6 +367,9 @@
 ? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
 : '<code>watch_for_dropout()</code>で登録されたすべての脱落ハンドラを実行します。'
 
+? 'This may run <code>new_player</code> for players who have not started yet.'
+: 'まだ開始していないプレイヤーに対して<code>new_player</code>を実行する場合があります。'
+
 ? 'Total'
 : '合計'
 

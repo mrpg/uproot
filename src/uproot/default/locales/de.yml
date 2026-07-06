@@ -367,6 +367,9 @@
 ? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
 : 'Dies führt alle Dropout-Handler aus, die mit <code>watch_for_dropout()</code> registriert sind.'
 
+? 'This may run <code>new_player</code> for players who have not started yet.'
+: 'Dies kann <code>new_player</code> für Versuchspersonen ausführen, die noch nicht gestartet sind.'
+
 ? 'Total'
 : 'Gesamt'
 
