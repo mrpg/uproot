@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+import pytest
+
 import uproot as u
 import uproot.chat as chat
 import uproot.core as c
@@ -173,3 +175,13 @@ async def test_player_reply_appears_in_admin_thread():
     assert len(thread["messages"]) == 2
     assert thread["messages"][-1]["sender"] == ("other", pid.uname)
     assert thread["messages"][-1]["text"] == "Yes, I have a question."
+
+
+def test_add_message_rejects_oversized_text():
+    pid = make_player()
+    mid = chat.ensure_adminchat(pid)
+
+    with pytest.raises(ValueError, match="cannot exceed"):
+        chat.add_message(mid, pid, "x" * (chat.MAX_MESSAGE_LENGTH + 1))
+
+    assert chat.messages(mid) == []

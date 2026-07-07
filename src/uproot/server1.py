@@ -694,7 +694,13 @@ async def ws(
 
                     mid = t.ModelIdentifier(sname, mname)
 
-                    if chat.exists(mid) and pid in (pp := chat.players(mid)):
+                    if len(msgtext) > chat.MAX_MESSAGE_LENGTH:
+                        d.LOGGER.warning(
+                            "Ignored oversized chat message from %s for chat starting with '%s'",
+                            pid,
+                            mname[:32],
+                        )
+                    elif chat.exists(mid) and pid in (pp := chat.players(mid)):
                         if chat.is_adminchat(mid):
                             if not chat.adminchat_reply_state(pid):
                                 d.LOGGER.warning(

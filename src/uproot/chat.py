@@ -24,6 +24,7 @@ from uproot.types import (
 )
 
 COLLISIONS: tuple[dict[str, str], dict[str, str]] = {}, {}
+MAX_MESSAGE_LENGTH = 5000
 
 
 class Message(metaclass=um.Entry):
@@ -128,6 +129,9 @@ def add_message(
     sender: PlayerIdentifier | str | None,
     msgtext: str,
 ) -> UUID:
+    if len(msgtext) > MAX_MESSAGE_LENGTH:
+        raise ValueError(f"Chat messages cannot exceed {MAX_MESSAGE_LENGTH} characters")
+
     return um.add_raw_entry(
         chat,
         {"sender": sender, "text": msgtext},
