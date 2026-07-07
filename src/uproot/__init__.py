@@ -120,10 +120,10 @@ def who_online(
         t = time()
 
         for e in reversed(ONLINE_SORTED):
-            if t - e[0] <= tolerance and (sname is None or e[1].sname == sname):
-                online.add(e[1])
-            else:
+            if t - e[0] > tolerance:
                 break
+            if sname is None or e[1].sname == sname:
+                online.add(e[1])
 
     return online
 
