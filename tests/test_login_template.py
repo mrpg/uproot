@@ -66,3 +66,14 @@ def test_auth_cookie_is_secure_behind_https_proxy():
     request = make_request("http", "192.168.0.42:8000")
 
     assert server2.auth_cookie_secure(request, "https") is True
+
+
+def test_logout_routes_are_post_only():
+    methods_by_path = {
+        route.path: route.methods
+        for route in server2.router.routes
+        if hasattr(route, "methods")
+    }
+
+    assert methods_by_path[f"{server2.router.prefix}/logout/"] == {"POST"}
+    assert methods_by_path[f"{server2.router.prefix}/status/logout-all/"] == {"POST"}

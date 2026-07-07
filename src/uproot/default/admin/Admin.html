@@ -122,7 +122,9 @@ Admin area
                             <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/status/">{% translate %}Server status{% endtranslate %}</a>
                         </li>
                         <li class="nav-item">
-                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover ms-3 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/logout/">{% translate %}Logout{% endtranslate %}</a>
+                            <form class="d-inline" method="post" action="{{ _uproot_internal.root }}/admin/logout/">
+                                <button type="submit" class="btn btn-link link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover ms-3 my-1 p-0 border-0 align-baseline">{% translate %}Logout{% endtranslate %}</button>
+                            </form>
                         </li>
                     </ul>
                 </div>

@@ -162,13 +162,13 @@ Server status
                     {% endtranslate %}
                 </div>
                 {% endif %}
-                <p class="mb-1 mt-4">
-                    <a class="btn btn-danger btn-sm mb-0" href="logout-all/">
+                <form class="mb-1 mt-4" method="post" action="logout-all/">
+                    <button class="btn btn-danger btn-sm mb-0" type="submit">
                         {% translate %}
                         Log out all
                         {% endtranslate %}
-                    </a>
-                </p>
+                    </button>
+                </form>
                 {% endif %}
             </div>
         </div>

@@ -485,7 +485,7 @@ async def login_post(
 # Logout page
 
 
-@router.get("/logout/")
+@router.post("/logout/")
 def logout(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
@@ -496,7 +496,7 @@ def logout(
         # Revoke the specific token
         a.revoke_auth_token(uauth)
 
-    response = RedirectResponse(f"{d.ROOT}/admin/login/")
+    response = RedirectResponse(f"{d.ROOT}/admin/login/", status_code=303)
     response.delete_cookie("uauth", path=f"{d.ROOT}/")
 
     return response
@@ -1288,7 +1288,7 @@ async def status(
         )
 
 
-@router.get("/status/logout-all/")
+@router.post("/status/logout-all/")
 async def logout_all(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
