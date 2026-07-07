@@ -397,13 +397,10 @@ Room
                 <p class="font-monospace fs-4">
                 {{ room.config }}
                 </p>
-                {% if room.config in configs.configs %}
-                <h6 class="fw-semibold">Apps</h6>
+                <h6 class="fw-semibold">{% translate %}Apps{% endtranslate %}</h6>
                 <p class="font-monospace mb-1">
-                {{ configs.configs[room.config] }}
-                {# TODO: Use session.apps with formatting #}
+                {{ " → ".join(session_apps) }}
                 </p>
-                {% endif %}
                 {% else %}
                 <p class="mb-0 text-body-tertiary">
                     {% translate %}This room is not associated with a particular config{% endtranslate %}.

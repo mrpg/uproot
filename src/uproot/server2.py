@@ -672,6 +672,7 @@ async def roommain(
         if room["sname"] is not None:
             with Session(room["sname"]) as session:
                 extra["n_players"] = len(session._uproot_players)
+                extra["session_apps"] = session.apps
 
         return HTMLResponse(
             await render(
