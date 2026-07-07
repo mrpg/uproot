@@ -44,16 +44,16 @@
 : 'Nutzername'
 
 ? 'Password'
-: 'Kennwort'
+: 'Passwort'
 
 ? 'Submit'
 : 'Absenden'
 
 ? 'You provided invalid credentials.'
-: 'Sie haben ungültige Anmeldedaten angegeben.'
+: 'Die eingegebenen Anmeldedaten sind ungültig.'
 
 ? 'Dashboard'
-: 'Übersicht'
+: 'Dashboard'
 
 ? 'Send message'
 : 'Nachricht senden'
@@ -62,7 +62,7 @@
 : 'Felder einfügen'
 
 ? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
-: 'Das Einfügen von Feldern wird nicht als gute Praxis angesehen. Verwenden Sie diese Funktion nur zu Testzwecken oder in Notfällen. Manuelle Feldeinfügungen werden unwiderruflich als solche in der Datenbank gespeichert.'
+: 'Das Einfügen von Feldern gilt nicht als gute Praxis. Verwenden Sie diese Funktion nur zum Testen oder im Notfall. Manuell eingefügte Felder werden unwiderruflich als solche in der Datenbank vermerkt.'
 
 ? 'Mark as dropout'
 : 'Als Dropout markieren'
@@ -71,13 +71,13 @@
 : 'Ans Ende stellen'
 
 ? 'Advance by one page'
-: 'Um eine Seite vorrücken'
+: 'Eine Seite vor'
 
 ? 'Revert by one page'
-: 'Um eine Seite zurückgehen'
+: 'Eine Seite zurück'
 
 ? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
-: 'Bitte geben Sie ein gültiges JSON-<i>Objekt</i> ein. Zum Beispiel fügt dies die Felder <code>foo</code> (eine Ganzzahl) und <code>bar</code> (eine Liste) hinzu:'
+: 'Bitte geben Sie ein gültiges JSON-<i>Objekt</i> ein. Dieses Beispiel fügt die Felder <code>foo</code> (eine Ganzzahl) und <code>bar</code> (eine Liste) hinzu:'
 
 ? 'Active logins'
 : 'Aktive Logins'
@@ -86,7 +86,7 @@
 : 'Aktive Sessions'
 
 ? 'Admin area'
-: 'Administrationsbereich'
+: 'Adminbereich'
 
 ? 'Any app'
 : 'Jede App'
@@ -116,7 +116,7 @@
 : 'Nach wichtigen Ankündigungen suchen'
 
 ? 'Check now.'
-: 'Jetzt prüfen'
+: 'Jetzt prüfen.'
 
 ? 'Config'
 : 'Konfiguration'
@@ -152,7 +152,7 @@
 : 'Daten herunterladen'
 
 ? 'Download database dump'
-: 'Datenbank-Export herunterladen'
+: 'Datenbank-Dump herunterladen'
 
 ? 'Existing session'
 : 'Vorhandene Session'
@@ -170,10 +170,10 @@
 : 'Zu Dokumentations- und Replikationszwecken speichert jede Session automatisch, welche Pakete bei der Erstellung installiert waren. Siehe <code>session.packages</code>.'
 
 ? 'Full-screen table'
-: 'Vollbild-Tabelle'
+: 'Tabelle im Vollbild'
 
 ? 'Full-width table'
-: 'Vollbreite-Tabelle'
+: 'Tabelle in voller Breite'
 
 ? 'Hide information for uproot developers'
 : 'Informationen für uproot-Entwickler ausblenden'
@@ -182,13 +182,13 @@
 : 'Falls die nächste Seite nicht angezeigt wird, wird sie übersprungen.'
 
 ? 'If the previous page was not shown, this will return to the current page.'
-: 'Falls die vorherige Seite nicht angezeigt wurde, kehrt dies zur aktuellen Seite zurück.'
+: 'Falls die vorherige Seite nicht angezeigt wurde, landen Sie wieder auf der aktuellen Seite.'
 
 ? 'Individual player URLs'
 : 'Individuelle Spieler-URLs'
 
 ? 'Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>'
-: 'Geben Sie einen Spielernamen pro Textzeile ein. Die Anzahl der Spielernamen muss mit der Anzahl der Spieler übereinstimmen. Jeder Spielername darf nur folgende Zeichen verwenden: <code>A-Za-z0-9-._</code>'
+: 'Geben Sie pro Zeile einen Spielernamen ein. Die Anzahl der Spielernamen muss mit der Anzahl der Spieler übereinstimmen. Jeder Spielername darf nur die folgenden Zeichen enthalten: <code>A-Za-z0-9-._</code>'
 
 ? 'Installed packages'
 : 'Installierte Pakete'
@@ -227,7 +227,7 @@
 : 'Neue Session'
 
 ? 'No active authentication sessions found.'
-: 'Keine aktiven Authentifizierungssessions gefunden.'
+: 'Keine aktiven Login-Sessions gefunden.'
 
 ? 'No data available'
 : 'Keine Daten verfügbar'
@@ -239,10 +239,10 @@
 : 'Normale Tabelle'
 
 ? 'Normal-width table'
-: 'Normalbreite-Tabelle'
+: 'Tabelle in normaler Breite'
 
 ? 'Not recently seen'
-: 'Nicht kürzlich gesehen'
+: 'Länger nicht gesehen'
 
 ? 'Number of players'
 : 'Anzahl Spieler'
@@ -266,7 +266,7 @@
 : 'Spieler'
 
 ? 'Players can use the following URL for entering this room'
-: 'Spieler können die folgende URL zum Betreten dieses Raums verwenden'
+: 'Spieler können diesen Raum über die folgende URL betreten'
 
 ? 'Player URL'
 : 'Spieler-URL'
@@ -293,7 +293,7 @@
 : 'Räume'
 
 ? 'Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.'
-: 'Räume ohne vordefinierte Labels weisen automatisch zufällige Labels zu oder verwenden akzeptable Labels, die per <code>?label=mylabel42</code> in der Raum-URL übergeben werden.'
+: 'Räume ohne vordefinierte Labels vergeben automatisch zufällige Labels oder übernehmen zulässige Labels, die per <code>?label=mylabel42</code> in der Raum-URL übergeben werden.'
 
 ? 'Save changes'
 : 'Änderungen speichern'
@@ -329,16 +329,16 @@
 : 'Testelemente werden nur angemeldeten Administratoren oder in Testsessions angezeigt (standardmäßig nicht aktiviert, konfigurierbar in den Session-Einstellungen).'
 
 ? 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
-: 'Der Sessionname darf nur folgende Zeichen verwenden: <code>A-Za-z0-9-._</code>'
+: 'Der Sessionname darf nur die folgenden Zeichen enthalten: <code>A-Za-z0-9-._</code>'
 
 ? 'The sessionwide URL is'
-: 'Die sessionweite URL ist'
+: 'Die URL für die gesamte Session lautet'
 
 ? 'This creates a complete machine-readable record of all data.'
-: 'Dies erstellt eine vollständige maschinenlesbare Aufzeichnung aller Daten.'
+: 'Dies erstellt eine vollständige, maschinenlesbare Kopie aller Daten.'
 
 ? 'This opens a new browser tab displaying the current pages of the selected players.'
-: 'Dies öffnet einen neuen Browser-Tab, der die aktuellen Seiten der ausgewählten Spieler anzeigt.'
+: 'Dies öffnet einen neuen Browser-Tab mit den aktuellen Seiten der ausgewählten Spieler.'
 
 ? 'This room is associated with the following config'
 : 'Dieser Raum ist mit der folgenden Konfiguration verknüpft'
@@ -362,13 +362,13 @@
 : 'Diese Session ist mit keinem Raum verknüpft.'
 
 ? 'This terminates the study for the selected player(s).'
-: 'Dies beendet die Studie für die ausgewählte(n) Versuchsperson(en).'
+: 'Dies beendet die Studie für die ausgewählten Spieler.'
 
 ? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
 : 'Dies führt alle Dropout-Handler aus, die mit <code>watch_for_dropout()</code> registriert sind.'
 
 ? 'This may run <code>new_player</code> for players who have not started yet.'
-: 'Dies kann <code>new_player</code> für Versuchspersonen ausführen, die noch nicht gestartet sind.'
+: 'Dies kann <code>new_player</code> für Spieler ausführen, die noch nicht angefangen haben.'
 
 ? 'Total'
 : 'Gesamt'
@@ -434,7 +434,7 @@
 : 'Beginn von Teil {{ part }}'
 
 ? 'CSV is the better choice for spreadsheet applications.'
-: 'CSV ist die bessere Wahl für Tabellenkalkulationen.'
+: 'CSV ist die bessere Wahl für Tabellenkalkulationsprogramme.'
 
 ? 'Change settings'
 : 'Einstellungen ändern'
@@ -470,7 +470,7 @@
 : 'Raum löschen'
 
 ? 'Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”'
-: 'Die Bestimmung, welche Labels „online“ sind, ist keine exakte Wissenschaft. Stattdessen verwendet uproot verschiedene Heuristiken und Algorithmen, um bestmöglich abzuschätzen, welche Labels „kürzlich gesehen“ wurden.'
+: 'Welche Labels „online“ sind, lässt sich nicht exakt bestimmen. uproot verwendet daher verschiedene Heuristiken und Algorithmen, um möglichst gut abzuschätzen, welche Labels „kürzlich gesehen“ wurden.'
 
 ? 'Digest'
 : 'Zusammenfassung'
@@ -482,7 +482,7 @@
 : 'Beispieltitel'
 
 ? 'Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.'
-: 'Schließt interne uproot-Felder aus, benennt sie um oder transformiert sie, um sauberere Daten zu liefern, die sich auf experimentelle Variablen und Teilnehmerantworten konzentrieren.'
+: 'Entfernt, benennt um oder transformiert uproot-interne Felder. So erhalten Sie aufgeräumtere Daten, die sich auf experimentelle Variablen und Teilnehmerantworten konzentrieren.'
 
 ? 'File type'
 : 'Dateityp'
@@ -512,7 +512,7 @@
 : 'Testelemente ausblenden'
 
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
-: 'Wenn dieses Kästchen nicht aktiviert ist, wird die Kapazität des Raums nicht geändert. Dies bedeutet, dass neue Raumteilnehmer die Session vergrößern können.'
+: 'Wenn dieses Kästchen nicht aktiviert ist, bleibt die Kapazität des Raums unverändert. Das heißt, dass neu hinzukommende Spieler die Session vergrößern können.'
 
 ? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
 : "Wenn Sie uproot nützlich finden, <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>zitieren Sie es bitte</a> in akademischen Publikationen."
@@ -527,19 +527,19 @@
 : 'Die Eingabe wird als JavaScript-Ausdruck ausgewertet. Sie können Kommentare, Berechnungen, Variablen usw. verwenden. Das Ergebnis muss JSON-serialisierbar sein.'
 
 ? 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels. If no labels are entered, any Access Code will be accepted.'
-: 'Geben Sie ein Label pro Textzeile ein. Jedes Label darf nicht länger als 128 Zeichen sein und nur folgende Zeichen verwenden: <code>A-Za-z0-9-._</code> Labels beschränken den Raumzugang auf Spieler mit übereinstimmenden Labels. Wenn keine Labels eingegeben werden, wird jeder Access Code akzeptiert.'
+: 'Geben Sie pro Zeile ein Label ein. Jedes Label darf höchstens 128 Zeichen lang sein und nur die folgenden Zeichen enthalten: <code>A-Za-z0-9-._</code> Labels beschränken den Raumzugang auf Spieler mit passenden Labels. Wenn keine Labels eingegeben werden, wird jeder Zugangscode akzeptiert.'
 
 ? 'Internal Server Error'
 : 'Interner Serverfehler'
 
 ? 'It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”'
-: 'Dies verschiebt diese Session in den Bereich „Aktive Sessions“ auf der Seite „Sessions“ und zeigt sie in der „Übersicht“ an.'
+: 'Dies verschiebt diese Session in den Bereich „Aktive Sessions“ auf der Seite „Sessions“ und zeigt sie im „Dashboard“ an.'
 
 ? 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
-: 'Dies verschiebt diese Session in den Bereich „Inaktive Sessions“ auf der Seite „Sessions“ und blendet sie in der „Übersicht“ aus.'
+: 'Dies verschiebt diese Session in den Bereich „Inaktive Sessions“ auf der Seite „Sessions“ und blendet sie im „Dashboard“ aus.'
 
 ? 'Keep this page open and watch it at all times.'
-: 'Lassen Sie diese Seite offen und beobachten Sie sie jederzeit.'
+: 'Lassen Sie diese Seite geöffnet und behalten Sie sie durchgehend im Blick.'
 
 ? 'Label'
 : 'Label'
@@ -554,7 +554,7 @@
 : 'Mehr erfahren.'
 
 ? 'Log in as admin to view more information on this page.'
-: 'Melden Sie sich als Administrator an, um weitere Informationen auf dieser Seite anzuzeigen.'
+: 'Melden Sie sich als Administrator an, um mehr Informationen auf dieser Seite zu sehen.'
 
 ? 'Main data'
 : 'Hauptdaten'
@@ -593,7 +593,7 @@
 : 'OK'
 
 ? 'One or more labels exceed the maximum length of 128 characters.'
-: 'Ein oder mehrere Labels überschreiten die maximale Länge von 128 Zeichen.'
+: 'Ein oder mehrere Labels sind länger als 128 Zeichen.'
 
 ? 'Other data'
 : 'Sonstige Daten'
@@ -611,7 +611,7 @@
 : 'Bitte lassen Sie diese Seite geöffnet.'
 
 ? 'Please note that a room created this way will disappear when you reset the database.'
-: 'Bitte beachten Sie, dass ein auf diese Weise erstellter Raum beim Zurücksetzen der Datenbank verschwindet.'
+: 'Bitte beachten Sie: Ein so erstellter Raum verschwindet, wenn Sie die Datenbank zurücksetzen.'
 
 ? 'Pre-formatted citation'
 : 'Vorformatierte Zitation'
@@ -626,7 +626,7 @@
 : 'Weiterleiten an URL'
 
 ? 'Regrettably, this study has reached capacity.'
-: 'Leider hat diese Studie ihre Kapazität erreicht.'
+: 'Leider ist diese Studie bereits voll.'
 
 ? 'Reload'
 : 'Neu laden'
@@ -674,7 +674,7 @@
 : 'Ziel-URL'
 
 ? 'The action has completed.'
-: 'Die Aktion wurde abgeschlossen.'
+: 'Die Aktion ist abgeschlossen.'
 
 ? 'The number of players you entered is invalid.'
 : 'Die eingegebene Spieleranzahl ist ungültig.'
@@ -683,7 +683,7 @@
 : 'Die eingegebenen Spielernamen sind ungültig.'
 
 ? 'The room name must only use the following characters: <code>A-Za-z0-9-._</code>'
-: 'Der Raumname darf nur folgende Zeichen verwenden: <code>A-Za-z0-9-._</code>'
+: 'Der Raumname darf nur die folgenden Zeichen enthalten: <code>A-Za-z0-9-._</code>'
 
 ? 'The room name you entered already exists.'
 : 'Der eingegebene Raumname existiert bereits.'
@@ -692,7 +692,7 @@
 : 'Der eingegebene Raumname ist ungültig.'
 
 ? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
-: 'Die Session muss existieren. Dies kann zum Hinzufügen von Spielern zu einer bestehenden Session verwendet werden. Der Raum wird sofort geöffnet.'
+: 'Die Session muss bereits existieren. So können Sie einer bestehenden Session weitere Spieler hinzufügen. Der Raum wird sofort geöffnet.'
 
 ? 'The session name you entered is invalid.'
 : 'Der eingegebene Sessionname ist ungültig.'
@@ -701,10 +701,10 @@
 : 'Die eingegebene Session existiert nicht.'
 
 ? 'The settings you entered cannot be properly encoded as JSON.'
-: 'Die eingegebenen Einstellungen können nicht korrekt als JSON kodiert werden.'
+: 'Die eingegebenen Einstellungen lassen sich nicht als JSON kodieren.'
 
 ? 'This page will advance automatically.'
-: 'Diese Seite wird automatisch weitergehen.'
+: 'Es geht automatisch weiter.'
 
 ? 'This room’s capacity is infinite.'
 : 'Die Kapazität dieses Raums ist unbegrenzt.'
@@ -713,10 +713,10 @@
 : 'Die Kapazität dieses Raums beträgt {{ room.capacity }}.'
 
 ? 'To edit room settings, first disassociate the session from this room.'
-: 'Um Raumeinstellungen zu bearbeiten, trennen Sie zuerst die Session von diesem Raum.'
+: 'Um die Raumeinstellungen zu bearbeiten, trennen Sie zuerst die Session von diesem Raum.'
 
 ? 'Toggling this has purely cosmetical consequences:'
-: 'Das Umschalten hat rein kosmetische Konsequenzen:'
+: 'Das Umschalten hat rein kosmetische Auswirkungen:'
 
 ? 'Toggling this will hide this session’s testing elements for everyone except admins.'
 : 'Das Umschalten blendet die Testelemente dieser Session für alle außer Administratoren aus.'
@@ -725,7 +725,7 @@
 : 'Das Umschalten zeigt die Testelemente dieser Session für alle an.'
 
 ? 'Too many players selected (#n#). The maximum number of players that can be displayed in multiview is #m#.'
-: 'Zu viele Spieler ausgewählt (#n#). Die maximale Anzahl der Spieler, die in der Mehrfachansicht angezeigt werden können, beträgt #m#.'
+: 'Zu viele Spieler ausgewählt (#n#). In der Mehrfachansicht können höchstens #m# Spieler angezeigt werden.'
 
 ? 'Type'
 : 'Typ'
@@ -737,7 +737,7 @@
 : 'URL'
 
 ? 'URL must start with http:// or https://'
-: 'URL muss mit http:// oder https:// beginnen'
+: 'Die URL muss mit http:// oder https:// beginnen'
 
 ? 'Unknown'
 : 'Unbekannt'
@@ -749,7 +749,7 @@
 : 'Sie'
 
 ? 'You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.'
-: 'Sie verwenden uproot mit dem Flag <code>--unsafe</code>. Tun Sie dies nur, wenn Sie auf <code>localhost</code> arbeiten, da dieses Flag es jedem ermöglicht, sich als Administrator anzumelden.'
+: 'Sie verwenden uproot mit dem Flag <code>--unsafe</code>. Tun Sie das nur auf <code>localhost</code>, denn mit diesem Flag kann sich jeder als Administrator anmelden.'
 
 ? 'You are running version #i_am#. The current version is #recommended#.'
 : 'Sie verwenden Version #i_am#. Die aktuelle Version ist #recommended#.'
@@ -791,7 +791,7 @@
 : 'Nachricht an alle'
 
 ? 'Click a player in the sidebar, or check multiple to broadcast.'
-: 'Klicken Sie auf einen Spieler in der Seitenleiste oder wählen Sie mehrere für eine Sammel-Nachricht.'
+: 'Klicken Sie in der Seitenleiste auf einen Spieler oder wählen Sie mehrere für eine Sammelnachricht aus.'
 
 ? 'Disable admin chat replies'
 : 'Admin-Chat-Antworten deaktivieren'
@@ -830,7 +830,7 @@
 : 'Spieler kann antworten'
 
 ? 'Research Coordinator'
-: 'Studienkoordination'
+: 'Studienleitung'
 
 ? 'Select'
 : 'Auswählen'
@@ -863,7 +863,7 @@
 : 'schreibgeschützt'
 
 ? 'replies on'
-: 'Antworten an'
+: 'Antworten aktiv'
 
 ? 'new'
 : 'neu'
@@ -917,10 +917,10 @@
 : 'Betreten auf eigene Gefahr.'
 
 ? 'If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.'
-: 'Wenn aktiviert, wird die <code>simulate.js</code>-Datei der App ausgeführt, sobald Spielerseiten in dieser Session geladen werden.'
+: 'Wenn aktiviert, wird die <code>simulate.js</code>-Datei der App bei jedem Laden von Spielerseiten in dieser Session ausgeführt.'
 
 ? 'If you are using a VPN, consider disabling it.'
-: 'Wenn Sie ein VPN verwenden, erwägen Sie, es zu deaktivieren.'
+: 'Wenn Sie ein VPN verwenden, schalten Sie es am besten aus.'
 
 ? 'Individual URLs'
 : 'Individuelle URLs'
@@ -935,7 +935,7 @@
 : 'Mit Daten aufrufen...'
 
 ? 'Limit capacity of resulting session'
-: 'Kapazität der resultierenden Session begrenzen'
+: 'Kapazität der neuen Session begrenzen'
 
 ? 'Mark session as active'
 : 'Session als aktiv markieren'
@@ -947,7 +947,7 @@
 : 'Keine benutzerdefinierten Einträge in <span class="font-monospace">session.settings</span>.'
 
 ? 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
-: 'Nur in Ihrer <code>main.py</code>-Datei definierte Räume werden nach einem Datenbank-Reset automatisch neu erstellt.'
+: 'Nur Räume, die in Ihrer <code>main.py</code> definiert sind, werden nach einem Datenbank-Reset automatisch neu erstellt.'
 
 ? 'Open'
 : 'Öffnen'
@@ -971,7 +971,7 @@
 : 'Bitte geben Sie Pipeline-Daten ein.'
 
 ? 'Pre-created player slots can always be claimed regardless of capacity. Use a capacity only to restrict a session from growing beyond a fixed number of players.'
-: 'Vorab erstellte Spielerplätze können unabhängig von der Kapazität immer beansprucht werden. Verwenden Sie eine Kapazität nur, um zu verhindern, dass eine Session über eine feste Anzahl von Spielern hinaus wächst.'
+: 'Vorab erstellte Spielerplätze können unabhängig von der Kapazität immer beansprucht werden. Verwenden Sie eine Kapazität nur, wenn eine Session nicht über eine feste Spielerzahl hinauswachsen soll.'
 
 ? 'Reopen room'
 : 'Raum wieder öffnen'
@@ -992,7 +992,7 @@
 : 'Als JSONL ausführen'
 
 ? 'Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.'
-: 'new_session-Callbacks für alle Apps ausführen. Dies geschieht automatisch, wenn der erste Spieler beitritt, kann aber hier manuell ausgelöst werden. Dies kann nicht rückgängig gemacht werden.'
+: 'new_session-Callbacks für alle Apps ausführen. Das passiert automatisch, sobald der erste Spieler beitritt, kann hier aber auch manuell ausgelöst werden. Dies lässt sich nicht rückgängig machen.'
 
 ? 'Run pipeline'
 : 'Pipeline ausführen'
@@ -1037,16 +1037,16 @@
 : 'Testelemente werden für alle Teilnehmer angezeigt.'
 
 ? 'The data you entered cannot be properly encoded as JSON.'
-: 'Die eingegebenen Daten können nicht korrekt als JSON kodiert werden.'
+: 'Die eingegebenen Daten lassen sich nicht als JSON kodieren.'
 
 ? 'The number of players is not a multiple of #n#.'
 : 'Die Anzahl der Spieler ist kein Vielfaches von #n#.'
 
 ? 'This creates a new session, with the current configuration preselected.'
-: 'Dies erstellt eine neue Session, wobei die aktuelle Konfiguration vorausgewählt ist.'
+: 'Dies erstellt eine neue Session; die aktuelle Konfiguration ist dabei vorausgewählt.'
 
 ? 'This is useful for testing and development purposes.'
-: 'Dies ist nützlich für Test- und Entwicklungszwecke.'
+: 'Das ist nützlich zum Testen und Entwickeln.'
 
 ? 'This room is closed. Players will wait until the room is opened or a session is created.'
 : 'Dieser Raum ist geschlossen. Spieler warten, bis der Raum geöffnet oder eine Session erstellt wird.'
@@ -1079,7 +1079,7 @@
 : 'Bitte geben Sie eine gültige Zahl ein.'
 
 ? 'Use negative values to reduce the timeout.'
-: 'Verwenden Sie negative Werte, um das Zeitlimit zu verringern.'
+: 'Verwenden Sie negative Werte, um das Zeitlimit zu verkürzen.'
 
 ? 'Capacity must be at least 1.'
 : 'Die Kapazität muss mindestens 1 betragen.'
@@ -1094,7 +1094,7 @@
 : 'Jedes Format besteht aus einer CSV-Datei pro Storage, z. B. latest/player.csv.'
 
 ? 'Every download is a ZIP archive containing three key formats and additional files.'
-: 'Jeder Download ist ein ZIP-Archiv mit drei zentralen Formaten und zusätzlichen Dateien.'
+: 'Jeder Download ist ein ZIP-Archiv mit drei wichtigen Formaten und weiteren Dateien.'
 
 ? 'Formats'
 : 'Formate'
@@ -1103,7 +1103,7 @@
 : 'Kapazität begrenzen'
 
 ? 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
-: 'Fügt optional eine Zeile pro Spieler pro angegebener Gruppierung hinzu (z. B. pro Runde): zeigt den Zustand jedes Teilnehmers am Ende jeder Runde, Bedingung oder anderen von Ihnen angegebenen Gruppierung.'
+: 'Fügt optional eine Zeile pro Spieler und angegebener Gruppierung hinzu (z. B. pro Runde): zeigt, welchen Stand jeder Teilnehmer am Ende jeder Runde, Bedingung oder sonstigen angegebenen Gruppierung hatte.'
 
 ? 'Set'
 : 'Festlegen'
@@ -1118,7 +1118,7 @@
 : 'Sie haben schon länger nicht mehr geprüft, ob es wichtige Ankündigungen gibt.'
 
 ? 'uproot never phones home.'
-: 'uproot telefoniert niemals nach Hause.'
+: 'uproot telefoniert nie nach Hause.'
 
 ? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'
-: 'Wenn Sie hier klicken, prüft Ihr uproot-Server lediglich, ob die Entwickler relevante Neuigkeiten auf GitHub veröffentlicht haben.'
+: 'Wenn Sie diesen Button klicken, prüft Ihr uproot-Server, ob die Entwickler wichtige Neuigkeiten auf GitHub veröffentlicht haben.'
