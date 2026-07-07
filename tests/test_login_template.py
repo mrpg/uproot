@@ -36,6 +36,7 @@ async def test_login_token_page_hides_manual_login_form():
     assert 'type="text"' not in html
     assert 'type="password"' not in html
     assert 'type="submit"' not in html
+    assert "Submit praise" not in html
 
 
 @pytest.mark.asyncio
@@ -54,6 +55,7 @@ async def test_password_login_page_keeps_manual_login_form():
     assert 'id="user"' in html
     assert 'id="pw"' in html
     assert 'type="submit"' in html
+    assert "Submit praise" not in html
 
 
 def test_auth_cookie_is_not_secure_on_http_lan_address():
@@ -77,3 +79,21 @@ def test_logout_routes_are_post_only():
 
     assert methods_by_path[f"{server2.router.prefix}/logout/"] == {"POST"}
     assert methods_by_path[f"{server2.router.prefix}/status/logout-all/"] == {"POST"}
+
+
+def test_admin_websocket_logged_in_rechecks_token(monkeypatch):
+    monkeypatch.setattr(server2.d, "UNSAFE", False)
+    monkeypatch.setattr(
+        server2.a,
+        "from_cookie",
+        lambda token: {"user": "admin", "token": token},
+    )
+    monkeypatch.setattr(
+        server2.a,
+        "verify_auth_token",
+        lambda user, token: {"user": user} if token == "valid" else None,
+    )
+
+    assert server2.admin_websocket_logged_in("valid") is True
+    assert server2.admin_websocket_logged_in("revoked") is False
+    assert server2.admin_websocket_logged_in(None) is False

@@ -139,6 +139,21 @@ async def auth_required(request: Request) -> dict[str, Any]:
     return data
 
 
+def admin_websocket_logged_in(uauth: Optional[str]) -> bool:
+    if d.UNSAFE:
+        return True
+
+    if uauth is None:
+        return False
+
+    try:
+        data = a.from_cookie(uauth)
+    except Exception:
+        return False
+
+    return a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+
+
 # Root directory
 
 
@@ -284,16 +299,27 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             and isinstance(mkwargs, dict)
                             and mname in FUNS
                         ):
-                            t0 = now()
-                            retval = await cast(Any, FUNS[mname])(
-                                *margs,
-                                **mkwargs,
-                            )
-                            delta = now() - t0
+                            retval = None
 
-                            d.LOGGER.debug(
-                                f"{FUNS[mname].__name__} took {delta:.5f} seconds"
-                            )
+                            if (
+                                mname in UPSTREAM_FUNS
+                                and not admin_websocket_logged_in(uauth)
+                            ):
+                                d.LOGGER.warning(
+                                    "Rejected %s invocation from unauthenticated admin websocket",
+                                    mname,
+                                )
+                            else:
+                                t0 = now()
+                                retval = await cast(Any, FUNS[mname])(
+                                    *margs,
+                                    **mkwargs,
+                                )
+                                delta = now() - t0
+
+                                d.LOGGER.debug(
+                                    f"{FUNS[mname].__name__} took {delta:.5f} seconds"
+                                )
 
                             await websocket.send_bytes(
                                 orjson.dumps(
@@ -1369,3 +1395,4 @@ FUNS = {
     "update_description": a.update_description,
     "update_settings": a.update_settings,
 }
+UPSTREAM_FUNS = {"announcements", "praise"}

@@ -71,6 +71,9 @@ async def praise() -> str:
     """Fetch praise message."""
     PRAISE_URL = "https://uproot.science/praise/"
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(PRAISE_URL)
-        return response.text
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(PRAISE_URL)
+            return response.text
+    except Exception:
+        return "We couldn't load praise right now."
