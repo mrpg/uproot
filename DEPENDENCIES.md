@@ -11,7 +11,7 @@ See `pyproject.toml`.
 | [Alpine.js](https://alpinejs.dev/) | 3.15.12 |
 | [Bootstrap](https://getbootstrap.com/) | 5.3.8 |
 | [Bootstrap Icons](https://icons.getbootstrap.com/) | 1.13.1 |
-| [Tabulator](https://tabulator.info/) | 6.4.0 |
+| [Tabulator](https://tabulator.info/) | 6.5.2 |
 
 ## Fonts
 
