@@ -219,6 +219,11 @@ def make_timeout(
     translate: Callable[[str], str],
 ) -> tuple[Callable[..., Markup], Callable[..., Markup]]:
     def timeout(**kwargs: Any) -> Markup:
+        default_class = "uproot-timeout"
+        if "class_" in kwargs and kwargs["class_"]:
+            kwargs["class_"] = f"{default_class} {kwargs['class_']}"
+        else:
+            kwargs["class_"] = default_class
         extra = html_params(**kwargs) if kwargs else ""
         space = " " if extra else ""
         return Markup(  # nosec B704
