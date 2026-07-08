@@ -300,18 +300,28 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                             and mname in FUNS
                         ):
                             retval = None
+                            error = False
 
                             if not admin_websocket_logged_in(uauth):
+                                error = True
                                 d.LOGGER.warning(
                                     "Rejected %s invocation from unauthenticated admin websocket",
                                     mname,
                                 )
                             else:
                                 t0 = now()
-                                retval = await cast(Any, FUNS[mname])(
-                                    *margs,
-                                    **mkwargs,
-                                )
+
+                                try:
+                                    retval = await cast(Any, FUNS[mname])(
+                                        *margs,
+                                        **mkwargs,
+                                    )
+                                except Exception:
+                                    error = True
+                                    d.LOGGER.exception(
+                                        f"Exception in {FUNS[mname].__name__}"
+                                    )
+
                                 delta = now() - t0
 
                                 d.LOGGER.debug(
@@ -325,6 +335,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                         "payload": {
                                             "data": retval,
                                             "future": result["future"],
+                                            "error": error,
                                         },
                                     }
                                 )
