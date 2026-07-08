@@ -1,6 +1,7 @@
 """Comprehensive tests for uproot.types module with working tests only."""
 
 import asyncio
+import logging
 from unittest.mock import Mock, patch
 from uuid import UUID
 
@@ -753,6 +754,29 @@ class TestTimedDecorator:
 
         assert test_function.__name__ == "test_function"
         assert test_function.__doc__ == "Test docstring."
+
+    def test_timed_skips_debug_when_debug_logging_disabled(self, monkeypatch):
+        """Test that timed decorator checks effective debug logging."""
+
+        class Logger:
+            def isEnabledFor(self, level):
+                return level >= logging.INFO
+
+            def warning(self, message):
+                pass
+
+            def debug(self, message):
+                raise AssertionError("debug message was formatted")
+
+        monkeypatch.setattr("uproot.types.LOGGER", Logger())
+        monkeypatch.setattr("uproot.types.ensure_local_logger", lambda: None)
+
+        @timed
+        def fast_function():
+            return "result"
+
+        with patch("uproot.types.now", side_effect=[0.0, 0.005]):
+            assert fast_function() == "result"
 
 
 class TestInternalLiveDecorator:

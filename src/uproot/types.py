@@ -5,6 +5,7 @@ import asyncio
 import functools
 import hashlib
 import inspect
+import logging
 import math
 import random
 import secrets
@@ -577,7 +578,7 @@ def timed(func: Callable[..., Any]) -> Callable[..., Any]:
                     f"{func.__module__}.{func.__name__} is slow (took {delta:.3f} seconds)"
                 )
 
-            if LOGGER.level >= 10:
+            if LOGGER.isEnabledFor(logging.DEBUG):
                 # Checking this before debug(), as this is itself slow
 
                 LOGGER.debug(
@@ -600,7 +601,7 @@ def timed(func: Callable[..., Any]) -> Callable[..., Any]:
                     f"{func.__module__}.{func.__name__} is slow (took {delta:.3f} seconds)"
                 )
 
-            if LOGGER.level >= 10:
+            if LOGGER.isEnabledFor(logging.DEBUG):
                 # Checking this before debug(), as this is itself slow
 
                 LOGGER.debug(
