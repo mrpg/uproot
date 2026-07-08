@@ -1,7 +1,7 @@
 import random
 
 import uproot.types as t
-from uproot.smithereens import rng
+from uproot.smithereens import data_uri, rng
 from uproot.stable import decode, encode
 
 
@@ -37,3 +37,9 @@ def test_rng_is_in_star_imports():
     exec("from uproot.smithereens import *", namespace)
 
     assert namespace["rng"] is rng
+
+
+def test_data_uri_detects_mp4_by_ftyp_box():
+    payload = b"\x00\x00\x00\x18ftypisom\x00\x00\x02\x00"
+
+    assert data_uri(payload).startswith("data:video/mp4;base64,")

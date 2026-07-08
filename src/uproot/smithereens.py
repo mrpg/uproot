@@ -373,7 +373,7 @@ def data_uri(data: bytes) -> str:
         mime_type = "application/pdf"
     elif data.startswith(b"PK"):
         mime_type = "application/zip"
-    elif data.startswith(b"\x00\x00\x00 ftypmp4"):
+    elif data[4:8] == b"ftyp":
         mime_type = "video/mp4"
     else:
         mime_type = "application/octet-stream"
