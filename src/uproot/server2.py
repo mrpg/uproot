@@ -301,10 +301,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                         ):
                             retval = None
 
-                            if (
-                                mname in UPSTREAM_FUNS
-                                and not admin_websocket_logged_in(uauth)
-                            ):
+                            if not admin_websocket_logged_in(uauth):
                                 d.LOGGER.warning(
                                     "Rejected %s invocation from unauthenticated admin websocket",
                                     mname,
@@ -1395,4 +1392,3 @@ FUNS = {
     "update_description": a.update_description,
     "update_settings": a.update_settings,
 }
-UPSTREAM_FUNS = {"announcements", "praise"}
