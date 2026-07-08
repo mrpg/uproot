@@ -14,24 +14,24 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "httpx==0.28.1",
-    "appendmuch==0.1.0",
-    "click==8.4.2",
-    "fastapi==0.136.3",
-    "itsdangerous==2.2.0",
-    "jinja2==3.1.6",
-    "mistune==3.3.2",
-    "orjson==3.11.8",  # This works with rustc 1.90 available on OpenBSD (orjson>=3.11.9 requires rustc 1.95)
-    "pydantic==2.13.4",
-    "strictyaml==1.7.3",
-    "python-dotenv==1.2.2",
-    "python-multipart==0.0.32",
-    "setproctitle==1.3.7",
-    "sortedcontainers==2.4.0",
-    "uvicorn==0.49.0",
-    "watchdog==6.0.0",
-    "websockets==16.0",
-    "wtforms==3.2.2",
+    "httpx>=0.28.1,<0.29",
+    "appendmuch>=0.1.0,<0.2",
+    "click>=8.4.2,<9",
+    "fastapi>=0.136.3,<1",
+    "itsdangerous>=2.2.0,<3",
+    "jinja2>=3.1.6,<4",
+    "mistune>=3.3.2,<4",
+    "orjson>=3.11.8,<4",
+    "pydantic>=2.13.4,<3",
+    "strictyaml>=1.7.3,<2",
+    "python-dotenv>=1.2.2,<2",
+    "python-multipart>=0.0.32,<0.1",
+    "setproctitle>=1.3.7,<2",
+    "sortedcontainers>=2.4.0,<3",
+    "uvicorn>=0.49.0,<1",
+    "watchdog>=6.0.0,<7",
+    "websockets>=16.0,<17",
+    "wtforms>=3.2.2,<4",
 ]
 
 [project.urls]
@@ -78,7 +78,7 @@ skip = ["tests", "build", "dist", ".venv", "venv"]
 
 [project.optional-dependencies]
 pg = [
-    "appendmuch[pg]==0.1.0",
+    "appendmuch[pg]>=0.1.0,<0.2",
 ]
 dev = [
     "bandit==1.9.4",
@@ -96,7 +96,7 @@ dev = [
     "twine==6.2.0",
 ]
 iban = [
-    "schwifty==2026.3.0"
+    "schwifty>=2026.3.0,<2027"
 ]
 
 [tool.mypy]
