@@ -8,7 +8,7 @@ import time
 import traceback
 import urllib.parse
 from contextlib import nullcontext
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
@@ -696,7 +696,7 @@ def to_filter(value: float, places: int) -> str:
 
 
 def unixtime2datetime_filter(epoch: float, precise: bool = False) -> str:
-    dt = datetime.fromtimestamp(epoch)
+    dt = datetime.fromtimestamp(epoch, timezone.utc)
 
     if precise:
         return dt.strftime("%Y-%m-%d %H:%M:%S.%f")

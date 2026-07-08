@@ -117,6 +117,12 @@ def test_truepath_explicit_md_template(monkeypatch):
     assert pages.truepath(CustomPage) == "BaseMarkdown.html"
 
 
+def test_unixtime2datetime_filter_uses_utc():
+    assert pages.unixtime2datetime_filter(0, precise=True) == (
+        "1970-01-01 00:00:00.000000"
+    )
+
+
 async def test_explicit_md_template_renders(monkeypatch):
     class CustomPage:
         template = "shared/info.md"

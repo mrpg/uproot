@@ -9,6 +9,7 @@ import wtforms.fields
 import wtforms.validators
 
 Number = int | float | Decimal
+EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
 
 def type_coercer(choices: list[tuple[Any, str] | Any]) -> Callable[[str], Any]:
@@ -227,14 +228,18 @@ class EmailField(wtforms.fields.EmailField):
         if not optional:
             v = [
                 wtforms.validators.InputRequired(),
-                # This requires email_validator to be installed:
-                # wtforms.validators.Email(),
+                wtforms.validators.Regexp(
+                    EMAIL_PATTERN,
+                    message="Invalid email address.",
+                ),
             ]
         else:
             v = [
                 wtforms.validators.Optional(),
-                # This requires email_validator to be installed:
-                # wtforms.validators.Email(),
+                wtforms.validators.Regexp(
+                    EMAIL_PATTERN,
+                    message="Invalid email address.",
+                ),
             ]
 
         self.class_wrapper = class_wrapper

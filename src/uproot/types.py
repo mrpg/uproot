@@ -257,7 +257,7 @@ class StorageBunch:
         if len(self.l) != len(other.l):
             return False
 
-        return self.s == other.s
+        return self.l == other.l
 
     def filter(self, *comparisons: Comparison | FieldReferent) -> "StorageBunch":
         result = []

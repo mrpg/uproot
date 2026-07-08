@@ -278,7 +278,7 @@ class TestStorageBunch:
         bunch4 = StorageBunch([storage1])  # Different length
 
         assert bunch1 == bunch2
-        assert bunch1 == bunch3  # Order shouldn't matter for equality
+        assert bunch1 != bunch3
         assert bunch1 != bunch4
         assert bunch1 != "not a StorageBunch"
 
