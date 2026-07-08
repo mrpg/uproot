@@ -207,7 +207,9 @@ async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> 
                     async for chunk in response.aiter_bytes(8192):
                         f.write(chunk)
 
-        assert zip_path is not None
+        if zip_path is None:
+            raise RuntimeError("Failed to download ZIP archive")
+
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             all_files = zip_ref.namelist()
 
