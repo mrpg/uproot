@@ -81,6 +81,8 @@ PAGES: dict[str, type[Page]] = {
 
 
 def set_offline(pid: PlayerIdentifier) -> None:
+    import uproot.queues as q
+
     try:
         t = ONLINE[pid.sname][pid.uname]
 
@@ -89,6 +91,7 @@ def set_offline(pid: PlayerIdentifier) -> None:
     except Exception:  # nosec B110
         pass
 
+    q.cleanup(tuple(pid))
     e.set_attendance(pid)
 
 

@@ -16,12 +16,14 @@ from uproot.services import player_service as ps
 def setup_module():
     d.DATABASE.reset()
     q.Q.clear()
+    q.ACTIVE.clear()
     e.ADMINCHAT.clear()
     u.CONFIGS["test"] = []
 
 
 def make_player() -> t.PlayerIdentifier:
     q.Q.clear()
+    q.ACTIVE.clear()
     e.ADMINCHAT.clear()
     sname = f"test-adminchat-{uuid4().hex[:8]}"
     uname = f"alice-{uuid4().hex[:6]}"
@@ -31,7 +33,10 @@ def make_player() -> t.PlayerIdentifier:
         sid = c.create_session(admin, "test", sname=sname)
 
     with s.Session(sid) as session:
-        return c.create_player(session, uname=uname)
+        pid = c.create_player(session, uname=uname)
+
+    q.register(tuple(pid))
+    return pid
 
 
 async def next_event(pid: t.PlayerIdentifier, expected: str, predicate=None) -> dict:

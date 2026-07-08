@@ -588,6 +588,7 @@ async def ws(
     await websocket.accept()
 
     pid = cast(t.PlayerIdentifier, t.identify(player))
+    q.register(tuple(pid))
     data = a.from_cookie(uauth)
     is_admin = (
         d.UNSAFE
@@ -781,6 +782,7 @@ async def ws(
             task.cancel()
 
         await asyncio.gather(*tasks.keys(), *background_tasks, return_exceptions=True)
+        u.set_offline(pid)
 
     while True:
         done, pending = await asyncio.wait(

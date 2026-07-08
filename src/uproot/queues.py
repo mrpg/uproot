@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
-from collections import defaultdict
 from typing import Any
 from uuid import UUID
 
@@ -13,10 +12,29 @@ from uproot.types import uuid
 CredentialType = str
 EntryType = dict[str, Any]
 PathType = tuple[str, ...]
+MAX_QUEUE_SIZE = 1024
 
-Q: defaultdict[PathType, asyncio.Queue[tuple[UUID, EntryType]]] = defaultdict(
-    asyncio.Queue
-)
+Q: dict[PathType, asyncio.Queue[tuple[UUID, EntryType]]] = {}
+ACTIVE: set[PathType] = set()
+
+
+@validate_call
+def register(path: PathType) -> None:
+    ACTIVE.add(path)
+    Q.setdefault(path, asyncio.Queue(maxsize=MAX_QUEUE_SIZE))
+
+
+@validate_call
+def cleanup(path: PathType) -> None:
+    ACTIVE.discard(path)
+    queue = Q.pop(path, None)
+
+    if queue is None:
+        return
+
+    while not queue.empty():
+        queue.get_nowait()
+        queue.task_done()
 
 
 @validate_call
@@ -33,7 +51,16 @@ def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, UUID]:
     """
     u = uuid()
 
-    Q[path].put_nowait((u, entry))
+    if path not in ACTIVE:
+        return path, u
+
+    queue = Q.setdefault(path, asyncio.Queue(maxsize=MAX_QUEUE_SIZE))
+
+    if queue.full():
+        queue.get_nowait()
+        queue.task_done()
+
+    queue.put_nowait((u, entry))
 
     return path, u
 
@@ -49,10 +76,11 @@ async def read(path: PathType) -> tuple[UUID, EntryType]:
     Returns:
         A tuple containing the UUID and the entry.
 
-    Raises:
-        KeyError: If the specified queue doesn't exist.
+    The path is registered as an active consumer before waiting.
     """
-    u, entry = await Q[path].get()
-    Q[path].task_done()
+    register(path)
+    queue = Q[path]
+    u, entry = await queue.get()
+    queue.task_done()
 
     return u, entry

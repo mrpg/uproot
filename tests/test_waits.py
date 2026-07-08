@@ -19,6 +19,7 @@ from uproot.types import GroupCreatingWait, SynchronizingWait  # noqa: E402
 def session_with_two_players():
     d.DATABASE.reset()
     q.Q.clear()
+    q.ACTIVE.clear()
     u.CONFIGS["test"] = []
 
     with s.Admin() as admin:
@@ -29,6 +30,7 @@ def session_with_two_players():
         pids = [c.create_player(session), c.create_player(session)]
 
     for pid in pids:
+        q.register(tuple(pid))
         with s.Player(*pid) as player:
             player.show_page = 0
 
