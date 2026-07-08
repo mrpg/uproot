@@ -19,7 +19,6 @@ from uproot.types import GroupCreatingWait, SynchronizingWait  # noqa: E402
 def session_with_two_players():
     d.DATABASE.reset()
     q.Q.clear()
-    q.ACTIVE.clear()
     u.CONFIGS["test"] = []
 
     with s.Admin() as admin:
@@ -60,7 +59,8 @@ async def test_group_creating_wait_refreshes_player_and_runs_after_grouping(
         assert group.after_grouping_ran is True
 
     for pid in pids:
-        queued_id, queued = q.Q[tuple(pid)].get_nowait()
+        [queue] = q.Q[tuple(pid)]
+        queued_id, queued = queue.get_nowait()
         assert queued_id is not None
         assert queued["event"] == "Grouped"
         assert queued["constraint"] == 0
@@ -155,6 +155,7 @@ async def test_synchronizing_wait_show_skips_page_and_notifies_waiters_when_read
         c.create_group(session, pids, expected_size=2)
 
     q.Q.clear()
+    queues = {tuple(pid): q.register(tuple(pid)) for pid in pids}
 
     with s.Player(*pids[1]) as player:
         player.show_page = -1
@@ -165,14 +166,14 @@ async def test_synchronizing_wait_show_skips_page_and_notifies_waiters_when_read
     with s.Player(*pids[0]) as player:
         assert await Wait.show(player) is True
 
-    assert tuple(pids[0]) not in q.Q
+    assert queues[tuple(pids[0])].empty()
 
     with s.Player(*pids[1]) as player:
         player.show_page = 0
         assert await Wait.show(player) is False
 
     for pid in pids:
-        queued_id, queued = q.Q[tuple(pid)].get_nowait()
+        queued_id, queued = queues[tuple(pid)].get_nowait()
         assert queued_id is not None
         assert queued["event"] == "Synchronized"
         assert queued["constraint"] == 0

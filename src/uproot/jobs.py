@@ -25,8 +25,8 @@ from uproot.types import (
 )
 
 
-async def from_queue(pid: PlayerIdentifier) -> tuple[UUID, q.EntryType]:
-    return await q.read(tuple(pid))  # convention: queue path = (sname, uname)
+async def from_queue(queue: q.QueueType) -> tuple[UUID, q.EntryType]:
+    return await q.read(queue)
 
 
 async def from_websocket(websocket: WebSocket) -> dict[str, Any]:

@@ -12,18 +12,20 @@ import uproot.storage as s
 import uproot.types as t
 from uproot.services import player_service as ps
 
+QUEUES: dict[tuple[str, ...], q.QueueType] = {}
+
 
 def setup_module():
     d.DATABASE.reset()
     q.Q.clear()
-    q.ACTIVE.clear()
+    QUEUES.clear()
     e.ADMINCHAT.clear()
     u.CONFIGS["test"] = []
 
 
 def make_player() -> t.PlayerIdentifier:
     q.Q.clear()
-    q.ACTIVE.clear()
+    QUEUES.clear()
     e.ADMINCHAT.clear()
     sname = f"test-adminchat-{uuid4().hex[:8]}"
     uname = f"alice-{uuid4().hex[:6]}"
@@ -35,13 +37,13 @@ def make_player() -> t.PlayerIdentifier:
     with s.Session(sid) as session:
         pid = c.create_player(session, uname=uname)
 
-    q.register(tuple(pid))
+    QUEUES[tuple(pid)] = q.register(tuple(pid))
     return pid
 
 
 async def next_event(pid: t.PlayerIdentifier, expected: str, predicate=None) -> dict:
     while True:
-        _queue_id, queued = await q.read(tuple(pid))
+        queued_id, queued = await q.read(QUEUES[tuple(pid)])
         if queued["event"] == expected and (predicate is None or predicate(queued)):
             return queued
 

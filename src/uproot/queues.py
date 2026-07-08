@@ -12,35 +12,56 @@ from uproot.types import uuid
 CredentialType = str
 EntryType = dict[str, Any]
 PathType = tuple[str, ...]
+QueueType = asyncio.Queue[tuple[UUID, EntryType]]
 MAX_QUEUE_SIZE = 1024
 
-Q: dict[PathType, asyncio.Queue[tuple[UUID, EntryType]]] = {}
-ACTIVE: set[PathType] = set()
+Q: dict[PathType, list[QueueType]] = {}
 
 
 @validate_call
-def register(path: PathType) -> None:
-    ACTIVE.add(path)
-    Q.setdefault(path, asyncio.Queue(maxsize=MAX_QUEUE_SIZE))
+def register(path: PathType) -> QueueType:
+    """
+    Attach a new consumer to the queues of path and return its queue.
+
+    Each consumer (usually a websocket connection) owns exactly one queue,
+    so concurrent consumers of the same path (a second tab, a not yet
+    reaped predecessor connection) never interfere with one another. The
+    caller must pass the returned queue to deregister() when it is done.
+    """
+    queue: QueueType = asyncio.Queue(maxsize=MAX_QUEUE_SIZE)
+    Q.setdefault(path, []).append(queue)
+
+    return queue
 
 
-@validate_call
-def cleanup(path: PathType) -> None:
-    ACTIVE.discard(path)
-    queue = Q.pop(path, None)
+def deregister(path: PathType, queue: QueueType) -> None:
+    """
+    Detach a consumer's queue from path.
 
-    if queue is None:
+    Only the given queue is removed; other consumers of the same path keep
+    receiving entries. Unknown queues and paths are ignored.
+    """
+    queues = Q.get(path)
+
+    if queues is None:
         return
 
-    while not queue.empty():
-        queue.get_nowait()
-        queue.task_done()
+    try:
+        queues.remove(queue)
+    except ValueError:
+        pass
+
+    if not queues:
+        del Q[path]
 
 
 @validate_call
 def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, UUID]:
     """
-    Enqueue an entry into the queue specified by path.
+    Enqueue an entry into the queue of every consumer attached to path.
+
+    Entries are dropped if no consumer is attached; a full queue drops its
+    oldest entry to make room.
 
     Args:
         path: A tuple of strings identifying the queue.
@@ -51,35 +72,26 @@ def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, UUID]:
     """
     u = uuid()
 
-    if path not in ACTIVE:
-        return path, u
+    for queue in Q.get(path, ()):
+        if queue.full():
+            queue.get_nowait()
+            queue.task_done()
 
-    queue = Q.setdefault(path, asyncio.Queue(maxsize=MAX_QUEUE_SIZE))
-
-    if queue.full():
-        queue.get_nowait()
-        queue.task_done()
-
-    queue.put_nowait((u, entry))
+        queue.put_nowait((u, entry))
 
     return path, u
 
 
-@validate_call
-async def read(path: PathType) -> tuple[UUID, EntryType]:
+async def read(queue: QueueType) -> tuple[UUID, EntryType]:
     """
-    Read and remove the next entry from the queue specified by path.
+    Read and remove the next entry from a queue obtained via register().
 
     Args:
-        path: A tuple of strings identifying the queue.
+        queue: The consumer's queue.
 
     Returns:
         A tuple containing the UUID and the entry.
-
-    The path is registered as an active consumer before waiting.
     """
-    register(path)
-    queue = Q[path]
     u, entry = await queue.get()
     queue.task_done()
 

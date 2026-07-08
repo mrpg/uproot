@@ -588,7 +588,7 @@ async def ws(
     await websocket.accept()
 
     pid = cast(t.PlayerIdentifier, t.identify(player))
-    q.register(tuple(pid))
+    queue = q.register(tuple(pid))  # convention: queue path = (sname, uname)
     data = a.from_cookie(uauth)
     is_admin = (
         d.UNSAFE
@@ -601,7 +601,7 @@ async def ws(
     background_tasks: set[asyncio.Task[None]] = set()
     args: dict[str, dict[str, Any]] = {
         "from_queue": {
-            "pid": pid,
+            "queue": queue,
         },
         "from_websocket": {
             "websocket": websocket,
@@ -782,6 +782,7 @@ async def ws(
             task.cancel()
 
         await asyncio.gather(*tasks.keys(), *background_tasks, return_exceptions=True)
+        q.deregister(tuple(pid), queue)
         u.set_offline(pid)
 
     while True:
