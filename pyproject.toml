@@ -13,6 +13,17 @@ authors = [
 {name = "Holger Gerhardt", email = "holger@uproot.science"}
 ]
 requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: FastAPI",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
 dependencies = [
     "httpx>=0.28.1,<0.29",
     "appendmuch>=0.1.0,<0.2",
@@ -45,7 +56,7 @@ uproot = "uproot.defaultcli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-uproot = ["default/**/*", "_static/**/*"]
+uproot = ["default/**/*", "_static/**/*", "py.typed"]
 
 [tool.black]
 target-version = ['py311']
