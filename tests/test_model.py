@@ -14,12 +14,12 @@ import pytest
 uproot_src = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(uproot_src))
 
-import uproot as u
-import uproot.core as c
-import uproot.deployment as d
-import uproot.models as mod
-import uproot.storage as s
-import uproot.types as t
+import uproot as u  # noqa: E402
+import uproot.core as c  # noqa: E402
+import uproot.deployment as d  # noqa: E402
+import uproot.models as mod  # noqa: E402
+import uproot.storage as s  # noqa: E402
+import uproot.types as t  # noqa: E402
 
 # Reset database for tests
 d.DATABASE.reset()
@@ -72,8 +72,16 @@ def test_create_model(session_and_player):
 
     with s.Session(sid) as session:
         mid = mod.create_model(session)
+        second_mid = mod.create_model(session)
         assert mid is not None
         assert mod.model_exists(mid)
+        assert mod.model_exists(second_mid)
+
+    with mod.get_storage(mid) as model:
+        assert model.id == 1
+
+    with mod.get_storage(second_mid) as model:
+        assert model.id == 2
 
 
 def test_create_model_with_tag(session_and_player):
@@ -328,7 +336,7 @@ def test_filter_entries_by_id(model_and_player):
     mid, pid = model_and_player
 
     id1 = mod.add_entry(mid, pid, PlayerEntry, score=90.0, level="hard")
-    id2 = mod.add_entry(mid, pid, PlayerEntry, score=75.5, level="medium")
+    mod.add_entry(mid, pid, PlayerEntry, score=75.5, level="medium")
 
     # Filter by specific id
     filtered = list(mod.filter_entries(mid, PlayerEntry, id=id1))

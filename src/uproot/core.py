@@ -97,7 +97,7 @@ def create_model(
     mid = t.ModelIdentifier(sname, mname)
 
     with s.Model(*mid) as model:
-        model.id = len(session._uproot_models)
+        model.id = len(session._uproot_models) + 1
         model.mid = mid
         model._uproot_on_message = []
         model._uproot_session = t.identify(session)
