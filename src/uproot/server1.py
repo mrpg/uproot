@@ -599,6 +599,7 @@ async def ws(
     send_lock = asyncio.Lock()
     tasks = {}
     background_tasks: set[asyncio.Task[None]] = set()
+    cleanup_complete = False
     args: dict[str, dict[str, Any]] = {
         "from_queue": {
             "queue": queue,
@@ -776,74 +777,92 @@ async def ws(
         )
 
     async def cleanup_tasks() -> None:
-        for task in tasks:
-            task.cancel()
-        for task in background_tasks:
-            task.cancel()
+        nonlocal cleanup_complete
 
-        await asyncio.gather(*tasks.keys(), *background_tasks, return_exceptions=True)
+        if cleanup_complete:
+            return
+
+        cleanup_complete = True
         q.deregister(tuple(pid), queue)
         u.set_offline(pid)
 
-    while True:
-        done, pending = await asyncio.wait(
-            tasks.keys(), return_when=asyncio.FIRST_COMPLETED
-        )
+        active_tasks = [*tasks]
+        active_background_tasks = [*background_tasks]
 
-        for finished in done:
-            fname, factory = tasks.pop(finished)
-            try:
-                result = await finished
+        for task in active_tasks:
+            task.cancel()
+        for task in active_background_tasks:
+            task.cancel()
 
-                if fname == "from_websocket":
+        if active_tasks or active_background_tasks:
+            await asyncio.gather(
+                *active_tasks,
+                *active_background_tasks,
+                return_exceptions=True,
+            )
+
+    try:
+        while True:
+            done = (
+                await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
+            )[0]
+
+            for finished in done:
+                fname, factory = tasks.pop(finished)
+                try:
+                    result = await finished
+
+                    if fname == "from_websocket":
+                        new_task = asyncio.create_task(
+                            cast(Any, factory)(**args[fname])
+                        )
+                        tasks[new_task] = (fname, factory)
+
+                    if fname == "from_queue":
+                        u_, entry = result
+
+                        match entry:
+                            case {
+                                "source": "admin",
+                                "kind": kind_,
+                                "payload": payload_,
+                            } if isinstance(kind_, str) and isinstance(payload_, dict):
+                                await send_websocket_message(
+                                    {
+                                        "kind": kind_,
+                                        "payload": payload_,
+                                        "source": "admin",
+                                    }
+                                )
+                            case _:
+                                await send_websocket_message(
+                                    {
+                                        "kind": "queue",
+                                        "payload": {
+                                            "u": u_,
+                                            "entry": entry,
+                                        },
+                                    }
+                                )
+                    elif fname == "from_websocket":
+                        bg_task = asyncio.create_task(run_process(result))
+                        background_tasks.add(bg_task)
+                        bg_task.add_done_callback(background_tasks.discard)
+                    elif fname == "timer":
+                        pass  # placeholder for the future
+                    else:
+                        raise NotImplementedError(fname)
+                except WebSocketDisconnect:
+                    return
+                except Exception:
+                    d.LOGGER.exception("Closing player websocket after handler failure")
+                    return
+
+                if fname != "from_websocket":
                     new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
                     tasks[new_task] = (fname, factory)
-
-                if fname == "from_queue":
-                    u_, entry = result
-
-                    match entry:
-                        case {
-                            "source": "admin",
-                            "kind": kind_,
-                            "payload": payload_,
-                        } if isinstance(kind_, str) and isinstance(payload_, dict):
-                            await send_websocket_message(
-                                {
-                                    "kind": kind_,
-                                    "payload": payload_,
-                                    "source": "admin",
-                                }
-                            )
-                        case _:
-                            await send_websocket_message(
-                                {
-                                    "kind": "queue",
-                                    "payload": {
-                                        "u": u_,
-                                        "entry": entry,
-                                    },
-                                }
-                            )
-                elif fname == "from_websocket":
-                    bg_task = asyncio.create_task(run_process(result))
-                    background_tasks.add(bg_task)
-                    bg_task.add_done_callback(background_tasks.discard)
-                elif fname == "timer":
-                    pass  # placeholder for the future
-                else:
-                    raise NotImplementedError(fname)
-            except WebSocketDisconnect:
-                await cleanup_tasks()
-                return
-            except Exception:
-                d.LOGGER.exception("Closing player websocket after handler failure")
-                await cleanup_tasks()
-                return
-
-            if fname != "from_websocket":
-                new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
-                tasks[new_task] = (fname, factory)
+    finally:
+        await cleanup_tasks()
 
 
 @functools.lru_cache(maxsize=64)

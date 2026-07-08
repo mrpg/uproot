@@ -18,6 +18,23 @@ MAX_QUEUE_SIZE = 1024
 Q: dict[PathType, list[QueueType]] = {}
 
 
+def put_lossy(queue: QueueType, item: tuple[UUID, EntryType]) -> None:
+    """
+    Put an item into a bounded queue, dropping oldest entries as needed.
+    """
+    while True:
+        try:
+            queue.put_nowait(item)
+            return
+        except asyncio.QueueFull:
+            try:
+                queue.get_nowait()
+            except asyncio.QueueEmpty:
+                continue
+
+            queue.task_done()
+
+
 @validate_call
 def register(path: PathType) -> QueueType:
     """
@@ -72,12 +89,8 @@ def enqueue(path: PathType, entry: EntryType) -> tuple[PathType, UUID]:
     """
     u = uuid()
 
-    for queue in Q.get(path, ()):
-        if queue.full():
-            queue.get_nowait()
-            queue.task_done()
-
-        queue.put_nowait((u, entry))
+    for queue in tuple(Q.get(path, ())):
+        put_lossy(queue, (u, entry))
 
     return path, u
 

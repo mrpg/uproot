@@ -1,3 +1,6 @@
+import asyncio
+from uuid import uuid4
+
 import uproot.queues as q
 
 
@@ -69,6 +72,37 @@ def test_registered_queue_drops_oldest_entry_when_full():
     first_id, first_entry = queue.get_nowait()
     assert first_id is not None
     assert first_entry["index"] == 1
+
+
+def test_put_lossy_retries_if_full_queue_is_empty_when_dropping(monkeypatch):
+    queue = asyncio.Queue(maxsize=1)
+    item = (uuid4(), {"event": "Queued"})
+    state = {"get_attempts": 0, "put_attempts": 0}
+    original_get_nowait = queue.get_nowait
+    original_put_nowait = queue.put_nowait
+
+    def get_nowait():
+        state["get_attempts"] += 1
+
+        if state["get_attempts"] == 1:
+            raise asyncio.QueueEmpty
+
+        return original_get_nowait()
+
+    def put_nowait(item):
+        state["put_attempts"] += 1
+
+        if state["put_attempts"] == 1:
+            raise asyncio.QueueFull
+
+        return original_put_nowait(item)
+
+    monkeypatch.setattr(queue, "get_nowait", get_nowait)
+    monkeypatch.setattr(queue, "put_nowait", put_nowait)
+
+    q.put_lossy(queue, item)
+
+    assert queue.get_nowait() == item
 
 
 async def test_read_returns_entries_in_order():
