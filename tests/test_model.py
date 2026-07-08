@@ -390,11 +390,10 @@ def test_filter_entries_bad_predicate(model_and_player):
     mod.add_entry(mid, pid, PlayerEntry, score=90.0, level="hard")
 
     def bad_predicate(entry):
-        raise Exception("Predicate error")
+        raise RuntimeError("Predicate error")
 
-    # Should not raise - bad predicates cause entries to not match
-    filtered = list(mod.filter_entries(mid, PlayerEntry, predicate=bad_predicate))
-    assert len(filtered) == 0
+    with pytest.raises(RuntimeError, match="Predicate error"):
+        list(mod.filter_entries(mid, PlayerEntry, predicate=bad_predicate))
 
 
 # Performance test

@@ -278,11 +278,7 @@ def entry_matches(
     """Check if an entry matches the given filters and predicate."""
     # Check callable predicate first (more flexible)
     if predicate is not None:
-        try:
-            if not predicate(entry):
-                return False
-        except Exception:
-            # If predicate fails, entry doesn't match
+        if not predicate(entry):
             return False
 
     # Check field equality filters
