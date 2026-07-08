@@ -27,6 +27,9 @@ Admin area
         <link rel="stylesheet" href="{{ internalstatic('style.css') }}">
         <link rel="stylesheet" href="{{ internalstatic('admin.css') }}">
         <link rel="stylesheet" href="{{ internalstatic('webfonts.css') }}">
+        {% if interpnum is not defined %}
+        <link rel="stylesheet" href="{{ internalstatic('inter-no-hyphen-tf.css') }}">
+        {% endif %}
 
         {% block _uproot_scripts %}
         <script src="{{ internalstatic('uproot.js') }}"></script>
