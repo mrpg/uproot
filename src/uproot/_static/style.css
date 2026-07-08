@@ -776,6 +776,8 @@ input[type="radio"].form-check-input {
 }
 #uproot-timeout #uproot-time-remaining {
     font-weight: bold;
+}
+.uproot-timeout {
     font-variant-numeric: tabular-nums;
 }
 .uproot-timeout-light {
