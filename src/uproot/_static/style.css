@@ -118,17 +118,17 @@ button, input, select, textarea {
 * {
     /* Enable selected features defined in inter.css to improve disambiguation of glyphs */
     font-variant-alternates:
-    character-variant(lc-l-with-tail, alt-double-s)
-    styleset(open-digits);
+        character-variant(lc-l-with-tail, alt-double-s)
+        styleset(open-digits);
     /* Disable contextual alternates, since they may produce unwanted results with Inter (e.g., in “Step 1: ‘Go’” */
     font-feature-settings: "calt" 0;
     /* Settings related to number formatting */
     font-variant-numeric:
-    var(--fvn-figure-style,)
-    var(--fvn-spacing, proportional-nums)
-    var(--fvn-fractions,)
-    var(--fvn-zero,)
-    var(--fvn-alt,);
+        var(--fvn-figure-style,)
+        var(--fvn-spacing, proportional-nums)
+        var(--fvn-fractions,)
+        var(--fvn-zero,)
+        var(--fvn-alt,);
     /* Follow a suggestion by https://www.joshwcomeau.com/css/custom-css-reset/#the-css-reset-1 */
     text-wrap: pretty;
 }

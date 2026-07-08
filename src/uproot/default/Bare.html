@@ -24,6 +24,9 @@
 
 {% if nowebfonts is not defined %}
 <link rel="stylesheet" href="{{ internalstatic('webfonts.css') }}">
+{% if normalnums is not defined %}
+<link rel="stylesheet" href="{{ internalstatic('inter-tnum.css') }}">
+{% endif %}
 {% endif %}
 
 <script src="{{ internalstatic('uproot.js') }}"></script>

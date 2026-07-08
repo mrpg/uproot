@@ -1,0 +1,102 @@
+/* Take numbers (and nothing else) from Inter and enable tabular figures. */
+/* This prevents the hyphen from being replaced by hyphen.tf and thereby works around Inter’s default. */
+
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 100; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-Thin.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 100; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-ThinItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 200; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-ExtraLight.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 200; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-ExtraLightItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 300; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-Light.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 300; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-LightItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 400; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-Regular.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 400; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-Italic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 500; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-Medium.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 500; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-MediumItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 600; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-SemiBold.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 600; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-SemiBoldItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 700; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-Bold.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 700; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-BoldItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 800; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-ExtraBold.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 800; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-ExtraBoldItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: normal; font-weight: 900; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-Black.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+@font-face {
+    font-family: "InterTNum"; font-style: italic; font-weight: 900; font-display: swap;
+    src: url("vendor/Inter-4.1/web/Inter-BlackItalic.woff2") format("woff2");
+    font-feature-settings: "tnum" 1; unicode-range: U+0030-0039;
+}
+
+:root {
+    --bs-font-sans-serif: "InterTNum", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Roboto", "Helvetica Neue", "Noto Sans", "Liberation Sans", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.inter-normalnums {
+    --bs-font-sans-serif: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Roboto", "Helvetica Neue", "Noto Sans", "Liberation Sans", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-family: var(--bs-font-sans-serif);
+}
