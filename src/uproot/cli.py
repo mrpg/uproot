@@ -6,6 +6,7 @@ import os
 import platform
 import shutil
 import sys
+import tempfile
 import time
 import zipfile
 from contextlib import contextmanager
@@ -55,11 +56,14 @@ def set_ulimit() -> None:
 
     try:
         import resource
+    except ModuleNotFoundError:
+        return
 
+    try:
         resource.setrlimit(
             resource.RLIMIT_NOFILE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
         )
-    except (OSError, ValueError, ModuleNotFoundError):
+    except (OSError, ValueError):
         try:
             hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
             resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
@@ -192,16 +196,18 @@ def create_quick_room(config: str, simulate: bool) -> str:
 
 
 async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        zip_path = "temp.zip"
-        async with client.stream("GET", url) as response:
-            response.raise_for_status()
-
-            with open(zip_path, "wb") as f:
-                async for chunk in response.aiter_bytes(8192):
-                    f.write(chunk)
-
+    zip_path = None
     try:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            async with client.stream("GET", url) as response:
+                response.raise_for_status()
+
+                with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as f:
+                    zip_path = f.name
+                    async for chunk in response.aiter_bytes(8192):
+                        f.write(chunk)
+
+        assert zip_path is not None
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             all_files = zip_ref.namelist()
 
@@ -236,7 +242,8 @@ async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> 
                                     shutil.copyfileobj(source, target)
                         break
     finally:
-        Path(zip_path).unlink(missing_ok=True)
+        if zip_path is not None:
+            Path(zip_path).unlink(missing_ok=True)
 
 
 @click.group()
