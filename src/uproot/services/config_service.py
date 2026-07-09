@@ -55,7 +55,7 @@ async def announcements() -> dict[str, Any]:
     ANNOUNCEMENTS_URL = "https://uproot.science/announcements.json"
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(ANNOUNCEMENTS_URL)
             data = cast(dict[str, Any], response.json())
     except Exception:
@@ -72,7 +72,7 @@ async def praise() -> str:
     PRAISE_URL = "https://uproot.science/praise/"
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(PRAISE_URL)
             return response.text
     except Exception:
