@@ -223,7 +223,7 @@ Examples:
   uproot api configs                           # List configurations
   uproot api configs/myconfig                  # Get configuration details
   uproot api dashboard                         # Get dashboard aggregate
-  uproot api status                            # Get server status
+  uproot api status                            # Get status
   uproot api sessions/mysession/players        # Get player fields
   uproot api sessions/mysession/players/online # Get online players
   uproot api sessions/mysession/pipelines      # List pipelines

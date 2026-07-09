@@ -298,9 +298,6 @@
 ? 'Save changes'
 : 'Guardar cambios'
 
-? 'Server status'
-: 'Estado del servidor'
-
 ? 'Session'
 : 'Sesión'
 

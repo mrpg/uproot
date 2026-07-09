@@ -298,9 +298,6 @@
 ? 'Save changes'
 : '変更を保存'
 
-? 'Server status'
-: 'サーバーステータス'
-
 ? 'Session'
 : 'セッション'
 

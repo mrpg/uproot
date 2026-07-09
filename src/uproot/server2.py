@@ -1266,7 +1266,7 @@ async def session_multiview(
         )
 
 
-# Server status
+# Status
 
 
 @router.get("/status/")

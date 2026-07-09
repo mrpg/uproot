@@ -1617,7 +1617,7 @@ async def dump_database(
 async def get_status(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
-    """Get server status information."""
+    """Get status information."""
     dbsize_bytes = d.DATABASE.size()
     dbsize = float(dbsize_bytes) / (1024**2) if dbsize_bytes is not None else None
     packages = {
