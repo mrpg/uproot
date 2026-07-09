@@ -86,9 +86,19 @@ class ModuleManager:
             module = importlib.util.module_from_spec(spec)
         else:
             raise ImportError(f"Spec is None for module {module_name}")
-        spec.loader.exec_module(module)  # type: ignore[union-attr]
 
+        previous_module = sys.modules.get(module_name)
         sys.modules[module_name] = module
+
+        try:
+            spec.loader.exec_module(module)  # type: ignore[union-attr]
+        except Exception:
+            if previous_module is None:
+                del sys.modules[module_name]
+            else:
+                sys.modules[module_name] = previous_module
+            raise
+
         self[module_name] = module
         self.watched_dirs[str(path)] = module_name
         self.watched_dirs[str(path.resolve())] = module_name
