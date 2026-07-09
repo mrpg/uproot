@@ -46,6 +46,7 @@ __all__ = [
     "append_to_csv",
     "read_csv",
     "Admin",
+    "AdminType",
     "Between",
     "Bracket",
     "chat",
@@ -57,6 +58,7 @@ __all__ = [
     "fmtnum",
     "Group",
     "GroupCreatingWait",
+    "GroupType",
     "GroupIdentifier",
     "identify",
     "live",
@@ -64,6 +66,7 @@ __all__ = [
     "materialize",
     "Model",
     "ModelIdentifier",
+    "ModelType",
     "move_to_end",
     "move_to_page",
     "NoshowPage",
@@ -72,6 +75,7 @@ __all__ = [
     "Player",
     "PlayerContext",
     "PlayerIdentifier",
+    "PlayerType",
     "Random",
     "reload",
     "Repeat",
@@ -82,6 +86,7 @@ __all__ = [
     "send_to_one",
     "Session",
     "SessionIdentifier",
+    "SessionType",
     "Storage",
     "SynchronizingWait",
     "to",
@@ -92,19 +97,24 @@ __all__ = [
 ]
 
 
+AdminType = t.AdminType
 chat = uproot.chat
 _ = FieldReferent()
 GroupCreatingWait = t.GroupCreatingWait
 GroupIdentifier = t.GroupIdentifier
+GroupType = t.GroupType
 identify = t.identify
 materialize = t.materialize
 ModelIdentifier = t.ModelIdentifier
+ModelType = t.ModelType
 NoshowPage = t.NoshowPage
 Page = t.Page
 PlayerIdentifier = t.PlayerIdentifier
+PlayerType = t.PlayerType
 rng = t.rng
 safe = Markup
 SessionIdentifier = t.SessionIdentifier
+SessionType = t.SessionType
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
 

@@ -436,6 +436,16 @@ warn_unreachable = true
 no_implicit_optional = true
 disallow_any_generics = true
 strict_equality = true
+# Recommended: uncomment for maximum strictness.
+# strict = true
+# disallow_subclassing_any = true
+# disallow_untyped_calls = true
+# disallow_untyped_defs = true
+# disallow_incomplete_defs = true
+# disallow_untyped_decorators = true
+# warn_unused_ignores = true
+# no_implicit_reexport = true
+# extra_checks = true
 
 [tool.uv]
 python-preference = "system"
