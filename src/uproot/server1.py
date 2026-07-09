@@ -296,7 +296,7 @@ async def show_page(
 
     if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
         await ensure_awaitable(
-            optional_call, page, "timeout_reached", default_return=True, player=player
+            optional_call, page, "timeout_reached", default_return=None, player=player
         )
         state.proceed = True
         state.timeout_fired = True

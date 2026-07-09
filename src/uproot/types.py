@@ -537,7 +537,7 @@ class Page(metaclass=FrozenPage):
     stealth_fields: Iterable[str] | PageCallable[Iterable[str]]
     templatevars: PageContext | PageCallable[PageContext | None]
     timeout: float | PageCallable[float | None]
-    timeout_reached: bool | PageCallable[bool]
+    timeout_reached: PageCallable[None]
     validate: PageDataCallable[PageValidationErrors]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
