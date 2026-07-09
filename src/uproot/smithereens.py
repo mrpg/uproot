@@ -57,6 +57,7 @@ __all__ = [
     "cu",
     "data_uri",
     "fmtnum",
+    "get_setting",
     "Group",
     "GroupCreatingWait",
     "GroupIdentifier",
@@ -236,6 +237,10 @@ def add_to_group(
 
     with group:
         c.add_to_group(group, member_pids, overwrite=overwrite)
+
+
+def get_setting(session: t.SessionType, key: str, default: Any = None) -> Any:
+    return session.settings.get(key, default)
 
 
 def live(method: Callable[..., Any]) -> Callable[..., Any]:
