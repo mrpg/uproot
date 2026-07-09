@@ -426,7 +426,14 @@ async def render(
         return i18n.lookup(s, language)
 
     button_next, button_back, buttons_placed = make_buttons(
-        translate, getattr(page, "allow_back", False)
+        translate,
+        await ensure_awaitable(
+            optional_call,
+            page,
+            "allow_back",
+            default_return=False,
+            player=player,
+        ),
     )
     timeout, timeout_box = make_timeout(translate)
 

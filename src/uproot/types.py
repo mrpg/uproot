@@ -516,11 +516,11 @@ class FrozenPage(type):
 
 
 class Page(metaclass=FrozenPage):
-    allow_back: bool = False
     template: str
 
     after_always_once: PageCallable[None]
     after_once: PageCallable[None]
+    allow_back: bool | PageCallable[bool] = False
     before_always_once: PageCallable[None]
     before_form_save: PageDataCallable[None]
     before_once: PageCallable[None]

@@ -344,23 +344,23 @@ async def show_page(
 
         if player.show_page == send_from and verify_csrf(page, player, formdata):
             if is_back_navigation:
-                # Handle back navigation
-                if (
-                    hasattr(page, "allow_back")
-                    and page.allow_back
-                    and player.show_page > 0
-                ):
+                allow_back = await ensure_awaitable(
+                    optional_call,
+                    page,
+                    "allow_back",
+                    default_return=False,
+                    player=player,
+                )
+                if allow_back and player.show_page > 0:
                     state.go_back()
+                elif not allow_back:
+                    raise RuntimeError(
+                        f"Back navigation attempted but not allowed on page {page.__class__.__name__}"
+                    )
                 else:
-                    # Back navigation not allowed
-                    if not hasattr(page, "allow_back") or not page.allow_back:
-                        raise RuntimeError(
-                            f"Back navigation attempted but not allowed on page {page.__class__.__name__}"
-                        )
-                    else:
-                        raise RuntimeError(
-                            f"Back navigation attempted but player is at first page (show_page={player.show_page})"
-                        )
+                    raise RuntimeError(
+                        f"Back navigation attempted but player is at first page (show_page={player.show_page})"
+                    )
             elif player.show_page == -1:  # Initialize.html
                 if not player.started:
                     player.started = True
