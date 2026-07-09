@@ -8,6 +8,7 @@ import wtforms
 import wtforms.fields
 import wtforms.validators
 
+Field = wtforms.fields.Field
 Number = int | float | Decimal
 EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
