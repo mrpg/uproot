@@ -386,6 +386,12 @@ repos:
         entry: uv run ruff check --fix
         language: system
         types: [python]
+
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types: [python]
 """
 
 PYPROJECT_TOML = """\
@@ -400,6 +406,7 @@ dependencies = [
     "uproot-science @ git+https://github.com/mrpg/uproot.git@main",
     "black",
     "isort",
+    "mypy",
     "pre-commit",
     "ruff",
 ]
@@ -417,6 +424,11 @@ profile = "black"
 
 [tool.ruff.lint]
 ignore = ["F403", "F405"]
+
+[tool.mypy]
+python_version = "3.13"
+check_untyped_defs = true
+ignore_missing_imports = true
 
 [tool.uv]
 python-preference = "system"
