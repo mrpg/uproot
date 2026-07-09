@@ -1,7 +1,6 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-import importlib
 import importlib.util
 import sys
 from pathlib import Path
@@ -17,6 +16,25 @@ from uproot.constraints import ensure
 
 def noop(module: Any) -> None:
     pass
+
+
+def poison_module(module: ModuleType) -> None:
+    module_name = module.__name__
+
+    def fail_access(name: str) -> Any:
+        raise RuntimeError(
+            f"Module {module_name!r} has been reloaded; use the current module instead"
+        )
+
+    module.__dict__.clear()
+    module.__dict__.update(
+        {
+            "__doc__": f"Stale module object for {module_name!r}.",
+            "__getattr__": fail_access,
+            "__name__": module_name,
+            "__package__": module_name.rpartition(".")[0],
+        }
+    )
 
 
 class ModuleManager:
@@ -59,21 +77,7 @@ class ModuleManager:
         self.observer.stop()
         self.observer.join()
 
-    def import_module(self, module_dir: str) -> Any:
-        path = Path(module_dir)
-        module_name = path.name
-
-        if not path.exists():
-            raise FileNotFoundError(f"Module directory {module_dir} not found")
-
-        init_file = path / "__init__.py"
-        main_file = path / f"{module_name}.py"
-
-        module_file = init_file if init_file.exists() else main_file
-
-        if not module_file.exists():
-            raise FileNotFoundError(f"No module file found in {module_dir}")
-
+    def load_module(self, module_name: str, module_file: Path) -> ModuleType:
         spec = importlib.util.spec_from_file_location(module_name, module_file)
 
         ensure(
@@ -99,6 +103,24 @@ class ModuleManager:
                 sys.modules[module_name] = previous_module
             raise
 
+        return module
+
+    def import_module(self, module_dir: str) -> Any:
+        path = Path(module_dir)
+        module_name = path.name
+
+        if not path.exists():
+            raise FileNotFoundError(f"Module directory {module_dir} not found")
+
+        init_file = path / "__init__.py"
+        main_file = path / f"{module_name}.py"
+
+        module_file = init_file if init_file.exists() else main_file
+
+        if not module_file.exists():
+            raise FileNotFoundError(f"No module file found in {module_dir}")
+
+        module = self.load_module(module_name, module_file)
         self[module_name] = module
         self.watched_dirs[str(path)] = module_name
         self.watched_dirs[str(path.resolve())] = module_name
@@ -114,10 +136,17 @@ class ModuleManager:
     def reload_module(self, module_name: str) -> None:
         if module_name in self.modules:
             old_module = self.modules[module_name]
+            module_file = getattr(old_module, "__file__", None)
 
             try:
-                reloaded = importlib.reload(old_module)
+                if not isinstance(module_file, str):
+                    raise ImportError(
+                        f"Could not find source file for module {module_name}"
+                    )
+
+                reloaded = self.load_module(module_name, Path(module_file))
                 self[module_name] = reloaded
+                poison_module(old_module)
 
                 d.LOGGER.info(f"Reloaded {module_name}.")
             except Exception as e:
