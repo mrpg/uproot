@@ -1117,8 +1117,8 @@
 ? 'You have not checked for important announcements recently.'
 : 'Sie haben schon länger nicht mehr geprüft, ob es wichtige Ankündigungen gibt.'
 
-? 'uproot never phones home.'
-: 'uproot telefoniert nie nach Hause.'
+? 'uproot never automatically phones home.'
+: 'uproot telefoniert nie automatisch nach Hause.'
 
 ? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant announcements.'
 : 'Wenn Sie diesen Button klicken, prüft Ihr uproot-Server, ob die Entwickler wichtige Ankündigungen veröffentlicht haben.'
