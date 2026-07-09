@@ -525,6 +525,7 @@ class Page(metaclass=FrozenPage):
     before_always_once: Any
     before_form_save: Any
     before_once: Any
+    early: Any
     fields: Any
     handle_stealth_fields: Any
     jsvars: Any
