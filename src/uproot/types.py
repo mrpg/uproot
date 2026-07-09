@@ -61,6 +61,12 @@ Username: TypeAlias = str
 PageLike: TypeAlias = Union[type["Page"], "SmoothOperator"]
 PlayerType: TypeAlias = Annotated["Storage", "Player"]
 Bunch: TypeAlias = list["PlayerIdentifier"]
+PageCallable: TypeAlias = Callable[[PlayerType], MaybeAwaitable[T]]
+PageDataCallable: TypeAlias = Callable[[PlayerType, Any], MaybeAwaitable[T]]
+PageRequestCallable: TypeAlias = Callable[[PlayerType, Any], MaybeAwaitable[T]]
+PageContext: TypeAlias = dict[str, Any]
+PageFields: TypeAlias = dict[str, Any]
+PageValidationErrors: TypeAlias = str | list[str] | dict[str, str | list[str]] | None
 
 
 class Identifier(ABC):
@@ -513,29 +519,22 @@ class Page(metaclass=FrozenPage):
     allow_back: bool = False
     template: str
 
-    # ideally, the following attributes should have types like
-    #    show: Union[bool, classmethod[type["Page"], [PlayerType], MaybeAwaitable[bool]]]
-    # but that does not yet work
-    # in fact, not even
-    #    show: Union[bool, Any]
-    # works! NO BUENO!
-
-    after_always_once: Any
-    after_once: Any
-    before_always_once: Any
-    before_form_save: Any
-    before_once: Any
-    early: Any
-    fields: Any
-    handle_stealth_fields: Any
-    jsvars: Any
-    may_proceed: Any
-    show: Any
-    stealth_fields: Any
-    templatevars: Any
-    timeout: Any
-    timeout_reached: Any
-    validate: Any
+    after_always_once: PageCallable[None]
+    after_once: PageCallable[None]
+    before_always_once: PageCallable[None]
+    before_form_save: PageDataCallable[None]
+    before_once: PageCallable[None]
+    early: PageRequestCallable[None]
+    fields: PageFields | PageCallable[PageFields]
+    handle_stealth_fields: PageDataCallable[str | list[str] | None]
+    jsvars: PageContext | PageCallable[PageContext]
+    may_proceed: bool | PageCallable[bool]
+    show: bool | PageCallable[bool]
+    stealth_fields: Iterable[str] | PageCallable[Iterable[str]]
+    templatevars: PageContext | PageCallable[PageContext | None]
+    timeout: float | PageCallable[float | None]
+    timeout_reached: bool | PageCallable[bool]
+    validate: PageDataCallable[PageValidationErrors]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         raise AttributeError("Pages are not meant to be instantiated.")
