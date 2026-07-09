@@ -508,6 +508,9 @@
 ? 'Hide testing elements'
 : 'テスト要素を非表示'
 
+? 'Set room capacity to number of players'
+: 'ルームの定員をプレイヤー数に設定'
+
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'このチェックを外すと、ルームの定員は変更されません。これにより、新たな参加者がセッションを拡大できます。'
 

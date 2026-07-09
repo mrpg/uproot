@@ -508,6 +508,9 @@
 ? 'Hide testing elements'
 : 'Testelemente ausblenden'
 
+? 'Set room capacity to number of players'
+: 'Raumkapazität auf Spieleranzahl setzen'
+
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'Wenn dieses Kästchen nicht aktiviert ist, bleibt die Kapazität des Raums unverändert. Das heißt, dass neu hinzukommende Spieler die Session vergrößern können.'
 

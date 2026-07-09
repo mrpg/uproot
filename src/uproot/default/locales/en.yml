@@ -508,6 +508,9 @@
 ? 'Hide testing elements'
 : 'Hide testing elements'
 
+? 'Set room capacity to number of players'
+: 'Set room capacity to number of players'
+
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 
