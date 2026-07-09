@@ -276,7 +276,7 @@ Status
 
             safeHTML += "</p>";
 
-            if (data.generalAnnouncement !== null) {
+            if (data.generalAnnouncement) {
                 safeHTML += `<div class="alert alert-success" role="alert">
                                  <b>${_("General announcement")}</b>:
                                  ${uproot.escape(data.generalAnnouncement)}
