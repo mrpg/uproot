@@ -2,6 +2,6 @@
     "recommendedVersion": "0.0.1",
     "generalAnnouncement": "You are running an initial development version of uproot.",
     "announcements": {
-        "0.0.1": "Thank you for being an early adopter. There are currently no important announcements."
+        "0.0.1": "uproot 0.1.0 will soon be released. Make sure you are ready for upgrading your deployment. Check these announcements regularly."
     }
 }

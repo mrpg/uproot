@@ -51,8 +51,8 @@ def configs() -> dict[str, SortedDict[str, str]]:
 
 
 async def announcements() -> dict[str, Any]:
-    """Fetch announcements from the upstream repository."""
-    ANNOUNCEMENTS_URL = "https://raw.githubusercontent.com/mrpg/uproot/refs/heads/main/announcements.json"
+    """Fetch announcements from the maintainers' server."""
+    ANNOUNCEMENTS_URL = "https://uproot.science/announcements.json"
 
     try:
         async with httpx.AsyncClient() as client:

@@ -1120,5 +1120,5 @@
 ? 'uproot never phones home.'
 : 'uproot telefoniert nie nach Hause.'
 
-? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'
-: 'Wenn Sie diesen Button klicken, prüft Ihr uproot-Server, ob die Entwickler wichtige Neuigkeiten auf GitHub veröffentlicht haben.'
+? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant announcements.'
+: 'Wenn Sie diesen Button klicken, prüft Ihr uproot-Server, ob die Entwickler wichtige Ankündigungen veröffentlicht haben.'

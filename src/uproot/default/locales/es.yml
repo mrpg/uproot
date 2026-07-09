@@ -1120,5 +1120,5 @@
 ? 'uproot never phones home.'
 : 'uproot nunca se conecta a servidores externos por su cuenta.'
 
-? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant news on GitHub.'
-: 'Al hacer clic en este botón, su servidor de uproot consulta en GitHub si los desarrolladores han publicado novedades importantes.'
+? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant announcements.'
+: 'Al hacer clic en este botón, su servidor de uproot consulta si los desarrolladores han publicado anuncios importantes.'
