@@ -15,31 +15,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
 
-{% if nobootstrap is not defined %}
+{% if not (disable_bootstrap | default(false)) %}
 <link rel="stylesheet" href="{{ internalstatic('vendor/bootstrap/bootstrap.min.css') }}">
 <script src="{{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 {% endif %}
 
 <link rel="stylesheet" href="{{ internalstatic('style.css') }}">
 
-{% if nowebfonts is not defined %}
+{% if not (disable_uproot_fonts | default(false)) %}
 <link rel="stylesheet" href="{{ internalstatic('webfonts.css') }}">
-{% if normalnums is not defined %}
+{% if not (disable_tabular_numbers | default(false)) %}
 <link rel="stylesheet" href="{{ internalstatic('inter-tnum.css') }}">
 {% endif %}
 {% endif %}
 
 <script src="{{ internalstatic('uproot.js') }}"></script>
-{% if noterms is not defined %}
+{% if not (disable_terms | default(false)) %}
 <script src="{{ uproot_terms_url }}"></script>
 {% endif %}
 <script>
     uproot.vars = {{ _uproot_js | tojson | safe }};
     window.C = uproot.vars._uproot_internal?.C;
 
-    {% if noautostart is not defined %}
+    {% if not (disable_auto_start | default(false)) %}
     uproot.onStart(() => {
-        {% if noconnectionlostmodal is not defined %}
+        {% if not (disable_connection_lost_modal | default(false)) %}
         // Enable Connection lost modal monitoring first (includes startup failsafe)
         uproot.enableConnectionLostModal();
         {% endif %}
@@ -138,7 +138,7 @@
     </div>
 </div>
 
-{% if noconnectionlostmodal is not defined %}
+{% if not (disable_connection_lost_modal | default(false)) %}
 <div class="modal fade" id="connection-timeout-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" aria-modal="true" role="alertdialog">
     <div class="modal-dialog">
         <div class="modal-content">

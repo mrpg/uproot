@@ -734,7 +734,7 @@ async def new_session_in_room(
     settings: str = Form(""),
     sname: str = Form(""),
     unames: str = Form(""),
-    nogrow: Optional[bool] = Form(False),
+    disable_growth: Optional[bool] = Form(False),
     simulate: Optional[bool] = Form(False),
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
@@ -784,7 +784,7 @@ async def new_session_in_room(
         admin.rooms[roomname]["sname"] = sid.sname
         admin.rooms[roomname]["open"] = True
 
-        if nogrow:
+        if disable_growth:
             admin.rooms[roomname]["capacity"] = nplayers
 
     with t.materialize(sid) as session:

@@ -1,11 +1,6 @@
 {% extends "Bare.html" %}
 
 
-{% if buttons is not defined %}
-{% set buttons = True %}
-{% endif %}
-
-
 {% block titlearea %}
 
 {% if _uproot_title %}
@@ -19,7 +14,7 @@
 
 {% block uproot_main_buttons %}
 
-{% if buttons and not buttons_placed.placed %}
+{% if (buttons | default(true)) and not buttons_placed.placed %}
 <div id="uproot-button-wrapper">
     {% if page.allow_back %}
     <button type="button" id="uproot-button-back" class="btn btn-outline-secondary" onclick="uproot.goBack()">

@@ -101,7 +101,7 @@ Admin area
             </div>
         </div>
 
-        {% if nonav is not defined %}
+        {% if not (disable_navigation | default(false)) %}
         <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm" id="uproot-navbar">
             <div class="container">
                 <h1 class="fs-4 p-0 mb-1"><a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover" href="{{ _uproot_internal.root }}/admin/" tabindex="-1">uproot</a></h1>
@@ -195,7 +195,7 @@ Admin area
                     <div class="col-12 col-lg-6">
                         <a class="btn btn-xs btn-danger me-2 mb-2 mt-1" href="https://github.com/mrpg/uproot/issues" target="_blank">{% translate %}Report a bug{% endtranslate %}</a>
                         <a class="btn btn-xs btn-warning me-2 mb-2 mt-1" href="https://q.mg.sb/uproot-help" target="_blank">{% translate %}Get help{% endtranslate %}</a>
-                        {% if nonav is not defined %}
+                        {% if not (disable_navigation | default(false)) %}
                         <button type="button" class="btn btn-xs btn-success mb-2 mt-1" onclick="praise()">{% translate %}Submit praise{% endtranslate %}</button>
                         {% endif %}
                     </div>
