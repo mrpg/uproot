@@ -429,6 +429,13 @@ ignore = ["F403", "F405"]
 python_version = "3.13"
 check_untyped_defs = true
 ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unreachable = true
+no_implicit_optional = true
+disallow_any_generics = true
+strict_equality = true
 
 [tool.uv]
 python-preference = "system"
