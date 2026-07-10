@@ -607,7 +607,7 @@
 ? 'Please enter your Access Code.'
 : 'アクセスコードを入力してください。'
 
-? 'Do not switch to another app or tab while you wait. This helps keep your connection active.'
+? 'Do not switch to another app or tab while you wait.'
 : '待機中は別のアプリやタブに切り替えないでください。'
 
 ? 'Please note that a room created this way will disappear when you reset the database.'
