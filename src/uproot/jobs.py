@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
-from typing import Any, Optional, cast
+from typing import Any, Coroutine, Optional, cast
 from uuid import UUID
 
 from fastapi import FastAPI, WebSocket
@@ -66,6 +66,36 @@ async def subscribe_to_room(roomname: str) -> bool:
 
 async def timer(interval: float) -> None:
     await asyncio.sleep(interval)
+
+
+BACKGROUND_TASKS: set[asyncio.Task[Any]] = set()
+
+
+def reap_spawned(task: asyncio.Task[Any]) -> None:
+    BACKGROUND_TASKS.discard(task)
+
+    if not task.cancelled() and task.exception() is not None:
+        d.LOGGER.error(
+            f"Exception in spawned task {task.get_name()}",
+            exc_info=task.exception(),
+        )
+
+
+def spawn(coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
+    """Run a coroutine as a supervised background task.
+
+    The task is kept referenced until it finishes (so it cannot be
+    garbage-collected mid-flight), and exceptions are logged instead of being
+    silently discarded. Pending tasks are cancelled at server shutdown.
+
+    Tasks do not survive server restarts. A task that outlives a reload of the
+    app module it was defined in raises when it next touches that module.
+    """
+    task = asyncio.create_task(coro, name=coro.__qualname__)
+    BACKGROUND_TASKS.add(task)
+    task.add_done_callback(reap_spawned)
+
+    return task
 
 
 async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:

@@ -24,6 +24,7 @@ from pydantic import validate_call
 import uproot as u
 import uproot.chat
 import uproot.core as c
+import uproot.jobs as j
 import uproot.types as t
 from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
@@ -90,6 +91,7 @@ __all__ = [
     "Session",
     "SessionIdentifier",
     "SessionType",
+    "spawn",
     "Storage",
     "SynchronizingWait",
     "to",
@@ -118,6 +120,7 @@ rng = t.rng
 safe = Markup
 SessionIdentifier = t.SessionIdentifier
 SessionType = t.SessionType
+spawn = j.spawn
 SynchronizingWait = t.SynchronizingWait
 uuid = t.uuid
 

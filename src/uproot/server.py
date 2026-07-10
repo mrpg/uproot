@@ -168,6 +168,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     await d.lifespan_stop(app, tasks)
 
+    spawned = list(j.BACKGROUND_TASKS)
+
+    for t_ in spawned:
+        t_.cancel()
+
+    await asyncio.gather(*spawned, return_exceptions=True)
+
     for t_ in tasks:
         t_.cancel()
 
