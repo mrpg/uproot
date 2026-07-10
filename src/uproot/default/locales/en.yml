@@ -607,8 +607,8 @@
 ? 'Please enter your Access Code.'
 : 'Please enter your Access Code.'
 
-? 'Please keep this page open.'
-: 'Please keep this page open.'
+? 'Do not switch to another app or tab while you wait.'
+: 'Do not switch to another app or tab while you wait.'
 
 ? 'Please note that a room created this way will disappear when you reset the database.'
 : 'Please note that a room created this way will disappear when you reset the database.'

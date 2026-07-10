@@ -1,0 +1,28 @@
+<div id="uproot-mobile-safari-websocket-wait-alert" class="alert alert-danger border-danger callout mb-4 d-none" role="alert">
+    <p class="mb-0">
+        {% translate %}
+        Do not switch to another app or tab while you wait.
+        {% endtranslate %}
+    </p>
+</div>
+
+<script>
+    uproot.onReady(() => {
+        const agent = navigator.userAgent || "";
+        const platform = navigator.platform || "";
+        const deviceLooksLikeIphoneOrIpad = agent.includes("iPhone") || agent.includes("iPad");
+        const iPadOsTouchDevice = (
+            agent.includes("Macintosh")
+            && agent.includes("Mobile")
+            && platform === "MacIntel"
+            && navigator.maxTouchPoints > 1
+        );
+        const deviceLooksLikeIos = deviceLooksLikeIphoneOrIpad || iPadOsTouchDevice;
+        const safariBrowser = agent.includes("Safari") && !/(CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser)/.test(agent);
+        const alertElement = I("uproot-mobile-safari-websocket-wait-alert");
+
+        if (alertElement && deviceLooksLikeIos && safariBrowser) {
+            alertElement.classList.remove("d-none");
+        }
+    });
+</script>
