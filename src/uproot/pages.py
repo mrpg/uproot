@@ -281,6 +281,12 @@ def select_html_params(field: Any, class_: str) -> Any:
     return html_params(name=field.name, **attrs)
 
 
+def template_get_setting(session: Any, key: str, default: Any = None) -> Any:
+    from uproot.smithereens import get_setting
+
+    return get_setting(session, key, default)
+
+
 async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
     fields = await ensure_awaitable(
         optional_call, page, "fields", default_return=None, player=player
@@ -774,4 +780,5 @@ ENV.filters["tojson"] = tojson_filter
 ENV.filters["to"] = to_filter
 ENV.filters["type"] = type_filter
 ENV.filters["unixtime2datetime"] = unixtime2datetime_filter
+ENV.globals["get_setting"] = template_get_setting
 ENV.globals["select_html_params"] = select_html_params
