@@ -230,40 +230,6 @@ class Results(Page):
     pass
 
 
-def pipeline(session):
-    # OPTIONAL. This function allows you define a custom data export.
-    # You can also define pipeline(session, data=None) to receive optional JSON data
-    # from the admin pipeline runner.
-
-    rows = []
-
-    for group in session.groups(app="#APP#"):
-        players = group.players
-        player1, player2 = players
-
-        for member_id, player in enumerate(players):
-            other = player2 if member_id == 0 else player1
-            player_data = player.within(app="#APP#")
-            other_data = other.within(app="#APP#")
-            cooperate = player_data.get("cooperate")
-            other_cooperate = other_data.get("cooperate")
-
-            rows.append(
-                {
-                    "session": session.name,
-                    "group": group.name,
-                    "uname": player.name,
-                    "member_id": member_id,
-                    "cooperate": cooperate,
-                    "other_uname": other.name,
-                    "other_cooperate": other_cooperate,
-                    "payoff": player_data.get("payoff"),
-                }
-            )
-
-    return rows
-
-
 page_order = [
     GroupPlease,
     Dilemma,
