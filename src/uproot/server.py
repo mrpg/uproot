@@ -110,9 +110,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         print(file=stderr)
 
         if not d.PUBLIC_DEMO:
-            print(
+            click.secho(
                 "!!! You are using unsafe mode. Only ever do so on localhost.",
-                file=stderr,
+                fg="red",
+                bold=True,
+                err=True,
             )
 
         print(
