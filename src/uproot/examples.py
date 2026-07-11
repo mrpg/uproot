@@ -328,7 +328,7 @@ PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 PYTHON_VERSION = "3.13\n"
 
 REQUIREMENTS_TXT = """\
-uproot-science @ git+https://github.com/mrpg/uproot.git@main
+uproot-science<1
 """
 
 PRE_COMMIT_CONFIG = """\
@@ -369,7 +369,7 @@ readme = "README.md"
 license = "0BSD"
 requires-python = ">=3.12"
 dependencies = [
-    "uproot-science @ git+https://github.com/mrpg/uproot.git@main",
+    "uproot-science<1",
     "black",
     "isort",
     "mypy",
@@ -379,7 +379,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pg = [
-    "uproot-science[pg] @ git+https://github.com/mrpg/uproot.git@main",
+    "uproot-science[pg]<1",
 ]
 
 [tool.black]

@@ -1,7 +1,8 @@
 {
-    "recommendedVersion": "0.0.1",
-    "generalAnnouncement": "You are running an initial development version of uproot.",
+    "recommendedVersion": "0.1.0",
+    "generalAnnouncement": "You are running an early version of uproot. Thank you!",
     "announcements": {
-        "0.0.1": "uproot 0.1.0 will soon be released. Make sure you are ready for upgrading your deployment. Check these announcements regularly."
+        "0.1.0": "You are up-to-date.",
+        "0.0.1": "uproot 0.1.0 has been released. Older versions are no longer supported. Upgrade as soon as possible. See here: https://q.mg.sb/upgradeuproot"
     }
 }

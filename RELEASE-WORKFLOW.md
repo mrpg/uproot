@@ -4,7 +4,7 @@
 1. Update `__version_info__` in `src/uproot/__init__.py`.
 1. Update `version` in `pyproject.toml`.
 1. Update `recommendedVersion` in `announcements.json`, and add or update the matching version-specific announcement if needed.
-1. Copy or move (after January 1, 2027) `announcements.json` to [uproot-docs](https://github.com/mrpg/uproot-docs). Deploy docs.
+1. Copy or move (after 2027-01-01) `announcements.json` to [uproot-docs](https://github.com/mrpg/uproot-docs). Deploy docs.
 1. For `1.0.0` or the first PyPI release, update install and status text in `README.md` and `INSTALLATION-PIP.md`.
 1. Rerun `uv sync --upgrade`.
 1. Run formatters and autofixes: `uv run ruff check --fix src/uproot/`, `uv run black src/uproot/`, `uv run isort src/uproot/`.
@@ -28,4 +28,5 @@
 
 # Versions
 
+- `0.1.0` (2026-07-11)
 - `0.0.1` (not formally assigned; denotes all initial-development versions before `0.1.0`)

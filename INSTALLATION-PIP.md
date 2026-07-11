@@ -59,16 +59,8 @@ You'll see `(env)` in your prompt when active.
 ## 3. Install uproot
 
 ```console
-pip install -U 'uproot-science @ git+https://github.com/mrpg/uproot.git@main'
+pip install -U uproot-science
 ```
-
-<details>
-<summary>Alternative if the above doesn't work</summary>
-
-```console
-pip install -U 'uproot-science @ https://github.com/mrpg/uproot/archive/main.zip'
-```
-</details>
 
 ## 4. Create and run a project
 
