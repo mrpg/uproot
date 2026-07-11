@@ -240,34 +240,13 @@ Status
 </div>
 
 <script>
-    function parseVersion(versionString) {
-        return versionString.split(".").map(Number);
-    }
-
-    function isCurrentVersion(currentVersion, requiredVersion) {
-        const current = Array.isArray(currentVersion) ? currentVersion : parseVersion(currentVersion);
-        const required = Array.isArray(requiredVersion) ? requiredVersion : parseVersion(requiredVersion);
-
-        for (let i = 0; i < Math.max(current.length, required.length); i++) {
-            const c = current[i] || 0;
-            const r = required[i] || 0;
-            if (c > r) return true;
-            if (c < r) return false;
-        }
-
-        return true;
-    }
-
     function announcements() {
-        const i_am = parseVersion(uproot.vars.versions.uproot);
-
         uproot.invoke("announcements").then((data) => {
             if (data.error) {
                 uproot.alert(`<p>${_("We couldn't load announcements.")} ${_("Please visit")} <a class="link-uproot" href="https://uproot.science/" target="_blank">uproot.science</a>.</p>`);
                 return;
             }
 
-            const recommended = parseVersion(data.recommendedVersion);
             let safeHTML = "<p>";
 
             safeHTML += _("You are running version #i_am#. The current version is #recommended#.")
@@ -283,30 +262,22 @@ Status
                              </div>`;
             }
 
-            if (isCurrentVersion(i_am, recommended)) {
-                if (!data.announcements.hasOwnProperty(uproot.vars.versions.uproot)) {
-                    safeHTML += "<p><i>";
-                    safeHTML += _("Your version appears to be up to date.");
-                    safeHTML += "</i></p>";
-                }
-                else {
-                    safeHTML += '<p class="alert alert-danger" role="alert">';
-                    safeHTML += `<b>${_("Announcement for your version")}</b>: `;
-                    safeHTML += uproot.escape(data.announcements[uproot.vars.versions.uproot]);
-                    safeHTML += "</p>";
-                }
-            }
-            else {
+            if (!data.versionIsCurrent) {
                 safeHTML += "<p><b>";
                 safeHTML += _("Your version is outdated. Please update as soon as possible.");
                 safeHTML += "</b></p>";
+            }
+            else if (data.versionAnnouncement == null) {
+                safeHTML += "<p><i>";
+                safeHTML += _("Your version appears to be up to date.");
+                safeHTML += "</i></p>";
+            }
 
-                if (data.announcements.hasOwnProperty(uproot.vars.versions.uproot)) {
-                    safeHTML += '<p class="alert alert-danger" role="alert">';
-                    safeHTML += `<b>${_("Announcement for your version")}</b>: `;
-                    safeHTML += uproot.escape(data.announcements[uproot.vars.versions.uproot]);
-                    safeHTML += "</p>";
-                }
+            if (data.versionAnnouncement != null) {
+                safeHTML += '<p class="alert alert-danger" role="alert">';
+                safeHTML += `<b>${_("Announcement for your version")}</b>: `;
+                safeHTML += uproot.escape(data.versionAnnouncement);
+                safeHTML += "</p>";
             }
 
             uproot.alert(safeHTML);

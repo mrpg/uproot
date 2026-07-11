@@ -7,6 +7,7 @@ from time import time
 from typing import Any, cast
 
 import httpx
+from packaging.version import InvalidVersion, Version
 from sortedcontainers import SortedDict
 
 import uproot as u
@@ -50,19 +51,41 @@ def configs() -> dict[str, SortedDict[str, str]]:
     }
 
 
+def version_is_current(current: str, recommended: str) -> bool:
+    """Return whether the running version meets the recommended version."""
+    try:
+        return Version(current) >= Version(recommended)
+    except InvalidVersion:
+        return False
+
+
 async def announcements() -> dict[str, Any]:
-    """Fetch announcements from the maintainers' server."""
+    """Fetch announcements from the maintainers' server.
+
+    The returned data is enriched with fields computed against the running
+    version: "versionIsCurrent" and "versionAnnouncement" (or None).
+    """
     ANNOUNCEMENTS_URL = "https://uproot.science/announcements.json"
 
     try:
         async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(ANNOUNCEMENTS_URL)
             data = cast(dict[str, Any], response.json())
+            recommended = str(data["recommendedVersion"])
     except Exception:
         return {"error": True}
 
     with s.Admin() as admin:
         admin.announcements_queried = time()
+
+    version_announcements = data.get("announcements")
+
+    if not isinstance(version_announcements, dict):
+        version_announcements = {}
+
+    data["recommendedVersion"] = recommended
+    data["versionIsCurrent"] = version_is_current(u.__version__, recommended)
+    data["versionAnnouncement"] = version_announcements.get(u.__version__)
 
     return data
 

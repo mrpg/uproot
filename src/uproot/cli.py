@@ -96,55 +96,33 @@ def run_server(host: str, port: int) -> None:
     )
 
 
-def version_parts(version: str) -> list[int]:
-    return [int(part) for part in version.split(".")]
-
-
-def version_is_current(current: str, recommended: str) -> bool:
-    current_parts = version_parts(current)
-    recommended_parts = version_parts(recommended)
-    length = max(len(current_parts), len(recommended_parts))
-
-    current_parts.extend([0] * (length - len(current_parts)))
-    recommended_parts.extend([0] * (length - len(recommended_parts)))
-    return current_parts >= recommended_parts
-
-
 def show_announcements(data: dict[str, Any], current_version: str) -> None:
-    recommended_version = str(data["recommendedVersion"])
     click.secho(
         f"You are running version {current_version}. "
-        f"The current version is {recommended_version}.",
+        f"The current version is {data['recommendedVersion']}.",
         fg="cyan",
     )
 
     if general_announcement := data.get("generalAnnouncement"):
         click.secho(f"General announcement: {general_announcement}", fg="green")
 
-    version_announcements = data.get("announcements", {})
-    version_announcement = version_announcements.get(current_version)
+    version_announcement = data.get("versionAnnouncement")
 
-    if version_is_current(current_version, recommended_version):
-        if current_version in version_announcements:
-            click.secho(
-                f"Announcement for your version: {version_announcement}",
-                fg="red",
-                bold=True,
-            )
-        else:
-            click.secho("Your version appears to be up to date.", fg="green")
-    else:
+    if not data.get("versionIsCurrent"):
         click.secho(
             "Your version is outdated. Please update as soon as possible.",
             fg="red",
             bold=True,
         )
-        if current_version in version_announcements:
-            click.secho(
-                f"Announcement for your version: {version_announcement}",
-                fg="red",
-                bold=True,
-            )
+    elif version_announcement is None:
+        click.secho("Your version appears to be up to date.", fg="green")
+
+    if version_announcement is not None:
+        click.secho(
+            f"Announcement for your version: {version_announcement}",
+            fg="red",
+            bold=True,
+        )
 
 
 def project_configs() -> list[str]:
