@@ -36,15 +36,18 @@ pg = [
 ]
 ```
 
-**Do not skip this step.** If a `git+` entry remains anywhere in your `pyproject.toml`, it silently takes precedence, and your project will keep tracking the development version.
+**Do not skip this step.** If a `git+` entry relating to `uproot-science` remains anywhere in your `pyproject.toml`, it silently takes precedence, and your project will keep tracking uproot’s current development version.
 
-If your project contains a `requirements.txt` (not recommended, but some legacy deployments may use it), replace the `uproot-science` line there in the same way:
+> [!IMPORTANT]
+> Then run `uv sync --upgrade`.
+
+If your project contains a `requirements.txt` (some legacy deployments may use it), replace the `uproot-science` line there in the same way:
 
 ```
 uproot-science<1
 ```
 
-Then run `uv sync --upgrade`.
+If you manage your virtual environment manually, you should then run `pip install -Ur requirements.txt` or similar.
 
 Thank you for being an early adopter!
 
@@ -58,6 +61,8 @@ dependencies = [
     ...
 ]
 ```
+
+(And similar in the other places.)
 
 However, **this is usually unnecessary**. Your project folder contains a file called `uv.lock`, which records the exact version of *uproot* (and of every other package) that your project uses. As long as that file is in place, `uv` will keep installing exactly those versions — your setup stays reproducible without you having to pin anything yourself.
 
