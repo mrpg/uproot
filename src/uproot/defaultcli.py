@@ -49,18 +49,19 @@ def show_help() -> None:
     print("  --help       Show this message")
     print()
     print("Commands:")
-    print("  setup        Create a new uproot project")
-    print("  api          Access the Admin REST API")
+    print("  setup          Create a new uproot project")
+    print("  api            Access the Admin REST API")
     print()
     print("Project commands (require main.py in current directory):")
-    print("  run          Run this uproot project")
-    print("  start        Create and open a quick room, then run this uproot project")
-    print("  reset        Reset database")
-    print("  dump         Dump database to file")
-    print("  restore      Restore database from file")
-    print("  new          Create new app")
-    print("  examples     Download examples")
-    print("  deployment   View deployment")
+    print("  announcements  Check for important announcements")
+    print("  run            Run this uproot project")
+    print("  start          Create and open a quick room, then run this uproot project")
+    print("  reset          Reset database")
+    print("  dump           Dump database to file")
+    print("  restore        Restore database from file")
+    print("  new            Create new app")
+    print("  examples       Download examples")
+    print("  deployment     View deployment")
     print()
     print("For more help on a specific command, run:")
     print("\tuproot <command> --help")
@@ -177,6 +178,7 @@ def main() -> None:
         return
 
     cmds = [
+        "announcements",
         "deployment",
         "dump",
         "examples",

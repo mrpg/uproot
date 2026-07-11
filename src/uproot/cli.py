@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
+import logging
 import os
 import platform
 import shutil
@@ -11,7 +12,7 @@ import time
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Collection, Generator
+from typing import Any, Collection, Generator
 
 import click
 import httpx
@@ -102,6 +103,57 @@ def run_server(host: str, port: int) -> None:
         workers=1,  # must be 1
         **d.UVICORN_KWARGS,
     )
+
+
+def version_parts(version: str) -> list[int]:
+    return [int(part) for part in version.split(".")]
+
+
+def version_is_current(current: str, recommended: str) -> bool:
+    current_parts = version_parts(current)
+    recommended_parts = version_parts(recommended)
+    length = max(len(current_parts), len(recommended_parts))
+
+    current_parts.extend([0] * (length - len(current_parts)))
+    recommended_parts.extend([0] * (length - len(recommended_parts)))
+    return current_parts >= recommended_parts
+
+
+def show_announcements(data: dict[str, Any], current_version: str) -> None:
+    recommended_version = str(data["recommendedVersion"])
+    click.secho(
+        f"You are running version {current_version}. "
+        f"The current version is {recommended_version}.",
+        fg="cyan",
+    )
+
+    if general_announcement := data.get("generalAnnouncement"):
+        click.secho(f"General announcement: {general_announcement}", fg="green")
+
+    version_announcements = data.get("announcements", {})
+    version_announcement = version_announcements.get(current_version)
+
+    if version_is_current(current_version, recommended_version):
+        if current_version in version_announcements:
+            click.secho(
+                f"Announcement for your version: {version_announcement}",
+                fg="red",
+                bold=True,
+            )
+        else:
+            click.secho("Your version appears to be up to date.", fg="green")
+    else:
+        click.secho(
+            "Your version is outdated. Please update as soon as possible.",
+            fg="red",
+            bold=True,
+        )
+        if current_version in version_announcements:
+            click.secho(
+                f"Announcement for your version: {version_announcement}",
+                fg="red",
+                bold=True,
+            )
 
 
 def project_configs() -> list[str]:
@@ -309,6 +361,32 @@ def start(
 
 
 # fmt: off
+@click.command(help="Check for important announcements")
+# fmt: on
+def announcements() -> None:
+    import uproot as u
+    from uproot.services import config_service
+
+    httpx_logger = logging.getLogger("httpx")
+    previous_level = httpx_logger.level
+    httpx_logger.setLevel(logging.WARNING)
+    try:
+        data = asyncio.run(config_service.announcements())
+    finally:
+        httpx_logger.setLevel(previous_level)
+
+    if data.get("error"):
+        click.secho(
+            "We couldn't load announcements. Please visit https://uproot.science/.",
+            fg="red",
+            bold=True,
+        )
+        raise click.exceptions.Exit(1)
+
+    show_announcements(data, u.__version__)
+
+
+# fmt: off
 @click.command(help="Reset database")
 @click.option("--yes", is_flag=True, help="Do not ask for confirmation.")
 @click.pass_context
@@ -393,6 +471,7 @@ def deployment(ctx: click.Context) -> None:
             click.echo(f"{k}={v}")
 
 
+cli.add_command(announcements)
 cli.add_command(deployment)
 cli.add_command(dump)
 cli.add_command(examples)
