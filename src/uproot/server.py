@@ -154,11 +154,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
             d.ensure_login_token()
 
             click.echo(err=True)
-            click.echo(
+            click.secho(
                 "You can securely log in through the URL below because you are using the\n"
                 "default administrator ('admin') with an empty password (...). If you add\n"
                 "more administrators, change admin's username or set a password, this\n"
                 "message will no longer appear.",
+                fg="bright_black",
+                italic=True,
                 err=True,
             )
             click.echo(err=True)
