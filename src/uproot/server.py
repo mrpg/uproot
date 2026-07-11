@@ -81,9 +81,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     d.LOGGER.info(f"This is uproot {u.__version__} (https://uproot.science/)")
     d.LOGGER.info(f"Server is running at {d.ORIGIN}{d.ROOT}/")
+
+    if d.PUBLIC_DEMO:
+        announcement_reminder = (
+            "REMINDER: Check for important announcements regularly with "
+            "`uproot announcements`."
+        )
+    else:
+        announcement_reminder = (
+            "REMINDER: Check for important announcements regularly on the "
+            "Status page in the admin area."
+        )
+
     click.secho(
-        "REMINDER: Check for important announcements regularly with "
-        "`uproot announcements`.",
+        announcement_reminder,
         fg="yellow",
         bold=True,
         err=True,
