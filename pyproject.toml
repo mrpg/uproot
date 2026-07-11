@@ -46,7 +46,7 @@ dependencies = [
 ]
 
 [tool.uv]
-exclude-newer = "84 hours"
+exclude-newer = "5 days"
 
 [project.urls]
 Homepage = "https://uproot.science/"
