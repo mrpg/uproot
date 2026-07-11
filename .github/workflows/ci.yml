@@ -102,7 +102,7 @@ jobs:
         run: uv run bandit -r src/uproot/ -c pyproject.toml
 
       - name: Run pip-audit
-        run: uvx pip-audit --ignore-vuln CVE-2026-3219  # pip, no fix available
+        run: uvx pip-audit
 
   code-quality:
     runs-on: ubuntu-latest
