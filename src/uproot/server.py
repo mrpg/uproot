@@ -4,7 +4,6 @@
 import asyncio
 import math
 from contextlib import asynccontextmanager
-from sys import stderr
 from typing import (
     Any,
     AsyncIterator,
@@ -79,8 +78,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     if d.ORIGIN is None:
         d.ORIGIN = f"http://{d.HOST}:{d.PORT}"
 
-    d.LOGGER.info(f"This is uproot {u.__version__} (https://uproot.science/)")
-    d.LOGGER.info(f"Server is running at {d.ORIGIN}{d.ROOT}/")
+    click.echo(
+        f"This is {click.style(f'uproot {u.__version__}', bold=True)} "
+        f"({click.style('https://uproot.science/', fg='bright_blue')})",
+        err=True,
+    )
+    click.echo(
+        f"{click.style('Server is running at', bold=True)} "
+        f"{click.style(f'{d.ORIGIN}{d.ROOT}/', fg='bright_blue')}",
+        err=True,
+    )
 
     if d.PUBLIC_DEMO:
         announcement_reminder = (
@@ -108,9 +115,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         pass
 
     if (la := len(d.ADMINS)) == 1:
-        d.LOGGER.info("There is 1 admin")
+        click.echo("There is 1 admin", err=True)
     else:
-        d.LOGGER.info(f"There are {la} admins")
+        click.echo(f"There are {la} admins", err=True)
 
     if not d.UNSAFE and not ADMINS_PASSWORDS_HASHED:
         validate_admin_password_lengths()
@@ -118,7 +125,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     normalize_admin_passwords()
 
     if d.UNSAFE:
-        print(file=stderr)
+        click.echo(err=True)
 
         if d.PUBLIC_DEMO:
             click.secho(
@@ -136,41 +143,42 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
                 err=True,
             )
 
-        print(
-            "Admin area:\n\t",
-            f"{d.ORIGIN}{d.ROOT}/admin/",
-            file=stderr,
+        click.echo(
+            f"{click.style('Admin area:', bold=True)}\n\t"
+            f"{click.style(f'{d.ORIGIN}{d.ROOT}/admin/', fg='bright_blue')}",
+            err=True,
         )
-        print(file=stderr)
+        click.echo(err=True)
     else:
         if len(d.ADMINS) == 1 and "admin" in d.ADMINS and d.ADMINS["admin"] is ...:
             d.ensure_login_token()
 
-            print(file=stderr)
-            print(
+            click.echo(err=True)
+            click.echo(
                 "You can securely log in through the URL below because you are using the\n"
                 "default administrator ('admin') with an empty password (...). If you add\n"
                 "more administrators, change admin's username or set a password, this\n"
                 "message will no longer appear.",
-                file=stderr,
+                err=True,
             )
-            print(file=stderr)
+            click.echo(err=True)
 
-            print(
-                "Auto login:\n\t",
-                f"{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}",
-                file=stderr,
+            click.echo(
+                f"{click.style('Auto login:', bold=True)}\n\t"
+                f"{click.style(f'{d.ORIGIN}{d.ROOT}/admin/login/#{d.LOGIN_TOKEN}', fg='bright_blue')}",
+                err=True,
             )
 
-            print(file=stderr)
+            click.echo(err=True)
 
     if d.QUICK_ROOM is not None:
-        print(
-            "Room:\n\t",
-            f"{d.ORIGIN}{d.ROOT}/room/{quote(d.QUICK_ROOM, safe='')}/",
-            file=stderr,
+        room_url = f"{d.ORIGIN}{d.ROOT}/room/{quote(d.QUICK_ROOM, safe='')}/"
+        click.echo(
+            f"{click.style('Room:', bold=True)}\n\t"
+            f"{click.style(room_url, fg='bright_blue')}",
+            err=True,
         )
-        print(file=stderr)
+        click.echo(err=True)
 
     tasks = []
 
