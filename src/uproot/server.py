@@ -109,7 +109,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     if d.UNSAFE:
         print(file=stderr)
 
-        if not d.PUBLIC_DEMO:
+        if d.PUBLIC_DEMO:
+            click.secho(
+                "WARNING: --public-demo is only for hosting a public-facing demo. "
+                "Do not use it during development.",
+                fg="yellow",
+                bold=True,
+                err=True,
+            )
+        else:
             click.secho(
                 "!!! You are using unsafe mode. Only ever do so on localhost.",
                 fg="red",

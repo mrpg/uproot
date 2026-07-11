@@ -78,15 +78,6 @@ def configure_server(host: str, port: int, unsafe: bool, public_demo: bool) -> N
             "If you use --public-demo, you MUST also use --unsafe."
         )
 
-    if public_demo:
-        click.secho(
-            "WARNING: --public-demo is only for hosting a public-facing demo. "
-            "Do not use it during development.",
-            fg="yellow",
-            bold=True,
-            err=True,
-        )
-
     d.HOST = host
     d.PORT = port
     d.UNSAFE = unsafe

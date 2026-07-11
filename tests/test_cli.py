@@ -9,22 +9,6 @@ import uproot.cli as uproot_cli
 from uproot.services import config_service
 
 
-def test_public_demo_warns(monkeypatch) -> None:
-    monkeypatch.setattr(uproot_cli, "run_server", lambda host, port: None)
-
-    result = CliRunner().invoke(
-        uproot_cli.cli,
-        ["run", "--unsafe", "--public-demo"],
-        color=False,
-    )
-
-    assert result.exit_code == 0
-    assert (
-        "WARNING: --public-demo is only for hosting a public-facing demo. "
-        "Do not use it during development."
-    ) in result.output
-
-
 def test_announcements_matches_status_page_messages(monkeypatch) -> None:
     data = {
         "recommendedVersion": u.__version__,
