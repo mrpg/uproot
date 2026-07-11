@@ -16,6 +16,7 @@ from typing import (
 )
 from urllib.parse import quote
 
+import click
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import PlainTextResponse, RedirectResponse
@@ -80,6 +81,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     d.LOGGER.info(f"This is uproot {u.__version__} (https://uproot.science/)")
     d.LOGGER.info(f"Server is running at {d.ORIGIN}{d.ROOT}/")
+    click.secho(
+        "REMINDER: Check for important announcements regularly with "
+        "`uproot announcements`.",
+        fg="yellow",
+        bold=True,
+        err=True,
+    )
 
     try:
         import setproctitle
