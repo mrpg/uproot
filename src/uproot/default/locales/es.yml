@@ -760,8 +760,8 @@
 ? 'Your version appears to be up to date.'
 : 'Su versión parece estar actualizada.'
 
-? 'Your version is outdated. Please update as soon as possible.'
-: 'Su versión está desactualizada. Actualícela lo antes posible.'
+? 'Your version is outdated.'
+: 'Su versión está desactualizada.'
 
 ? 'e.g.,'
 : 'p. ej.,'

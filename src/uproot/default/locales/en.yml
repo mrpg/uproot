@@ -760,8 +760,8 @@
 ? 'Your version appears to be up to date.'
 : 'Your version appears to be up to date.'
 
-? 'Your version is outdated. Please update as soon as possible.'
-: 'Your version is outdated. Please update as soon as possible.'
+? 'Your version is outdated.'
+: 'Your version is outdated.'
 
 ? 'e.g.,'
 : 'e.g.,'

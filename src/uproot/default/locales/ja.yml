@@ -760,8 +760,8 @@
 ? 'Your version appears to be up to date.'
 : 'バージョンは最新のようです。'
 
-? 'Your version is outdated. Please update as soon as possible.'
-: 'バージョンが古くなっています。できるだけ早く更新してください。'
+? 'Your version is outdated.'
+: 'バージョンが古くなっています。'
 
 ? 'e.g.,'
 : '例:'

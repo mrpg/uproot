@@ -110,7 +110,7 @@ def show_announcements(data: dict[str, Any], current_version: str) -> None:
 
     if not data.get("versionIsCurrent"):
         click.secho(
-            "Your version is outdated. Please update as soon as possible.",
+            "Your version is outdated.",
             fg="red",
             bold=True,
         )
