@@ -2,11 +2,12 @@
 
 [![Examples](https://img.shields.io/badge/uproot--examples-blue)](https://github.com/mrpg/uproot-examples)
 [![Website](https://img.shields.io/badge/Website-uproot.science-green)](https://uproot.science/)
+[![PyPI](https://img.shields.io/badge/PyPI-uproot--science-red)](https://pypi.org/project/uproot-science/)
 
 *uproot* is a modern software framework for developing and conducting browser-based behavioral experiments. This includes studies with hundreds of participants such as large-scale surveys and experiments with real-time interaction between the participants.
 
 > [!IMPORTANT]
-> This repository contains an initial development version. Breaking changes are made with reckless abandon. We are working towards the first release and invite you to join us.
+> This repository contains an initial development version.
 
 *uproot* is 100% [Free/Libre Open Source Software](https://en.wikipedia.org/wiki/Free_and_open-source_software), and contains only unencumbered code. All libraries, styles and fonts are included and served locally (no CDNs). *uproot* believes in best practices.
 
