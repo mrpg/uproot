@@ -214,7 +214,17 @@ def briefcase_readme(
         f"    One row per storage (e.g., per player) showing the final state:\n"
         f"    the last value of every field.\n\n"
         f"{grouped}"
+        f"Note that nothing in these files is sorted by !time: rows come\n"
+        f"grouped by storage and field, not chronologically. Where the order\n"
+        f"of events matters, sort rows by !seq yourself; !seq reflects the\n"
+        f"order in which changes were committed.\n\n"
         f"{filtered}\n\n"
+        f"page_times.{filetype} lists every page visit: which player entered\n"
+        f"which page at which time, and when they left it. It is derived\n"
+        f"from the players' show_page and page_order histories.\n\n"
+        f"DATA_DICTIONARY.json defines the uproot-internal columns, i.e.,\n"
+        f'those whose names start with "!". All other columns have other\n'
+        f"types, which are not documented there.\n\n"
         f"SHA256SUMS lists the SHA-256 hash of every file in this archive.\n"
         f"Verify the files' integrity from within this directory using\n\n"
         f"    sha256sum -c SHA256SUMS\n\n"
@@ -230,8 +240,9 @@ def generate_briefcase(
 ) -> bytes:
     """Generate a ZIP briefcase containing all key formats for a session.
 
-    The briefcase always contains the ultralong, sparse, and latest formats;
-    a non-empty `gvar` adds a grouped "latest" format on top.
+    The briefcase always contains the ultralong, sparse, and latest formats
+    as well as the page times; a non-empty `gvar` adds a grouped "latest"
+    format on top.
     """
     gvar = [gv for gv in gvar if gv]
     rows = list(data_rows_for_session(sname, filters))
@@ -250,6 +261,11 @@ def generate_briefcase(
         wrapper=str(sname),
         filetype=filetype,
         readme=briefcase_readme(str(sname), filetype, gvar, filters),
+        extras={
+            f"page_times.{filetype}": data.rows_to_bytes(
+                page_times_rows(sname), filetype
+            ),
+        },
     )
 
 
@@ -297,8 +313,8 @@ async def generate_jsonl(
         await asyncio.sleep(0)
 
 
-def page_times(sname: t.Sessionname) -> str:
-    """Generate CSV of page timing data for a session."""
+def page_times_rows(sname: t.Sessionname) -> list[dict[str, Any]]:
+    """Derive page timing rows (one per page visit) for a session."""
     times: list[dict[str, Any]] = []
 
     with s.Session(sname) as session:
@@ -354,4 +370,4 @@ def page_times(sname: t.Sessionname) -> str:
                     )
                     one_row = True
 
-    return data.csv_out(times)
+    return times

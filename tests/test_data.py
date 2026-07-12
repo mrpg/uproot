@@ -9,13 +9,16 @@ import pytest
 from sortedcontainers import SortedList
 
 from uproot.data import (
+    DATA_DICTIONARY,
     briefcase_out,
     csv_out,
     json2csv,
+    jsonl_line,
     jsonl_out,
     latest,
     long_to_wide,
     noop,
+    partial_matrix,
     split_by_storage_kind,
     value2json,
 )
@@ -338,6 +341,7 @@ def test_briefcase_out():
 
     with ZipFile(BytesIO(briefcase)) as zf:
         assert sorted(zf.namelist()) == [
+            "session1/DATA_DICTIONARY.json",
             "session1/README.txt",
             "session1/SHA256SUMS",
             "session1/latest/player.csv",
@@ -410,15 +414,32 @@ def test_generate_briefcase(monkeypatch):
         "everything_from_session",
         lambda sname: session_data,
     )
+    monkeypatch.setattr(
+        data_service,
+        "page_times_rows",
+        lambda sname: [
+            {
+                "sname": sname,
+                "uname": "p1",
+                "show_page": 0,
+                "page_name": "myapp/MyPage",
+                "entered": 1.0,
+                "left": 2.0,
+                "context": "",
+            }
+        ],
+    )
 
     briefcase = data_service.generate_briefcase("session1", [], False)
 
     with ZipFile(BytesIO(briefcase)) as zf:
         assert sorted(zf.namelist()) == [
+            "session1/DATA_DICTIONARY.json",
             "session1/README.txt",
             "session1/SHA256SUMS",
             "session1/latest/player.csv",
             "session1/latest/session.csv",
+            "session1/page_times.csv",
             "session1/sparse/player.csv",
             "session1/sparse/session.csv",
             "session1/ultralong/player.csv",
@@ -426,9 +447,16 @@ def test_generate_briefcase(monkeypatch):
         ]
 
         readme = zf.read("session1/README.txt").decode("utf-8")
+        dictionary = json.loads(zf.read("session1/DATA_DICTIONARY.json"))
+        page_times_csv = zf.read("session1/page_times.csv").decode("utf-8")
 
     assert "https://uproot.science/running/export/" in readme
     assert "sha256sum -c SHA256SUMS" in readme
+    assert "nothing in these files is sorted by !time" in readme
+    assert "DATA_DICTIONARY.json" in readme
+    assert "page_times.csv" in readme
+    assert "!seq" in dictionary["columns"]
+    assert "myapp/MyPage" in page_times_csv
 
 
 def test_generate_briefcase_grouped(monkeypatch):
@@ -442,15 +470,18 @@ def test_generate_briefcase_grouped(monkeypatch):
         "everything_from_session",
         lambda sname: session_data,
     )
+    monkeypatch.setattr(data_service, "page_times_rows", lambda sname: [])
 
     briefcase = data_service.generate_briefcase("session1", ["round"], False, "jsonl")
 
     with ZipFile(BytesIO(briefcase)) as zf:
         assert sorted(zf.namelist()) == [
+            "session1/DATA_DICTIONARY.json",
             "session1/README.txt",
             "session1/SHA256SUMS",
             "session1/latest/player.jsonl",
             "session1/latest_by_round/player.jsonl",
+            "session1/page_times.jsonl",
             "session1/sparse/player.jsonl",
             "session1/ultralong/player.jsonl",
         ]
@@ -458,6 +489,49 @@ def test_generate_briefcase_grouped(monkeypatch):
         readme = zf.read("session1/README.txt").decode("utf-8")
 
     assert "latest_by_round/" in readme
+
+
+def test_data_dictionary_covers_internal_columns():
+    everything = {
+        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
+    }
+
+    rows = list(partial_matrix(everything))
+    seen = set()
+
+    for row in rows + list(long_to_wide(rows)) + list(latest(rows)):
+        seen.update(key for key in row if key.startswith("!"))
+
+    assert seen <= set(DATA_DICTIONARY["columns"])
+
+
+def tombstone_row():
+    return {
+        "!storage": "player/session1/p1",
+        "!field": "choice",
+        "!time": 1.0,
+        "!seq": 1,
+        "!context": "app.delete:1",
+        "!unavailable": True,
+        "!data": None,
+    }
+
+
+def test_csv_out_tombstone_keeps_metadata():
+    lines = csv_out([tombstone_row()]).strip().split("\r\n")
+
+    assert lines[0] == "!context,!data,!field,!seq,!storage,!time,!unavailable"
+    assert lines[1] == "app.delete:1,,choice,1,player/session1/p1,1.0,TRUE"
+
+
+def test_jsonl_tombstone_keeps_metadata():
+    parsed = json.loads(jsonl_line(tombstone_row()))
+
+    assert parsed["!field"] == "choice"
+    assert parsed["!seq"] == 1
+    assert parsed["!context"] == "app.delete:1"
+    assert parsed["!unavailable"] is True
+    assert parsed["!data"] is None
 
 
 def test_csv_out():

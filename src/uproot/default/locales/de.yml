@@ -595,12 +595,6 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'Ein oder mehrere Labels sind länger als 128 Zeichen.'
 
-? 'Other data'
-: 'Sonstige Daten'
-
-? 'Page times'
-: 'Seitenzeiten'
-
 ? 'Player ID'
 : 'Spieler-ID'
 
@@ -1093,8 +1087,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Jedes Format besteht aus einer CSV-Datei pro Storage, z. B. latest/player.csv.'
 
-? 'Every download is a ZIP archive containing three key formats and additional files.'
-: 'Jeder Download ist ein ZIP-Archiv mit drei wichtigen Formaten und weiteren Dateien.'
+? 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
+: 'Jeder Download ist ein ZIP-Archiv mit drei zentralen Datenformaten, Seitenzeiten, einem Data Dictionary und Prüfsummen.'
 
 ? 'Formats'
 : 'Formate'

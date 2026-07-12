@@ -198,6 +198,79 @@ def latest(
         yield from seen_combinations.values()
 
 
+DATA_DICTIONARY: dict[str, Any] = {
+    "about": (
+        "This file defines the uproot-internal columns, i.e., those whose "
+        "names start with '!'. All other columns have other types, which "
+        "are not documented here. Types below refer to the JSON "
+        "representation (as in JSONL exports); CSV files render booleans as "
+        "TRUE/FALSE, null as the empty cell, and lists/objects as JSON."
+    ),
+    "columns": {
+        "!storage": {
+            "type": "string",
+            "description": (
+                "Path of the storage object (row owner) that this row belongs "
+                "to, e.g. 'player/mysession/abcde'. The first component is the "
+                "storage kind; each kind is exported into a separate file."
+            ),
+        },
+        "!field": {
+            "type": "string",
+            "description": (
+                "Name of the field whose change this row records. Only present "
+                "in the event-log formats (ultralong, sparse); in sparse, the "
+                "new value is found in the column named by !field."
+            ),
+        },
+        "!time": {
+            "type": ["number", "null"],
+            "description": (
+                "Unix timestamp (seconds since 1970-01-01 UTC) at which the "
+                "change was committed. In 'latest'-style formats: the time of "
+                "the most recent change reflected in the row. Rows are NOT "
+                "sorted by !time; see !seq."
+            ),
+        },
+        "!seq": {
+            "type": "integer",
+            "description": (
+                "Database-wide sequence number of the change, assigned in "
+                "strictly increasing order at commit time. Sorting rows by "
+                "!seq yields the true chronological order of events; gaps are "
+                "normal (e.g., rows excluded by filters). In 'latest'-style "
+                "formats: the !seq of the most recent change reflected in "
+                "the row."
+            ),
+        },
+        "!context": {
+            "type": "string",
+            "description": (
+                "Code location that wrote the value, as "
+                "'module.function:line'. Only present in the event-log formats "
+                "(ultralong, sparse)."
+            ),
+        },
+        "!unavailable": {
+            "type": "boolean",
+            "description": (
+                "True if this row records the deletion of !field (a "
+                "tombstone): from this change on, the field has no value until "
+                "it is set again. Only present in the event-log formats "
+                "(ultralong, sparse)."
+            ),
+        },
+        "!data": {
+            "type": "any",
+            "description": (
+                "The new value of !field after this change; its type varies "
+                "by field. Only present in ultralong."
+            ),
+        },
+    },
+}
+
+
 def column_order(field: str) -> tuple[int, str]:
     """Sort key that puts !-columns first and bulky columns last."""
     if field.startswith("!"):
@@ -207,6 +280,15 @@ def column_order(field: str) -> tuple[int, str]:
         return (2, field)
 
     return (1, field)
+
+
+def value_cell(key: str) -> bool:
+    """Whether a column holds the changed value itself (rather than metadata).
+
+    In tombstone rows (!unavailable), only value cells are masked; the
+    !-prefixed metadata columns are kept intact.
+    """
+    return key == "!data" or not key.startswith("!")
 
 
 def csv_out(rows: Iterable[dict[str, Any]]) -> str:
@@ -224,9 +306,10 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
     dw.writeheader()
 
     for row in rows:
+        unavailable = row.get("!unavailable", False)
         dw.writerow(
             {
-                k: json2csv(value2json(v, row.get("!unavailable", False)))
+                k: json2csv(value2json(v, unavailable and value_cell(k)))
                 for k, v in row.items()
             }
         )
@@ -274,19 +357,29 @@ def briefcase_out(
     wrapper: str,
     filetype: str,
     readme: str,
+    extras: Optional[Mapping[str, bytes]] = None,
 ) -> bytes:
     """Create a ZIP "briefcase" wrapped in a single top-level directory.
 
     Each entry in `formats` becomes its own subdirectory holding one file per
     storage kind (player.csv, session.csv, …). Each file only contains columns
     for the fields that actually occur within its own storage kind. A
-    README.txt and a SHA256SUMS file covering every other file sit directly
-    inside the wrapper directory.
+    README.txt, a DATA_DICTIONARY.json defining the uproot-internal (!)
+    columns, any `extras` (path → file body), and a SHA256SUMS file covering
+    every other file sit directly inside the wrapper directory.
     """
     buffer = BytesIO()
 
     with ZipFile(buffer, "w", ZIP_DEFLATED, compresslevel=1) as zf:
-        contents = {"README.txt": readme.encode("utf-8")}
+        contents = {
+            "README.txt": readme.encode("utf-8"),
+            "DATA_DICTIONARY.json": json.dumps(
+                DATA_DICTIONARY, option=json.OPT_INDENT_2
+            ),
+        }
+
+        if extras:
+            contents.update(extras)
 
         for fmt, rows in formats.items():
             for kind, kindrows in sorted(split_by_storage_kind(rows).items()):
@@ -303,7 +396,8 @@ def briefcase_out(
 def json_ready_row(row: dict[str, Any]) -> dict[str, Any]:
     unavailable = row.get("!unavailable", False)
     return {
-        key: json.loads(value2json(value, unavailable)) for key, value in row.items()
+        key: json.loads(value2json(value, unavailable and value_cell(key)))
+        for key, value in row.items()
     }
 
 

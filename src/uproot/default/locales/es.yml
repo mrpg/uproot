@@ -595,12 +595,6 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'Una o más etiquetas superan el máximo de 128 caracteres.'
 
-? 'Other data'
-: 'Otros datos'
-
-? 'Page times'
-: 'Tiempos de página'
-
 ? 'Player ID'
 : 'ID del jugador'
 
@@ -1093,8 +1087,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Cada formato consta de un archivo CSV por cada storage, por ejemplo latest/player.csv.'
 
-? 'Every download is a ZIP archive containing three key formats and additional files.'
-: 'Cada descarga es un archivo ZIP con tres formatos importantes y otros archivos.'
+? 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
+: 'Cada descarga es un archivo ZIP que contiene tres formatos de datos principales, tiempos de página, un diccionario de datos y sumas de comprobación.'
 
 ? 'Formats'
 : 'Formatos'

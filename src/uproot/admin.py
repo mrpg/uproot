@@ -50,7 +50,6 @@ from uproot.services.data_service import (
     generate_data,
     generate_jsonl,
     is_custom_data_export,
-    page_times,
     pipeline_result_display,
 )
 
@@ -182,7 +181,6 @@ __all__ = [
     "generate_data",
     "generate_jsonl",
     "is_custom_data_export",
-    "page_times",
     "pipeline_result_display",
     # Config
     "announcements",

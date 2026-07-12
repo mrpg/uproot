@@ -42,7 +42,7 @@
             </h4>
             <p class="mb-5 text-secondary">
                 {% translate %}
-                Every download is a ZIP archive containing three key formats and additional files.
+                Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.
                 {% endtranslate %}
                 <a class="link-secondary" href="https://uproot.science/running/export/" target="_blank">
                     {% translate %}
@@ -111,11 +111,5 @@
     </div>
     <button type="submit" class="btn btn-uproot">{% translate %}Download{% endtranslate %}</button>
 </form>
-
-<hr class="mt-5">
-
-<h3 class="mt-5 mb-3">{% translate %}Other data{% endtranslate %}</h3>
-
-<a class="btn btn-outline-uproot" href="../page-times/">{% translate %}Page times{% endtranslate %}</a>
 
 {% endblock main3 %}

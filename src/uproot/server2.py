@@ -1000,24 +1000,6 @@ async def session_data(
     )
 
 
-# Particular session: page times
-@router.get("/session/{sname}/page-times/")
-async def session_page_times(
-    request: Request,
-    sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
-) -> Response:
-    a.session_exists(sname)
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M")
-    return Response(
-        a.page_times(sname),
-        media_type="text/csv",
-        headers={
-            "Content-Disposition": f"attachment; filename={sname}-page-times_{stamp}.csv"
-        },
-    )
-
-
 # Particular session: digest
 @router.get("/session/{sname}/digest/")
 async def session_digest(

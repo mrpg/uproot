@@ -922,9 +922,9 @@ async def download_session_export(
 ) -> Response:
     """Download a ZIP briefcase of session data, as in the admin UI.
 
-    The briefcase always contains the ultralong, sparse, and latest formats
-    as per-storage CSV or JSONL files; passing gvar adds a grouped latest
-    format on top.
+    The briefcase always contains the ultralong, sparse, and latest formats,
+    page times, a data dictionary, and integrity checksums. Passing gvar adds
+    a grouped latest format on top.
     """
     a.session_exists(sname)
 
@@ -945,21 +945,6 @@ async def download_session_jsonl(
     a.session_exists(sname)
 
     return jsonl_export_response(sname, format, gvar, filters)
-
-
-@router.get("/sessions/{sname}/page-times/")
-async def get_page_times(
-    sname: str,
-    bauth: None = Depends(a.require_bearer_token),
-) -> Response:
-    """Download page visit times as CSV."""
-    a.session_exists(sname)
-
-    return Response(
-        a.page_times(sname),
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={sname}-page-times.csv"},
-    )
 
 
 @router.get("/sessions/{sname}/digests/")

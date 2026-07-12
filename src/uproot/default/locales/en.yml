@@ -595,12 +595,6 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : 'One or more labels exceed the maximum length of 128 characters.'
 
-? 'Other data'
-: 'Other data'
-
-? 'Page times'
-: 'Page times'
-
 ? 'Player ID'
 : 'Player ID'
 
@@ -1093,8 +1087,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 
-? 'Every download is a ZIP archive containing three key formats and additional files.'
-: 'Every download is a ZIP archive containing three key formats and additional files.'
+? 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
+: 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
 
 ? 'Formats'
 : 'Formats'

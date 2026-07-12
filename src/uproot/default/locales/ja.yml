@@ -595,12 +595,6 @@
 ? 'One or more labels exceed the maximum length of 128 characters.'
 : '1つ以上のラベルが最大長128文字を超えています。'
 
-? 'Other data'
-: 'その他のデータ'
-
-? 'Page times'
-: 'ページ滞在時間'
-
 ? 'Player ID'
 : 'プレイヤーID'
 
@@ -1093,8 +1087,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : '各フォーマットはストレージごとに1つのCSVファイル（latest/player.csvなど）で構成されます。'
 
-? 'Every download is a ZIP archive containing three key formats and additional files.'
-: 'ダウンロードされるのは、3つの主要フォーマットと追加ファイルを含むZIPアーカイブです。'
+? 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
+: '各ダウンロードは、3つの主要なデータフォーマット、ページ滞在時間、データ辞書、チェックサムを含むZIPアーカイブです。'
 
 ? 'Formats'
 : 'フォーマット'
