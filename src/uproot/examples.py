@@ -193,23 +193,36 @@ from uproot.fields import *
 from uproot.smithereens import *
 
 DESCRIPTION = "Prisoner's dilemma"
+
+# Players are matched into pairs, so session sizes should be a multiple of 2.
+# The admin interface uses this constant when suggesting session sizes.
 SUGGESTED_MULTIPLE = 2
 
 
+def new_player(player: PlayerType) -> None:
+    # This function runs exactly once per player, before they see their first page.
+    # It is the right place to initialize fields. Anything you assign to `player`
+    # is saved automatically and can be read on any later page.
+    player.complete = False
+
+
 class C:
-    PAYOFF_MATRIX = {
-        (True, True): 10,
-        (True, False): 0,
-        (False, True): 15,
-        (False, False): 3,
-    }
+    # The class C holds an app's constants. They are also available in HTML
+    # templates, e.g. as {{ C.TEMPTATION_PAYOFF }}.
+    TEMPTATION_PAYOFF = 15
 
 
 class GroupPlease(GroupCreatingWait):
+    # Players wait on this page until `group_size` of them have arrived; they are
+    # then matched into a group. Wait pages come with a built-in template, so
+    # there is no "GroupPlease.html".
     group_size = 2
 
 
 class Dilemma(Page):
+    # Each regular Page has an HTML template of the same name - here, that is
+    # "Dilemma.html". `fields` defines the form inputs that {{ fields() }} shows
+    # there. Submitted values are saved on the player, e.g. `player.cooperate`.
     fields = dict(
         cooperate=RadioField(
             label="Do you wish to cooperate?",
@@ -219,17 +232,46 @@ class Dilemma(Page):
 
 
 class Sync(SynchronizingWait):
+    # Players wait on this page until everyone in their group has reached it.
+
     @classmethod
     def all_here(page, group: GroupType) -> None:
+        # This method runs exactly once per group, as soon as its last member
+        # arrives. Both players have made their choice by then, so payoffs can
+        # be computed.
         for player in group.players:
             other = player.other_in_group
-            player.payoff = C.PAYOFF_MATRIX[player.cooperate, other.cooperate]
+
+            # Python's `match` statement compares the pair of choices against
+            # each `case` from top to bottom and runs the first one that fits.
+            # It reads like a payoff matrix: (own choice, other's choice).
+            match player.cooperate, other.cooperate:
+                case True, True:  # both cooperate
+                    player.payoff = 10
+                case True, False:  # player cooperates, other defects
+                    player.payoff = 0
+                case False, True:  # player defects, other cooperates
+                    # Defecting against a cooperator yields the highest payoff.
+                    # This temptation is what makes the game a dilemma.
+                    player.payoff = C.TEMPTATION_PAYOFF
+                case False, False:  # both defect
+                    player.payoff = 3
 
 
 class Results(Page):
-    pass
+    # "Results.html" shows each player their own choice, their partner's choice,
+    # and their payoff.
+
+    @classmethod
+    def before_once(page, player: PlayerType) -> None:
+        # When the player reaches this page, mark them as complete. This method is
+        # guaranteed to run exactly once and just before this page is shown. In
+        # exported data, `complete` distinguishes players who finished from those
+        # who dropped out along the way.
+        player.complete = True
 
 
+# Players see these pages in this order.
 page_order = [
     GroupPlease,
     Dilemma,
