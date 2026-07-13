@@ -1,4 +1,4 @@
-# Upgrading from v0.0.1 to v0.1.0
+# Upgrading from v0.0.1
 
 To upgrade, search your *uproot* project’s `pyproject.toml` for this section:
 
@@ -51,13 +51,13 @@ If you manage your virtual environment manually, you should then run `pip instal
 
 Thank you for being an early adopter!
 
-## Pinning v0.1.0 exactly
+## Pinning versions exactly (not recommended)
 
-*Note*: You can also pin `v0.1.0`, the first official release, exactly as follows:
+*Note*: You can also pin versions exactly as follows:
 
 ```toml
 dependencies = [
-    "uproot-science==0.1.0",
+    "uproot-science==x.y.z",  # Set x, y, z as desired
     ...
 ]
 ```
@@ -74,4 +74,4 @@ In other words:
 - Upgrades happen only when you explicitly run `uv sync --upgrade`. Do this deliberately — for example, between sessions of an experiment, not in the middle of one.
 - If a new version requires your attention, *uproot*’s admin interface will show you an announcement.
 
-Pinning `==0.1.0` in `pyproject.toml` therefore adds nothing for reproducibility — the lockfile already guarantees it — but it does block future upgrades until you edit `pyproject.toml` again by hand. Use it only if you have a specific reason to forbid upgrades entirely.
+Pinning particular versions in `pyproject.toml` therefore adds nothing for reproducibility — the lockfile already guarantees it — but it does block future upgrades until you edit `pyproject.toml` again by hand. **Use it only if you have a specific reason to forbid upgrades entirely.**
