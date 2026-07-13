@@ -220,7 +220,7 @@ class Dilemma(Page):
 
 class Sync(SynchronizingWait):
     @classmethod
-    def all_here(page, group):
+    def all_here(page, group: GroupType) -> None:
         for player in group.players:
             other = player.other_in_group
             player.payoff = C.PAYOFF_MATRIX[player.cooperate, other.cooperate]
@@ -393,25 +393,9 @@ ignore = ["F403", "F405"]
 
 [tool.mypy]
 python_version = "3.13"
-check_untyped_defs = true
-ignore_missing_imports = true
-warn_return_any = true
-warn_unused_configs = true
-warn_redundant_casts = true
+strict = true
 warn_unreachable = true
-no_implicit_optional = true
-disallow_any_generics = true
-strict_equality = true
-# Recommended: uncomment for maximum strictness.
-# strict = true
-# disallow_subclassing_any = true
-# disallow_untyped_calls = true
-# disallow_untyped_defs = true
-# disallow_incomplete_defs = true
-# disallow_untyped_decorators = true
-# warn_unused_ignores = true
-# no_implicit_reexport = true
-# extra_checks = true
+ignore_missing_imports = true
 
 [tool.uv]
 python-preference = "system"
