@@ -7,6 +7,7 @@ from typing import Any, Callable
 import wtforms
 import wtforms.fields
 import wtforms.validators
+import wtforms.widgets
 
 Field = wtforms.fields.Field
 Number = int | float | Decimal
@@ -284,6 +285,126 @@ class FileField(wtforms.fields.FileField):
         if render_kw is None:
             render_kw = {}
         render_kw["autocomplete"] = "off"
+
+        super().__init__(
+            label=label,
+            validators=v,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
+        )
+
+
+class FloatField(wtforms.fields.FloatField):
+    widget = wtforms.widgets.NumberInput(step="any")
+
+    def __init__(
+        self,
+        *,
+        addon_start: str | None = None,
+        addon_end: str | None = None,
+        class_addon_start: str = "",
+        class_addon_end: str = "",
+        class_wrapper: str | None = None,
+        label: str = "",
+        min: Number | None = None,
+        max: Number | None = None,
+        step: Number | None = None,
+        optional: bool = False,
+        render_kw: dict[str, Any] | None = None,
+        description: str = "",
+        widget: Any | None = None,
+        default: Any | None = None,
+        **kwargs: Any,  # WTForms-internal use only
+    ) -> None:
+        if not optional:
+            v = [
+                wtforms.validators.InputRequired(),
+                wtforms.validators.NumberRange(min=min, max=max),
+            ]
+        else:
+            v = [
+                wtforms.validators.Optional(),
+                wtforms.validators.NumberRange(min=min, max=max),
+            ]
+
+        self.addon_start = addon_start
+        self.addon_end = addon_end
+        self.class_addon_start = class_addon_start
+        self.class_addon_end = class_addon_end
+        self.class_wrapper = class_wrapper
+
+        if render_kw is None:
+            render_kw = {}
+        if step is not None:
+            render_kw["step"] = step
+        render_kw["autocomplete"] = "off"
+
+        super().__init__(
+            label=label,
+            validators=v,
+            render_kw=render_kw,
+            description=description,
+            widget=widget,
+            default=default,
+            **kwargs,  # Unpacks WTForms-internal kwargs
+        )
+
+
+class FloatRangeField(wtforms.fields.FloatField):
+    widget = wtforms.widgets.RangeInput(step="any")
+
+    def __init__(
+        self,
+        *,
+        class_wrapper: str | None = None,
+        hide_popover: bool = False,
+        label: str = "",
+        label_min: str | None = None,
+        label_max: str | None = None,
+        label_max_min_class_suffix: str = "-custom",
+        min: Number | None = None,
+        max: Number | None = None,
+        step: Number = 1.0,
+        optional: bool = False,
+        anchoring: bool = True,
+        render_kw: dict[str, Any] | None = None,
+        description: str = "",
+        widget: Any | None = None,
+        default: Any | None = None,
+        **kwargs: Any,  # WTForms-internal use only
+    ) -> None:
+        if not optional:
+            v = [
+                wtforms.validators.InputRequired(),
+                wtforms.validators.NumberRange(min=min, max=max),
+            ]
+        else:
+            v = [
+                wtforms.validators.Optional(),
+                wtforms.validators.NumberRange(min=min, max=max),
+            ]
+
+        if label_min is None and label_max is None:
+            label_max_min_class_suffix = ""
+        if label_min is None:
+            label_min = str(min)
+        if label_max is None:
+            label_max = str(max)
+        if render_kw is None:
+            render_kw = {}
+        if step is not None:
+            render_kw["step"] = step
+        render_kw["autocomplete"] = "off"
+
+        self.anchoring = anchoring
+        self.class_wrapper = class_wrapper
+        self.hide_popover = hide_popover
+        self.label_min = label_min
+        self.label_max = label_max
+        self.label_max_min_class_suffix = label_max_min_class_suffix
 
         super().__init__(
             label=label,

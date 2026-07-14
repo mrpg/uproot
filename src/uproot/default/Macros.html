@@ -315,7 +315,7 @@
                     <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
                 {% endif %}
             </div>
-        {% elif field.type == "DecimalRangeField" %}
+        {% elif field.type == "DecimalRangeField" or field.type == "FloatRangeField" %}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
             {% set class_list = ["form-range"] %}
             {% if field.render_kw and field.render_kw.get("class") %}
@@ -576,7 +576,7 @@
                 <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% else %}
-            {# DateField, FileField, IntegerField, DecimalField #}
+            {# DateField, FileField, IntegerField, DecimalField, FloatField #}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
             {% set class_list = ["form-control"] %}
             {% if field.render_kw and field.render_kw.get("class") %}
