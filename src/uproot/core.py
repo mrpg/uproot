@@ -37,8 +37,14 @@ def create_session(
     *,
     sname: Optional[t.Sessionname] = None,
     check_unique: bool = True,
-    settings: Any = None,
+    settings: Optional[dict[str, Any]] = None,
 ) -> t.SessionIdentifier:
+    ensure(
+        settings is None or isinstance(settings, dict),
+        TypeError,
+        "Session settings must be a JSON object",
+    )
+
     if sname is None:
         sname = t.token(admin._uproot_sessions)
     elif check_unique:
@@ -63,7 +69,7 @@ def create_session(
             for dist in importlib.metadata.distributions()
         } | {"python": sys.version}
         session.room = None
-        session._uproot_settings = settings
+        session._uproot_settings = settings or {}
         session.sid = sid
         session._uproot_initialized = False
         session._uproot_simulate = False

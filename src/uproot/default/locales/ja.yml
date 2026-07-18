@@ -475,6 +475,9 @@
 ? 'Enter new description:'
 : '新しい説明を入力:'
 
+? 'Error in #config#:'
+: '#config# のエラー:'
+
 ? 'Example Title'
 : 'タイトル例'
 
@@ -687,6 +690,9 @@
 
 ? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
 : 'セッションが存在している必要があります。既存のセッションにプレイヤーを追加するために使用できます。ルームは直ちに開かれます。'
+
+? 'The default settings of this config are invalid.'
+: 'この構成のデフォルト設定が無効です。'
 
 ? 'The session name you entered is invalid.'
 : '入力されたセッション名が無効です。'

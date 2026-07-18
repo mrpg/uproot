@@ -475,6 +475,9 @@
 ? 'Enter new description:'
 : 'Ingrese la nueva descripción:'
 
+? 'Error in #config#:'
+: 'Error en #config#:'
+
 ? 'Example Title'
 : 'Título de ejemplo'
 
@@ -687,6 +690,9 @@
 
 ? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
 : 'La sesión ya debe existir. Esto sirve para añadir jugadores a una sesión existente. La sala se abrirá de inmediato.'
+
+? 'The default settings of this config are invalid.'
+: 'Los ajustes predeterminados de esta configuración no son válidos.'
 
 ? 'The session name you entered is invalid.'
 : 'El nombre de sesión ingresado no es válido.'

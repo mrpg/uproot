@@ -11,6 +11,7 @@ import importlib.metadata
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from time import perf_counter as now
 from time import time
 from typing import Any, Optional, cast
@@ -37,6 +38,7 @@ from fastapi.responses import (
     StreamingResponse,
 )
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 from pydantic import validate_call
 from sortedcontainers import SortedDict
 
@@ -118,6 +120,93 @@ async def render(
     return await ENV.get_template(ppath).render_async(
         **(intermediate_context | context_nojson)
     )
+
+
+def session_settings_templates(config: str) -> list[tuple[str, Optional[str]]]:
+    if (Path(d.PATH) / "AdminSettings.html").is_file():
+        return [("AdminSettings.html", None)]
+
+    templates: list[tuple[str, Optional[str]]] = []
+
+    for appname in u.CONFIGS[config]:
+        # Jinja template names always use forward slashes
+        template_name = f"{appname}/AdminSettings.html"
+
+        if (Path(d.PATH) / appname / "AdminSettings.html").is_file():
+            templates.append((template_name, appname))
+
+    return templates
+
+
+async def render_session_settings_forms() -> (
+    tuple[dict[str, list[Markup]], dict[str, str]]
+):
+    """Render trusted project or app fragments for each session config.
+
+    Fragments receive config, apps, appname, settings, and editor_id. App
+    fragments additionally receive C and appstatic. A config whose default
+    settings or fragments are broken gets an error message instead of forms.
+    """
+    forms: dict[str, list[Markup]] = {}
+    errors: dict[str, str] = {}
+    editor_number = 0
+
+    for config, apps in u.CONFIGS.items():
+        rendered = []
+        settings = u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
+
+        try:
+            ensure(
+                isinstance(settings, dict),
+                TypeError,
+                "Default session settings must be a JSON object",
+            )
+
+            for template_name, appname in session_settings_templates(config):
+                editor_number += 1
+                context = BUILTINS | {
+                    "apps": apps,
+                    "appname": appname,
+                    "config": config,
+                    "editor_id": f"session-settings-editor-{editor_number}",
+                    "internalstatic": static_factory(),
+                    "projectstatic": static_factory("_project"),
+                    "settings": settings,
+                }
+
+                if appname is not None:
+                    context |= {
+                        "appstatic": static_factory(appname),
+                        "C": getattr(u.APPS[appname], "C", {}),
+                    }
+
+                html = await PENV.get_template(template_name).render_async(**context)
+
+                if html.strip():
+                    rendered.append(Markup(html))  # nosec B704
+        except Exception as exc:
+            d.LOGGER.exception("Session settings forms failed for config %r", config)
+            errors[config] = str(exc)
+            continue
+
+        if rendered:
+            forms[config] = rendered
+
+    return forms, errors
+
+
+def parse_session_settings(settings: str, config: str) -> dict[str, Any]:
+    parsed = (
+        orjson.loads(settings)
+        if settings.strip()
+        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
+    )
+    ensure(
+        isinstance(parsed, dict),
+        TypeError,
+        "Session settings must be a JSON object",
+    )
+    return cast(dict[str, Any], parsed)
 
 
 # Authentication
@@ -700,6 +789,7 @@ async def roommain(
     with Admin() as admin:
         ensure(roomname in admin.rooms, ValueError, "Room not found")
 
+        settings_forms, settings_errors = await render_session_settings_forms()
         room = admin.rooms[roomname]
         extra: dict[str, Any] = {}
 
@@ -716,6 +806,8 @@ async def roommain(
                     "room": room,
                     "configs": a.configs(),
                     "configs_extra": u.CONFIGS_EXTRA,
+                    "settings_forms": settings_forms,
+                    "settings_errors": settings_errors,
                     "sessions_available": admin._uproot_sessions,
                 }
                 | extra
@@ -742,11 +834,7 @@ async def new_session_in_room(
 
     sname_ = sname.strip() or None
     unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
-    settings_parsed = (
-        orjson.loads(settings)
-        if settings.strip()
-        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
-    )
+    settings_parsed = parse_session_settings(settings, config)
 
     if assignees:
         assignees_list = sorted(orjson.loads(assignees))
@@ -889,12 +977,16 @@ async def new_session(
     request: Request,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
+    settings_forms, settings_errors = await render_session_settings_forms()
+
     return HTMLResponse(
         await render(
             "SessionsNew.html",
             {
                 "configs": a.configs(),
                 "configs_extra": u.CONFIGS_EXTRA,
+                "settings_forms": settings_forms,
+                "settings_errors": settings_errors,
             },
         )
     )
@@ -913,11 +1005,7 @@ async def new_session2(
 ) -> Response:
     sname_ = sname.strip() or None
     unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
-    settings_parsed = (
-        orjson.loads(settings)
-        if settings.strip()
-        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
-    )
+    settings_parsed = parse_session_settings(settings, config)
 
     with Admin() as admin:
         sid = c.create_session(
@@ -1007,10 +1095,6 @@ async def session_digest(
     sname: t.Sessionname,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    from pathlib import Path
-
-    from markupsafe import Markup
-
     a.session_exists(sname)
 
     available = a.get_digest(sname)
@@ -1083,10 +1167,6 @@ async def session_pipeline(
     sname: t.Sessionname,
     auth: dict[str, Any] = Depends(auth_required),
 ) -> Response:
-    from pathlib import Path
-
-    from markupsafe import Markup
-
     a.session_exists(sname)
 
     available = a.get_pipelines(sname)

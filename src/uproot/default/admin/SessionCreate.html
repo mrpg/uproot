@@ -24,20 +24,54 @@
 
     <div class="col-12 col-xl-8 mb-4">
 
-    <div x-data="{automatic: true}">
+    <div>
+        {% for config, error in settings_errors.items() %}
+        <div class="alert alert-danger fs-5 mt-3" role="alert"
+            data-session-settings-error="{{ config }}" hidden>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>{{ _("Error in #config#:").replace("#config#", config) }}</strong>
+            {{ error }}
+        </div>
+        {% endfor %}
+
         <div class="form-check mt-3">
             <input class="form-check-input" type="checkbox" id="automatic_settings"
-                @click="automatic = !automatic; if (automatic) { I('settings').value = ''; }" checked>
+                onchange="settingsAutomaticChanged(true)" checked>
             <label for="automatic_settings">Keep default settings</label>
         </div>
-        <div class="form-floating mt-3" x-show="!automatic">
-            <textarea class="form-control h-auto font-monospace" id="settings" rows="10" name="settings" placeholder="Settings"></textarea>
-            <label for="settings">Settings</label>
+
+        <input id="settings" name="settings" type="hidden" value="">
+
+        <script>
+            const sessionSettingsEditors = new Map();
+
+            function registerSessionSettingsEditor(editorId, readSettings) {
+                if (typeof readSettings !== "function") {
+                    throw new TypeError("A session settings editor must provide a reader function.");
+                }
+
+                sessionSettingsEditors.set(editorId, readSettings);
+            }
+        </script>
+
+        <div class="form-floating mt-3" id="settings-json-container" hidden>
+            <textarea class="form-control h-auto font-monospace" id="settings-json" rows="10" placeholder="Settings"></textarea>
+            <label for="settings-json">Settings</label>
             <small class="d-block form-text pt-2">
                 {% translate %}
                 Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.
                 {% endtranslate %}
             </small>
+        </div>
+
+        <div class="mt-3" id="settings-custom-container" hidden>
+            {% for config, forms in settings_forms.items() %}
+            <div data-session-settings-config="{{ config }}" hidden>
+                {% for form in forms %}
+                {{ form }}
+                {% endfor %}
+            </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -95,10 +129,89 @@
 </div>
 
 <script>
-    let _suggestedMultiple = 1;
+    let selectedSettingsConfig = null;
+    let suggestedMultiple = 1;
+    const automaticSettingsChoices = new Map();
+
+    function normalizeSessionSettings(value) {
+        const settings = JSON.parse(JSON.stringify(value));
+
+        if (settings === null || typeof settings !== "object" || Array.isArray(settings)) {
+            throw new TypeError("Session settings must be a JSON object.");
+        }
+
+        return settings;
+    }
+
+    function setSessionSettings(value) {
+        const settings = normalizeSessionSettings(value);
+        I("settings").value = JSON.stringify(settings);
+        return settings;
+    }
+
+    function collectCustomSessionSettings(customEditor) {
+        let settings = selectedDefaultSettings();
+
+        for (const [editorId, readSettings] of sessionSettingsEditors) {
+            const editor = document.getElementById(editorId);
+
+            if (editor === null || !customEditor.contains(editor)) {
+                continue;
+            }
+
+            const contribution = readSettings({
+                config: selectedSettingsConfig,
+                settings
+            });
+
+            if (contribution !== undefined) {
+                settings = { ...settings, ...normalizeSessionSettings(contribution) };
+            }
+        }
+
+        return setSessionSettings(settings);
+    }
+
+    function customSettingsEditor(config) {
+        return Array.from(document.querySelectorAll("[data-session-settings-config]"))
+            .find((element) => element.dataset.sessionSettingsConfig === config) || null;
+    }
+
+    function sessionSettingsErrorAlert(config) {
+        return Array.from(document.querySelectorAll("[data-session-settings-error]"))
+            .find((element) => element.dataset.sessionSettingsError === config) || null;
+    }
+
+    function selectedDefaultSettings() {
+        const extra = uproot.vars.configs_extra[selectedSettingsConfig] || {};
+        return extra.settings || {};
+    }
+
+    function settingsAutomaticChanged(remember = false) {
+        const automatic = I("automatic_settings").checked;
+        const customEditor = customSettingsEditor(selectedSettingsConfig);
+
+        if (remember) {
+            automaticSettingsChoices.set(selectedSettingsConfig, automatic);
+        }
+
+        I("settings-json-container").hidden = automatic || customEditor !== null;
+        I("settings-custom-container").hidden = automatic || customEditor === null;
+
+        for (const editor of document.querySelectorAll("[data-session-settings-config]")) {
+            editor.hidden = automatic || editor !== customEditor;
+        }
+
+        if (automatic) {
+            I("settings").value = "";
+        }
+        else if (customEditor !== null) {
+            setSessionSettings(selectedDefaultSettings());
+        }
+    }
 
     uproot.onStart(() => {
-        select = renderConfigsApps(uproot.vars.configs, "config-select");
+        const select = renderConfigsApps(uproot.vars.configs, "config-select");
         const option = document.querySelector(`option[value='${defaultConfig}']`);
 
         if (option) {
@@ -112,8 +225,8 @@
         const hint = I("suggested-multiple-hint");
         const n = parseInt(I("nplayers").value);
 
-        if (_suggestedMultiple > 1 && !isNaN(n) && n >= 0 && n % _suggestedMultiple !== 0) {
-            I("suggested-multiple-text").textContent = _("The number of players is not a multiple of #n#.").replace("#n#", _suggestedMultiple);
+        if (suggestedMultiple > 1 && !isNaN(n) && n >= 0 && n % suggestedMultiple !== 0) {
+            I("suggested-multiple-text").textContent = _("The number of players is not a multiple of #n#.").replace("#n#", suggestedMultiple);
             hint.style.visibility = "visible";
         }
         else {
@@ -123,20 +236,41 @@
 
     function configSelected(config) {
         const extra = uproot.vars.configs_extra[config] || {};
-        _suggestedMultiple = extra.suggested_multiple || 1;
+        const settings = extra.settings || {};
+        const customEditor = customSettingsEditor(config);
+        const errorAlert = sessionSettingsErrorAlert(config);
+
+        selectedSettingsConfig = config;
+        suggestedMultiple = extra.suggested_multiple || 1;
 
         checkSuggestedMultiple();
 
-        if (!Object.hasOwn(uproot.vars.configs_extra, config) ||
-            !Object.hasOwn(uproot.vars.configs_extra[config], "settings") ||
-            Object.keys(uproot.vars.configs_extra[config].settings).length == 0) {
-            I("settings").value = "{\n  // Example:\n  // \"parameter\": -42,\n  // \"speed\": \"high\",\n}";
+        for (const alert of document.querySelectorAll("[data-session-settings-error]")) {
+            alert.hidden = alert !== errorAlert;
+        }
+
+        if (Object.keys(settings).length === 0) {
+            I("settings-json").value = "{\n  // Example:\n  // \"parameter\": -42,\n  // \"speed\": \"high\",\n}";
         }
         else {
-            const settings = uproot.vars.configs_extra[config].settings;
-
-            I("settings").value = JSON.stringify(settings, null, 2);
+            I("settings-json").value = JSON.stringify(settings, null, 2);
         }
+
+        if (errorAlert === null) {
+            setSessionSettings(settings);
+        }
+        else {
+            I("settings").value = "";
+        }
+
+        if (automaticSettingsChoices.has(config)) {
+            I("automatic_settings").checked = automaticSettingsChoices.get(config);
+        }
+        else {
+            I("automatic_settings").checked = customEditor === null;
+        }
+
+        settingsAutomaticChanged();
     }
 
     function createSession() {
@@ -165,13 +299,34 @@
         }
 
         // Validate settings if entered
-        const settingsValue = I("settings").value.trim();
-        if (settingsValue) {
+        if (I("automatic_settings").checked) {
+            if (sessionSettingsErrorAlert(selectedSettingsConfig) !== null) {
+                return uproot.error(_("The default settings of this config are invalid."));
+            }
+        }
+        else {
+            const customEditor = customSettingsEditor(selectedSettingsConfig);
+
             try {
-                I("settings").value = uproot.looseJSONtoJSON(settingsValue);
+                if (customEditor === null) {
+                    const settingsValue = I("settings-json").value.trim();
+
+                    if (settingsValue === "") {
+                        I("settings").value = "";
+                    }
+                    else {
+                        setSessionSettings(JSON.parse(uproot.looseJSONtoJSON(settingsValue)));
+                    }
+                }
+                else {
+                    collectCustomSessionSettings(customEditor);
+                }
             }
             catch (error) {
-                return uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
+                const message = customEditor !== null && error instanceof Error
+                    ? error.message
+                    : _("The settings you entered cannot be properly encoded as JSON.");
+                return uproot.error(message);
             }
         }
 
