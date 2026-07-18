@@ -24,6 +24,14 @@ import uproot.examples as ex
 sys.argv[0] = "uproot"
 
 
+class UvicornRunningFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not record.getMessage().startswith("Uvicorn running on ")
+
+
+UVICORN_RUNNING_FILTER = UvicornRunningFilter()
+
+
 @contextmanager
 def confirmation(
     action: str, ctx: click.Context, yes: bool = False
@@ -86,6 +94,7 @@ def configure_server(host: str, port: int, unsafe: bool, public_demo: bool) -> N
 
 def run_server(host: str, port: int) -> None:
     set_ulimit()
+    logging.getLogger("uvicorn.error").addFilter(UVICORN_RUNNING_FILTER)
 
     uvicorn.run(
         "main:uproot_server",
