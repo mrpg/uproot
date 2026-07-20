@@ -162,11 +162,11 @@ def test_model_identifier():
 
 
 def test_list():
-    l = [1, 2.5, "three", [4, 5]]
-    t.materialize(pid).l = l
+    L = [1, 2.5, "three", [4, 5]]
+    t.materialize(pid).L = L
     with t.materialize(pid) as player:
-        result = player.l
-        assert result == l
+        result = player.L
+        assert result == L
         assert type(result) is list
         assert type(result[0]) is int
         assert type(result[1]) is float
