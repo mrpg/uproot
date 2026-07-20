@@ -74,6 +74,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         c.create_admin(admin)
         j.synchronize_rooms(admin)
         j.restore(app, admin)
+        nsessions = len(admin._uproot_sessions)
 
     if d.ORIGIN is None:
         d.ORIGIN = f"http://{d.HOST}:{d.PORT}"
@@ -115,9 +116,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         pass
 
     if (la := len(d.ADMINS)) == 1:
-        click.echo("There is 1 admin", err=True)
+        click.echo("There is 1 admin.", err=True)
     else:
-        click.echo(f"There are {la} admins", err=True)
+        click.echo(f"There are {la} admins.", err=True)
+
+    if nsessions == 1:
+        click.echo("There is 1 session.", err=True)
+    else:
+        click.echo(f"There are {nsessions} sessions.", err=True)
 
     if not d.UNSAFE and not ADMINS_PASSWORDS_HASHED:
         validate_admin_password_lengths()
