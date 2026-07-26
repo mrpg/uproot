@@ -304,11 +304,17 @@
 ? 'Sessions'
 : 'セッション'
 
+? 'Sessionwide URL'
+: 'セッション共通URL'
+
 ? 'Show current state'
 : '現在の状態を表示'
 
 ? 'Show individual URLs'
 : '個別URLを表示'
+
+? 'Show Player URLs'
+: 'プレイヤーURLを表示'
 
 ? 'Show information for uproot developers'
 : 'uproot開発者向け情報を表示'
@@ -327,9 +333,6 @@
 
 ? 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
 : 'セッション名には次の文字のみ使用できます: <code>A-Za-z0-9-._</code>'
-
-? 'The sessionwide URL is'
-: 'セッション共通URLは以下の通りです'
 
 ? 'This creates a complete machine-readable record of all data.'
 : 'すべてのデータの完全な機械可読レコードを作成します。'
@@ -921,9 +924,6 @@
 
 ? 'If you are using a VPN, consider disabling it.'
 : 'VPNを使用している場合は、無効にすることを検討してください。'
-
-? 'Individual URLs'
-: '個別URL'
 
 ? 'Initialize session'
 : 'セッションを初期化'

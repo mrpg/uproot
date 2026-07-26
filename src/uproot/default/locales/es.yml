@@ -304,11 +304,17 @@
 ? 'Sessions'
 : 'Sesiones'
 
+? 'Sessionwide URL'
+: 'URL de toda la sesión'
+
 ? 'Show current state'
 : 'Mostrar estado actual'
 
 ? 'Show individual URLs'
 : 'Mostrar URLs individuales'
+
+? 'Show Player URLs'
+: 'Mostrar URLs de jugadores'
 
 ? 'Show information for uproot developers'
 : 'Mostrar información para desarrolladores de uproot'
@@ -327,9 +333,6 @@
 
 ? 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
 : 'El nombre de la sesión solo puede contener los siguientes caracteres: <code>A-Za-z0-9-._</code>'
-
-? 'The sessionwide URL is'
-: 'La URL para toda la sesión es'
 
 ? 'This creates a complete machine-readable record of all data.'
 : 'Esto crea un registro completo de todos los datos en formato legible por máquina.'
@@ -921,9 +924,6 @@
 
 ? 'If you are using a VPN, consider disabling it.'
 : 'Si usa una VPN, pruebe a desactivarla.'
-
-? 'Individual URLs'
-: 'URLs individuales'
 
 ? 'Initialize session'
 : 'Inicializar sesión'
