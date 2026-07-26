@@ -489,6 +489,20 @@ def nocache(response: Response) -> None:
     response.headers["X-Content-Type-Options"] = "nosniff"
 
 
+@router.get("/s/{sname}/{secret}")
+async def session_without_terminating_slash(
+    request: Request,
+    sname: str,
+    secret: str,
+) -> Response:
+    query = f"?{request.url.query}" if request.url.query else ""
+    redirect_url = (
+        f"{d.ROOT}/s/{quote(sname, safe='')}/{quote(secret, safe='')}/{query}"
+    )
+
+    return safe_redirect_response(redirect_url, status_code=307)
+
+
 @router.get("/s/{sname}/{secret}/")
 @router.get("/room/{roomname}/")
 async def avoid_side_effects_when_previewing(
