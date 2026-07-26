@@ -509,9 +509,10 @@
             {% if len(info) > 0 %}
             <div class="d-flex align-items-center mb-3 mt-4">
                 <h6 class="fw-semibold mb-0">{% translate %}Individual player URLs{% endtranslate %}</h6>
-                <button class="btn btn-outline-uproot btn-sm ms-3" onclick="copyURLsToClipboard()" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
-                <span class="fw-300 invisible ms-3 text-uproot" id="urls-copied">{% translate %}URLs copied to clipboard{% endtranslate %}.</span>
             </div>
+
+            <button class="btn btn-outline-uproot btn-sm mb-3" onclick="copyURLsToClipboard(this)" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
+
             <table class="table table-sm table-hover">
                 <thead>
                     <tr>
@@ -652,15 +653,16 @@
     // URL Utilities
     // ========================================================================
 
-    function copyURLsToClipboard() {
+    function copyURLsToClipboard(el) {
         const keys = Object.keys(uproot.vars.info);
         const text = keys
             .map(k => `${window.location.origin}${uproot.vars.root}/p/${uproot.vars.sname}/${k}/`)
             .join("\n");
+        const previousInnerText = el.innerText;
 
         navigator.clipboard.writeText(text);
-        I("urls-copied").classList.remove("invisible");
-        setTimeout(() => I("urls-copied").classList.add("invisible"), 3000);
+        el.innerText = _("URLs copied to clipboard");
+        setTimeout(() => el.innerText = previousInnerText, 3000);
     }
 
     // ========================================================================
