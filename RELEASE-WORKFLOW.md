@@ -28,6 +28,7 @@
 
 # Versions
 
+- `0.3.0` (2026-07-26)
 - `0.2.0` (2026-07-16)
 - `0.1.0` (2026-07-11)
 - `0.0.1` (not formally assigned; denotes all initial-development versions before `0.1.0`)
