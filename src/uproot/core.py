@@ -7,17 +7,15 @@
 
 import importlib.metadata
 import sys
+from collections.abc import Iterable, Sequence
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, cast
+from typing import Any, cast
 
 import uproot as u
 import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 from uproot.constraints import ensure
-
-if TYPE_CHECKING:
-    pass
 
 
 def create_admin(admin: s.Storage) -> None:
@@ -35,9 +33,9 @@ def create_session(
     admin: s.Storage,
     config: str,
     *,
-    sname: Optional[t.Sessionname] = None,
+    sname: t.Sessionname | None = None,
     check_unique: bool = True,
-    settings: Optional[dict[str, Any]] = None,
+    settings: dict[str, Any] | None = None,
 ) -> t.SessionIdentifier:
     ensure(
         settings is None or isinstance(settings, dict),
@@ -85,9 +83,9 @@ def create_session(
 def create_model(
     session: s.Storage,
     *,
-    mname: Optional[str] = None,
+    mname: str | None = None,
     check_unique: bool = True,
-    data: Optional[dict[str, Any]] = None,
+    data: dict[str, Any] | None = None,
 ) -> t.ModelIdentifier:
     sname = session.name
 
@@ -121,9 +119,9 @@ def create_group(
     session: s.Storage,
     members: Iterable[t.PlayerIdentifier],
     *,
-    gname: Optional[str] = None,
+    gname: str | None = None,
     check_unique: bool = True,
-    expected_size: Optional[int] = None,
+    expected_size: int | None = None,
     overwrite: bool = False,
 ) -> t.GroupIdentifier:
     sname = session.name
@@ -213,7 +211,7 @@ def initialize_player(
     has_id: int,
     config: str,
     *,
-    data: Optional[dict[str, Any]] = None,
+    data: dict[str, Any] | None = None,
 ) -> None:
     with t.materialize(pid) as player:
         player.app = None
@@ -221,7 +219,7 @@ def initialize_player(
         player.id = has_id
         player.label = ""  # Automatically assigned by a room
         player.page_order = []
-        player.payoff = Decimal("0")
+        player.payoff = Decimal(0)
         player.pid = pid
         player.show_page = -1
         player.started = False
@@ -244,9 +242,9 @@ def initialize_player(
 def create_player(
     session: s.Storage,
     *,
-    uname: Optional[str] = None,
+    uname: str | None = None,
     check_unique: bool = True,
-    data: Optional[dict[str, Any]] = None,
+    data: dict[str, Any] | None = None,
 ) -> t.PlayerIdentifier:
     if data is not None:
         data_ = [data]
@@ -267,13 +265,13 @@ def create_player(
 def create_players(
     session: s.Storage,
     *,
-    n: Optional[int] = None,
-    unames: Optional[list[str]] = None,
+    n: int | None = None,
+    unames: list[str] | None = None,
     check_unique: bool = True,
-    data: Optional[list[dict[str, Any]]] = None,
+    data: list[dict[str, Any]] | None = None,
 ) -> list[t.PlayerIdentifier]:
     unames_: list[str]
-    data_: Sequence[Optional[dict[str, Any]]]
+    data_: Sequence[dict[str, Any] | None]
 
     if unames is None and n is not None:
         unames_ = list(t.tokens(session._uproot_players, n))
@@ -319,7 +317,7 @@ def create_players(
     return rval
 
 
-def find_free_slot(session: s.Storage) -> Optional[t.PlayerIdentifier]:
+def find_free_slot(session: s.Storage) -> t.PlayerIdentifier | None:
     for pid in session._uproot_players:
         with t.materialize(pid) as player:
             if not player.get("started", True):

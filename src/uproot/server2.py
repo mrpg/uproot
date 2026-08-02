@@ -10,11 +10,11 @@ import hmac
 import importlib.metadata
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter as now
 from time import time
-from typing import Any, Optional, cast
+from typing import Any, cast
 from urllib.parse import quote
 
 import orjson
@@ -46,10 +46,10 @@ import uproot as u
 import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
-import uproot.i18n as i18n
 import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
+from uproot import i18n
 from uproot.constraints import ensure
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
@@ -89,8 +89,8 @@ ENV.filters["tojson"] = tojson_filter
 
 async def render(
     ppath: str,
-    context: Optional[dict[str, Any]] = None,
-    context_nojson: Optional[dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
+    context_nojson: dict[str, Any] | None = None,
 ) -> str:
     if context is None:
         context = {}
@@ -122,11 +122,11 @@ async def render(
     )
 
 
-def session_settings_templates(config: str) -> list[tuple[str, Optional[str]]]:
+def session_settings_templates(config: str) -> list[tuple[str, str | None]]:
     if (Path(d.PATH) / "AdminSettings.html").is_file():
         return [("AdminSettings.html", None)]
 
-    templates: list[tuple[str, Optional[str]]] = []
+    templates: list[tuple[str, str | None]] = []
 
     for appname in u.CONFIGS[config]:
         # Jinja template names always use forward slashes
@@ -184,7 +184,7 @@ async def render_session_settings_forms() -> (
 
                 if html.strip():
                     rendered.append(Markup(html))  # nosec B704
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             d.LOGGER.exception("Session settings forms failed for config %r", config)
             errors[config] = str(exc)
             continue
@@ -228,7 +228,11 @@ async def auth_required(request: Request) -> dict[str, Any]:
     return data
 
 
-def admin_websocket_logged_in(uauth: Optional[str]) -> bool:
+AuthRequired = Depends(auth_required)
+DataGroupVariablesQuery = Query(default=[])
+
+
+def admin_websocket_logged_in(uauth: str | None) -> bool:
     if d.UNSAFE:
         return True
 
@@ -237,7 +241,7 @@ def admin_websocket_logged_in(uauth: Optional[str]) -> bool:
 
     try:
         data = a.from_cookie(uauth)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
     return a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
@@ -249,7 +253,7 @@ def admin_websocket_logged_in(uauth: Optional[str]) -> bool:
 @router.get("/")
 async def home(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     return RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
 
@@ -258,7 +262,7 @@ async def home(
 
 
 @router.websocket("/ws/")
-async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
+async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
     require_same_origin_websocket(websocket)
 
     if not d.UNSAFE:
@@ -293,9 +297,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
         await asyncio.gather(*tasks.keys(), return_exceptions=True)
 
     while True:
-        done, pending = await asyncio.wait(
-            tasks.keys(), return_when=asyncio.FIRST_COMPLETED
-        )
+        done, _ = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
 
         for finished in done:
             fname, factory = tasks.pop(finished)
@@ -405,7 +407,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                                         *margs,
                                         **mkwargs,
                                     )
-                                except Exception:
+                                except Exception:  # noqa: BLE001
                                     error = True
                                     d.LOGGER.exception(
                                         f"Exception in {FUNS[mname].__name__}"
@@ -505,11 +507,11 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:
                 await cleanup_tasks()
-                return None
-            except Exception:
+                return
+            except Exception:  # noqa: BLE001
                 d.LOGGER.exception("Closing admin websocket after handler failure")
                 await cleanup_tasks()
-                return None
+                return
 
             # Re-add new instance of the same task (except one-shot tasks)
             if fname != "subscribe_to_room":
@@ -523,7 +525,7 @@ async def ws(websocket: WebSocket, uauth: Optional[str] = Cookie(None)) -> None:
 @router.get("/login/")
 async def login_get(
     request: Request,
-    bad: Optional[bool] = False,
+    bad: bool | None = False,
 ) -> Response:
     try:
         await auth_required(request)
@@ -575,19 +577,21 @@ async def login_post(
     # Login-token path: the token itself is a strong shared secret issued by
     # `uproot` on startup, so no proof-of-work is required.  Verified with a
     # constant-time compare.
-    if token and user == "admin" and d.LOGIN_TOKEN is not None:
-        if hmac.compare_digest(token, d.LOGIN_TOKEN):
-            a.ensure_globals()
-            auth_token = a.create_auth_token_for_user(user)
+    if (
+        token
+        and user == "admin"
+        and d.LOGIN_TOKEN is not None
+        and hmac.compare_digest(token, d.LOGIN_TOKEN)
+    ):
+        a.ensure_globals()
+        auth_token = a.create_auth_token_for_user(user)
 
-            if auth_token is not None:
-                d.LOGGER.info("Admin authenticated using auto login")
+        if auth_token is not None:
+            d.LOGGER.info("Admin authenticated using auto login")
 
-                response = RedirectResponse(
-                    f"{d.ROOT}/admin/dashboard/", status_code=303
-                )
-                set_auth_cookie(response, auth_token, secure)
-                return response
+            response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
+            set_auth_cookie(response, auth_token, secure)
+            return response
 
     # Password path: require a valid, single-use PoW solution *before* touching
     # the password.  This replaces the old time-based rate limit, which did not
@@ -611,7 +615,7 @@ async def login_post(
 @router.post("/logout/")
 def logout(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> RedirectResponse:
     """Logout and revoke the current authentication token."""
     uauth = request.cookies.get("uauth")
@@ -667,7 +671,7 @@ def nudge_announcements() -> bool:
 @router.get("/dashboard/")
 async def dashboard(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     return HTMLResponse(
         await render(
@@ -694,7 +698,7 @@ async def dashboard(
 @router.get("/rooms/")
 async def rooms(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     return HTMLResponse(
         await render(
@@ -713,7 +717,7 @@ async def rooms(
 @router.get("/rooms/new/")
 async def new_room(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     with Admin() as admin:
         return HTMLResponse(
@@ -734,11 +738,11 @@ async def new_room2(
     name: str = Form(),
     config: str = Form(""),
     labels: str = Form(""),
-    use_labels: Optional[bool] = Form(False),
+    use_labels: bool | None = Form(False),
     capacity: str = Form(""),
     room_sname: str = Form(""),
-    open: Optional[bool] = Form(False),
-    auth: dict[str, Any] = Depends(auth_required),
+    open: bool | None = Form(False),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     config_ = config.strip() or None
     sname_ = room_sname.strip() or None
@@ -784,7 +788,7 @@ async def new_room2(
 async def roommain(
     request: Request,
     roomname: str,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     with Admin() as admin:
         ensure(roomname in admin.rooms, ValueError, "Room not found")
@@ -826,9 +830,9 @@ async def new_session_in_room(
     settings: str = Form(""),
     sname: str = Form(""),
     unames: str = Form(""),
-    disable_growth: Optional[bool] = Form(False),
-    simulate: Optional[bool] = Form(False),
-    auth: dict[str, Any] = Depends(auth_required),
+    disable_growth: bool | None = Form(False),
+    simulate: bool | None = Form(False),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.room_exists(roomname)
 
@@ -899,11 +903,11 @@ async def update_room_settings(
     roomname: str,
     config: str = Form(""),
     labels: str = Form(""),
-    use_labels: Optional[bool] = Form(False),
+    use_labels: bool | None = Form(False),
     capacity: str = Form(""),
     room_sname: str = Form(""),
-    open: Optional[bool] = Form(False),
-    auth: dict[str, Any] = Depends(auth_required),
+    open: bool | None = Form(False),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.room_exists(roomname)
 
@@ -957,7 +961,7 @@ async def update_room_settings(
 @router.get("/sessions/")
 async def sessions(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     return HTMLResponse(
         await render(
@@ -975,7 +979,7 @@ async def sessions(
 @router.get("/sessions/new/")
 async def new_session(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     settings_forms, settings_errors = await render_session_settings_forms()
 
@@ -1000,8 +1004,8 @@ async def new_session2(
     settings: str = Form(""),
     sname: str = Form(""),
     unames: str = Form(""),
-    simulate: Optional[bool] = Form(False),
-    auth: dict[str, Any] = Depends(auth_required),
+    simulate: bool | None = Form(False),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     sname_ = sname.strip() or None
     unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
@@ -1035,7 +1039,7 @@ async def new_session2(
 async def sessionmain(
     request: Request,
     sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
 
@@ -1058,7 +1062,7 @@ async def sessionmain(
 async def session_chat(
     request: Request,
     sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
 
@@ -1077,7 +1081,7 @@ async def session_chat(
 async def session_data(
     request: Request,
     sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(
@@ -1093,7 +1097,7 @@ async def session_data(
 async def session_digest(
     request: Request,
     sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
 
@@ -1165,7 +1169,7 @@ async def pipeline_data_from_request(request: Request) -> tuple[Any, bool]:
 async def session_pipeline(
     request: Request,
     sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
 
@@ -1209,7 +1213,7 @@ async def session_pipeline_run(
     sname: t.Sessionname,
     appname: str,
     filetype: str = Query(default="csv"),
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
 
@@ -1256,14 +1260,14 @@ async def session_data_download(
     request: Request,
     sname: t.Sessionname,
     filetype: str,
-    gvar: list[str] = Query(default=[]),
+    gvar: list[str] = DataGroupVariablesQuery,
     filters: bool = Query(default=False),
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
     ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
 
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M")
+    stamp = datetime.now(UTC).strftime("%Y-%m-%d_%H%M")
 
     t0 = now()
     briefcase = a.generate_briefcase(sname, gvar, filters, filetype)
@@ -1285,7 +1289,7 @@ async def session_data_download(
 async def session_viewdata(
     request: Request,
     sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
     return HTMLResponse(
@@ -1301,7 +1305,7 @@ async def session_viewdata(
 async def session_multiview(
     request: Request,
     sname: t.Sessionname,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     a.session_exists(sname)
 
@@ -1334,7 +1338,7 @@ async def session_multiview(
 @router.get("/status/")
 async def status(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     dbsize_bytes = d.DATABASE.size()
     missing: dict[str, Any] = {}
@@ -1387,7 +1391,7 @@ async def status(
 @router.post("/status/logout-all/")
 async def logout_all(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     """Logout from all sessions by revoking all tokens for the current user."""
     uauth = request.cookies.get("uauth")
@@ -1410,7 +1414,7 @@ async def logout_all(
 @router.get("/dump/")
 async def dump(
     request: Request,
-    auth: dict[str, Any] = Depends(auth_required),
+    auth: dict[str, Any] = AuthRequired,
 ) -> Response:
     return StreamingResponse(
         d.DATABASE.dump(),

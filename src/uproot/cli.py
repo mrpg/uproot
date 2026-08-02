@@ -10,9 +10,10 @@ import sys
 import tempfile
 import time
 import zipfile
+from collections.abc import Collection, Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Collection, Generator
+from typing import Any
 
 import click
 import httpx
@@ -49,7 +50,7 @@ def confirmation(
 
         for i in range(3):
             # We are nice
-            print(f"{3-i}...")
+            print(f"{3 - i}...")
             time.sleep(1)
 
     try:
@@ -237,14 +238,16 @@ def create_quick_room(config: str, simulate: bool) -> str:
 async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
     zip_path = None
     try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            async with client.stream("GET", url) as response:
-                response.raise_for_status()
+        async with (
+            httpx.AsyncClient(follow_redirects=True) as client,
+            client.stream("GET", url) as response,
+        ):
+            response.raise_for_status()
 
-                with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as f:
-                    zip_path = f.name
-                    async for chunk in response.aiter_bytes(8192):
-                        f.write(chunk)
+            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as f:
+                zip_path = f.name
+                async for chunk in response.aiter_bytes(8192):
+                    f.write(chunk)
 
         if zip_path is None:
             raise RuntimeError("Failed to download ZIP archive")
@@ -278,9 +281,11 @@ async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> 
 
                         # Skip if it's a directory entry
                         if not file_path.endswith("/"):
-                            with zip_ref.open(file_path) as source:
-                                with open(target_path, "wb") as target:
-                                    shutil.copyfileobj(source, target)
+                            with (
+                                zip_ref.open(file_path) as source,
+                                open(target_path, "wb") as target,  # noqa: ASYNC230
+                            ):
+                                shutil.copyfileobj(source, target)
                         break
     finally:
         if zip_path is not None:
@@ -299,7 +304,6 @@ def cli() -> None:
 @click.option("--unsafe", default=False, is_flag=True, help="Run without admin authentication")
 @click.option("--public-demo", default=False, is_flag=True, help="Run a public demo (use with --unsafe)")
 @click.pass_context
-# fmt: on
 def run(
     ctx: click.Context,
     host: str,
@@ -321,7 +325,6 @@ def run(
 @click.option("--simulate", default=False, is_flag=True, help="Enable simulation for the quick room session")
 @click.argument("config_arg", required=False, metavar="CONFIG")
 @click.pass_context
-# fmt: on
 def start(
     ctx: click.Context,
     host: str,
@@ -340,7 +343,6 @@ def start(
 
 # fmt: off
 @click.command(help="Check for important announcements")
-# fmt: on
 def announcements() -> None:
     import uproot as u
     from uproot.services import config_service
@@ -368,7 +370,6 @@ def announcements() -> None:
 @click.command(help="Reset database")
 @click.option("--yes", is_flag=True, help="Do not ask for confirmation.")
 @click.pass_context
-# fmt: on
 def reset(ctx: click.Context, yes: bool) -> None:
     with confirmation("reset the database", ctx, yes):
         d.DATABASE.reset()
@@ -379,11 +380,9 @@ def reset(ctx: click.Context, yes: bool) -> None:
 @click.command(help="Dump database to file")
 @click.option("--file", required=True, help="Output file.")
 @click.pass_context
-# fmt: on
 def dump(ctx: click.Context, file: str) -> None:
     with open(file, "wb") as f:
-        for chunk in d.DATABASE.dump():
-            f.write(chunk)
+        f.writelines(d.DATABASE.dump())
 
 
 # fmt: off
@@ -391,7 +390,6 @@ def dump(ctx: click.Context, file: str) -> None:
 @click.option("--file", required=True, help="Input file.")
 @click.option("--yes", is_flag=True, help="Do not ask for confirmation.")
 @click.pass_context
-# fmt: on
 def restore(ctx: click.Context, file: str, yes: bool) -> None:
     with confirmation("reset the database", ctx, yes):
         d.DATABASE.reset()
@@ -409,7 +407,6 @@ def restore(ctx: click.Context, file: str, yes: bool) -> None:
 @click.option("--minimal", is_flag=True, help="Create a minimal app.")
 @click.argument("app")
 @click.pass_context
-# fmt: on
 def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
     if minimal:
         ex.new_minimal_app(Path("."), app)
@@ -422,7 +419,6 @@ def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
 @click.argument("app")
 @click.argument("page")
 @click.pass_context
-# fmt: on
 def newpage(ctx: click.Context, app: str, page: str) -> None:
     ex.new_page(Path("."), app, page)
 
@@ -430,7 +426,6 @@ def newpage(ctx: click.Context, app: str, page: str) -> None:
 # fmt: off
 @click.command(help="Download examples")
 @click.pass_context
-# fmt: on
 def examples(ctx: click.Context) -> None:
     asyncio.run(
         get_examples(
@@ -442,7 +437,6 @@ def examples(ctx: click.Context) -> None:
 # fmt: off
 @click.command(help="View deployment")
 @click.pass_context
-# fmt: on
 def deployment(ctx: click.Context) -> None:
     for k, v in os.environ.items():
         if k.startswith("UPROOT"):

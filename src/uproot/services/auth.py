@@ -7,9 +7,9 @@ import hashlib
 import hmac
 import time
 from collections import OrderedDict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import EllipsisType
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from fastapi import Header, HTTPException
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
@@ -22,8 +22,8 @@ import uproot.types as t
 
 # Module-level state for admin credentials
 ADMINS: dict[str, str | EllipsisType] = {}
-ADMINS_HASH: Optional[str] = None
-ADMINS_SECRET_KEY: Optional[str] = None
+ADMINS_HASH: str | None = None
+ADMINS_SECRET_KEY: str | None = None
 
 PASSWORD_HASH_SCHEME = "pbkdf2_sha256"  # nosec B105
 PASSWORD_HASH_ITERATIONS = 600_000
@@ -88,10 +88,7 @@ def hash_admin_password(user: str, pw: str, salt: bytes | None = None) -> str:
         PASSWORD_HASH_ITERATIONS,
         dklen=PASSWORD_KEY_BYTES,
     )
-    return (
-        f"{PASSWORD_HASH_SCHEME}${PASSWORD_HASH_ITERATIONS}"
-        f"${salt.hex()}${key.hex()}"
-    )
+    return f"{PASSWORD_HASH_SCHEME}${PASSWORD_HASH_ITERATIONS}${salt.hex()}${key.hex()}"
 
 
 def verify_pbkdf2_admin_password(user: str, pw: str, stored_hash: str) -> bool:
@@ -170,7 +167,7 @@ def create_token_internal(user: str) -> str:
     # Create token data
     token_data = {
         "user": user,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "nonce": t.rng().randbytes(16).hex(),  # Prevent token reuse across sessions
     }
 
@@ -202,7 +199,7 @@ def admin_credentials_valid(user: str, pw: str) -> bool:
     return True
 
 
-def create_auth_token(user: str, pw: str) -> Optional[str]:
+def create_auth_token(user: str, pw: str) -> str | None:
     """Create a new authentication token for a user.
 
     Args:
@@ -221,7 +218,7 @@ def create_auth_token(user: str, pw: str) -> Optional[str]:
     return create_token_internal(user)
 
 
-async def create_auth_token_async(user: str, pw: str) -> Optional[str]:
+async def create_auth_token_async(user: str, pw: str) -> str | None:
     """Create an authentication token without blocking the event loop."""
     ensure_globals()
 
@@ -231,7 +228,7 @@ async def create_auth_token_async(user: str, pw: str) -> Optional[str]:
     return create_token_internal(user)
 
 
-def create_auth_token_for_user(user: str) -> Optional[str]:
+def create_auth_token_for_user(user: str) -> str | None:
     """Create an authentication token for a user without password verification.
 
     This function should only be called after the user has been authenticated
@@ -370,7 +367,7 @@ def from_cookie(uauth: str | None) -> dict[str, str]:
         }
 
 
-def verify_auth_token(user: str, token: str) -> Optional[str]:
+def verify_auth_token(user: str, token: str) -> str | None:
     """Verify an authentication token.
 
     Args:
@@ -467,7 +464,7 @@ def verify_pow(challenge: str, solution: str, user: str) -> bool:
     return True
 
 
-def verify_bearer_token(authorization: Optional[str]) -> bool:
+def verify_bearer_token(authorization: str | None) -> bool:
     """Verify a Bearer token from the Authorization header.
 
     Args:
@@ -489,7 +486,7 @@ def verify_bearer_token(authorization: Optional[str]) -> bool:
     return any(hmac.compare_digest(token, key) for key in d.API_KEYS)
 
 
-def require_bearer_token(authorization: Optional[str] = Header(None)) -> None:
+def require_bearer_token(authorization: str | None = Header(None)) -> None:
     """FastAPI dependency that validates Bearer token from Authorization header.
 
     Raises:

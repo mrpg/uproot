@@ -47,6 +47,7 @@ dependencies = [
 
 [tool.uv]
 exclude-newer = "8 days"
+python-preference = "system"
 
 [project.urls]
 Homepage = "https://uproot.science/"
@@ -78,6 +79,9 @@ exclude = '''
 [tool.ruff]
 src = ["src"]
 exclude = ["build", "dist", ".venv", "venv", ".git", "__pycache__", "tests"]
+
+[tool.ruff.lint]
+ignore = ["I"]
 
 [tool.isort]
 profile = "black"

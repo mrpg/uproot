@@ -1,8 +1,9 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from collections.abc import Callable, Sequence
 from time import time
-from typing import Any, Callable, Optional, Sequence, cast
+from typing import Any, cast
 from uuid import UUID
 
 from pydantic import validate_call
@@ -35,9 +36,9 @@ class Message(metaclass=um.Entry):
 def show_msg(
     chat: ModelIdentifier,
     id: UUID,
-    time: Optional[float],
+    time: float | None,
     msg: Message,
-    as_viewed_by: Optional[PlayerIdentifier] = None,
+    as_viewed_by: PlayerIdentifier | None = None,
 ) -> dict[str, Any]:
     pseudonyms = um.get_field(chat, "pseudonyms")
 
@@ -108,7 +109,7 @@ def players(chat: ModelIdentifier) -> Bunch:
 
 @flexible
 def add_player(
-    chat: ModelIdentifier, pid: PlayerIdentifier, pseudonym: Optional[str] = None
+    chat: ModelIdentifier, pid: PlayerIdentifier, pseudonym: str | None = None
 ) -> None:
     with model(chat) as m:
         m.players.append(pid)
@@ -154,9 +155,9 @@ def has_messages(chat: ModelIdentifier) -> bool:
 
 
 @validate_call
-def adminchat_for_player(pid: PlayerIdentifier) -> Optional[ModelIdentifier]:
+def adminchat_for_player(pid: PlayerIdentifier) -> ModelIdentifier | None:
     with materialize(pid) as player:
-        return cast(Optional[ModelIdentifier], player.get("_uproot_adminchat"))
+        return cast(ModelIdentifier | None, player.get("_uproot_adminchat"))
 
 
 @validate_call
@@ -195,8 +196,8 @@ def ensure_adminchat(pid: PlayerIdentifier) -> ModelIdentifier:
 
 
 def adminchat_can_reply(
-    as_viewed_by: Optional[PlayerIdentifier],
-) -> Optional[bool]:
+    as_viewed_by: PlayerIdentifier | None,
+) -> bool | None:
     if as_viewed_by is None:
         return None
 
@@ -206,9 +207,9 @@ def adminchat_can_reply(
 def show_adminchat_msg(
     chat: ModelIdentifier,
     id: UUID,
-    time: Optional[float],
+    time: float | None,
     msg: Message,
-    as_viewed_by: Optional[PlayerIdentifier] = None,
+    as_viewed_by: PlayerIdentifier | None = None,
 ) -> dict[str, Any]:
     if isinstance(msg.sender, str):
         sender_representation = ("other", msg.sender)
@@ -234,7 +235,7 @@ def adminchat_event(
     pid: PlayerIdentifier,
     *,
     kind: str,
-    message: Optional[dict[str, Any]] = None,
+    message: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     mid = ensure_adminchat(pid)
     entries = messages(mid)
@@ -356,7 +357,7 @@ async def notify(
                 player=player,
                 message=msgtext,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             d.LOGGER.exception(f"Exception in chat hook {fmodule}.{fname}")
 
 
@@ -408,7 +409,7 @@ async def notify_adminchat(
                 player=player,
                 message=msgtext,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             d.LOGGER.exception(f"Exception in chat hook {fmodule}.{fname}")
 
 

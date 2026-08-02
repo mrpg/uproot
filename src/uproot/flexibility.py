@@ -1,14 +1,13 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from collections.abc import Callable
 from functools import wraps
 from inspect import signature
 from types import UnionType
 from typing import (
     Any,
-    Callable,
     ParamSpec,
-    Tuple,
     TypeAlias,
     TypeVar,
     Union,
@@ -21,9 +20,9 @@ from uproot.storage import Storage
 from uproot.types import PlayerIdentifier, SessionIdentifier
 
 Player: TypeAlias = Storage
-PlayerLike: TypeAlias = Union[Player, PlayerIdentifier]
+PlayerLike: TypeAlias = Player | PlayerIdentifier
 Session: TypeAlias = Storage
-SessionLike: TypeAlias = Union[Session, SessionIdentifier]
+SessionLike: TypeAlias = Session | SessionIdentifier
 
 P1 = ParamSpec("P1")
 P2 = ParamSpec("P2")
@@ -32,20 +31,20 @@ T = TypeVar("T")
 
 class TypeRegistry:
     def __init__(self) -> None:
-        self.equivalences: dict[type, Tuple[type, ...]] = {}
-        self.converters: dict[Tuple[type, type], Callable[..., Any]] = {}
+        self.equivalences: dict[type, tuple[type, ...]] = {}
+        self.converters: dict[tuple[type, type], Callable[..., Any]] = {}
 
     def register_equivalence(
         self,
         *types: type,
-        converters: dict[Tuple[type, type], Callable[..., Any]],
+        converters: dict[tuple[type, type], Callable[..., Any]],
     ) -> None:
         for t in types:
             self.equivalences[t] = types
         for (from_type, to_type), converter in converters.items():
             self.converters[(from_type, to_type)] = converter
 
-    def get_equivalent_types(self, target_type: type) -> Tuple[type, ...]:
+    def get_equivalent_types(self, target_type: type) -> tuple[type, ...]:
         return self.equivalences.get(target_type, (target_type,))
 
     def convert(self, value: Any, from_type: type, to_type: type) -> Any:

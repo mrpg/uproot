@@ -32,7 +32,7 @@ def set_store(store: "Store") -> None:
 def get_namespace(
     namespace: tuple[str, ...],
     create: bool = False,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     if ensure_not_none(STORE):
         return STORE.get_namespace(namespace, create)
 

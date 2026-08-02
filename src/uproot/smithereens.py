@@ -6,15 +6,11 @@ import csv
 import os
 import tempfile
 from collections import namedtuple
+from collections.abc import Awaitable, Callable, Iterable, Sequence
 from decimal import Decimal as cu
 from types import EllipsisType
 from typing import (
     Any,
-    Awaitable,
-    Callable,
-    Iterable,
-    Optional,
-    Sequence,
     cast,
 )
 
@@ -42,14 +38,35 @@ class PlayerContext:
 
 
 __all__ = [
-    "_",
-    "add_to_group",
     "Admin",
     "AdminType",
     "Any",
-    "append_to_csv",
     "Between",
     "Bracket",
+    "Group",
+    "GroupCreatingWait",
+    "GroupIdentifier",
+    "GroupType",
+    "Model",
+    "ModelIdentifier",
+    "ModelType",
+    "NoshowPage",
+    "Page",
+    "Player",
+    "PlayerContext",
+    "PlayerIdentifier",
+    "PlayerType",
+    "Random",
+    "Repeat",
+    "Rounds",
+    "Session",
+    "SessionIdentifier",
+    "SessionType",
+    "Storage",
+    "SynchronizingWait",
+    "_",
+    "add_to_group",
+    "append_to_csv",
     "cast",
     "chat",
     "combine",
@@ -59,41 +76,20 @@ __all__ = [
     "data_uri",
     "fmtnum",
     "get_setting",
-    "Group",
-    "GroupCreatingWait",
-    "GroupIdentifier",
-    "GroupType",
     "identify",
     "live",
     "mark_dropout",
     "materialize",
-    "Model",
-    "ModelIdentifier",
-    "ModelType",
     "move_to_end",
     "move_to_page",
-    "NoshowPage",
     "notify",
-    "Page",
-    "Player",
-    "PlayerContext",
-    "PlayerIdentifier",
-    "PlayerType",
-    "Random",
     "read_csv",
     "reload",
-    "Repeat",
     "rng",
-    "Rounds",
     "safe",
     "send_to",
     "send_to_one",
-    "Session",
-    "SessionIdentifier",
-    "SessionType",
     "spawn",
-    "Storage",
-    "SynchronizingWait",
     "to",
     "transition_to_end",
     "transition_to_page",
@@ -145,7 +141,7 @@ def create_group(
     session: Storage,
     members: Iterable[PlayerLike],
     *,
-    gname: Optional[str] = None,
+    gname: str | None = None,
     overwrite: bool = False,
 ) -> t.GroupIdentifier:
     """
@@ -372,7 +368,7 @@ def watch_for_dropout(
     triplet = (tolerance, fun.__module__, fun.__name__)
 
     ensure(
-        callable(fun) and (isinstance(tolerance, int) or isinstance(tolerance, float)),
+        callable(fun) and (isinstance(tolerance, (int, float))),
         TypeError,
         "Function must be callable and tolerance must be int or float",
     )

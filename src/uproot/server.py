@@ -3,14 +3,11 @@
 
 import asyncio
 import math
+from collections.abc import AsyncIterator, Callable, Coroutine
 from contextlib import asynccontextmanager
 from typing import (
     Any,
-    AsyncIterator,
-    Callable,
-    Coroutine,
     Never,
-    Optional,
     cast,
 )
 from urllib.parse import quote
@@ -44,7 +41,7 @@ ADMINS_PASSWORDS_HASHED: bool = False
 
 
 def validate_admin_password_lengths() -> None:
-    for user, pw in d.ADMINS.items():
+    for pw in d.ADMINS.values():
         if isinstance(pw, str) and len(pw) < MIN_PASSWORD_LENGTH:
             d.LOGGER.critical(
                 "Configured admin password is shorter than the minimum length"
@@ -112,7 +109,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         import setproctitle
 
         setproctitle.setproctitle(f"[uproot server @ {d.HOST}:{d.PORT}]")
-    except Exception:  # nosec B110
+    except Exception:  # noqa: BLE001, S110  # nosec B110
         pass
 
     if (la := len(d.ADMINS)) == 1:
@@ -207,9 +204,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     await d.lifespan_start(app, tasks)
 
-    ...
     yield  # type: ignore[misc]
-    ...
 
     await d.lifespan_stop(app, tasks)
 
@@ -264,7 +259,7 @@ def load_config(
     config: str,
     apps: list[str],
     *,
-    settings: Optional[dict[str, Any]] = None,
+    settings: dict[str, Any] | None = None,
 ) -> None:
     ensure(not config.startswith("~"), ValueError, "Config path cannot start with '~'")
 

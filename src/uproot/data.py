@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import csv as pycsv
+from collections.abc import AsyncGenerator, Iterable, Iterator, Mapping
 from io import BytesIO, StringIO
-from typing import Any, AsyncGenerator, Iterable, Iterator, Mapping, Optional, cast
+from typing import Any, cast
 from zipfile import ZIP_DEFLATED, ZipFile
 
 import orjson as json
@@ -43,7 +44,7 @@ def json2csv(js: str) -> str:
 def partial_matrix(
     everything: dict[tuple[str, ...], list[Value]],
 ) -> Iterator[dict[str, Any]]:
-    previous_field: Optional[str]
+    previous_field: str | None
     previous_seq: int
 
     previous_field, previous_seq = None, 0
@@ -102,9 +103,7 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
             elif field == "_uproot_session":
                 row["!field"] = "session"
                 row["!data"] = f"session/{data}"
-            elif field == "_uproot_dropout":
-                pass
-            elif field == "_uproot_settings":
+            elif field == "_uproot_dropout" or field == "_uproot_settings":
                 pass
             else:
                 continue
@@ -125,7 +124,7 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
 
 
 def latest(
-    pm: Iterable[dict[str, Any]], group_by_fields: Optional[list[str]] = None
+    pm: Iterable[dict[str, Any]], group_by_fields: list[str] | None = None
 ) -> Iterator[dict[str, Any]]:
     if group_by_fields is None:
         group_by_fields = []
@@ -357,7 +356,7 @@ def briefcase_out(
     wrapper: str,
     filetype: str,
     readme: str,
-    extras: Optional[Mapping[str, bytes]] = None,
+    extras: Mapping[str, bytes] | None = None,
 ) -> bytes:
     """Create a ZIP "briefcase" wrapped in a single top-level directory.
 

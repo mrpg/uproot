@@ -7,10 +7,11 @@ import re
 import time
 import traceback
 import urllib.parse
+from collections.abc import Callable
 from contextlib import nullcontext
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import mistune
 import orjson
@@ -33,7 +34,7 @@ from wtforms.widgets.core import clean_key, html_params
 import uproot as u
 import uproot.admin as a
 import uproot.deployment as d
-import uproot.i18n as i18n
+from uproot import i18n
 from uproot.constraints import ensure
 from uproot.storage import Storage
 from uproot.types import (
@@ -93,7 +94,7 @@ class MarkdownLoader(BaseLoader):
 
 
 class IncludeMarkdownExtension(Extension):
-    tags = {"include_markdown"}
+    tags: set[str] = {"include_markdown"}  # type: ignore[assignment]  # noqa: RUF012
 
     def parse(self, parser: Parser) -> nodes.Node:
         lineno = next(parser.stream).lineno
@@ -170,7 +171,7 @@ def terms_url(language: i18n.ISO639) -> str:
     return f"{d.ROOT}/terms/{language_path}.js?v={i18n.VERSION}"
 
 
-def function_context(page: Optional[type[Page]]) -> dict[str, Any]:
+def function_context(page: type[Page] | None) -> dict[str, Any]:
     if page is not None:
         return {
             "internalstatic": static_factory(),
@@ -320,7 +321,7 @@ def exported_constants(app: Any) -> dict[str, Any]:
 
     C = app.C
     if isinstance(C, type):
-        export = getattr(C, "__export__")
+        export = C.__export__  # type: ignore[attr-defined]
 
         if export is Ellipsis:
             return {k: v for k, v in vars(C).items() if not is_dunder(k)}
@@ -338,13 +339,13 @@ def exported_constants(app: Any) -> dict[str, Any]:
 async def render(
     server: "FastAPI",
     request: "Request",
-    player: Optional[Storage],
+    player: Storage | None,
     page: type[Page],
-    formdata: Optional[Any] = None,
-    custom_errors: Optional[list[str]] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    uauth: Optional[str] = None,
-    field_errors: Optional[dict[str, list[str]]] = None,
+    formdata: Any | None = None,
+    custom_errors: list[str] | None = None,
+    metadata: dict[str, Any] | None = None,
+    uauth: str | None = None,
+    field_errors: dict[str, list[str]] | None = None,
 ) -> str:
     ppath = truepath(page)
     group = nullcontext()
@@ -386,7 +387,7 @@ async def render(
     except ValueError:
         form = None
 
-    app = u.APPS[page.__module__] if page.__module__ in u.APPS else None
+    app = u.APPS[page.__module__] if page.__module__ in u.APPS else None  # noqa: SIM401
 
     if app is None and player is not None:
         for page_path in reversed(player.page_order):
@@ -504,7 +505,7 @@ async def render(
 async def render_error(
     request: "Request",
     player: Storage,
-    uauth: Optional[str],
+    uauth: str | None,
     exc: Exception,
 ) -> str:
     sname, uname, session = (
@@ -718,7 +719,7 @@ def to_filter(value: float, places: int) -> str:
 
 
 def unixtime2datetime_filter(epoch: float, precise: bool = False) -> str:
-    dt = datetime.fromtimestamp(epoch, timezone.utc)
+    dt = datetime.fromtimestamp(epoch, UTC)
 
     if precise:
         return dt.strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -730,7 +731,7 @@ def type_filter(x: Any) -> str:
     return str(type(x))
 
 
-def tojson_filter(x: Any, indent: Optional[int] = None) -> str:
+def tojson_filter(x: Any, indent: int | None = None) -> str:
     option = orjson.OPT_INDENT_2 if indent else 0
     json_str = orjson.dumps(x, option=option).decode("utf-8")
     # Escape </ to prevent breaking out of <script> tags when used with |safe.

@@ -33,13 +33,14 @@ to restore the previous store.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any, Self
 
 import appendmuch
 
-import uproot.cache as cache
 import uproot.deployment as d
+from uproot import cache
 from uproot.stable import CODEC
 from uproot.storage import Admin, Group, Player, Session
 
@@ -225,7 +226,7 @@ class Database:
         else:
             cache.set_store(self.prev_cache_store)
 
-    def __enter__(self) -> Database:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *args: object) -> None:

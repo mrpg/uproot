@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 from time import time  # This file uses clock time
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from sortedcontainers import SortedList
 
@@ -86,7 +86,7 @@ def set_offline(pid: PlayerIdentifier) -> None:
 
         del ONLINE[pid.sname][pid.uname]
         ONLINE_SORTED.remove((t, pid))
-    except Exception:  # nosec B110
+    except (KeyError, ValueError):
         pass
 
     e.set_attendance(pid)
@@ -102,19 +102,19 @@ def set_online(pid: PlayerIdentifier) -> None:
 
 
 def who_online(
-    tolerance: Optional[float] = None,
-    sname: Optional[str] = None,
+    tolerance: float | None = None,
+    sname: str | None = None,
 ) -> set[PlayerIdentifier]:
     online = set()
 
     if tolerance is None:
         if sname is None:
             for sessionname, users in ONLINE.items():
-                for username in users.keys():
+                for username in users:
                     online.add(PlayerIdentifier(sname=sessionname, uname=username))
         else:
             if sname in ONLINE:
-                for username in ONLINE[sname].keys():
+                for username in ONLINE[sname]:
                     online.add(PlayerIdentifier(sname=sname, uname=username))
     else:
         t = time()
@@ -128,7 +128,7 @@ def who_online(
     return online
 
 
-def find_online(pid: PlayerIdentifier) -> Optional[float]:
+def find_online(pid: PlayerIdentifier) -> float | None:
     try:
         return ONLINE[pid.sname][pid.uname]
     except KeyError:
@@ -137,7 +137,7 @@ def find_online(pid: PlayerIdentifier) -> Optional[float]:
     return None
 
 
-def find_online_delta(pid: PlayerIdentifier) -> Optional[float]:
+def find_online_delta(pid: PlayerIdentifier) -> float | None:
     try:
         return time() - ONLINE[pid.sname][pid.uname]
     except KeyError:

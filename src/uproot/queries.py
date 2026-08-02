@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from operator import attrgetter
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 
 def resolve(referent: Union["FieldReferent", Any], obj: Any) -> Any:
@@ -52,7 +52,7 @@ class Comparison:
 
 
 class FieldReferent:
-    def __init__(self, path: Optional[list[str]] = None) -> None:
+    def __init__(self, path: list[str] | None = None) -> None:
         self.components = path or []
         self.getter = attrgetter(".".join(self.components))
 

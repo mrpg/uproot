@@ -1,7 +1,8 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from typing import Any, Callable, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 import appendmuch
 
@@ -54,7 +55,7 @@ class Storage(appendmuch.Storage):
         ensure(
             all(type(t) is str and valid_token(t) for t in namespace),
             ValueError,
-            f"{repr(namespace)} is an invalid namespace",
+            f"{namespace!r} is an invalid namespace",
         )
         ensure(namespace[0] in VALID_TRAIL0, ValueError, "Invalid namespace start")
 
@@ -67,7 +68,7 @@ class Storage(appendmuch.Storage):
     def __repr__(self) -> str:
         if len(self.__namespace__) == 1:
             return f"{self.__namespace__[0].capitalize()}()"
-        return f"{self.__namespace__[0].capitalize()}(*{repr(self.__namespace__[1:])})"
+        return f"{self.__namespace__[0].capitalize()}(*{self.__namespace__[1:]!r})"
 
 
 def virtual_group(

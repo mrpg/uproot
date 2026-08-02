@@ -8,11 +8,11 @@ from time import time
 from typing import Any
 
 import uproot as u
-import uproot.chat as chat
 import uproot.deployment as d
 import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
+from uproot import chat
 from uproot.core import resolve_page_order
 from uproot.services.session_service import session_exists
 
@@ -142,7 +142,7 @@ async def run_dropout_handlers(pid: t.PlayerIdentifier, player: s.Storage) -> No
                     fname,
                     player=player,
                 )
-        except Exception:
+        except Exception:  # noqa: BLE001
             d.LOGGER.exception(f"Exception in dropout handler {fmodule}.{fname}")
         finally:
             u.WATCH.discard((pid, tolerance, fmodule, fname))

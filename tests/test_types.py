@@ -302,11 +302,11 @@ class TestStorageBunch:
         assert storage1 not in result
 
     def test_filter_invalid_comparison_raises_error(self):
-        """Test filter with invalid comparison raises ValueError."""
+        """Test filter with invalid comparison raises TypeError."""
         storage1 = self.create_mock_storage("ns1")
         bunch = StorageBunch([storage1])
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             bunch.filter("invalid")
 
     def test_assign(self):
@@ -487,7 +487,7 @@ class TestStorageBunch:
 
         bunch = StorageBunch([storage1, storage2])
 
-        with pytest.raises(Exception):  # ensure() raises an exception
+        with pytest.raises(ValueError):  # ensure() raises an exception
             bunch.find_one(member_id=999)
 
     def test_find_one_multiple_matches_raises_error(self):
@@ -499,7 +499,7 @@ class TestStorageBunch:
 
         bunch = StorageBunch([storage1, storage2])
 
-        with pytest.raises(Exception):  # ensure() raises an exception
+        with pytest.raises(ValueError):  # ensure() raises an exception
             bunch.find_one(role="user")
 
 

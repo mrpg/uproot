@@ -37,7 +37,7 @@ DEFAULT_ROOMS: list["RoomType"] = []
 HERE_TOLERANCE: float = 5.0
 HOST: str = "127.0.0.1"
 LANGUAGE: ISO639 = "en"
-LOGIN_TOKEN: Optional[str] = None
+LOGIN_TOKEN: str | None = None
 LOGGER: Any = logging.getLogger("uproot")
 ALLOW_ENTER: bool = os.getenv("UPROOT_ALLOW_ENTER", "").lower() in (
     "1",
@@ -45,12 +45,11 @@ ALLOW_ENTER: bool = os.getenv("UPROOT_ALLOW_ENTER", "").lower() in (
     "yes",
     "on",
 )
-ORIGIN: Optional[str] = os.getenv("UPROOT_ORIGIN")
+ORIGIN: str | None = os.getenv("UPROOT_ORIGIN")
 
 # Auto-detect Heroku app URL if not explicitly set
-if ORIGIN is None:
-    if heroku_domain := os.getenv("HEROKU_APP_DEFAULT_DOMAIN_NAME"):
-        ORIGIN = f"https://{heroku_domain}"
+if ORIGIN is None and (heroku_domain := os.getenv("HEROKU_APP_DEFAULT_DOMAIN_NAME")):
+    ORIGIN = f"https://{heroku_domain}"
 
 ROBOTS_TXT: bool = os.getenv("UPROOT_ROBOTS_TXT", "1").lower() not in (
     "0",
@@ -63,7 +62,7 @@ PORT: int = 8000
 PROCESS_START: float = perf_counter()
 PROJECT_METADATA: dict[str, Any] = {}
 PUBLIC_DEMO: bool = False
-QUICK_ROOM: Optional[str] = None
+QUICK_ROOM: str | None = None
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"

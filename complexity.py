@@ -21,6 +21,7 @@ for line in commits:
     subprocess.run(["git", "checkout", sha, "--quiet"], check=True)
     result = subprocess.run(
         ["tokei", "--streaming", "json", "-t", "Python", "src/uproot"],
+        check=False,
         capture_output=True,
         text=True,
     )

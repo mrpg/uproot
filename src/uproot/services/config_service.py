@@ -21,7 +21,7 @@ def config_summary(cname: str) -> str:
             return getattr(u.APPS[u.CONFIGS[cname][0]], "DESCRIPTION", "").strip()
         else:
             return " → ".join(u.CONFIGS[cname])
-    except Exception:
+    except (KeyError, IndexError, TypeError):
         return ""
 
 
@@ -72,7 +72,7 @@ async def announcements() -> dict[str, Any]:
             response = await client.get(ANNOUNCEMENTS_URL)
             data = cast(dict[str, Any], response.json())
             recommended = str(data["recommendedVersion"])
-    except Exception:
+    except (httpx.HTTPError, KeyError, TypeError, ValueError):
         return {"error": True}
 
     with s.Admin() as admin:
@@ -98,5 +98,5 @@ async def praise() -> str:
         async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(PRAISE_URL)
             return response.text
-    except Exception:
+    except Exception:  # noqa: BLE001
         return "We couldn't load praise right now."

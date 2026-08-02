@@ -23,7 +23,7 @@ State 1:
         a 'freejoin' room adds players to sessions.
 """
 
-from typing import Any, Optional, TypeAlias
+from typing import Any, TypeAlias
 
 import uproot.events as e
 from uproot.constraints import TOKEN_CHARS, return_or_raise, valid_token
@@ -34,11 +34,11 @@ RoomType: TypeAlias = dict[str, Any]
 
 def room(
     name: str,
-    config: Optional[str] = None,
-    labels: Optional[list[str]] = None,
-    capacity: Optional[int] = None,
+    config: str | None = None,
+    labels: list[str] | None = None,
+    capacity: int | None = None,
     open: bool = False,
-    sname: Optional[Sessionname] = None,
+    sname: Sessionname | None = None,
 ) -> RoomType:
     if not valid_token(name):
         raise ValueError("Room name is invalid")
@@ -68,7 +68,7 @@ def labels_file(filename: str) -> set[str]:
             return_or_raise(
                 line.strip(), valid_token, msg="Label has invalid characters"
             )
-            for line in f.readlines()
+            for line in f
         }
 
 

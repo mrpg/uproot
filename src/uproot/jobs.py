@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
-from typing import Any, Coroutine, Optional, cast
+from collections.abc import Coroutine
+from typing import Any, cast
 from uuid import UUID
 
 from fastapi import FastAPI, WebSocket
@@ -44,7 +45,7 @@ async def subscribe_to_attendance(
 
 async def subscribe_to_fieldchange(
     sname: Sessionname,
-    fields: Optional[list[str]] = None,
+    fields: list[str] | None = None,
 ) -> tuple[tuple[str, ...], str, Value]:
     while True:
         received = await e.FIELDCHANGE[sname].wait()
@@ -126,7 +127,7 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
                                     fname,
                                     player=player,
                                 )
-                            except Exception:
+                            except Exception:  # noqa: BLE001
                                 d.LOGGER.exception(
                                     f"Exception in dropout handler {fmodule}.{fname}"
                                 )
@@ -135,7 +136,7 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
                                     player._uproot_watch.remove(triplet)
 
                     removals.add(entry)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 d.LOGGER.exception(f"Exception in dropout watcher for entry {entry}")
 
         if removals:
@@ -181,7 +182,7 @@ def restore(app: FastAPI, admin: s.Storage) -> None:
 def here(
     sname: Sessionname,
     show_page: int,
-    among: Optional[list[PlayerIdentifier]] = None,
+    among: list[PlayerIdentifier] | None = None,
     strict: bool = True,
 ) -> set[PlayerIdentifier]:
     with s.Session(sname) as session:
@@ -203,7 +204,7 @@ def here(
         }
 
 
-def try_group(player: s.Storage, show_page: int, group_size: int) -> Optional[str]:
+def try_group(player: s.Storage, show_page: int, group_size: int) -> str | None:
     """
     Try to create exactly one group from available players.
 

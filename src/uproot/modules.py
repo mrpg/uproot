@@ -3,9 +3,10 @@
 
 import importlib.util
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -38,10 +39,10 @@ def poison_module(module: ModuleType) -> None:
 
 
 class ModuleManager:
-    def __init__(self, hook: Optional[Callable[[Any], None]] = None) -> None:
-        self.modules: Dict[str, ModuleType] = {}
-        self.watched_dirs: Dict[str, str] = {}
-        self.watching_paths: Set[str] = set()
+    def __init__(self, hook: Callable[[Any], None] | None = None) -> None:
+        self.modules: dict[str, ModuleType] = {}
+        self.watched_dirs: dict[str, str] = {}
+        self.watching_paths: set[str] = set()
         self.observer = Observer()
 
         if hook is not None:
@@ -140,7 +141,7 @@ class ModuleManager:
 
             try:
                 if not isinstance(module_file, str):
-                    raise ImportError(
+                    raise TypeError(
                         f"Could not find source file for module {module_name}"
                     )
 
@@ -149,7 +150,7 @@ class ModuleManager:
                 poison_module(old_module)
 
                 d.LOGGER.info(f"Reloaded {module_name}.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 d.LOGGER.info(f"Failed to reload {module_name}: {e}")
 
 

@@ -12,7 +12,7 @@ import hmac
 import importlib.metadata
 import sys
 from pathlib import Path
-from typing import Any, Optional, TypeAlias
+from typing import Any, TypeAlias
 
 import orjson
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -28,9 +28,9 @@ import uproot as u
 import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
-import uproot.i18n as i18n
 import uproot.rooms as r
 import uproot.types as t
+from uproot import i18n
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
 from uproot.pages import static_factory
@@ -38,6 +38,14 @@ from uproot.storage import Admin, Session, Storage
 
 router = APIRouter(prefix=f"{d.ROOT}/admin/api/v1")
 Session_: TypeAlias = Storage
+DefaultPlayerFieldsQuery = Query(
+    default=["id", "page_order", "show_page", "started", "label"]
+)
+GroupedExportVariablesQuery = Query(
+    default=[],
+    description="Group-by variables for the optional grouped latest format",
+)
+JsonlGroupVariablesQuery = Query(default=[], description="Group-by variables")
 
 # =============================================================================
 # Pydantic Models for Request/Response Validation
@@ -49,13 +57,11 @@ class SessionCreate(BaseModel):
 
     config: str = Field(..., description="Configuration name")
     n_players: int = Field(..., ge=0, description="Number of players to create")
-    sname: Optional[str] = Field(
+    sname: str | None = Field(
         None, description="Custom session name (auto-generated if omitted)"
     )
-    unames: Optional[list[str]] = Field(
-        None, description="Custom usernames for players"
-    )
-    settings: Optional[dict[str, Any]] = Field(None, description="Session settings")
+    unames: list[str] | None = Field(None, description="Custom usernames for players")
+    settings: dict[str, Any] | None = Field(None, description="Session settings")
     simulate: bool = Field(False, description="Enable response simulation")
 
 
@@ -63,21 +69,19 @@ class RoomCreate(BaseModel):
     """Request body for creating a new room."""
 
     name: str = Field(..., min_length=1, description="Room name")
-    config: Optional[str] = Field(
-        None, description="Default configuration for sessions"
-    )
-    labels: Optional[list[str]] = Field(
+    config: str | None = Field(None, description="Default configuration for sessions")
+    labels: list[str] | None = Field(
         None, description="Allowed labels for participants"
     )
-    capacity: Optional[int] = Field(None, ge=1, description="Maximum capacity")
-    open: Optional[bool] = Field(
+    capacity: int | None = Field(None, ge=1, description="Maximum capacity")
+    open: bool | None = Field(
         None,
         description=(
             "Whether the room is open for joining "
             "(defaults to true if sname is given, false otherwise)"
         ),
     )
-    sname: Optional[str] = Field(None, description="Associated session name")
+    sname: str | None = Field(None, description="Associated session name")
 
 
 class PlayersAction(BaseModel):
@@ -123,7 +127,7 @@ class AdminchatMessage(BaseModel):
     """Request body for sending an admin chat message to one player."""
 
     message: str = Field(..., description="Message to send")
-    enable_replies: Optional[bool] = Field(
+    enable_replies: bool | None = Field(
         None,
         description="Optionally update whether the player may reply",
     )
@@ -134,7 +138,7 @@ class AdminchatBroadcast(BaseModel):
 
     unames: list[str] = Field(..., min_length=1, description="List of usernames")
     message: str = Field(..., description="Message to send")
-    enable_replies: Optional[bool] = Field(
+    enable_replies: bool | None = Field(
         None,
         description="Optionally update whether all recipients may reply",
     )
@@ -163,12 +167,10 @@ class RoomSessionCreate(BaseModel):
 
     config: str = Field(..., description="Configuration name")
     n_players: int = Field(..., ge=0, description="Number of players")
-    assignees: Optional[list[str]] = Field(
-        None, description="Labels to assign to players"
-    )
-    settings: Optional[dict[str, Any]] = Field(None, description="Session settings")
-    sname: Optional[str] = Field(None, description="Custom session name")
-    unames: Optional[list[str]] = Field(None, description="Custom usernames")
+    assignees: list[str] | None = Field(None, description="Labels to assign to players")
+    settings: dict[str, Any] | None = Field(None, description="Session settings")
+    sname: str | None = Field(None, description="Custom session name")
+    unames: list[str] | None = Field(None, description="Custom usernames")
     no_grow: bool = Field(False, description="Lock capacity to n_players")
     simulate: bool = Field(False, description="Enable response simulation")
 
@@ -176,17 +178,17 @@ class RoomSessionCreate(BaseModel):
 class RoomUpdate(BaseModel):
     """Request body for updating room settings."""
 
-    config: Optional[str] = Field(None, description="Default configuration")
-    labels: Optional[list[str]] = Field(None, description="Allowed labels")
-    capacity: Optional[int] = Field(None, ge=1, description="Maximum capacity")
-    open: Optional[bool] = Field(
+    config: str | None = Field(None, description="Default configuration")
+    labels: list[str] | None = Field(None, description="Allowed labels")
+    capacity: int | None = Field(None, ge=1, description="Maximum capacity")
+    open: bool | None = Field(
         None,
         description=(
             "Whether the room is open "
             "(defaults to true if sname is given, otherwise unchanged)"
         ),
     )
-    sname: Optional[str] = Field(
+    sname: str | None = Field(
         None, description="Existing session to associate with the room"
     )
 
@@ -200,7 +202,7 @@ class RoomOpen(BaseModel):
 class RoomCapacity(BaseModel):
     """Request body for setting a room's capacity."""
 
-    capacity: Optional[int] = Field(
+    capacity: int | None = Field(
         ..., ge=1, description="Maximum capacity (null for unlimited)"
     )
 
@@ -255,7 +257,7 @@ def ensure_config_exists(config: str) -> None:
         raise HTTPException(status_code=400, detail="Invalid configuration")
 
 
-def ensure_unames_count(n_players: int, unames: Optional[list[str]]) -> None:
+def ensure_unames_count(n_players: int, unames: list[str] | None) -> None:
     if unames is not None and len(unames) != n_players:
         raise HTTPException(
             status_code=400,
@@ -263,7 +265,7 @@ def ensure_unames_count(n_players: int, unames: Optional[list[str]]) -> None:
         )
 
 
-def ensure_assignees_count(n_players: int, assignees: Optional[list[str]]) -> None:
+def ensure_assignees_count(n_players: int, assignees: list[str] | None) -> None:
     if assignees is not None and len(assignees) > n_players:
         raise HTTPException(
             status_code=400,
@@ -273,11 +275,11 @@ def ensure_assignees_count(n_players: int, assignees: Optional[list[str]]) -> No
 
 def create_room_payload(
     name: str,
-    config: Optional[str],
-    labels: Optional[list[str]],
-    capacity: Optional[int],
+    config: str | None,
+    labels: list[str] | None,
+    capacity: int | None,
     open: bool,
-    sname: Optional[str],
+    sname: str | None,
 ) -> dict[str, Any]:
     try:
         return r.room(
@@ -618,9 +620,7 @@ async def update_session_settings(
 @router.get("/sessions/{sname}/players/")
 async def list_players(
     sname: str,
-    fields: list[str] = Query(
-        default=["id", "page_order", "show_page", "started", "label"]
-    ),
+    fields: list[str] = DefaultPlayerFieldsQuery,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, dict[str, Any]]:
     """Get specified fields for all players in a session."""
@@ -913,10 +913,7 @@ async def get_session_data(
 async def download_session_export(
     sname: str,
     filetype: str = Query(default="csv", description="Export file type: csv or jsonl"),
-    gvar: list[str] = Query(
-        default=[],
-        description="Group-by variables for the optional grouped latest format",
-    ),
+    gvar: list[str] = GroupedExportVariablesQuery,
     filters: bool = Query(default=True, description="Apply reasonable filters"),
     bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
@@ -937,7 +934,7 @@ async def download_session_jsonl(
     format: str = Query(
         default="ultralong", description="Export format: ultralong, sparse, or latest"
     ),
-    gvar: list[str] = Query(default=[], description="Group-by variables"),
+    gvar: list[str] = JsonlGroupVariablesQuery,
     filters: bool = Query(default=False, description="Apply reasonable filters"),
     bauth: None = Depends(a.require_bearer_token),
 ) -> StreamingResponse:
@@ -1479,7 +1476,7 @@ async def get_announcements(
     """Fetch announcements from upstream."""
     try:
         return await a.announcements()
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {"error": "Failed to fetch announcements"}
 
 
@@ -1490,7 +1487,7 @@ async def get_praise(
     """Fetch the same praise text shown by the admin UI."""
     try:
         return PlainTextResponse(await a.praise())
-    except Exception:
+    except Exception:  # noqa: BLE001
         raise HTTPException(status_code=502, detail="Failed to fetch praise")
 
 

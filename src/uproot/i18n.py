@@ -14,7 +14,8 @@ Basic usage:
 
 import os
 import re
-from typing import Annotated, Callable
+from collections.abc import Callable
+from typing import Annotated
 
 import orjson
 import strictyaml
@@ -124,7 +125,7 @@ def load(yaml_path: str) -> None:
     Args:
         yaml_path: Path to directory containing YAML files, or path to a single YAML file
     """
-    global TERMS, LANGUAGES, VERSION
+    global VERSION
 
     all_translations = {}
 
@@ -135,7 +136,7 @@ def load(yaml_path: str) -> None:
                 data = strictyaml.load(f.read()).data
                 if isinstance(data, dict):
                     all_translations = data
-        except Exception:
+        except (OSError, UnicodeError, strictyaml.YAMLValidationError):
             return
     else:
         # Directory containing separate YAML files
@@ -144,7 +145,7 @@ def load(yaml_path: str) -> None:
 
         # Load all YAML files in the directory
         for filename in os.listdir(yaml_path):
-            if filename.endswith(".yml") or filename.endswith(".yaml"):
+            if filename.endswith((".yml", ".yaml")):
                 lang = filename.split(".")[0]
                 file_path = os.path.join(yaml_path, filename)
 

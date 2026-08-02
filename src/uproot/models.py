@@ -3,14 +3,11 @@
 
 import inspect
 from builtins import all as pyall
+from collections.abc import Callable
 from dataclasses import asdict
 from typing import (
     Any,
-    Callable,
-    Optional,
-    Type,
     TypeVar,
-    Union,
     cast,
 )
 from uuid import UUID
@@ -52,7 +49,7 @@ class Entry(type):
         bases: tuple[type, ...],
         namespace: dict[str, Any],
         **kwargs: Any,
-    ) -> Type[Any]:
+    ) -> type[Any]:
         annotations = namespace.get("__annotations__", {})
 
         if "id" in annotations:
@@ -70,9 +67,7 @@ class Entry(type):
 
 @flexible
 @validate_call
-def create_model(
-    sid: SessionIdentifier, *, tag: Optional[str] = None
-) -> ModelIdentifier:
+def create_model(sid: SessionIdentifier, *, tag: str | None = None) -> ModelIdentifier:
     """
     Create a new model in the given session.
 
@@ -188,7 +183,7 @@ def add_entry(
 @validate_call
 def add_raw_entry(
     mid: ModelIdentifier,
-    entry: Union[dict[str, Any], Any],
+    entry: dict[str, Any] | Any,
 ) -> UUID:
     """
     Add a raw entry to the model without auto-filling identifier fields.
@@ -214,11 +209,11 @@ def add_raw_entry(
 
     # Validate entry structure
     if not pyall(
-        isinstance(k, str) and k.isidentifier() for k in entry_dict.keys()  # KEEP AS IS
+        isinstance(k, str) and k.isidentifier() for k in entry_dict  # KEEP AS IS
     ):
         invalid_keys = [
             k
-            for k in entry_dict.keys()
+            for k in entry_dict
             if not (isinstance(k, str) and k.isidentifier())  # KEEP AS IS
         ]
         raise ValueError(
@@ -228,7 +223,7 @@ def add_raw_entry(
     # Generate UUID and store as [id, entry_dict]
     entry_id = uuid()
     with get_storage(mid) as storage:
-        setattr(storage, "entry", [entry_id, entry_dict])
+        storage.entry = [entry_id, entry_dict]
 
     return entry_id
 
@@ -236,7 +231,7 @@ def add_raw_entry(
 def parse_stored_entry(
     data: Any,
     time: float,
-    as_type: Type[T],
+    as_type: type[T],
 ) -> StoredEntry[T]:
     """Parse stored [id, entry_dict] format into (id, time, entry) tuple."""
     entry_id, entry_dict = data
@@ -245,7 +240,7 @@ def parse_stored_entry(
 
 def get_entries(
     mid: ModelIdentifier,
-    as_type: Type[T],
+    as_type: type[T],
     subset: slice = slice(None),
 ) -> list[StoredEntry[T]]:
     """
@@ -272,14 +267,13 @@ def get_entries(
 
 def entry_matches(
     entry: T,
-    predicate: Optional[Callable[[T], bool]],
+    predicate: Callable[[T], bool] | None,
     field_filters: dict[str, Any],
 ) -> bool:
     """Check if an entry matches the given filters and predicate."""
     # Check callable predicate first (more flexible)
-    if predicate is not None:
-        if not predicate(entry):
-            return False
+    if predicate is not None and not predicate(entry):
+        return False
 
     # Check field equality filters
     for field_name, expected_value in field_filters.items():
@@ -294,10 +288,10 @@ def entry_matches(
 
 def filter_entries(
     mid: ModelIdentifier,
-    as_type: Type[T],
+    as_type: type[T],
     *,
-    id: Optional[UUID] = None,
-    predicate: Optional[Callable[[T], bool]] = None,
+    id: UUID | None = None,
+    predicate: Callable[[T], bool] | None = None,
     **field_filters: Any,
 ) -> list[StoredEntry[T]]:
     """
@@ -347,7 +341,7 @@ def filter_entries(
 
 def get_latest_entry(
     mid: ModelIdentifier,
-    as_type: Type[T],
+    as_type: type[T],
 ) -> StoredEntry[T]:
     """
     Get the most recent entry from a model.

@@ -5,7 +5,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import orjson
@@ -16,7 +16,7 @@ def is_uv() -> bool:
     return "UV_VIRTUAL_ENV" in os.environ or "UV" in os.environ
 
 
-def forward(args: list[str], command: Optional[str] = None) -> None:
+def forward(args: list[str], command: str | None = None) -> None:
     main_path = Path(".") / "main.py"
 
     if not main_path.is_file():
@@ -26,7 +26,7 @@ def forward(args: list[str], command: Optional[str] = None) -> None:
         print("\tuproot setup <project-name>", file=sys.stderr)
         sys.exit(1)
 
-    sys.path.insert(0, str(Path(".").resolve()))
+    sys.path.insert(0, str(Path.cwd()))
 
     sys.argv = ["uproot"]
     if command:
@@ -107,7 +107,7 @@ def api_request(
     auth: str,
     method: str,
     endpoint: str,
-    data: Optional[dict[str, Any]] = None,
+    data: dict[str, Any] | None = None,
 ) -> tuple[int, Any]:
     """Make an API request to the admin API."""
     base_url = base_url.rstrip("/")
@@ -135,7 +135,7 @@ def api_command(
     version: int,
     auth: str,
     method: str,
-    data: Optional[str],
+    data: str | None,
     endpoint: str,
 ) -> None:
     """Access the Admin REST API."""

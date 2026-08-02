@@ -6,7 +6,7 @@ This file implements room routes.
 """
 
 import asyncio
-from typing import Any, Optional, cast
+from typing import Any, cast
 from urllib.parse import quote
 
 import orjson
@@ -50,7 +50,7 @@ async def room_without_terminating_slash(
 async def roommain(
     request: Request,
     roomname: str,
-    label: Optional[str] = Form(None),
+    label: str | None = Form(None),
 ) -> Response:
     ensure(valid_token(roomname), ValueError, "Room name invalid")
 
@@ -246,9 +246,7 @@ async def ws(
         await asyncio.gather(*tasks.keys(), return_exceptions=True)
 
     while True:
-        done, pending = await asyncio.wait(
-            tasks.keys(), return_when=asyncio.FIRST_COMPLETED
-        )
+        done, _ = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
 
         for finished in done:
             fname, factory = tasks.pop(finished)
@@ -313,7 +311,7 @@ async def ws(
 
                 await cleanup_tasks()
                 return
-            except Exception:
+            except Exception:  # noqa: BLE001
                 d.LOGGER.exception("Closing room websocket after handler failure")
                 u.set_offline(pid)
                 await cleanup_tasks()

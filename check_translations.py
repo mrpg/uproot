@@ -56,7 +56,7 @@ def format_entry(key: str, value: str) -> str:
 def collect_yml_files() -> list[str]:
     result = []
     for f in sorted(os.listdir(LOCALES_DIR)):
-        if f.endswith(".yml") or f.endswith(".yaml"):
+        if f.endswith((".yml", ".yaml")):
             result.append(os.path.join(LOCALES_DIR, f))
     return result
 

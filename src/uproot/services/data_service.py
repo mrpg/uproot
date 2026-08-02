@@ -6,22 +6,19 @@
 import asyncio
 import re
 from bisect import bisect_right
-from datetime import datetime, timezone
+from collections.abc import AsyncGenerator, Callable, Iterator
+from datetime import UTC, datetime
 from typing import (
     Annotated,
     Any,
-    AsyncGenerator,
-    Callable,
-    Iterator,
     TypeAlias,
     cast,
 )
 
 import uproot
-import uproot.cache as cache
-import uproot.data as data
 import uproot.storage as s
 import uproot.types as t
+from uproot import cache, data
 
 DisplayValue: TypeAlias = tuple[
     Annotated[float | None, "time"],
@@ -68,7 +65,7 @@ def data_display(x: Any) -> str:
     else:
         try:
             return str(x)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return repr(x)
 
 
@@ -177,7 +174,7 @@ def briefcase_readme(
     filters: bool,
 ) -> str:
     """Compose the README.txt included in every briefcase."""
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    stamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     title = f'Data export of uproot session "{sname}"'
 
     grouped = ""
@@ -295,7 +292,7 @@ def pipeline_result_display(value: Any) -> str:
 
     try:
         return data.value2json(value)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return str(value)
 
 

@@ -12,6 +12,7 @@ import secrets
 import uuid as pyuuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
+from collections.abc import Awaitable, Callable, Collection, Iterable, Iterator
 from string import ascii_lowercase, digits
 from time import perf_counter as now
 from time import time
@@ -20,14 +21,8 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
-    Awaitable,
-    Callable,
-    Collection,
-    Iterable,
-    Iterator,
     Literal,
     NamedTuple,
-    Optional,
     TypeAlias,
     TypeVar,
     Union,
@@ -55,7 +50,7 @@ V = TypeVar("V")
 
 Value = appendmuch.Value
 
-MaybeAwaitable: TypeAlias = Union[T, Awaitable[T]]
+MaybeAwaitable: TypeAlias = T | Awaitable[T]
 Sessionname: TypeAlias = str
 Username: TypeAlias = str
 PageLike: TypeAlias = Union[type["Page"], "SmoothOperator"]
@@ -171,7 +166,7 @@ def optional_call(
     obj: Any,
     attr: str,
     *,
-    default_return: Optional[Any] = None,
+    default_return: Any | None = None,
     **kwargs: Any,
 ) -> Any | None:
     if hasattr(obj, attr):
@@ -188,7 +183,7 @@ def optional_call(
 def optional_call_once(
     obj: Any,
     attr: str,
-    default_return: Optional[Any] = None,
+    default_return: Any | None = None,
     *,
     storage: "Storage",
     show_page: int,
@@ -276,12 +271,10 @@ class StorageBunch:
             g = True
 
             for comparison in comparisons:
-                if isinstance(comparison, Comparison) or isinstance(
-                    comparison, FieldReferent
-                ):
+                if isinstance(comparison, (Comparison, FieldReferent)):
                     g = comparison(p)
                 else:
-                    raise ValueError
+                    raise TypeError
 
                 if not g:
                     break
@@ -330,7 +323,7 @@ class StorageBunch:
 
     def each(
         self, *keys: str | FieldReferent, simplify: bool = True
-    ) -> Union[list[Any], list[NamedTuple]]:
+    ) -> list[Any] | list[NamedTuple]:
         rkeys: list[str] = []
 
         for k in keys:
@@ -358,7 +351,7 @@ class StorageBunch:
         fun: Callable[..., Any],
         *args: Any,
         **kwargs: Any,
-    ) -> Union[list[Any], Awaitable[list[Any]]]:
+    ) -> list[Any] | Awaitable[list[Any]]:
         if inspect.iscoroutinefunction(fun):
             return asyncio.gather(*[fun(p, *args, **kwargs) for p in self.l])
         else:
@@ -544,9 +537,9 @@ class Page(metaclass=FrozenPage):
         raise AttributeError("Pages are not meant to be instantiated.")
 
     @classmethod
-    async def set_timeout(page: type["Page"], player: "Storage") -> Optional[float]:
+    async def set_timeout(page: type["Page"], player: "Storage") -> float | None:
         to_sec = cast(
-            Optional[float],
+            float | None,
             await ensure_awaitable(
                 optional_call, page, "timeout", default_return=None, player=player
             ),
@@ -642,7 +635,7 @@ def context(frame: FrameType | None) -> str:
         module_name = caller_module.__name__ if caller_module else "<unknown>"
 
         return f"{module_name}.{caller_function}:{caller_lineno}"
-    except Exception:
+    except Exception:  # noqa: BLE001
         return "<unknown>"
 
 
@@ -689,11 +682,8 @@ class GroupCreatingWait(InternalPage):
         player.refresh("_uproot_group")
 
         # If grouping succeeded, player now has a group - don't show page
-        if await page.call_after(player):
-            return False
-
-        # Need to wait for more players
-        return True
+        # Need to wait for more players if grouping did not succeed.
+        return not await page.call_after(player)
 
     @internal_live
     async def please_group(page, player: Any) -> tuple[str, float]:
@@ -855,7 +845,7 @@ class SynchronizingWait(InternalPage):
 class SmoothOperator(ABC):
     @abstractmethod
     def __init__(self, *pages: "PageLike") -> None:
-        self.pages: list["PageLike"] = list(pages)
+        self.pages: list[PageLike] = list(pages)
 
     @abstractmethod
     def expand(self) -> list["PageLike"]:

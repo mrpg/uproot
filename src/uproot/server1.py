@@ -12,10 +12,11 @@ import hmac
 import os.path
 import traceback
 from collections import deque
+from collections.abc import Iterable
 from dataclasses import dataclass
 from time import time
 from types import MappingProxyType
-from typing import Any, Iterable, Optional, cast
+from typing import Any, cast
 from urllib.parse import quote
 
 import orjson
@@ -39,12 +40,11 @@ from starlette.staticfiles import StaticFiles
 
 import uproot as u
 import uproot.admin as a
-import uproot.chat as chat
 import uproot.deployment as d
-import uproot.i18n as i18n
 import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
+from uproot import chat, i18n
 from uproot.constraints import ensure, valid_token
 from uproot.core import find_free_slot, resolve_page_order
 from uproot.pages import (
@@ -254,6 +254,9 @@ def valid_player(sname: t.Sessionname, uname: str) -> Storage:
     return player
 
 
+ValidPlayer = Depends(valid_player)
+
+
 def initialize(player: Storage) -> None:
 
     with player.session as session:
@@ -281,7 +284,7 @@ def initialize(player: Storage) -> None:
 async def show_page(
     request: Request,
     player: Storage,
-    uauth: Optional[str] = None,
+    uauth: str | None = None,
 ) -> str:
     # This function is written in a very verbose style to reveal logic issues early
 
@@ -571,15 +574,15 @@ async def show_page_wrapper(
     request: Request,
     sname: t.Sessionname,
     uname: str,
-    player: Storage = Depends(valid_player),
-    uauth: Optional[str] = Cookie(None),
+    player: Storage = ValidPlayer,
+    uauth: str | None = Cookie(None),
 ) -> HTMLResponse:
     with player:
         try:
             response = HTMLResponse(
                 await show_page(request, player, uauth),
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             response = HTMLResponse(
                 await render_error(request, player, uauth, exc),
                 status_code=500,
@@ -595,8 +598,8 @@ async def ws(
     websocket: WebSocket,
     sname: t.Sessionname,
     uname: t.Username,
-    player: Storage = Depends(valid_player),
-    uauth: Optional[str] = Cookie(None),
+    player: Storage = ValidPlayer,
+    uauth: str | None = Cookie(None),
 ) -> None:
     require_same_origin_websocket(websocket)
     await websocket.accept()
@@ -635,7 +638,7 @@ async def ws(
             await process_websocket_message(result)
         except WebSocketDisconnect:
             pass
-        except Exception:
+        except Exception:  # noqa: BLE001
             traceback.print_exc()
 
     async def process_websocket_message(result: dict[str, Any]) -> None:
@@ -696,7 +699,7 @@ async def ws(
                                 *margs,
                                 **mkwargs,
                             )
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         traceback.print_exc()
                         invoke_exception = True
 
@@ -868,7 +871,7 @@ async def ws(
                         raise NotImplementedError(fname)
                 except WebSocketDisconnect:
                     return
-                except Exception:
+                except Exception:  # noqa: BLE001
                     d.LOGGER.exception("Closing player websocket after handler failure")
                     return
 

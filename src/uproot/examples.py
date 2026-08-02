@@ -7,7 +7,7 @@ import os
 import shutil
 import stat
 import subprocess  # nosec B404
-from datetime import date
+from datetime import UTC, datetime
 from pathlib import Path
 
 import uproot as u
@@ -451,14 +451,14 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
     with open(mainpath, "w", encoding="utf-8") as mf:
         template = (
             PROJECT_TEMPLATE.replace("#VERSION#", u.__version__)
-            .replace("#TODAY#", date.today().strftime("%Y-%m-%d"))
+            .replace("#TODAY#", datetime.now(UTC).date().strftime("%Y-%m-%d"))
             .replace("#EXAMPLE#", "my_app" if minimal else "prisoners_dilemma")
         )
         mf.write(template)
 
     try:
         os.chmod(mainpath, os.stat(mainpath).st_mode | stat.S_IEXEC)
-    except Exception:  # nosec B110
+    except OSError:
         pass
 
     staticdir.mkdir(exist_ok=False)
@@ -588,5 +588,5 @@ def new_page(path: Path, app: str, page: str) -> None:
                 page_class = PAGE_TEMPLATE_PY.replace("#PAGENAME#", page)
                 new_content = content.replace(marker, page_class + "\n\npage_order = [")
                 init_path.write_text(new_content, encoding="utf-8")
-        except Exception:  # nosec B110
+        except OSError:
             pass  # Fail silently if __init__.py cannot be safely modified

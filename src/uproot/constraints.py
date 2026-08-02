@@ -6,7 +6,8 @@ This file intends to provide (1) a simple replacement for raw `assert`s and (2) 
 """
 
 import string
-from typing import Any, Callable, Optional, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from typing_extensions import TypeIs
 
@@ -29,7 +30,7 @@ def return_or_raise(
     value: Any,
     predicate: Callable[[Any], bool],
     exctype: type[Exception] = ValueError,
-    msg: Optional[str] = None,
+    msg: str | None = None,
 ) -> Any:
     if predicate(value):
         return value
@@ -45,7 +46,7 @@ def return_or_raise(
 def ensure(
     condition: bool,
     exctype: type[Exception] = ValueError,
-    msg: Optional[str] = None,
+    msg: str | None = None,
 ) -> None:
     if not condition:
         if msg:
