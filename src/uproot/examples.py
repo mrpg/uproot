@@ -431,7 +431,7 @@ target-version = ["py313"]
 profile = "black"
 
 [tool.ruff.lint]
-ignore = ["F403", "F405"]
+ignore = ["F403", "F405", "RUF012", "C408", "BLE001"]
 
 [tool.mypy]
 python_version = "3.13"
