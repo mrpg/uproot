@@ -4,16 +4,16 @@
     </div>
     <div class="col-12 col-xl-4 mb-2">
         <div class="form-floating">
-            <input class="form-control" id="nplayers" min="0" name="nplayers"
-                placeholder="0" required type="number" value=""
+            <input class="form-control" id="nplayers" inputmode="numeric" min="0" name="nplayers"
+                pattern="[0-9]+" placeholder="0" required step="1" type="number" value=""
                 oninput="checkSuggestedMultiple()">
             <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
         </div>
 
-        <small class="form-text mt-1 text-warning-emphasis" id="suggested-multiple-hint" style="visibility: hidden;">
+        <small class="d-block form-text fw-bold mt-2 text-danger" id="suggested-multiple-hint" style="visibility: hidden;">
             <span id="suggested-multiple-text"></span>
             <a href="https://uproot.science/multiplayer/groups/#groups-are-lazy" target="_blank"
-                class="text-body-tertiary link-underline-opacity-0"
+                class="ms-1 text-body-tertiary link-underline-opacity-0"
                 title="{% translate %}Documentation{% endtranslate %}"
                 aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book"></i></a>
         </small>
@@ -221,10 +221,22 @@
         select.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
+    // Prevent any inserted non-digit character before the browser processes it.
+    I("nplayers").addEventListener("beforeinput", function (event) {
+        if (event.data !== null && /\D/.test(event.data)) {
+            event.preventDefault();
+        }
+    });
+    // Block drag-and-drop text:
+    I("nplayers").addEventListener("drop", function (event) {
+        event.preventDefault();
+    });
+
     function checkSuggestedMultiple() {
         const hint = I("suggested-multiple-hint");
+        // Remove any non-digit characters from the input value
+        I("nplayers").value = I("nplayers").value.replace(/\D/g, "");
         const n = parseInt(I("nplayers").value);
-
         if (suggestedMultiple > 1 && !isNaN(n) && n >= 0 && n % suggestedMultiple !== 0) {
             I("suggested-multiple-text").textContent = _("The number of players is not a multiple of #n#.").replace("#n#", suggestedMultiple);
             hint.style.visibility = "visible";
