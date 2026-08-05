@@ -403,6 +403,10 @@ repos:
 """
 
 PYPROJECT_TOML = """\
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "uproot-project"
 version = "0.1.0"
@@ -423,6 +427,9 @@ dependencies = [
 pg = [
     "uproot-science[pg]<1",
 ]
+
+[tool.setuptools]
+packages = []
 
 [tool.black]
 target-version = ["py313"]
