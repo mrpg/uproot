@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from uproot.modules import ModuleManager
 
 
-__version_info__ = 0, 3, 0
+__version_info__ = 0, 3, 1
 __version__ = ".".join(map(str, __version_info__))
 __author__ = "Max R. P. Grossmann, Holger Gerhardt, et al."
 __email__ = "info@uproot.science"
