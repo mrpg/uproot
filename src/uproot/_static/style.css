@@ -129,7 +129,11 @@ button, input, select, textarea {
         var(--fvn-fractions,)
         var(--fvn-zero,)
         var(--fvn-alt,);
+}
+
+:root {
     /* Follow a suggestion by https://www.joshwcomeau.com/css/custom-css-reset/#the-css-reset-1 */
+    /* Placed on :root (not *) so that inheritance from white-space: pre-wrap is not overridden. */
     text-wrap: pretty;
 }
 
