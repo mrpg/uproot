@@ -66,8 +66,8 @@ Status
                 </p>
 
                 {% if nudge_announcements %}
-                <div class="alert alert-warning border-warning text-black callout mb-4 d-flex align-items-center">
-                    <i class="bi bi-megaphone me-2"></i>
+                <div class="alert alert-warning align-items-start border-warning callout d-flex mb-4 text-black" id="nudge-announcements">
+                    <i class="bi bi-megaphone me-2 pe-1"></i>
                     <div>
                         {% translate %}
                         You have not checked for important announcements recently.
@@ -245,6 +245,8 @@ Status
             if (data.error) {
                 uproot.alert(`<p>${_("We couldn't load announcements.")} ${_("Please visit")} <a class="link-uproot" href="https://uproot.science/" target="_blank">uproot.science</a>.</p>`);
                 return;
+            } else {
+                document.getElementById("nudge-announcements")?.remove();
             }
 
             let safeHTML = "<p>";
@@ -256,7 +258,7 @@ Status
             safeHTML += "</p>";
 
             if (data.generalAnnouncement) {
-                safeHTML += `<div class="alert alert-success" role="alert">
+                safeHTML += `<div class="alert alert-success border-success callout text-black" role="alert">
                                  <b>${_("General announcement")}</b>:
                                  ${uproot.escape(data.generalAnnouncement)}
                              </div>`;
@@ -274,7 +276,7 @@ Status
             }
 
             if (data.versionAnnouncement != null) {
-                safeHTML += '<p class="alert alert-danger" role="alert">';
+                safeHTML += '<p class="alert alert-danger border-danger callout text-black" role="alert">';
                 safeHTML += `<b>${_("Announcement for your version")}</b>: `;
                 safeHTML += uproot.escape(data.versionAnnouncement);
                 safeHTML += "</p>";
