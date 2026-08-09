@@ -16,71 +16,62 @@ Login
 {% block _uproot_scripts %}
 
 <style>
-#uproot-title {
-    display: none;
-}
+    #uproot-title {
+        display: none;
+    }
 </style>
 
 <script>
-async function solvePoW(challenge, user, difficulty) {
-    const encoder = new TextEncoder();
-    const prefix = challenge + ":" + user + ":";
-    for (let counter = 0; ; counter++) {
-        const input = encoder.encode(prefix + counter);
-        const hash = await crypto.subtle.digest("SHA-256", input);
-        const bytes = new Uint8Array(hash);
-        let hex = "";
-        for (const b of bytes) hex += b.toString(16).padStart(2, "0");
-        if (hex.endsWith(difficulty)) return counter.toString();
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("uproot-form");
-
-    // Manual login: solve PoW before letting the form submit.  Calling
-    // form.submit() from the handler bypasses this listener, so the
-    // recursive call below (and the auto-login path) won't re-enter.
-    form.addEventListener("submit", async (event) => {
-        const solutionField = document.getElementById("pow_solution");
-        if (solutionField.value !== "") return;
-
-        event.preventDefault();
-
-        const button = form.querySelector("button[type='submit']");
-        if (!button) return;
-
-        const originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = "\u2026";
-
-        const challenge = document.getElementById("pow_challenge").value;
-        const difficulty = document.getElementById("pow_difficulty").value;
-        const user = document.getElementById("user").value;
-        solutionField.value = await solvePoW(challenge, user, difficulty);
-
-        button.disabled = false;
-        button.textContent = originalText;
-        form.submit();
-    });
-
-    // Auto-login via URL fragment: LOGIN_TOKEN is itself a strong shared
-    // secret, so the server accepts it without PoW.  form.submit() bypasses
-    // the listener above, matching that server-side behavior.
-    if (window.location.hash) {
-        const token = window.location.hash.substring(1);
-
-        if (token) {
-            document.getElementById("token").value = token;
-            document.getElementById("user").value = "admin";
-            document.getElementById("pw").value = "";
-
-            history.replaceState(null, null, window.location.pathname + window.location.search);
-
-            form.submit();
+    async function solvePoW(challenge, user, difficulty) {
+        const encoder = new TextEncoder();
+        const prefix = challenge + ":" + user + ":";
+        for (let counter = 0; ; counter++) {
+            const input = encoder.encode(prefix + counter);
+            const hash = await crypto.subtle.digest("SHA-256", input);
+            const bytes = new Uint8Array(hash);
+            let hex = "";
+            for (const b of bytes) hex += b.toString(16).padStart(2, "0");
+            if (hex.endsWith(difficulty)) return counter.toString();
         }
     }
-});
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("uproot-form");
+        // Manual login: solve PoW before letting the form submit.  Calling
+        // form.submit() from the handler bypasses this listener, so the
+        // recursive call below (and the auto-login path) won't re-enter.
+        form.addEventListener("submit", async (event) => {
+            const solutionField = document.getElementById("pow_solution");
+            if (solutionField.value !== "") return;
+            event.preventDefault();
+            const button = form.querySelector("button[type='submit']");
+            if (!button) return;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = "\u2026";
+            const challenge = document.getElementById("pow_challenge").value;
+            const difficulty = document.getElementById("pow_difficulty").value;
+            const user = document.getElementById("user").value;
+            solutionField.value = await solvePoW(challenge, user, difficulty);
+            button.disabled = false;
+            button.textContent = originalText;
+            form.submit();
+        });
+
+        // Auto-login via URL fragment: LOGIN_TOKEN is itself a strong shared
+        // secret, so the server accepts it without PoW.  form.submit() bypasses
+        // the listener above, matching that server-side behavior.
+        if (window.location.hash) {
+            const token = window.location.hash.substring(1);
+            if (token) {
+                document.getElementById("token").value = token;
+                document.getElementById("user").value = "admin";
+                document.getElementById("pw").value = "";
+                history.replaceState(null, null, window.location.pathname + window.location.search);
+                form.submit();
+            }
+        }
+    });
 </script>
 
 {% endblock _uproot_scripts %}
@@ -137,7 +128,17 @@ document.addEventListener("DOMContentLoaded", () => {
                         Password
                         {% endtranslate %}
                     </label>
-                    <input type="password" class="form-control" id="pw" name="pw" required>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="pw" name="pw" required>
+                        <button
+                            class="border btn"
+                            id="toggle-pw"
+                            type="button"
+                            title="{% translate %}Reveal password{% endtranslate %}"
+                        >
+                            <i class="bi bi-eye text-uproot"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="d-grid pt-2">
                     <button type="submit" class="btn btn-uproot">
@@ -153,3 +154,24 @@ document.addEventListener("DOMContentLoaded", () => {
 {% endif %}
 
 {% endblock main %}
+
+
+{% block late %}
+
+<script>
+    const pwInput = document.getElementById("pw");
+    const togglePw = document.getElementById("toggle-pw");
+    const toggleIcon = togglePw.querySelector("i");
+    togglePw.addEventListener("click", function () {
+        const showing = pwInput.type === "text";
+        pwInput.type = showing ? "password" : "text";
+        toggleIcon.classList.toggle("bi-eye", showing);
+        toggleIcon.classList.toggle("bi-eye-slash", !showing);
+        togglePw.setAttribute(
+            "title",
+            showing ? "{% translate %}Reveal password{% endtranslate %}" : "{% translate %}Conceal password{% endtranslate %}"
+        );
+    });
+</script>
+
+{% endblock late %}
