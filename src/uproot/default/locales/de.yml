@@ -115,8 +115,8 @@
 ? 'Check for important announcements'
 : 'Nach wichtigen Ankündigungen suchen'
 
-? 'Check now.'
-: 'Jetzt prüfen.'
+? 'Check now'
+: 'Jetzt prüfen'
 
 ? 'Config'
 : 'Konfiguration'

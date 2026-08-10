@@ -115,8 +115,8 @@
 ? 'Check for important announcements'
 : 'Revisar avisos importantes'
 
-? 'Check now.'
-: 'Revisar ahora.'
+? 'Check now'
+: 'Revisar ahora'
 
 ? 'Config'
 : 'Configuración'
