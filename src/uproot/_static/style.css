@@ -131,12 +131,6 @@ button, input, select, textarea {
         var(--fvn-alt,);
 }
 
-:root {
-    /* Follow a suggestion by https://www.joshwcomeau.com/css/custom-css-reset/#the-css-reset-1 */
-    /* Placed on :root (not *) so that inheritance from white-space: pre-wrap is not overridden. */
-    text-wrap: pretty;
-}
-
 /* Enable full disambiguation of glyphs for input fields (since every character may matter) */
 input[type=email], input[type=file], input[type=text], input[type=url], textarea {
     font-variant-numeric: slashed-zero;
