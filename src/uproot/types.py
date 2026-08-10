@@ -156,7 +156,7 @@ def ensure_local_logger() -> Any:
 async def ensure_awaitable(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     result = func(*args, **kwargs)
 
-    if inspect.iscoroutine(result):
+    if inspect.isawaitable(result):
         return await result
 
     return result
@@ -194,24 +194,38 @@ def optional_call_once(
 
     hereruns = f"{show_page}:{attr}"
 
-    if not hasattr(storage, "_uproot_what_ran"):
-        storage._uproot_what_ran = set()
+    def current_markers() -> frozenset[str]:
+        refresh = getattr(storage, "refresh", None)
+        if callable(refresh):
+            refresh("_uproot_what_ran")
+        return frozenset(getattr(storage, "_uproot_what_ran", ()))
 
-    if hereruns in storage._uproot_what_ran:
+    what_ran = current_markers()
+
+    if hereruns in what_ran:
         return default_return
 
-    retval = optional_call(obj, attr, default_return=default_return, **kwargs)
+    def unmark_as_run() -> None:
+        storage._uproot_what_ran = current_markers() - {hereruns}
 
-    if inspect.iscoroutine(retval):
+    storage._uproot_what_ran = what_ran | {hereruns}
 
-        async def await_and_mark() -> Any:
-            result = await retval
-            storage._uproot_what_ran.add(hereruns)
-            return result
+    try:
+        retval = optional_call(obj, attr, default_return=default_return, **kwargs)
+    except BaseException:
+        unmark_as_run()
+        raise
 
-        return await_and_mark()
+    if inspect.isawaitable(retval):
 
-    storage._uproot_what_ran.add(hereruns)
+        async def await_claimed() -> Any:
+            try:
+                return await retval
+            except BaseException:
+                unmark_as_run()
+                raise
+
+        return await_claimed()
 
     return retval
 

@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 from uuid import UUID
 
 import pytest
+from appendmuch import Memory, Store
 
 from uproot.constraints import valid_token
 from uproot.types import (
@@ -159,6 +160,57 @@ class TestOptionalCallOnce:
         assert hasattr(storage, "_uproot_what_ran")
         assert "1:test_method" in storage._uproot_what_ran
 
+    def test_marker_is_written_instead_of_only_mutating_a_read_copy(self):
+        """The once marker must survive storage backends that return copies."""
+
+        class CopyOnReadStorage:
+            def __init__(self):
+                self.ran = set()
+
+            @property
+            def _uproot_what_ran(self):
+                return set(self.ran)
+
+            @_uproot_what_ran.setter
+            def _uproot_what_ran(self, value):
+                self.ran = set(value)
+
+        obj = Mock()
+        obj.test_method = Mock(return_value="executed")
+        storage = CopyOnReadStorage()
+
+        first = optional_call_once(
+            obj, "test_method", "default", storage=storage, show_page=1
+        )
+        second = optional_call_once(
+            obj, "test_method", "default", storage=storage, show_page=1
+        )
+
+        assert first == "executed"
+        assert second == "default"
+        obj.test_method.assert_called_once_with()
+
+    def test_stale_storage_cache_cannot_repeat_hook(self):
+        """Each check must see markers written through another Storage object."""
+        store = Store(Memory())
+        first_storage = store.storage("player", "one")
+        stale_storage = store.storage("player", "one")
+        first_storage._uproot_what_ran = frozenset()
+        obj = Mock()
+        obj.test_method = Mock(return_value="executed")
+
+        assert stale_storage._uproot_what_ran == frozenset()
+        first = optional_call_once(
+            obj, "test_method", "default", storage=first_storage, show_page=1
+        )
+        second = optional_call_once(
+            obj, "test_method", "default", storage=stale_storage, show_page=1
+        )
+
+        assert first == "executed"
+        assert second == "default"
+        obj.test_method.assert_called_once_with()
+
     def test_exception_removes_from_ran_list(self):
         """Test that exception removes item from ran list."""
         obj = Mock()
@@ -191,8 +243,8 @@ class TestOptionalCallOnce:
 
         assert "1:test_method" not in storage._uproot_what_ran
 
-    async def test_async_success_marks_as_ran_after_await(self):
-        """Test that successful async callbacks are marked after completion."""
+    async def test_async_success_stays_marked_after_await(self):
+        """A successful async callback keeps its once marker."""
 
         class Obj:
             async def test_method(self):
@@ -207,6 +259,43 @@ class TestOptionalCallOnce:
 
         assert result == "executed"
         assert "1:test_method" in storage._uproot_what_ran
+
+    async def test_async_hook_is_claimed_before_it_is_awaited(self):
+        """A concurrent request must not start the same hook again."""
+
+        class Obj:
+            async def test_method(self):
+                return "executed"
+
+        storage = Mock()
+        storage._uproot_what_ran = set()
+        obj = Obj()
+
+        first = optional_call_once(
+            obj, "test_method", "default", storage=storage, show_page=1
+        )
+        second = optional_call_once(
+            obj, "test_method", "default", storage=storage, show_page=1
+        )
+
+        assert second == "default"
+        assert await first == "executed"
+
+    async def test_failed_future_removes_once_marker(self):
+        """All awaitables, not only coroutine objects, get failure rollback."""
+        future = asyncio.get_running_loop().create_future()
+        future.set_exception(ValueError("test error"))
+        obj = Mock()
+        obj.test_method = Mock(return_value=future)
+        storage = Mock()
+        storage._uproot_what_ran = set()
+
+        with pytest.raises(ValueError, match="test error"):
+            await optional_call_once(
+                obj, "test_method", "default", storage=storage, show_page=1
+            )
+
+        assert "1:test_method" not in storage._uproot_what_ran
 
 
 class TestStorageBunch:
@@ -884,3 +973,11 @@ class TestMaybeAwait:
 
         result = await ensure_awaitable(sync_func, 5, y=3)
         assert result == 15
+
+    async def test_ensure_awaitable_with_future(self):
+        """Future objects satisfy the documented Awaitable contract."""
+        future = asyncio.get_running_loop().create_future()
+        future.set_result(8)
+
+        result = await ensure_awaitable(lambda: future)
+        assert result == 8
