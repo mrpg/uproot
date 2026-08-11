@@ -115,8 +115,8 @@
 ? 'Check for important announcements'
 : 'Check for important announcements'
 
-? 'Check now.'
-: 'Check now.'
+? 'Check now'
+: 'Check now'
 
 ? 'Config'
 : 'Config'
