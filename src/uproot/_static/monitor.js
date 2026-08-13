@@ -165,6 +165,7 @@ function createMonitorColumns(data) {
         formatter: "rowSelection",
         frozen: true,
         titleFormatter: "rowSelection",
+        titleFormatterParams: { rowRange: "active" },
         hozAlign: "center",
         headerSort: false,
         width: 45,
