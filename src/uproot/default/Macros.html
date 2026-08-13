@@ -344,7 +344,7 @@
                         </div>
                     </div>
                 {% endif %}
-                <div class="{% if field.hide_popover is defined and not field.hide_popover %}uproot-slider-popover-wrapper{% else %}flex-grow-1{% endif %}">
+                <div class="uproot-slider-input-wrapper{% if field.hide_popover is defined and not field.hide_popover %} uproot-slider-popover-wrapper{% endif %}">
                     {% if field.hide_popover is defined and not field.hide_popover %}
                     <div class="uproot-slider-popover-container"></div>
                     {% endif %}
