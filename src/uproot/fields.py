@@ -190,16 +190,6 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
             label_min = str(min)
         if label_max is None:
             label_max = str(max)
-        for label_name, label_value in (
-            ("label_min", label_min),
-            ("label_max", label_max),
-        ):
-            if len(label_value) > 10:
-                raise ValueError(
-                    f"{label_name} must be no longer than 10 characters. "
-                    "Learn why here: "
-                    "https://uproot.science/reference/fields/#decimalrangefield"
-                )
         if render_kw is None:
             render_kw = {}
         if step is not None:
@@ -404,16 +394,6 @@ class FloatRangeField(wtforms.fields.FloatField):
             label_min = str(min)
         if label_max is None:
             label_max = str(max)
-        for label_name, label_value in (
-            ("label_min", label_min),
-            ("label_max", label_max),
-        ):
-            if len(label_value) > 10:
-                raise ValueError(
-                    f"{label_name} must be no longer than 10 characters. "
-                    "Learn why here: "
-                    "https://uproot.science/reference/fields/#decimalrangefield"
-                )
         if render_kw is None:
             render_kw = {}
         if step is not None:
