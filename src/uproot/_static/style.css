@@ -855,14 +855,12 @@ div.without-anchoring-overlay {
 /* Slider styles */
 .uproot-slider-input-wrapper {
     flex-grow: 1;
-    min-width: 110px;
-}
-.uproot-slider-input-wrapper .form-range,
-.uproot-slider-input-wrapper .without-anchoring-overlay {
-    min-width: 110px;
+    flex-shrink: 0;
+    min-width: 130px;
 }
 .uproot-slider-label-wrapper {
     flex-shrink: 1;
+    max-width: 25%;
     min-width: 0;
 }
 .uproot-slider-label {
