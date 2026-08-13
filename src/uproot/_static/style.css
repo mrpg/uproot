@@ -856,8 +856,14 @@ div.without-anchoring-overlay {
 .uproot-slider-popover-wrapper {
     flex-grow: 1;
 }
+.uproot-slider-label-wrapper {
+    flex-shrink: 1;
+    min-width: 0;
+}
 .uproot-slider-label {
+    overflow-wrap: anywhere;
     padding-bottom: 0.45em;
+    text-wrap: wrap;
 }
 .uproot-slider-popover-container {
     height: 3.25rem;

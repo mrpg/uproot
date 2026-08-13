@@ -156,6 +156,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
     def __init__(
         self,
         *,
+        breakpoint: int = 992,
         class_wrapper: str | None = None,
         hide_popover: bool = False,
         label: str = "",
@@ -196,6 +197,7 @@ class DecimalRangeField(wtforms.fields.DecimalRangeField):
             render_kw["step"] = step
         render_kw["autocomplete"] = "off"
 
+        self.breakpoint = breakpoint
         self.anchoring = anchoring
         self.class_wrapper = class_wrapper
         self.hide_popover = hide_popover
@@ -360,6 +362,7 @@ class FloatRangeField(wtforms.fields.FloatField):
     def __init__(
         self,
         *,
+        breakpoint: int = 992,
         class_wrapper: str | None = None,
         hide_popover: bool = False,
         label: str = "",
@@ -400,6 +403,7 @@ class FloatRangeField(wtforms.fields.FloatField):
             render_kw["step"] = step
         render_kw["autocomplete"] = "off"
 
+        self.breakpoint = breakpoint
         self.anchoring = anchoring
         self.class_wrapper = class_wrapper
         self.hide_popover = hide_popover

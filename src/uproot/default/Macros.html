@@ -316,6 +316,17 @@
                 {% endif %}
             </div>
         {% elif field.type == "DecimalRangeField" or field.type == "FloatRangeField" %}
+            {% set field_breakpoint = field.breakpoint | default(992) | int %}
+            <style>
+                @media (min-width: {{ field_breakpoint }}px) {
+                    #{{ field.id }}-range .uproot-slider-label-wrapper {
+                        flex-shrink: 0;
+                    }
+                    #{{ field.id }}-range .uproot-slider-label {
+                        text-wrap: nowrap;
+                    }
+                }
+            </style>
             {{ translated_label(field.label, "form-label uproot-form-label") }}
             {% set class_list = ["form-range"] %}
             {% if field.render_kw and field.render_kw.get("class") %}
@@ -324,9 +335,9 @@
             {% if field.__module__ == "uproot.fields" and not field.anchoring %}
                 {% set noop = class_list.append("without-anchoring") %}
             {% endif %}
-            <div class="align-items-center d-flex">
+            <div class="align-items-center d-flex" id="{{ field.id }}-range">
                 {% if field.label_min is defined and field.label_min != "" %}
-                    <div class="flex-shrink-0">
+                    <div class="uproot-slider-label-wrapper">
                         {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
                         <div class="me-3 text-end uproot-slider-label uproot-slider-label-min{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].min }}">
                             {{ translate(field.label_min) }}
@@ -340,7 +351,7 @@
                     {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                 </div>
                 {% if field.label_max is defined and field.label_max != "" %}
-                    <div class="flex-shrink-0">
+                    <div class="uproot-slider-label-wrapper">
                         {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
                         <div class="ms-3 text-start uproot-slider-label uproot-slider-label-max{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].max }}">
                             {{ translate(field.label_max) }}
