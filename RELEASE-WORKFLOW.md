@@ -24,10 +24,11 @@
 1. uproot avoids SemVer pre-release identifiers.
 1. Versions `0.x.y` are development versions.
 1. Version `1.0.0` is the first release recommended for public use.
-1. Version `1.0.0` may only be released after *(i)* a public review and *(ii)* four days of inactivity on this repository.
+1. Version `1.0.0` may only be released after *(i)* conclusion of a public review (after 2026-09-25) and *(ii)* seven days of inactivity on `main`.
 
 # Versions
 
+- `0.4.0` (2026-08-14)
 - `0.3.1` (2026-08-05)
 - `0.3.0` (2026-07-26)
 - `0.2.0` (2026-07-16)
