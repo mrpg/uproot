@@ -6,13 +6,14 @@ import pytest
 uproot_src = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(uproot_src))
 
-import uproot as u  # noqa: E402
-import uproot.core as c  # noqa: E402
-import uproot.deployment as d  # noqa: E402
-import uproot.queues as q  # noqa: E402
-import uproot.storage as s  # noqa: E402
-from uproot.jobs import try_group  # noqa: E402
-from uproot.types import GroupCreatingWait, SynchronizingWait  # noqa: E402
+import uproot as u
+import uproot.core as c
+import uproot.deployment as d
+import uproot.jobs as j
+import uproot.queues as q
+import uproot.storage as s
+from uproot.jobs import try_group
+from uproot.types import GroupCreatingWait, SynchronizingWait
 
 
 @pytest.fixture
@@ -54,7 +55,7 @@ async def test_group_creating_wait_refreshes_player_and_runs_after_grouping(
         gid = player._uproot_group
 
     with s.Group(sid, gid.gname) as group:
-        assert group._uproot_players == pids
+        assert set(group._uproot_players) == set(pids)
         assert group.app == Wait.__module__
         assert group.after_grouping_ran is True
 
@@ -83,7 +84,7 @@ async def test_group_creating_wait_refreshes_player_fields_set_through_group_pla
 
     with s.Player(*pids[0]) as player:
         assert await Wait.show(player) is False
-        assert player.role == "role0"
+        assert player.role == f"role{player.member_id}"
 
 
 async def test_group_creating_wait_does_not_overwrite_app_set_by_after_grouping(
@@ -223,6 +224,38 @@ def test_create_group_duplicate_member_fails_before_append(session_with_two_play
 def test_try_group_rejects_nonpositive_group_size(session_with_two_players):
     _, pids = session_with_two_players
 
+    with (
+        s.Player(*pids[0]) as player,
+        pytest.raises(ValueError, match="Group size must be positive"),
+    ):
+        try_group(player, player.show_page, 0)
+
+
+def test_try_group_randomizes_members_and_order(session_with_two_players, monkeypatch):
+    sid, pids = session_with_two_players
+
+    with s.Session(sid) as session:
+        extra_pids = [c.create_player(session), c.create_player(session)]
+
+    for pid in extra_pids:
+        q.register(tuple(pid))
+        with s.Player(*pid) as player:
+            player.show_page = 0
+
+    all_pids = pids + extra_pids
+    sampled_pids = [all_pids[2], all_pids[0]]
+
+    class StubRandom:
+        def sample(self, population, *, k):
+            assert k == 2
+            assert population == all_pids
+            return sampled_pids
+
+    monkeypatch.setattr(j, "rng", StubRandom)
+
     with s.Player(*pids[0]) as player:
-        with pytest.raises(ValueError, match="Group size must be positive"):
-            try_group(player, player.show_page, 0)
+        gname = try_group(player, player.show_page, 2)
+
+    assert gname is not None
+    with s.Group(sid, gname) as group:
+        assert group._uproot_players == sampled_pids

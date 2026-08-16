@@ -23,6 +23,7 @@ from uproot.types import (
     ensure_awaitable,
     materialize,
     optional_call,
+    rng,
 )
 
 
@@ -235,7 +236,7 @@ def try_group(player: s.Storage, show_page: int, group_size: int) -> str | None:
                 valid_members.append(pid)
 
         if len(valid_members) >= group_size:
-            group_members = valid_members[:group_size]
+            group_members = rng().sample(valid_members, k=group_size)
             gid = c.create_group(session, group_members, expected_size=group_size)
             player.refresh("_uproot_group")
 
