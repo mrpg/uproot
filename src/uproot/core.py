@@ -317,13 +317,19 @@ def create_players(
     return rval
 
 
-def find_free_slot(session: s.Storage) -> t.PlayerIdentifier | None:
+def find_free_slot(session: s.Storage, label: str = "") -> t.PlayerIdentifier | None:
+    fallback: t.PlayerIdentifier | None = None
+
     for pid in session._uproot_players:
         with t.materialize(pid) as player:
-            if not player.get("started", True):
-                return cast(t.PlayerIdentifier, pid)
+            if not player.started:
+                if label != "" and player.get("label", "") == label:
+                    return cast(t.PlayerIdentifier, pid)
 
-    return None
+                if fallback is None and player.get("label", "") == "":
+                    fallback = cast(t.PlayerIdentifier, pid)
+
+    return fallback
 
 
 def expand(pages: Any) -> list[type[t.Page]]:

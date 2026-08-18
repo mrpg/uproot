@@ -141,12 +141,12 @@ async def roommain(
         if label != "":
             for pid in session._uproot_players:
                 with Player(pid.sname, pid.uname) as player:
-                    if hasattr(player, "label") and player.label == label:
+                    if player.label == label and player.started:
                         return RedirectResponse(
                             f"{d.ROOT}/p/{pid.sname}/{pid.uname}/", status_code=303
                         )
 
-        free_slot = c.find_free_slot(session)
+        free_slot = c.find_free_slot(session, label)
 
         if (
             ur.freejoin(room)
@@ -158,10 +158,10 @@ async def roommain(
             if free_slot is not None:
                 _, free_uname = free_slot
 
-                # Redirect to player
                 with Player(sname, free_uname) as player:
                     player.started = True
-                    player.label = label
+                    if player.label != label:
+                        player.label = label
 
                 redirect_to = f"{d.ROOT}/p/{sname}/{free_uname}/"
             else:

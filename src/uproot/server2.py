@@ -841,12 +841,14 @@ async def new_session_in_room(
     settings_parsed = parse_session_settings(settings, config)
 
     if assignees:
-        assignees_list = sorted(orjson.loads(assignees))
+        assignees_list = orjson.loads(assignees)
         ensure(
             all(isinstance(ass, str) for ass in assignees_list),
             ValueError,
             "All assignees must be strings",
         )
+        assignees_list = list(set(assignees_list))
+        t.rng().shuffle(assignees_list)
     else:
         assignees_list = []
 
