@@ -62,14 +62,16 @@ def freejoin(room: RoomType) -> bool:
     return not room["labels"] and room["capacity"] is None
 
 
-def labels_file(filename: str) -> set[str]:
+def labels_file(filename: str) -> list[str]:
     with open(filename) as f:
-        return {
-            return_or_raise(
-                line.strip(), valid_token, msg="Label has invalid characters"
-            )
-            for line in f
-        }
+        return list(
+            {
+                return_or_raise(
+                    line.strip(), valid_token, msg="Label has invalid characters"
+                )
+                for line in f
+            }
+        )
 
 
 def constrain_label(label: Any) -> str:
