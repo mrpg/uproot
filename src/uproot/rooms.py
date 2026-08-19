@@ -66,10 +66,9 @@ def file(filename: str) -> list[str]:
     with open(filename) as f:
         return list(
             {
-                return_or_raise(
-                    line.strip(), valid_token, msg="Label has invalid characters"
-                )
+                return_or_raise(label, valid_token, msg="Label has invalid characters")
                 for line in f
+                if (label := line.split("#")[0].strip())
             }
         )
 
