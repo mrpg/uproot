@@ -15,7 +15,7 @@ class TestHistoryCoherence:
             storage.test_str = "hello"
             storage.test_float = 3.14
 
-        history = storage.__history__()
+        history = storage.history()
 
         assert "test_int" in history
         assert "test_str" in history
@@ -50,7 +50,7 @@ class TestHistoryCoherence:
             storage.test_dict = {"key": "value"}
             storage.test_set = {1, 2, 3}
 
-        history = storage.__history__()
+        history = storage.history()
 
         assert "test_list" in history
         assert "test_dict" in history
@@ -86,7 +86,7 @@ class TestHistoryCoherence:
         with storage:
             storage.second = 2
 
-        history = storage.__history__()
+        history = storage.history()
 
         assert "first" in history
         assert "second" in history
@@ -104,7 +104,7 @@ class TestHistoryCoherence:
             storage.mutable_list = [1, 2, 3]
             storage.mutable_list.append(4)
 
-        history = storage.__history__()
+        history = storage.history()
 
         assert "mutable_list" in history
         value_entries = history["mutable_list"]
@@ -124,7 +124,7 @@ class TestHistoryCoherence:
 
         del storage.temp_field
 
-        history = storage.__history__()
+        history = storage.history()
 
         assert "temp_field" in history
         tombstone_found = False

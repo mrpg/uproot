@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.28.1,<0.29",
-    "appendmuch<1.0.0",
+    "appendmuch>=0.2.0,<1.0.0",
     "click>=8.4.2,<9",
     "fastapi>=0.136.3,<1",
     "itsdangerous>=2.2.0,<3",
@@ -46,7 +46,7 @@ dependencies = [
 ]
 
 [tool.uv]
-exclude-newer = "5 days"
+# exclude-newer = "8 days"
 python-preference = "system"
 
 [project.urls]
@@ -96,7 +96,7 @@ skip = ["tests", "build", "dist", ".venv", "venv"]
 
 [project.optional-dependencies]
 pg = [
-    "appendmuch[pg]>=0.1.0,<0.2",
+    "appendmuch[pg]>=0.2.0,<1.0.0",
 ]
 dev = [
     "bandit",

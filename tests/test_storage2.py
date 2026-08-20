@@ -45,7 +45,7 @@ def test_storage_constructors():
     assert model.__namespace__ == ("model", "test_session", "test_model")
 
 
-def test_virtual_within_strict_mode():
+def test_within_strict_mode():
     sid, pid = setup()
     player = t.materialize(pid)
 
@@ -54,33 +54,7 @@ def test_virtual_within_strict_mode():
         player.round = 1
 
     assert player.within(round=1).choice == "A"
-    expect_attribute_error(player.within.strict(round=1), "choice")
-
-
-def test_virtual_within_strict_is_valid_context_field_name():
-    sid, pid = setup()
-    player = t.materialize(pid)
-
-    with player:
-        player.strict = True
-        player.choice = "A"
-
-    assert player.within(strict=True).choice == "A"
-    assert player.within(strict=True).strict is True
-
-
-def test_virtual_along_strict_mode_accepts_strict_field_name():
-    sid, pid = setup()
-    player = t.materialize(pid)
-
-    with player:
-        player.strict = True
-        player.score = 10
-
-    results = list(player.along.strict("strict"))
-    assert len(results) == 1
-    assert results[0][0] is True
-    assert results[0][1].score == 10
+    expect_attribute_error(player.within(round=1, strict=True), "choice")
 
 
 def test_field_access():
@@ -139,7 +113,7 @@ def test_fields_method():
     t.materialize(pid).field2 = 2
     t.materialize(pid).field3 = 3
 
-    fields = t.materialize(pid).__fields__()
+    fields = t.materialize(pid).fields()
     assert type(fields) is list
     assert "field1" in fields
     assert "field2" in fields
@@ -195,7 +169,7 @@ def test_history():
     t.materialize(pid).counter = 2
     t.materialize(pid).counter = 3
 
-    history = t.materialize(pid).__history__()
+    history = t.materialize(pid).history()
     assert "counter" in history
 
     # History should contain values for counter field
@@ -280,7 +254,7 @@ def test_no_double_flush_for_assigned_unchanged_values():
     sid, pid = setup()
 
     # Track history count before
-    initial_history = t.materialize(pid).__history__()
+    initial_history = t.materialize(pid).history()
     initial_count = len(initial_history.get("unchanged_value", []))
 
     with t.materialize(pid) as player:
@@ -289,7 +263,7 @@ def test_no_double_flush_for_assigned_unchanged_values():
         # Don't modify player.unchanged_value - flush should not create additional entry
 
     # Check that only the assignment created a history entry, not the flush
-    final_history = t.materialize(pid).__history__()
+    final_history = t.materialize(pid).history()
     final_count = len(final_history.get("unchanged_value", []))
 
     # Should have exactly one new entry from the assignment

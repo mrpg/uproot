@@ -320,7 +320,7 @@ def page_times_rows(sname: t.Sessionname) -> list[dict[str, Any]]:
 
             with t.materialize(pid) as player:
                 one_row = False
-                history = player.__history__()
+                history = player.history()
                 last_order = None
 
                 show_pages = history.get("show_page", [])  # type: ignore[var-annotated]

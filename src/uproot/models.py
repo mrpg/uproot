@@ -256,7 +256,7 @@ def get_entries(
     retval: list[StoredEntry[T]] = []
 
     with get_storage(mid) as storage:
-        for value in storage.__history__().get("entry", [])[subset]:
+        for value in storage.history().get("entry", [])[subset]:
             if not value.unavailable:
                 retval.append(
                     parse_stored_entry(value.data, cast(float, value.time), as_type)
@@ -323,7 +323,7 @@ def filter_entries(
     retval: list[StoredEntry[T]] = []
 
     with get_storage(mid) as storage:
-        for value in storage.__history__().get("entry", []):
+        for value in storage.history().get("entry", []):
             if not value.unavailable:
                 entry_id, entry_data = cast(tuple[UUID, dict[str, Any]], value.data)
 
@@ -360,7 +360,7 @@ def get_latest_entry(
         if not hasattr(storage, "entry"):
             raise ValueError(f"No entries found in model {mid}")
 
-        value = storage.__history__()["entry"][-1]
+        value = storage.history()["entry"][-1]
 
         if not value.unavailable:
             return parse_stored_entry(value.data, cast(float, value.time), as_type)
