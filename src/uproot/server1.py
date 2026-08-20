@@ -434,7 +434,9 @@ async def show_page(
                     else:
                         state.proceed = True
         else:
-            pass
+            # A delayed duplicate may belong to a page that has already
+            # advanced. Do not validate its payload against the current page.
+            formdata = None
     else:
         raise HTTPException(status_code=400)
 
