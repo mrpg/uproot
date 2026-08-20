@@ -212,7 +212,7 @@
     </header>
 
     {% block wrapper_content %}
-    <form id="uproot-form" method="post" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
+    <form id="uproot-form" method="post" onsubmit="return uproot.beginSubmit(this)" oninput="uproot.dirty = true" onchange="uproot.dirty = true" enctype="multipart/form-data">
         <input type="hidden" name="_uproot_csrf" id="_uproot_csrf" value="">
         <input type="hidden" name="_uproot_from" id="_uproot_from" value="">
 

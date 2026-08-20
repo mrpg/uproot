@@ -50,7 +50,7 @@ Please wait
 
 {% endif %}
 
-<form method="post">
+<form method="post" onsubmit="return uproot.beginSubmit(this)">
     <div class="mb-3">
         <label for="label" class="form-label">
             {% translate %}
@@ -97,7 +97,7 @@ Please wait
     </b>
 </p>
 
-<form id="label-form" method="post">
+<form id="label-form" method="post" onsubmit="return uproot.beginSubmit(this)">
     <input type="hidden" id="label" name="label">
 </form>
 
@@ -117,7 +117,7 @@ Please wait
         const label = event.detail.label;
 
         I("label").value = label;
-        I("label-form").submit();
+        uproot.submitForm(I("label-form"));
     }
 
     if (typeof stopHere === "undefined" || !stopHere) {

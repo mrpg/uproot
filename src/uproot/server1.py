@@ -18,6 +18,7 @@ from time import time
 from types import MappingProxyType
 from typing import Any, cast
 from urllib.parse import quote
+from weakref import WeakValueDictionary
 
 import orjson
 from fastapi import (
@@ -66,6 +67,20 @@ from uproot.types import ensure_awaitable, optional_call, optional_call_once
 from uproot.utils import safe_redirect_response
 
 router = APIRouter(prefix=d.ROOT)
+PAGE_LOCKS: WeakValueDictionary[tuple[t.Sessionname, str], asyncio.Lock] = (
+    WeakValueDictionary()
+)
+
+
+def page_lock(sname: t.Sessionname, uname: str) -> asyncio.Lock:
+    key = (sname, uname)
+    lock = PAGE_LOCKS.get(key)
+
+    if lock is None:
+        lock = asyncio.Lock()
+        PAGE_LOCKS[key] = lock
+
+    return lock
 
 
 @dataclass
@@ -579,16 +594,17 @@ async def show_page_wrapper(
     player: Storage = ValidPlayer,
     uauth: str | None = Cookie(None),
 ) -> HTMLResponse:
-    with player:
-        try:
-            response = HTMLResponse(
-                await show_page(request, player, uauth),
-            )
-        except Exception as exc:  # noqa: BLE001
-            response = HTMLResponse(
-                await render_error(request, player, uauth, exc),
-                status_code=500,
-            )
+    async with page_lock(sname, uname):
+        with player:
+            try:
+                response = HTMLResponse(
+                    await show_page(request, player, uauth),
+                )
+            except Exception as exc:  # noqa: BLE001
+                response = HTMLResponse(
+                    await render_error(request, player, uauth, exc),
+                    status_code=500,
+                )
 
     nocache(response)
 

@@ -497,6 +497,25 @@ window.uproot = {
         }
     },
 
+    beginSubmit(form) {
+        if (form.dataset.uprootSubmitting === "true") {
+            return false;
+        }
+
+        form.dataset.uprootSubmitting = "true";
+        this.stopPageTimeoutTimers();
+        return true;
+    },
+
+    submitForm(form) {
+        if (!this.beginSubmit(form)) {
+            return false;
+        }
+
+        form.submit();
+        return true;
+    },
+
     submit(expectedPage = null) {
         const currentPage = uproot.vars?._uproot_internal?.thisis;
 
@@ -504,20 +523,12 @@ window.uproot = {
             return false;
         }
 
-        const form = I("uproot-form");
-
-        if (form.dataset.uprootSubmitting === "true") {
-            return false;
-        }
-
-        form.dataset.uprootSubmitting = "true";
-        form.submit();
-        return true;
+        return this.submitForm(I("uproot-form"));
     },
 
     goBack() {
         this.I("_uproot_from").value = "back-" + uproot.vars._uproot_internal.thisis;
-        return I("uproot-form").submit();
+        return this.submit();
     },
 
     onStart(fun) {
