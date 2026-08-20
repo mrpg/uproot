@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.28.1,<0.29",
-    "appendmuch>=0.1.1,<0.2",
+    "appendmuch<1.0.0",
     "click>=8.4.2,<9",
     "fastapi>=0.136.3,<1",
     "itsdangerous>=2.2.0,<3",
