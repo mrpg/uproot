@@ -1,13 +1,15 @@
 # uproot
 
-[![Examples](https://img.shields.io/badge/uproot--examples-blue)](https://github.com/mrpg/uproot-examples)
 [![Website](https://img.shields.io/badge/Website-uproot.science-green)](https://uproot.science/)
+[![Examples](https://img.shields.io/badge/uproot--examples-blue)](https://github.com/mrpg/uproot-examples)
 [![PyPI](https://img.shields.io/badge/PyPI-uproot--science-red)](https://pypi.org/project/uproot-science/)
+[![License](https://img.shields.io/badge/License-GNU%20LGPLv3%2B-orange)](https://github.com/mrpg/uproot?tab=License-1-ov-file)
 
 *uproot* is a modern software framework for developing and conducting browser-based behavioral experiments. This includes studies with hundreds of participants such as large-scale surveys and experiments with real-time interaction between the participants.
 
 > [!IMPORTANT]
 > This repository contains an initial development version.
+> It is recommended to use `uproot-science` from PyPI.
 
 *uproot* is 100% [Free/Libre Open Source Software](https://en.wikipedia.org/wiki/Free_and_open-source_software), and contains only unencumbered code. All libraries, styles and fonts are included and served locally (no CDNs). *uproot* believes in best practices.
 
@@ -44,7 +46,6 @@ uv run uproot run
 
 You may then log in to the admin area, or [run an example experiment](http://127.0.0.1:8000/room/test/).
 You can find other examples [here](https://github.com/mrpg/uproot-examples).
-Needless to say, step (1) only needs to be done once, and step (2) only when creating a new project.
 
 ## License
 
