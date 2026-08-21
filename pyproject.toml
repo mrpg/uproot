@@ -72,13 +72,12 @@ exclude = '''
   | venv
   | build
   | dist
-  | tests
 )/
 '''
 
 [tool.ruff]
 src = ["src"]
-exclude = ["build", "dist", ".venv", "venv", ".git", "__pycache__", "tests"]
+exclude = ["build", "dist", ".venv", "venv", ".git", "__pycache__"]
 
 [tool.ruff.lint]
 ignore = ["I"]
@@ -92,7 +91,7 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 src_paths = ["src"]
-skip = ["tests", "build", "dist", ".venv", "venv"]
+skip = ["build", "dist", ".venv", "venv"]
 
 [project.optional-dependencies]
 pg = [
@@ -130,7 +129,7 @@ no_implicit_optional = true
 disallow_any_generics = true
 check_untyped_defs = true
 strict_equality = true
-exclude = ["tests", "build", "dist"]
+exclude = ["build", "dist"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -141,11 +140,11 @@ addopts = "--cov=uproot --cov-report=term-missing"
 asyncio_mode = "auto"
 
 [tool.bandit]
-exclude_dirs = ["tests", "build", ".venv", "venv"]
+exclude_dirs = ["build", ".venv", "venv"]
 skips = []
 
 [tool.deptry]
-extend_exclude = ["tests", "build"]
+extend_exclude = ["build"]
 
 [tool.deptry.per_rule_ignores]
 DEP002 = [

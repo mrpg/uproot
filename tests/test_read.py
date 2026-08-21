@@ -5,10 +5,10 @@ import appendmuch
 import pytest
 
 import uproot as u
-import uproot.cache as cache
 import uproot.core as c
 import uproot.deployment as d
 import uproot.storage as s
+from uproot import cache
 from uproot.read import read
 from uproot.stable import CODEC
 

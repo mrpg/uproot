@@ -7,8 +7,8 @@ import uproot as u
 import uproot.core as c
 import uproot.deployment as d
 import uproot.server4 as api
-import uproot.services.auth as auth
 import uproot.storage as s
+from uproot.services import auth
 
 
 def reset_admin_state() -> None:

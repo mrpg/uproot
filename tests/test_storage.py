@@ -88,7 +88,7 @@ def test_none():
 
     with t.materialize(pid) as player:
         assert player.n is None
-        assert type(player.n) is type(None)
+        assert player.n is None
 
 
 def test_decimal():
@@ -110,8 +110,8 @@ def test_frozenset():
     assert result == frozenset([1, 2, 3, "a", "b"])
     assert type(result) is frozenset
     # Check element types
-    assert 1 in result and type(1) is int
-    assert "a" in result and type("a") is str
+    assert 1 in result
+    assert "a" in result
 
 
 def test_player_identifier():
@@ -176,7 +176,7 @@ def test_list():
 
 
 def test_dict():
-    d_ = dict(abc="abc", defg=4.1)
+    d_ = {"abc": "abc", "defg": 4.1}
     t.materialize(pid).d = d_
     with t.materialize(pid) as player:
         result = player.d

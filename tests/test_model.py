@@ -14,12 +14,12 @@ import pytest
 uproot_src = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(uproot_src))
 
-import uproot as u  # noqa: E402
-import uproot.core as c  # noqa: E402
-import uproot.deployment as d  # noqa: E402
-import uproot.models as mod  # noqa: E402
-import uproot.storage as s  # noqa: E402
-import uproot.types as t  # noqa: E402
+import uproot as u
+import uproot.core as c
+import uproot.deployment as d
+import uproot.models as mod
+import uproot.storage as s
+import uproot.types as t
 
 # Reset database for tests
 d.DATABASE.reset()
@@ -68,7 +68,7 @@ class PlayerEntry(metaclass=mod.Entry):
 # Basic model tests
 def test_create_model(session_and_player):
     """Test model creation."""
-    sid, pid = session_and_player
+    sid, _ = session_and_player
 
     with s.Session(sid) as session:
         mid = mod.create_model(session)
@@ -86,7 +86,7 @@ def test_create_model(session_and_player):
 
 def test_create_model_with_tag(session_and_player):
     """Test model creation with tag."""
-    sid, pid = session_and_player
+    sid, _ = session_and_player
 
     with s.Session(sid) as session:
         mid = mod.create_model(session, tag="test_model")
@@ -96,18 +96,9 @@ def test_create_model_with_tag(session_and_player):
 
 def test_model_exists_false_for_fake(session_and_player):
     """Test model_exists with fake model."""
-    sid, pid = session_and_player
-
-    # This might not work properly since we're creating a fake identifier
-    # but test the function doesn't crash
-    try:
-        fake_mid = t.ModelIdentifier("nonexistent")
-        result = mod.model_exists(fake_mid)
-        # Either True or False is fine - we're testing it doesn't crash
-        assert isinstance(result, bool)
-    except Exception:
-        # If it throws an exception, that's also fine behavior
-        pass
+    fake_mid = t.ModelIdentifier(sname="nonexistent", mname="fake")
+    result = mod.model_exists(fake_mid)
+    assert result is False
 
 
 # Entry tests
@@ -123,7 +114,7 @@ def test_entry_is_immutable():
     entry = SimpleEntry(value=42, message="test")
 
     # Entries should be frozen
-    with pytest.raises(Exception):  # Various frozen exceptions possible
+    with pytest.raises(AttributeError):
         entry.value = 100
 
 
@@ -139,7 +130,7 @@ def test_entry_no_id_field():
 # Add entry tests
 def test_add_raw_entry_simple(model_and_player):
     """Test adding a simple raw entry."""
-    mid, pid = model_and_player
+    mid, _ = model_and_player
 
     entry = SimpleEntry(value=123, message="raw test")
     entry_id = mod.add_raw_entry(mid, entry)
@@ -152,7 +143,7 @@ def test_add_raw_entry_simple(model_and_player):
     # Verify it was added by checking we can get entries
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    eid, etime, edata = entries[0]
+    eid, _, edata = entries[0]
     assert edata["value"] == 123
     assert edata["message"] == "raw test"
     assert eid == entry_id
@@ -160,7 +151,7 @@ def test_add_raw_entry_simple(model_and_player):
 
 def test_add_raw_entry_with_dict(model_and_player):
     """Test adding raw dictionary entry."""
-    mid, pid = model_and_player
+    mid, _ = model_and_player
 
     entry_dict = {"x": 42, "y": "hello"}
     entry_id = mod.add_raw_entry(mid, entry_dict)
@@ -171,7 +162,7 @@ def test_add_raw_entry_with_dict(model_and_player):
 
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    eid, etime, edata = entries[0]
+    _, _, edata = entries[0]
     assert edata["x"] == 42
     assert edata["y"] == "hello"
 
@@ -190,7 +181,7 @@ def test_auto_add_entry(model_and_player):
     # Verify via get_entries
     entries = list(mod.get_entries(mid, PlayerEntry))
     assert len(entries) == 1
-    eid, etime, entry = entries[0]
+    _, _, entry = entries[0]
     assert entry.pid == pid
     assert entry.score == 95.5
     assert entry.level == "hard"
@@ -210,7 +201,7 @@ def test_smart_add_entry_auto_mode(model_and_player):
     # Verify via get_entries
     entries = list(mod.get_entries(mid, PlayerEntry))
     assert len(entries) == 1
-    eid, etime, entry = entries[0]
+    _, _, entry = entries[0]
     assert entry.pid == pid
     assert entry.score == 88.8
     assert entry.level == "medium"
@@ -230,14 +221,14 @@ def test_smart_add_entry_raw_mode(model_and_player):
     # Verify it was added
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 1
-    eid, etime, edata = entries[0]
+    _, _, edata = entries[0]
     assert edata["score"] == 77.7
 
 
 # Query tests
 def test_get_entries_empty(model_and_player):
     """Test getting entries from empty model."""
-    mid, pid = model_and_player
+    mid, _ = model_and_player
 
     entries = list(mod.get_entries(mid, dict))
     assert len(entries) == 0
@@ -270,7 +261,7 @@ def test_get_entries_with_type(model_and_player):
 
     entries = list(mod.get_entries(mid, PlayerEntry))
     assert len(entries) == 1
-    eid, etime, entry = entries[0]
+    _, _, entry = entries[0]
     assert isinstance(entry, PlayerEntry)
     assert entry.score == 95.0
 
@@ -326,7 +317,7 @@ def test_filter_entries_combined(model_and_player):
         )
     )
     assert len(filtered) == 1
-    eid, etime, entry = filtered[0]
+    _, _, entry = filtered[0]
     assert entry.score == 90.0
     assert entry.level == "hard"
 
@@ -341,7 +332,7 @@ def test_filter_entries_by_id(model_and_player):
     # Filter by specific id
     filtered = list(mod.filter_entries(mid, PlayerEntry, id=id1))
     assert len(filtered) == 1
-    eid, etime, entry = filtered[0]
+    eid, _, entry = filtered[0]
     assert eid == id1
     assert entry.score == 90.0
 
@@ -366,7 +357,7 @@ def test_get_latest_entry(model_and_player):
 # Error handling tests
 def test_add_entry_invalid_keys(model_and_player):
     """Test adding entry with invalid dictionary keys."""
-    mid, pid = model_and_player
+    mid, _ = model_and_player
 
     # Invalid key (not a Python identifier)
     invalid_dict = {"123invalid": "value"}
@@ -377,7 +368,7 @@ def test_add_entry_invalid_keys(model_and_player):
 
 def test_get_latest_entry_empty_model(model_and_player):
     """Test getting latest entry from empty model."""
-    mid, pid = model_and_player
+    mid, _ = model_and_player
 
     with pytest.raises(ValueError):
         mod.get_latest_entry(mid, dict)

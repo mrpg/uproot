@@ -6,7 +6,7 @@ import check_translations
 def test_find_python_translate_calls_finds_literal_keys(tmp_path: Path):
     source = tmp_path / "example.py"
     source.write_text(
-        "\n".join(
+        "\n".join(  # noqa: FLY002
             [
                 'first = translate("First key")',
                 "second = translate(",

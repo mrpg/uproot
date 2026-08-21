@@ -29,10 +29,10 @@ def test_reload_module_removes_deleted_names(tmp_path: Path) -> None:
         assert not hasattr(new_module, "removed")
 
         with pytest.raises(RuntimeError, match="has been reloaded"):
-            old_module.kept
+            assert old_module.kept
 
         with pytest.raises(RuntimeError, match="has been reloaded"):
-            old_module.removed
+            assert old_module.removed
     finally:
         sys.modules.pop("reload_app", None)
 

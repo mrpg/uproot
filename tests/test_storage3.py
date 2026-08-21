@@ -17,11 +17,11 @@ from decimal import Decimal
 import pytest
 
 import uproot as u
-import uproot.cache as cache
 import uproot.core as c
 import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
+from uproot import cache
 
 # Define type categories for testing
 IMMUTABLE_TYPES = (
@@ -97,7 +97,7 @@ class TestMemoryDatabaseConsistency:
 
     def test_timestamp_consistency_verification(self):
         """Verify timestamp consistency through multiple operations."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Perform rapid sequential operations
         operations = []
@@ -134,7 +134,7 @@ class TestMemoryDatabaseConsistency:
 
     def test_field_deletion_and_access_patterns(self):
         """Verify field deletion works correctly."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         with t.materialize(pid) as player:
             player.temp_field = "to_be_deleted"
@@ -148,9 +148,8 @@ class TestMemoryDatabaseConsistency:
                 _ = player.temp_field
 
         # Field should remain deleted across contexts
-        with t.materialize(pid) as player:
-            with pytest.raises(AttributeError):
-                _ = player.temp_field
+        with t.materialize(pid) as player, pytest.raises(AttributeError):
+            _ = player.temp_field
 
         # Can recreate the field
         with t.materialize(pid) as player:
@@ -163,7 +162,7 @@ class TestDeepModificationDetection:
 
     def test_nested_mutable_modification_detection(self):
         """Test detection of modifications in deeply nested mutable structures."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         complex_data = {
             "users": [
@@ -190,7 +189,7 @@ class TestDeepModificationDetection:
 
     def test_modification_detection_across_multiple_contexts(self):
         """Test modification detection works across multiple context entries."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # First context: establish data
         with t.materialize(pid) as player:
@@ -211,7 +210,7 @@ class TestDeepModificationDetection:
 
     def test_modification_detection_with_object_identity(self):
         """Test that object identity is preserved for modification detection."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         with t.materialize(pid) as player:
             player.shared_list = [1, 2, 3]
@@ -236,7 +235,7 @@ class TestDeepModificationDetection:
 
     def test_modification_baseline_reset_per_context(self):
         """Test that baselines reset properly for each context."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         original_data = {"count": 0, "items": []}
 
@@ -263,7 +262,7 @@ class TestDeepModificationDetection:
 
     def test_immutable_vs_mutable_modification_handling(self):
         """Test different handling of immutable vs mutable types."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         with t.materialize(pid) as player:
             # Immutable assignment creates new value
@@ -285,7 +284,7 @@ class TestContextManagerSemantics:
 
     def test_immutable_type_access_patterns(self):
         """Test all immutable types can be accessed without context managers."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Set up test data
         t.materialize(pid).int_val = 42
@@ -314,7 +313,7 @@ class TestContextManagerSemantics:
 
     def test_mutable_type_context_requirements(self):
         """Test all mutable types require context managers."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Set up mutable data
         with t.materialize(pid) as player:
@@ -340,7 +339,7 @@ class TestContextManagerSemantics:
 
     def test_nested_context_manager_prevention(self):
         """Test that nested context managers are properly handled."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         with t.materialize(pid) as outer_player:
             outer_player.data = [1, 2, 3]
@@ -356,7 +355,7 @@ class TestContextManagerSemantics:
 
     def test_context_exit_with_exceptions(self):
         """Test context manager behavior when exceptions occur."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Exception during context should not save modifications
         try:
@@ -377,7 +376,7 @@ class TestContextManagerSemantics:
 
     def test_cache_isolation_between_contexts(self):
         """Test that field caches are properly isolated between contexts."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Context 1: Set and modify data
         with t.materialize(pid) as player:
@@ -404,7 +403,7 @@ class TestConcurrencyAndAsyncSafety:
 
     def test_multiple_storage_instances_same_namespace(self):
         """Test multiple Storage instances for same namespace work correctly."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Create multiple instances pointing to same player
         player1 = t.materialize(pid)
@@ -431,7 +430,7 @@ class TestConcurrencyAndAsyncSafety:
 
     def test_rapid_context_switching(self):
         """Test rapid context entry and exit."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Rapid context switching with data modifications
         for i in range(100):
@@ -451,7 +450,7 @@ class TestConcurrencyAndAsyncSafety:
 
     def test_memory_pressure_and_cleanup(self):
         """Test behavior under memory pressure."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Create many large objects
         large_objects = []
@@ -478,7 +477,7 @@ class TestConcurrencyAndAsyncSafety:
 
     def test_weakref_behavior_with_caching(self):
         """Test that caching doesn't interfere with garbage collection."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Test weakref behavior with simple objects
         with t.materialize(pid) as player:
@@ -502,7 +501,7 @@ class TestErrorHandlingAndEdgeCases:
 
     def test_malformed_data_handling(self):
         """Test handling of malformed or corrupted data."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         with t.materialize(pid) as player:
             # Test with various edge case values
@@ -522,15 +521,14 @@ class TestErrorHandlingAndEdgeCases:
 
     def test_attribute_error_propagation(self):
         """Test proper error propagation for non-existent attributes."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
-        with t.materialize(pid) as player:
-            with pytest.raises(AttributeError):
-                _ = player.nonexistent_field
+        with t.materialize(pid) as player, pytest.raises(AttributeError):
+            _ = player.nonexistent_field
 
     def test_field_deletion_and_recreation_cycles(self):
         """Test repeated deletion and recreation of fields."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         for cycle in range(10):
             with t.materialize(pid) as player:
@@ -546,13 +544,12 @@ class TestErrorHandlingAndEdgeCases:
                     _ = player.cycle_test
 
         # Final verification - field should not exist
-        with t.materialize(pid) as player:
-            with pytest.raises(AttributeError):
-                _ = player.cycle_test
+        with t.materialize(pid) as player, pytest.raises(AttributeError):
+            _ = player.cycle_test
 
     def test_virtual_field_interactions(self):
         """Test interactions with virtual fields."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         player = t.materialize(pid)
 
@@ -566,7 +563,7 @@ class TestErrorHandlingAndEdgeCases:
 
     def test_flush_during_partial_initialization(self):
         """Test flush behavior during partial object initialization."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Test with properly initialized object
         with t.materialize(pid) as player:
@@ -584,7 +581,7 @@ class TestPerformanceAndScalability:
 
     def test_large_field_count_performance(self):
         """Test performance with many fields."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         field_count = 1000
         start_time = time.time()
@@ -610,7 +607,7 @@ class TestPerformanceAndScalability:
 
     def test_deep_nesting_performance(self):
         """Test performance with deeply nested structures."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Create deeply nested structure
         depth = 50
@@ -649,7 +646,7 @@ class TestPerformanceAndScalability:
 
     def test_memory_usage_efficiency(self):
         """Test memory usage efficiency of caching system."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Create significant amount of cached data
         with t.materialize(pid) as player:
@@ -752,7 +749,7 @@ class TestAdvancedStorageScenarios:
 
     def test_collaborative_document_editing(self):
         """Simulate collaborative document editing scenario."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Initialize document
         with t.materialize(pid) as editor:
@@ -824,7 +821,7 @@ class TestAdvancedStorageScenarios:
 
     def test_real_time_analytics_dashboard(self):
         """Simulate real-time analytics dashboard with continuous updates."""
-        sid, pid = setup_fresh_database()
+        _, pid = setup_fresh_database()
 
         # Initialize analytics data
         with t.materialize(pid) as dashboard:

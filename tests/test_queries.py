@@ -300,10 +300,10 @@ def test_comparison_with_none_values():
 
     obj = TestObj()
 
-    comp = _.value == None  # noqa: E711 - Comparison framework requires ==
+    comp = _.value == None
     assert comp(obj) is True
 
-    comp = _.value != None  # noqa: E711 - Comparison framework requires !=
+    comp = _.value != None
     assert comp(obj) is False
 
 

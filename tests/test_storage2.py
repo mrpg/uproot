@@ -46,7 +46,7 @@ def test_storage_constructors():
 
 
 def test_within_strict_mode():
-    sid, pid = setup()
+    _, pid = setup()
     player = t.materialize(pid)
 
     with player:
@@ -58,7 +58,7 @@ def test_within_strict_mode():
 
 
 def test_field_access():
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set and get field
     t.materialize(pid).x = 42
@@ -77,7 +77,7 @@ def test_field_access():
 
 
 def test_field_update_context():
-    sid, pid = setup()
+    _, pid = setup()
 
     with t.materialize(pid) as player:
         player.y = -42
@@ -88,7 +88,7 @@ def test_field_update_context():
 
 
 def test_field_deletion():
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).to_delete = "value"
 
@@ -107,7 +107,7 @@ def test_field_deletion():
 
 
 def test_fields_method():
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).field1 = 1
     t.materialize(pid).field2 = 2
@@ -121,7 +121,7 @@ def test_fields_method():
 
 
 def test_bool_method():
-    sid, pid = setup()
+    _, pid = setup()
 
     # Empty storage should be falsy
     empty_player = s.Player("test", "empty_user")
@@ -133,7 +133,7 @@ def test_bool_method():
 
 
 def test_storage_equality():
-    sid, pid = setup()
+    setup()
 
     # Same namespace should be equal
     player1 = s.Player("test", "user1")
@@ -146,7 +146,7 @@ def test_storage_equality():
 
 
 def test_identifier_conversion():
-    sid, pid = setup()
+    setup()
 
     # Test identify() function
     session = s.Session("test")
@@ -162,7 +162,7 @@ def test_identifier_conversion():
 
 
 def test_history():
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set field multiple times
     t.materialize(pid).counter = 1
@@ -178,7 +178,7 @@ def test_history():
 
 
 def test_within_basic():
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set up data with different contexts
     t.materialize(pid).score = 10
@@ -193,7 +193,7 @@ def test_within_basic():
 
 def test_within_context_conditions_not_met():
     """Test context where the specified conditions are never satisfied."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).x = 1
     t.materialize(pid).y = 1  # Set y to 1, but we'll look for y=2
@@ -207,7 +207,7 @@ def test_within_context_conditions_not_met():
 
 
 def test_along_iteration():
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create history for a field
     t.materialize(pid).state = "init"
@@ -230,7 +230,7 @@ def test_along_iteration():
 
 def test_list_assignment_then_append():
     """Test that assignment followed by in-place append is properly detected."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Assign a list and then append to it within the same context
     with t.materialize(pid) as player:
@@ -251,7 +251,7 @@ def test_list_assignment_then_append():
 
 def test_no_double_flush_for_assigned_unchanged_values():
     """Test that flush doesn't create duplicate entries for assigned but unchanged values."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Track history count before
     initial_history = t.materialize(pid).history()
@@ -274,7 +274,7 @@ def test_no_double_flush_for_assigned_unchanged_values():
 
 def test_within_single_context_field():
     """Test that 'within' works with single context field (known working case)."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set up current values
     t.materialize(pid).score = 100
@@ -291,7 +291,7 @@ def test_within_single_context_field():
 
 def test_within_multiple_context_fields_current_values():
     """Test multiple context fields with values that are all currently set."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set up values that are all current
     t.materialize(pid).score = 100
@@ -308,7 +308,7 @@ def test_within_multiple_context_fields_current_values():
 
 def test_within_context_mismatch():
     """Test context where the specified value never existed."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).score = 100
     t.materialize(pid).level = 5
@@ -322,7 +322,7 @@ def test_within_context_mismatch():
 
 
 def test_within_empty_context():
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).score = 100
     t.materialize(pid).level = 5
@@ -335,7 +335,7 @@ def test_within_empty_context():
 
 
 def test_within_none_value_context():
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).score = None
     t.materialize(pid).level = 5
@@ -348,7 +348,7 @@ def test_within_none_value_context():
 
 def test_within_context_with_nonexistent_field():
     """Test context with non-existent field returns None for all field access."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).real_field = "exists"
 
@@ -363,7 +363,7 @@ def test_within_context_with_nonexistent_field():
 
 def test_within_complex_data_types():
     """Test within with complex data types as context fields."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set up values with complex data types
     t.materialize(pid).scores = [10, 20, 30, 40]
@@ -388,7 +388,7 @@ def test_within_complex_data_types():
 
 def test_within_historical_values_works():
     """Test within actually works with historical values for single context fields!"""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create history
     t.materialize(pid).phase = "A"
@@ -416,7 +416,7 @@ def test_within_historical_values_works():
 
 def test_within_multiple_context_fields_simultaneous():
     """Test multiple context fields that were all set simultaneously."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set up values that were all current at the same time
     t.materialize(pid).field_a = "value_a"
@@ -440,7 +440,7 @@ def test_within_multiple_context_fields_simultaneous():
 
 
 def test_within_type_sensitivity():
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).number_field = 42
     t.materialize(pid).string_field = "42"
@@ -458,7 +458,7 @@ def test_within_type_sensitivity():
 
 def test_within_boolean_context():
     """Test within with boolean values as context fields."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).enabled = True
     t.materialize(pid).disabled = False
@@ -481,7 +481,7 @@ def test_within_boolean_context():
 
 
 def test_within_chaining_and_along_integration():
-    sid, pid = setup()
+    _, pid = setup()
 
     # Set up history
     t.materialize(pid).state = "init"
@@ -513,7 +513,7 @@ def test_within_chaining_and_along_integration():
 
 
 def test_within_edge_cases():
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).zero_value = 0
     t.materialize(pid).empty_string = ""
@@ -540,7 +540,7 @@ def test_within_edge_cases():
 
 def test_within_binary_search_correctness():
     """Test that within correctly finds values in large histories using binary search."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create large history (1000 entries)
     for i in range(1000):
@@ -569,7 +569,7 @@ def test_within_binary_search_correctness():
 
 def test_within_complex_interleaved_updates():
     """Test within with complex interleaved field updates to verify temporal consistency."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create a scenario with interleaved updates to test temporal logic
     special_markers = []
@@ -606,7 +606,7 @@ def test_within_complex_interleaved_updates():
 
 def test_within_boundary_conditions():
     """Test within with edge cases and boundary conditions."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Test with None values, empty containers, and edge data
     t.materialize(pid).none_field = None
@@ -640,7 +640,7 @@ def test_within_boundary_conditions():
 
 def test_within_realistic_gaming_scenario():
     """Test within with a realistic gaming scenario."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Simulate realistic gaming state progression
     t.materialize(pid).player_name = "TestPlayer"
@@ -676,7 +676,7 @@ def test_within_realistic_gaming_scenario():
 
 def test_within_advanced_historical_scenarios():
     """Test advanced historical lookup capabilities."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create complex history with multiple state changes
     t.materialize(pid).game_state = "menu"
@@ -727,7 +727,7 @@ def test_within_advanced_historical_scenarios():
 def test_within_carryover_values():
     """A field set before the context becomes satisfied still carries forward
     into the context window."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).field1 = 42  # t=0
     t.materialize(pid).ctx1 = 1  # t=1
@@ -744,7 +744,7 @@ def test_within_carryover_values():
 
 def test_within_multiple_context_windows():
     """Test within behavior when context is satisfied multiple times."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # First context window
     t.materialize(pid).field1 = 42
@@ -770,7 +770,7 @@ def test_within_multiple_context_windows():
 
 def test_within_context_never_satisfied():
     """Test within behavior when context conditions are never satisfied."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).field1 = 42
     t.materialize(pid).ctx1 = 1
@@ -789,7 +789,7 @@ def test_within_context_never_satisfied():
 def test_within_context_changes_back_single_field():
     """When context returns to a prior value, fields keep their latest value
     from before — they carry forward into the restored context window."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).ctx1 = 1  # t=0
     t.materialize(pid).field1 = 42  # t=1
@@ -804,7 +804,7 @@ def test_within_context_changes_back_single_field():
 
 def test_within_context_changes_back_with_new_data():
     """Test that data set in the LATEST context window IS visible."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # First context window
     t.materialize(pid).ctx1 = 1  # t=0
@@ -827,7 +827,7 @@ def test_within_context_changes_back_with_new_data():
 
 def test_within_context_changes_back_multiple_fields():
     """Test temporal constraint with multiple context fields that change back."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # First context window
     t.materialize(pid).ctx1 = 1  # t=0
@@ -855,7 +855,7 @@ def test_within_context_changes_back_multiple_fields():
 
 def test_within_complex_temporal_scenarios():
     """Test within with complex temporal sequences and temporal constraint enforcement."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Complex scenario with multiple field changes and context windows
     t.materialize(pid).base_value = "initial"
@@ -893,7 +893,7 @@ def test_within_complex_temporal_scenarios():
 
 
 def test_within_string_representations():
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).test_field = "value"
 
@@ -909,7 +909,7 @@ def test_within_string_representations():
 
 def test_within_multiple_context_fields_temporal_logic():
     """Test multiple context fields with complex temporal sequences and temporal constraint."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create a temporal sequence where context conditions are satisfied at different times
     t.materialize(pid).field_a = "value_a1"
@@ -957,7 +957,7 @@ def test_within_multiple_context_fields_temporal_logic():
 
 def test_within_context_field_does_not_exist():
     """Test within behavior when a context field was never set."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).existing_field = "value"
     # never_set_field is never set
@@ -973,7 +973,7 @@ def test_within_context_field_does_not_exist():
 
 def test_within_empty_context_equivalence():
     """Test that empty context behaves like normal field access."""
-    sid, pid = setup()
+    _, pid = setup()
 
     t.materialize(pid).field1 = "value1"
     t.materialize(pid).field2 = "value2"
@@ -992,7 +992,7 @@ def test_within_empty_context_equivalence():
 
 def test_along_with_temporal_constraints():
     """Test that .along() correctly applies temporal constraints in each context window."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create a sequence where context field changes multiple times
     # and we have data associated with each context value
@@ -1030,7 +1030,7 @@ def test_along_with_temporal_constraints():
 
 def test_along_with_multiple_context_changes():
     """Test .along() behavior when the along field changes back and forth."""
-    sid, pid = setup()
+    _, pid = setup()
 
     # Create alternating pattern: A -> B -> A -> B
     t.materialize(pid).state = "A"

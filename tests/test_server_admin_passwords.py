@@ -1,5 +1,5 @@
 import uproot.deployment as d
-import uproot.server as server
+from uproot import server
 from uproot.services.auth import PASSWORD_HASH_SCHEME, verify_admin_password
 
 

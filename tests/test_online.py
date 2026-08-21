@@ -6,8 +6,8 @@ import pytest
 uproot_src = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(uproot_src))
 
-import uproot as u  # noqa: E402
-import uproot.types as t  # noqa: E402
+import uproot as u
+import uproot.types as t
 
 
 @pytest.fixture

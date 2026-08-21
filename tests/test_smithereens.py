@@ -34,7 +34,7 @@ def test_rng_can_be_encoded_and_decoded():
 def test_rng_is_in_star_imports():
     namespace = {}
 
-    exec("from uproot.smithereens import *", namespace)
+    exec("from uproot.smithereens import *", namespace)  # noqa: S102
 
     assert namespace["rng"] is rng
 

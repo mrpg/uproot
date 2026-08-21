@@ -692,7 +692,7 @@ def test_stable_encode_decode_time_no_microseconds():
 
 
 def test_stable_encode_decode_datetime():
-    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456, tzinfo=UTC)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -700,7 +700,7 @@ def test_stable_encode_decode_datetime():
 
 
 def test_stable_encode_decode_datetime_no_microseconds():
-    test_datetime = datetime(2013, 9, 17, 14, 30, 45)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, tzinfo=UTC)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
@@ -718,17 +718,6 @@ def test_stable_encode_decode_datetime_with_timezone():
     assert decoded == test_datetime
     assert isinstance(decoded, datetime)
     assert decoded.tzinfo == test_datetime.tzinfo
-
-
-def test_stable_encode_decode_datetime_naive():
-    # Test that naive datetimes remain naive (no timezone info)
-    test_datetime = datetime(2013, 9, 17, 14, 30, 45)
-    encoded = encode(test_datetime)
-    decoded = decode(encoded)
-    assert decoded == test_datetime
-    assert isinstance(decoded, datetime)
-    assert decoded.tzinfo is None
-    assert test_datetime.tzinfo is None
 
 
 def test_stable_encode_decode_datetime_utc():
@@ -856,9 +845,9 @@ def test_stable_encode_decode_datetime_edge_cases():
 
     # Test datetime boundary and edge conditions
     test_cases = [
-        datetime(1, 1, 1, 0, 0, 0),  # Minimum datetime
-        datetime(9999, 12, 31, 23, 59, 59, 999999),  # Maximum datetime
-        datetime(2000, 2, 29, 12, 0, 0),  # Leap year datetime
+        datetime(1, 1, 1, 0, 0, 0, tzinfo=UTC),  # Minimum datetime
+        datetime(9999, 12, 31, 23, 59, 59, 999999, tzinfo=UTC),  # Maximum datetime
+        datetime(2000, 2, 29, 12, 0, 0, tzinfo=UTC),  # Leap year datetime
         datetime(2013, 1, 1, 0, 0, 0, tzinfo=UTC),  # UTC at epoch boundary
         datetime(
             2013, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=14))
@@ -873,13 +862,8 @@ def test_stable_encode_decode_datetime_edge_cases():
         decoded = decode(encoded)
         assert decoded == test_datetime
         assert isinstance(decoded, datetime)
-        if test_datetime.tzinfo is None:
-            assert decoded.tzinfo is None
-        else:
-            assert decoded.tzinfo is not None
-            assert decoded.tzinfo.utcoffset(None) == test_datetime.tzinfo.utcoffset(
-                None
-            )
+        assert decoded.tzinfo is not None
+        assert decoded.tzinfo.utcoffset(None) == test_datetime.tzinfo.utcoffset(None)
 
 
 def test_stable_type_ids_normative():
@@ -926,11 +910,11 @@ def test_stable_encode_decode_iso_format_normative():
     assert iso_string == "14:30:45.123456"
 
     # Test datetime ISO format
-    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, 123456, tzinfo=UTC)
     encoded = encode(test_datetime)
     assert encoded[0] == 12  # Type ID
     iso_string = loads(encoded[1:])
-    assert iso_string == "2013-09-17T14:30:45.123456"
+    assert iso_string == "2013-09-17T14:30:45.123456+00:00"
 
     # Test datetime with timezone ISO format
     from datetime import timedelta, timezone

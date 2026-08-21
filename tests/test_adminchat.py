@@ -3,13 +3,13 @@ from uuid import uuid4
 import pytest
 
 import uproot as u
-import uproot.chat as chat
 import uproot.core as c
 import uproot.deployment as d
 import uproot.events as e
 import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
+from uproot import chat
 from uproot.services import player_service as ps
 
 QUEUES: dict[tuple[str, ...], q.QueueType] = {}
@@ -43,7 +43,7 @@ def make_player() -> t.PlayerIdentifier:
 
 async def next_event(pid: t.PlayerIdentifier, expected: str, predicate=None) -> dict:
     while True:
-        queued_id, queued = await q.read(QUEUES[tuple(pid)])
+        _, queued = await q.read(QUEUES[tuple(pid)])
         if queued["event"] == expected and (predicate is None or predicate(queued)):
             return queued
 
