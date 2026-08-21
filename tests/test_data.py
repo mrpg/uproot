@@ -1,5 +1,5 @@
 import random
-from datetime import date, datetime, time
+from datetime import UTC, date, datetime, time
 from io import BytesIO
 from unittest.mock import patch
 from zipfile import ZipFile
@@ -430,7 +430,9 @@ def test_generate_briefcase(monkeypatch):
         ],
     )
 
-    briefcase = data_service.generate_briefcase("session1", [], False)
+    briefcase = data_service.generate_briefcase(
+        "session1", [], False, wrapper="session1"
+    )
 
     with ZipFile(BytesIO(briefcase)) as zf:
         assert sorted(zf.namelist()) == [
@@ -472,7 +474,9 @@ def test_generate_briefcase_grouped(monkeypatch):
     )
     monkeypatch.setattr(data_service, "page_times_rows", lambda sname: [])
 
-    briefcase = data_service.generate_briefcase("session1", ["round"], False, "jsonl")
+    briefcase = data_service.generate_briefcase(
+        "session1", ["round"], False, "jsonl", wrapper="session1"
+    )
 
     with ZipFile(BytesIO(briefcase)) as zf:
         assert sorted(zf.namelist()) == [
@@ -728,14 +732,13 @@ def test_stable_encode_decode_datetime_naive():
 
 
 def test_stable_encode_decode_datetime_utc():
-    from datetime import timezone
 
-    test_datetime = datetime(2013, 9, 17, 14, 30, 45, tzinfo=timezone.utc)
+    test_datetime = datetime(2013, 9, 17, 14, 30, 45, tzinfo=UTC)
     encoded = encode(test_datetime)
     decoded = decode(encoded)
     assert decoded == test_datetime
     assert isinstance(decoded, datetime)
-    assert decoded.tzinfo == timezone.utc
+    assert decoded.tzinfo == UTC
 
 
 def test_stable_encode_decode_datetime_negative_offset():
@@ -856,7 +859,7 @@ def test_stable_encode_decode_datetime_edge_cases():
         datetime(1, 1, 1, 0, 0, 0),  # Minimum datetime
         datetime(9999, 12, 31, 23, 59, 59, 999999),  # Maximum datetime
         datetime(2000, 2, 29, 12, 0, 0),  # Leap year datetime
-        datetime(2013, 1, 1, 0, 0, 0, tzinfo=timezone.utc),  # UTC at epoch boundary
+        datetime(2013, 1, 1, 0, 0, 0, tzinfo=UTC),  # UTC at epoch boundary
         datetime(
             2013, 1, 1, 0, 0, 0, tzinfo=timezone(timedelta(hours=14))
         ),  # Maximum positive offset
