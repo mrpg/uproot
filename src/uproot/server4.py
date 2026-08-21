@@ -409,10 +409,18 @@ def briefcase_export_response(
             status_code=400, detail="Invalid filetype. Use: csv or jsonl"
         )
 
+    briefcase_name = str(sname)
+
     return Response(
-        a.generate_briefcase(sname, gvar, filters, filetype),
+        a.generate_briefcase(
+            sname,
+            gvar,
+            filters,
+            filetype,
+            wrapper=briefcase_name,
+        ),
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={sname}.zip"},
+        headers={"Content-Disposition": f"attachment; filename={briefcase_name}.zip"},
     )
 
 

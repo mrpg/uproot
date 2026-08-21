@@ -1270,9 +1270,16 @@ async def session_data_download(
     ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
 
     stamp = datetime.now(UTC).strftime("%Y-%m-%d_%H%M")
+    briefcase_name = f"{sname}_{stamp}"
 
     t0 = now()
-    briefcase = a.generate_briefcase(sname, gvar, filters, filetype)
+    briefcase = a.generate_briefcase(
+        sname,
+        gvar,
+        filters,
+        filetype,
+        wrapper=briefcase_name,
+    )
 
     d.LOGGER.debug(
         "generate_briefcase took %.5f seconds",
@@ -1282,7 +1289,7 @@ async def session_data_download(
     return Response(
         briefcase,
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={sname}_{stamp}.zip"},
+        headers={"Content-Disposition": f"attachment; filename={briefcase_name}.zip"},
     )
 
 

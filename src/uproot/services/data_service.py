@@ -234,12 +234,14 @@ def generate_briefcase(
     gvar: list[str],
     filters: bool,
     filetype: str = "csv",
+    *,
+    wrapper: str,
 ) -> bytes:
     """Generate a ZIP briefcase containing all key formats for a session.
 
     The briefcase always contains the ultralong, sparse, and latest formats
     as well as the page times; a non-empty `gvar` adds a grouped "latest"
-    format on top.
+    format on top. `wrapper` names the archive's top-level directory.
     """
     gvar = [gv for gv in gvar if gv]
     rows = list(data_rows_for_session(sname, filters))
@@ -255,7 +257,7 @@ def generate_briefcase(
 
     return data.briefcase_out(
         formats,
-        wrapper=str(sname),
+        wrapper=wrapper,
         filetype=filetype,
         readme=briefcase_readme(str(sname), filetype, gvar, filters),
         extras={
