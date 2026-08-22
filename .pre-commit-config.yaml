@@ -28,7 +28,7 @@ repos:
 
       - id: translations
         name: translations
-        entry: python check_translations.py
+        entry: uv run python check_translations.py
         language: system
         pass_filenames: false
         files: ^(check_translations\.py|src/uproot/.*\.(html|js|py|ya?ml))$
