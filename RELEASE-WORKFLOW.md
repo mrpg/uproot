@@ -15,7 +15,7 @@
 1. Push with `git push --tags`.
 1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new).
 1. Clean and build release artifacts: `rm -rf dist/ && uv run pip wheel . -w dist/`.
-1. Verify release artifacts: `uv run twine check dist/*`.
+1. Verify release artifacts: `uv run twine check dist/uproot*.whl`.
 1. Upload to PyPI: `uv run twine upload dist/uproot*.whl`.
 
 # Versioning policy
@@ -28,6 +28,7 @@
 
 # Versions
 
+- `0.5.0` (2026-08-22)
 - `0.4.0` (2026-08-14)
 - `0.3.1` (2026-08-05)
 - `0.3.0` (2026-07-26)
