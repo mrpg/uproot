@@ -25,3 +25,10 @@ repos:
         language: system
         types: [python]
         exclude: ^(tests|build|dist)/
+
+      - id: translations
+        name: translations
+        entry: python check_translations.py
+        language: system
+        pass_filenames: false
+        files: ^(check_translations\.py|src/uproot/.*\.(html|js|py|ya?ml))$
