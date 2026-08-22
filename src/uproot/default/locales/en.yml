@@ -1122,3 +1122,9 @@
 
 ? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant announcements.'
 : 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant announcements.'
+
+? 'Conceal password'
+: 'Conceal password'
+
+? 'Reveal password'
+: 'Reveal password'
