@@ -356,7 +356,7 @@ async def show_page(
             else:
                 send_from = int(uproot_from_str)
                 is_back_navigation = False
-        except ValueError:
+        except (KeyError, ValueError):
             send_from = -1000
             is_back_navigation = False
 
