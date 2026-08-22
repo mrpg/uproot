@@ -598,8 +598,8 @@
 ? 'OK'
 : 'OK'
 
-? 'One or more labels exceed the maximum length of 128 characters.'
-: 'One or more labels exceed the maximum length of 128 characters.'
+? 'Labels must be unique, no longer than 128 characters, and use only A-Za-z0-9-._.'
+: 'Labels must be unique, no longer than 128 characters, and use only A-Za-z0-9-._.'
 
 ? 'Player ID'
 : 'Player ID'

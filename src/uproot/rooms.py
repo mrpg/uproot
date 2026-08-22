@@ -44,9 +44,19 @@ def room(
         raise ValueError("Room name is invalid")
 
     if labels is not None:
+        seen: set[str] = set()
+
         for label in labels:
+            if not label:
+                raise ValueError("Room labels must not be empty")
             if len(label) > 128:
                 raise ValueError("Room labels must be no longer than 128 characters")
+            if not valid_token(label):
+                raise ValueError("Room labels contain invalid characters")
+            if label in seen:
+                raise ValueError("Room labels must be unique")
+
+            seen.add(label)
 
     return {
         "name": name,

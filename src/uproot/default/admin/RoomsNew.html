@@ -61,7 +61,9 @@ New room
         const labelsValue = I("labels").value.trim();
         if (labelsValue) {
             const labels = labelsValue.split("\n").map((a) => a.trim()).filter(l => l.length > 0);
-            labelsValid = labels.every(label => label.length <= 128);
+            labelsValid = labels.every(
+                label => label.length <= 128 && uproot.isValidToken(label)
+            ) && new Set(labels).size === labels.length;
         }
 
         // Validate session name if entered
@@ -77,7 +79,7 @@ New room
             uproot.error(_("The room name you entered already exists."));
         }
         else if (!labelsValid) {
-            uproot.error(_("One or more labels exceed the maximum length of 128 characters."));
+            uproot.error(_("Labels must be unique, no longer than 128 characters, and use only A-Za-z0-9-._."));
         }
         else if (!snameValid) {
             uproot.error(_("The session you entered does not exist."));

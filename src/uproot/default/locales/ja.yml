@@ -598,8 +598,8 @@
 ? 'OK'
 : 'OK'
 
-? 'One or more labels exceed the maximum length of 128 characters.'
-: '1つ以上のラベルが最大長128文字を超えています。'
+? 'Labels must be unique, no longer than 128 characters, and use only A-Za-z0-9-._.'
+: 'ラベルは重複せず、128文字以内で、A-Za-z0-9-._ の文字のみを使用する必要があります。'
 
 ? 'Player ID'
 : 'プレイヤーID'
