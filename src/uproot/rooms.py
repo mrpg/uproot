@@ -62,7 +62,7 @@ def freejoin(room: RoomType) -> bool:
     return not room["labels"] and room["capacity"] is None
 
 
-def file(filename: str) -> list[str]:
+def from_file(filename: str) -> list[str]:
     with open(filename) as f:
         return list(
             {
