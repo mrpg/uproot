@@ -95,6 +95,13 @@ def set_offline(pid: PlayerIdentifier) -> None:
 def set_online(pid: PlayerIdentifier) -> None:
     t = time()
 
+    previous = ONLINE[pid.sname].get(pid.uname)
+    if previous is not None:
+        try:
+            ONLINE_SORTED.remove((previous, pid))
+        except ValueError:
+            pass
+
     ONLINE[pid.sname][pid.uname] = t
     ONLINE_SORTED.add((t, pid))
 
