@@ -73,14 +73,18 @@ def freejoin(room: RoomType) -> bool:
 
 
 def from_file(filename: str) -> list[str]:
-    with open(filename) as f:
-        return list(
-            {
-                return_or_raise(label, valid_token, msg="Label has invalid characters")
-                for line in f
-                if (label := line.split("#")[0].strip())
-            }
-        )
+    labels: dict[str, None] = {}
+
+    with open(filename, encoding="utf-8") as f:
+        for line in f:
+            label = line.split("#")[0].strip()
+            if not label:
+                continue
+
+            return_or_raise(label, valid_token, msg="Label has invalid characters")
+            labels[label] = None
+
+    return list(labels)
 
 
 def constrain_label(label: Any) -> str:
