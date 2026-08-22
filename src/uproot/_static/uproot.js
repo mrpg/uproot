@@ -512,7 +512,7 @@ window.uproot = {
             return false;
         }
 
-        form.submit();
+        HTMLFormElement.prototype.submit.call(form);
         return true;
     },
 
