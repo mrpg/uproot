@@ -491,3 +491,49 @@ function praise() {
         uproot.alert(el.outerHTML);
     });
 }
+
+function announcements() {
+    uproot.invoke("announcements").then((data) => {
+        if (data.error) {
+            uproot.alert(`<p>${_("We couldn't load announcements.")} ${_("Please visit")} <a class="link-uproot" href="https://uproot.science/" target="_blank">uproot.science</a>.</p>`);
+            return;
+        } else {
+            document.getElementById("nudge-announcements")?.remove();
+        }
+
+        let safeHTML = "<p>";
+
+        safeHTML += _("You are running version #i_am#. The current version is #recommended#.")
+            .replace("#i_am#", uproot.escape(uproot.vars.uproot_version))
+            .replace("#recommended#", uproot.escape(data.recommendedVersion));
+
+        safeHTML += "</p>";
+
+        if (data.generalAnnouncement) {
+            safeHTML += `<div class="alert alert-success border-success callout text-black" role="alert">
+                             <b>${_("General announcement")}</b>:
+                             ${uproot.escape(data.generalAnnouncement)}
+                         </div>`;
+        }
+
+        if (!data.versionIsCurrent) {
+            safeHTML += "<p><b>";
+            safeHTML += _("Your version is outdated.");
+            safeHTML += "</b></p>";
+        }
+        else if (data.versionAnnouncement == null) {
+            safeHTML += "<p><i>";
+            safeHTML += _("Your version appears to be up to date.");
+            safeHTML += "</i></p>";
+        }
+
+        if (data.versionAnnouncement != null) {
+            safeHTML += '<p class="alert alert-danger border-danger callout text-black" role="alert">';
+            safeHTML += `<b>${_("Announcement for your version")}</b>: `;
+            safeHTML += uproot.escape(data.versionAnnouncement);
+            safeHTML += "</p>";
+        }
+
+        uproot.alert(safeHTML);
+    });
+}

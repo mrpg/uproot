@@ -20,13 +20,21 @@ Dashboard
             {% translate %}
             You have not checked for important announcements recently.
             {% endtranslate %}
+            <small class="d-block form-text">
+                {% translate %}
+                uproot never automatically phones home.
+                {% endtranslate %}
+                {% translate %}
+                Clicking this button makes your uproot server check whether the developers have posted any relevant announcements.
+                {% endtranslate %}
+            </small>
         </div>
         <div>
-            <a class="btn btn-sm btn-warning" href="../status/">
+            <button type="button" class="btn btn-sm btn-warning" onclick="announcements()">
                 {% translate %}
                 Check now
                 {% endtranslate %}
-            </a>
+            </button>
         </div>
     </div>
 </div>

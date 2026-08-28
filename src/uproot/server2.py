@@ -685,6 +685,7 @@ async def dashboard(
                     if sinfo["active"]
                 },
                 "nudge_announcements": nudge_announcements(),
+                "uproot_version": u.__version__,
             },
         )
     )
@@ -1373,11 +1374,9 @@ async def status(
                     "dbsize": dbsize,
                     "missing": missing,
                     "sessions": sessions,
-                    "versions": {
-                        "uproot": u.__version__,
-                        "python": sys.version,
-                    },
                     "nudge_announcements": nudge_announcements(),
+                    "python_version": sys.version,
+                    "uproot_version": u.__version__,
                 },
                 {
                     "packages": SortedDict(

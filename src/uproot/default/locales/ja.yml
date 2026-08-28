@@ -1120,7 +1120,7 @@
 ? 'uproot never automatically phones home.'
 : 'uprootが自動的に外部と通信することは一切ありません。'
 
-? 'Clicking this button simply makes your uproot server check whether the developers have posted any relevant announcements.'
+? 'Clicking this button makes your uproot server check whether the developers have posted any relevant announcements.'
 : 'このボタンを押した場合にのみ、uprootサーバーが開発者からの関連するお知らせの有無を確認します。'
 
 ? 'Conceal password'
