@@ -181,48 +181,41 @@ First page
 """.lstrip()
 
 PD_INIT_PY = """
-# SPDX-License-Identifier: 0BSD
+# Docs are available at https://uproot.science/
+# Examples are available at https://github.com/mrpg/uproot-examples
+#
+# This example app is under the 0BSD license. You can use it freely and build on it
+# without any limitations and without any attribution. However, these two lines must be
+# preserved in any uproot app (the license file is automatically installed in projects):
 #
 # Third-party dependencies:
 # - uproot: LGPL v3+, see ../uproot_license.txt
-#
-# Docs are available at https://uproot.science/
-# Examples are available at https://github.com/mrpg/uproot-examples
 
 from uproot.fields import *
 from uproot.smithereens import *
 
 DESCRIPTION = "Prisoner's dilemma"
-
-# Players are matched into pairs, so session sizes should be a multiple of 2.
-# The admin interface uses this constant when suggesting session sizes.
 SUGGESTED_MULTIPLE = 2
 
 
-def new_player(player: PlayerType) -> None:
-    # This function runs exactly once per player, before they see their first page.
-    # It is the right place to initialize fields. Anything you assign to `player`
-    # is saved automatically and can be read on any later page.
-    player.complete = False
-
-
 class C:
-    # The class C holds an app's constants. They are also available in HTML
-    # templates, e.g. as {{ C.TEMPTATION_PAYOFF }}.
-    TEMPTATION_PAYOFF = 15
+    PAYOFF_MATRIX = {
+        (True, True): 10,
+        (True, False): 0,
+        (False, True): 15,
+        (False, False): 3,
+    }
+
+
+class Instructions(Page):
+    pass
 
 
 class GroupPlease(GroupCreatingWait):
-    # Players wait on this page until `group_size` of them have arrived; they are
-    # then matched into a group. Wait pages come with a built-in template, so
-    # there is no "GroupPlease.html".
     group_size = 2
 
 
 class Dilemma(Page):
-    # Each regular Page has an HTML template of the same name - here, that is
-    # "Dilemma.html". `fields` defines the form inputs that {{ fields() }} shows
-    # there. Submitted values are saved on the player, e.g. `player.cooperate`.
     fields = dict(
         cooperate=RadioField(
             label="Do you wish to cooperate?",
@@ -232,47 +225,49 @@ class Dilemma(Page):
 
 
 class Sync(SynchronizingWait):
-    # Players wait on this page until everyone in their group has reached it.
-
     @classmethod
     def all_here(page, group: GroupType) -> None:
-        # This method runs exactly once per group, as soon as its last member
-        # arrives. Both players have made their choice by then, so payoffs can
-        # be computed.
         for player in group.players:
             other = player.other_in_group
-
-            # Python's `match` statement compares the pair of choices against
-            # each `case` from top to bottom and runs the first one that fits.
-            # It reads like a payoff matrix: (own choice, other's choice).
-            match player.cooperate, other.cooperate:
-                case True, True:  # both cooperate
-                    player.payoff = 10
-                case True, False:  # player cooperates, other defects
-                    player.payoff = 0
-                case False, True:  # player defects, other cooperates
-                    # Defecting against a cooperator yields the highest payoff.
-                    # This temptation is what makes the game a dilemma.
-                    player.payoff = C.TEMPTATION_PAYOFF
-                case False, False:  # both defect
-                    player.payoff = 3
+            player.payoff = C.PAYOFF_MATRIX[player.cooperate, other.cooperate]
 
 
 class Results(Page):
-    # "Results.html" shows each player their own choice, their partner's choice,
-    # and their payoff.
-
-    @classmethod
-    def before_once(page, player: PlayerType) -> None:
-        # When the player reaches this page, mark them as complete. This method is
-        # guaranteed to run exactly once and just before this page is shown. In
-        # exported data, `complete` distinguishes players who finished from those
-        # who dropped out along the way.
-        player.complete = True
+    pass
 
 
-# Players see these pages in this order.
+def pipeline(session: SessionType) -> list[dict[str, Any]]:
+    rows = []
+
+    for group in session.groups(app=__name__):
+        players = group.players
+        player1, player2 = players
+
+        for member_id, player in enumerate(players):
+            other = player2 if member_id == 0 else player1
+            player_data = player.within(app=__name__)
+            other_data = other.within(app=__name__)
+            cooperate = player_data.get("cooperate")
+            other_cooperate = other_data.get("cooperate")
+
+            rows.append(
+                {
+                    "session": session.name,
+                    "group": group.name,
+                    "uname": player.name,
+                    "member_id": member_id,
+                    "cooperate": cooperate,
+                    "other_uname": other.name,
+                    "other_cooperate": other_cooperate,
+                    "payoff": player_data.get("payoff"),
+                }
+            )
+
+    return rows
+
+
 page_order = [
+    Instructions,
     GroupPlease,
     Dilemma,
     Sync,
@@ -280,11 +275,73 @@ page_order = [
 ]
 """.lstrip()
 
+INSTRUCTIONS_HTML = """
+{% extends "Base.html" %}
+
+
+{% block title %}
+
+Instructions
+
+{% endblock title %}
+
+
+{% block main %}
+
+<p>In this study, you will be paired with another participant.</p>
+
+<p>You will each make one private choice: to cooperate or not to cooperate.</p>
+
+<p>There is no opportunity to communicate with the other participant. Neither of you will learn the other's choice until both decisions have been
+    submitted. Please make your choice on the next page.</p>
+
+<p>The two decisions jointly determine both your payoff and the other participant’s payoff as follows:</p>
+
+<table class="table">
+  <thead class="align-top">
+    <tr>
+      <th style="width: 30%;"></th>
+      <th style="width: 35%;">The other participant cooperates</th>
+      <th style="width: 35%;">The other participant does not\xa0cooperate</th>
+    </tr>
+  </thead>
+  <tbody class="align-top">
+    <tr>
+      <th class="ps-0">You cooperate</th>
+      <td>
+        {{ C.PAYOFF_MATRIX[(True, True)] | fmtnum(places=0, pre="$") }} for you<br>
+        {{ C.PAYOFF_MATRIX[(True, True)] | fmtnum(places=0, pre="$") }} for the other participant
+      </td>
+      <td>
+        {{ C.PAYOFF_MATRIX[(True, False)] | fmtnum(places=0, pre="$") }} for you<br>
+        {{ C.PAYOFF_MATRIX[(False, True)] | fmtnum(places=0, pre="$") }} for the other participant
+      </td>
+    </tr>
+    <tr>
+      <th class="ps-0">You do not\xa0cooperate</th>
+      <td>
+        {{ C.PAYOFF_MATRIX[(False, True)] | fmtnum(places=0, pre="$") }} for you<br>
+        {{ C.PAYOFF_MATRIX[(True, False)] | fmtnum(places=0, pre="$") }} for the other participant
+      </td>
+      <td>
+        {{ C.PAYOFF_MATRIX[(False, False)] | fmtnum(places=0, pre="$") }} for you<br>
+        {{ C.PAYOFF_MATRIX[(False, False)] | fmtnum(places=0, pre="$") }} for the other participant
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+{% endblock main %}
+""".lstrip()
+
 DILEMMA_HTML = """
 {% extends "Base.html" %}
 
+
 {% block title %}
-Dilemma
+
+Please decide
+
 {% endblock title %}
 
 
@@ -298,8 +355,11 @@ Dilemma
 RESULTS_HTML = """
 {% extends "Base.html" %}
 
+
 {% block title %}
+
 Results
+
 {% endblock title %}
 
 
@@ -527,16 +587,19 @@ def new_prisoners_dilemma(path: Path, app: str = "prisoners_dilemma") -> None:
     (appdir / "_static").mkdir(exist_ok=False)
 
     with open(appdir / "__init__.py", "w", encoding="utf-8") as f1:
-        f1.write(PD_INIT_PY.replace("#APP#", app))
+        f1.write(PD_INIT_PY)
 
-    with open(appdir / "Dilemma.html", "w", encoding="utf-8") as f2:
-        f2.write(DILEMMA_HTML)
+    with open(appdir / "Instructions.html", "w", encoding="utf-8") as f2:
+        f2.write(INSTRUCTIONS_HTML)
 
-    with open(appdir / "Results.html", "w", encoding="utf-8") as f3:
-        f3.write(RESULTS_HTML)
+    with open(appdir / "Dilemma.html", "w", encoding="utf-8") as f3:
+        f3.write(DILEMMA_HTML)
 
-    with open(appdir / "simulate.js", "w", encoding="utf-8") as f4:
-        f4.write(SIMULATE_PD_JS.replace("#APP#", app))
+    with open(appdir / "Results.html", "w", encoding="utf-8") as f4:
+        f4.write(RESULTS_HTML)
+
+    with open(appdir / "simulate.js", "w", encoding="utf-8") as f5:
+        f5.write(SIMULATE_PD_JS.replace("#APP#", app))
 
 
 def new_minimal_app(path: Path, app: str = "my_app") -> None:
