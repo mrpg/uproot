@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -75,6 +77,48 @@ async def test_create_session_accepts_zero_players_like_the_admin_ui() -> None:
     assert result["sname"] == sname
     assert detail["n_players"] == 0
     assert detail["players"] == []
+
+
+async def test_session_settings_validation_errors_are_bad_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    reset_admin_state()
+
+    def validate_session_settings(
+        admin: s.Storage,
+        config: str,
+        settings: dict[str, Any],
+    ) -> None:
+        raise ValueError("Invalid example settings")
+
+    app = SimpleNamespace(validate_session_settings=validate_session_settings)
+    monkeypatch.setattr(u, "APPS", {"settings_app": app}, raising=False)
+    monkeypatch.setitem(u.CONFIGS, "test-api", ["settings_app"])
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.create_session(
+            api.SessionCreate(config="test-api", n_players=0),
+            None,
+        )
+
+    assert excinfo.value.status_code == 400
+    assert excinfo.value.detail == "Invalid example settings"
+
+    roomname = f"api-settings-room-{uuid4().hex[:8]}"
+    await api.create_room(
+        api.RoomCreate(name=roomname, config="test-api"),
+        None,
+    )
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.create_session_in_room(
+            roomname,
+            api.RoomSessionCreate(config="test-api", n_players=0),
+            None,
+        )
+
+    assert excinfo.value.status_code == 400
+    assert excinfo.value.detail == "Invalid example settings"
 
 
 async def test_room_patch_preserves_omitted_fields() -> None:

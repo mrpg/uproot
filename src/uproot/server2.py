@@ -144,8 +144,9 @@ async def render_session_settings_forms() -> (
     """Render trusted project or app fragments for each session config.
 
     Fragments receive config, apps, appname, settings, and editor_id. App
-    fragments additionally receive C and appstatic. A config whose default
-    settings or fragments are broken gets an error message instead of forms.
+    fragments additionally receive C, appstatic, and the return value of their
+    optional admin_settings_context callback. A config whose default settings,
+    callback, or fragments are broken gets an error message instead of forms.
     """
     forms: dict[str, list[Markup]] = {}
     errors: dict[str, str] = {}
@@ -164,20 +165,44 @@ async def render_session_settings_forms() -> (
 
             for template_name, appname in session_settings_templates(config):
                 editor_number += 1
-                context = BUILTINS | {
-                    "apps": apps,
-                    "appname": appname,
-                    "config": config,
-                    "editor_id": f"session-settings-editor-{editor_number}",
-                    "internalstatic": static_factory(),
-                    "projectstatic": static_factory("_project"),
-                    "settings": settings,
-                }
+                data: dict[str, Any] = {}
+
+                if appname is not None:
+                    app = u.APPS[appname]
+
+                    if hasattr(app, "admin_settings_context"):
+                        with Admin() as admin:
+                            data = await ensure_awaitable(
+                                app.admin_settings_context,
+                                admin=admin,
+                                config=config,
+                                settings=settings,
+                            )
+
+                        ensure(
+                            isinstance(data, dict),
+                            TypeError,
+                            "admin_settings_context() must return a dictionary",
+                        )
+
+                context = (
+                    data
+                    | BUILTINS
+                    | {
+                        "apps": apps,
+                        "appname": appname,
+                        "config": config,
+                        "editor_id": f"session-settings-editor-{editor_number}",
+                        "internalstatic": static_factory(),
+                        "projectstatic": static_factory("_project"),
+                        "settings": settings,
+                    }
+                )
 
                 if appname is not None:
                     context |= {
                         "appstatic": static_factory(appname),
-                        "C": getattr(u.APPS[appname], "C", {}),
+                        "C": getattr(app, "C", {}),
                     }
 
                 html = await PENV.get_template(template_name).render_async(**context)
@@ -791,10 +816,11 @@ async def roommain(
     roomname: str,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
+    settings_forms, settings_errors = await render_session_settings_forms()
+
     with Admin() as admin:
         ensure(roomname in admin.rooms, ValueError, "Room not found")
 
-        settings_forms, settings_errors = await render_session_settings_forms()
         room = admin.rooms[roomname]
         extra: dict[str, Any] = {}
 
@@ -869,12 +895,15 @@ async def new_session_in_room(
         if admin.rooms[roomname]["sname"] is not None:
             return RedirectResponse(f"{d.ROOT}/admin/room/{roomname}/", status_code=303)
 
-        sid = c.create_session(
-            admin,
-            config,
-            sname=sname_,
-            settings=settings_parsed,
-        )
+        try:
+            sid = c.create_session(
+                admin,
+                config,
+                sname=sname_,
+                settings=settings_parsed,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         admin.rooms[roomname]["sname"] = sid.sname
         admin.rooms[roomname]["open"] = True
@@ -1015,12 +1044,15 @@ async def new_session2(
     settings_parsed = parse_session_settings(settings, config)
 
     with Admin() as admin:
-        sid = c.create_session(
-            admin,
-            config,
-            sname=sname_,
-            settings=settings_parsed,
-        )
+        try:
+            sid = c.create_session(
+                admin,
+                config,
+                sname=sname_,
+                settings=settings_parsed,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     with t.materialize(sid) as session:
         if simulate:

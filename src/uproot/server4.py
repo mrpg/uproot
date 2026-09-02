@@ -531,12 +531,15 @@ async def create_session(
         if body.sname and body.sname in admin._uproot_sessions:
             raise HTTPException(status_code=400, detail="Session name already exists")
 
-        sid = c.create_session(
-            admin,
-            body.config,
-            sname=body.sname,
-            settings=settings_parsed,
-        )
+        try:
+            sid = c.create_session(
+                admin,
+                body.config,
+                sname=body.sname,
+                settings=settings_parsed,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     with t.materialize(sid) as session:
         if body.simulate:
@@ -1379,12 +1382,15 @@ async def create_session_in_room(
             data.append({"label": label})
 
     with Admin() as admin:
-        sid = c.create_session(
-            admin,
-            body.config,
-            sname=body.sname,
-            settings=settings_parsed,
-        )
+        try:
+            sid = c.create_session(
+                admin,
+                body.config,
+                sname=body.sname,
+                settings=settings_parsed,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         admin.rooms[roomname]["sname"] = sid.sname
         admin.rooms[roomname]["open"] = True

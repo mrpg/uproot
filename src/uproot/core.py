@@ -6,6 +6,7 @@
 # created, initialized, and so on.
 
 import importlib.metadata
+import inspect
 import sys
 from collections.abc import Iterable, Sequence
 from decimal import Decimal
@@ -43,6 +44,9 @@ def create_session(
         "Session settings must be a JSON object",
     )
 
+    if settings is None:
+        settings = {}
+
     if sname is None:
         sname = t.token(admin._uproot_sessions)
     elif check_unique:
@@ -51,6 +55,22 @@ def create_session(
             ValueError,
             "Session name already exists",
         )
+
+    for appname in u.CONFIGS[config]:
+        app = u.APPS[appname]
+
+        if hasattr(app, "validate_session_settings"):
+            validator = app.validate_session_settings
+            ensure(
+                not inspect.iscoroutinefunction(validator),
+                TypeError,
+                "validate_session_settings() must be synchronous",
+            )
+            validator(
+                admin=admin,
+                config=config,
+                settings=settings,
+            )
 
     sid = t.SessionIdentifier(sname)
 
@@ -67,7 +87,7 @@ def create_session(
             for dist in importlib.metadata.distributions()
         } | {"python": sys.version}
         session.room = None
-        session._uproot_settings = settings or {}
+        session._uproot_settings = settings
         session.sid = sid
         session._uproot_initialized = False
         session._uproot_simulate = False
