@@ -191,6 +191,21 @@
     uproot.onStart(() => initializeTable());
 
     var filterButtonsTemp = "";
+
+    function fitFullScreenTable() {
+        const tableContainer = I("tableContainer");
+        const filterControls = I("filter-data-to-display");
+
+        if (!filterControls.classList.contains("fixed-bottom")) {
+            return;
+        }
+
+        const tableTop = tableContainer.getBoundingClientRect().top;
+        const filterTop = filterControls.getBoundingClientRect().top;
+        const availableHeight = filterTop - tableTop;
+        tableContainer.style.height = `${Math.max(availableHeight, 0)}px`;
+    }
+
     function fullScreenTable() {
         filterButtonsTemp = I("filter-data-to-display").innerHTML;
         I("buttongroup-normal-table").classList.add("d-none");
@@ -207,6 +222,7 @@
         I("uproot-title").classList.add("h4");
         I("uproot-title").classList.add("pt-1");
         writeAllAppNames();
+        fitFullScreenTable();
     }
 
     function normalTable() {
@@ -216,6 +232,7 @@
         I("filter-data-to-display").innerHTML = filterButtonsTemp;
         I("filter-data-to-display").classList.remove("fixed-bottom");
         I("tableContainer").setAttribute("class", "mt-0 table-sticky-outer");
+        I("tableContainer").style.removeProperty("height");
         I("title-container").classList.remove("mb-1");
         I("title-container").classList.remove("mt-3");
         I("title-container").classList.add("my-4");
@@ -224,6 +241,8 @@
         I("uproot-title").classList.remove("h4");
         I("uproot-title").classList.remove("pt-1");
     }
+
+    window.addEventListener("resize", fitFullScreenTable);
 
     var fullWidthTable = false;
     function toggleTableWidth() {
