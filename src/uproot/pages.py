@@ -152,7 +152,7 @@ def app_or_default(app: Any, filename: str) -> str:
         in_app = Path(app.__name__) / filename
 
         if in_app.exists():
-            return str(in_app)
+            return in_app.as_posix()
 
     # uproot default or project default
     return filename

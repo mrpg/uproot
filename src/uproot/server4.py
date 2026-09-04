@@ -475,7 +475,7 @@ async def rendered_digest_fragment(sname: str, appname: str) -> str:
         value = await t.ensure_awaitable(app.digest, session=session)
         data = value if isinstance(value, dict) else {"data": value}
         context = admin_app_context(appname, session, data)
-        return await PENV.get_template(str(template_path)).render_async(**context)
+        return await PENV.get_template(template_path.as_posix()).render_async(**context)
 
 
 async def rendered_pipeline_fragment(sname: str, appname: str) -> str:
@@ -486,7 +486,7 @@ async def rendered_pipeline_fragment(sname: str, appname: str) -> str:
 
     with Session(sname) as session:
         context = admin_app_context(appname, session)
-        return await PENV.get_template(str(template_path)).render_async(**context)
+        return await PENV.get_template(template_path.as_posix()).render_async(**context)
 
 
 # =============================================================================

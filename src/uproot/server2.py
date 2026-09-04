@@ -1175,7 +1175,9 @@ async def session_digest(
             )
 
             html[appname] = Markup(  # nosec B704
-                await PENV.get_template(str(digest_template)).render_async(**context)
+                await PENV.get_template(digest_template.as_posix()).render_async(
+                    **context
+                )
             )
 
     return HTMLResponse(
@@ -1231,7 +1233,9 @@ async def session_pipeline(
             }
 
             html[appname] = Markup(  # nosec B704
-                await PENV.get_template(str(pipeline_template)).render_async(**context)
+                await PENV.get_template(pipeline_template.as_posix()).render_async(
+                    **context
+                )
             )
 
     return HTMLResponse(
