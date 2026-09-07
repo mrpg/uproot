@@ -419,16 +419,22 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
 
     const listGroup = createElement("div", "uproot-pagination");
 
-    Object.entries(data[groupKey]).forEach(([key, value]) => {
-        if (key == null) return;
+    const entries = Object.entries(data[groupKey])
+        .map(([key, value]) => ({
+            key,
+            value,
+            displayKey: key.startsWith("~") ? key.substring(1) : key
+        }))
+        .sort((a, b) => a.displayKey.localeCompare(b.displayKey, undefined, { sensitivity: "base" }));
 
+    entries.forEach(({ key, value, displayKey }) => {
         const item = createElement("div",
             "align-items-start border-start callout d-flex justify-content-between px-3 py-2 mb-3 uproot-pagination-item " +
             cardBodyClass
         );
+        item.dataset.paginationLabel = Array.from(displayKey.trim())[0]?.toLocaleUpperCase() || "";
 
         const content = createElement("div", "flex-grow-1 overflow-x-auto");
-        const displayKey = key.startsWith("~") ? key.substring(1) : key;
 
         const title = createElement("div", cardTitleFontClass + " fw-semibold h5 my-2", {
             textContent: displayKey
