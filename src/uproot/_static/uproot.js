@@ -1018,7 +1018,7 @@ window.uproot = {
                 prevLi.appendChild(prevA);
                 ul.appendChild(prevLi);
 
-                // Page numbers with ellipsis for large page counts
+                // Page links with ellipsis for large page counts
                 const pages = [];
                 const maxVisiblePages = 20;
                 if (totalPages <= maxVisiblePages) {
@@ -1055,7 +1055,9 @@ window.uproot = {
                         const a = document.createElement("a");
                         a.className = isActive ? "page-link bg-uproot border-uproot text-white" : "page-link text-uproot";
                         a.href = "#";
-                        a.textContent = p;
+                        const firstLabel = items[(p - 1) * itemsPerPage].dataset.paginationLabel;
+                        const lastLabel = items[Math.min(p * itemsPerPage, items.length) - 1].dataset.paginationLabel;
+                        a.textContent = firstLabel && lastLabel ? `${firstLabel}\u200A–\u200A${lastLabel}` : p;
                         if (isActive) a.setAttribute("aria-current", "page");
                         a.addEventListener("click", (e) => {
                             e.preventDefault();
