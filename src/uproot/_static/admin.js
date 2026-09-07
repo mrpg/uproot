@@ -121,6 +121,7 @@ function renderRooms(rooms, containerId) {
 
     sortedRooms.forEach(room => {
         const col = createElement("div", "mb-4 uproot-pagination-item");
+        col.dataset.paginationLabel = Array.from(room.name.trim())[0]?.toLocaleUpperCase() || "";
         const card = createElement("div", "border-uproot callout card");
 
         // Card header
