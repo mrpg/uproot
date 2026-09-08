@@ -142,6 +142,6 @@ td, th, *[style*="table-cell"], .d-table-cell {
         var(--fvn-zero,)
         var(--fvn-alt,);
     font-variant-alternates:
-        character-variant(lc-l-with-tail, alt-double-s)
-        styleset(open-digits);
+        character-variant(lc-l-with-tail, alt-double-s, uc-g-with-spur)
+        styleset(open-digits, round-quotes-and-commas);
 }
