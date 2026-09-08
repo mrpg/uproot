@@ -1020,7 +1020,7 @@ window.uproot = {
 
                 // Page links with ellipsis for large page counts
                 const pages = [];
-                const maxVisiblePages = 20;
+                const maxVisiblePages = 8;
                 if (totalPages <= maxVisiblePages) {
                     for (let i = 1; i <= totalPages; i++) pages.push(i);
                 } else {
