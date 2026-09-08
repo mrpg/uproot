@@ -145,8 +145,8 @@ span[id^="popover-content-"],
 td, th, *[style*="table-cell"], .d-table-cell {
     --fvn-spacing: tabular-nums;
     font-variant-alternates:
-    character-variant(lc-l-with-tail, alt-double-s)
-    styleset(open-digits);
+        character-variant(lc-l-with-tail, alt-double-s)
+        styleset(open-digits);
 }
 ol li::marker {
     --fvn-spacing: tabular-nums;  /* Probably unnecessary, most browsers’ default behavior */
