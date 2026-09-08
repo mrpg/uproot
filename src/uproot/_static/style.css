@@ -118,8 +118,8 @@ button, input, select, textarea {
 * {
     /* Enable selected features defined in inter.css to improve disambiguation of glyphs */
     font-variant-alternates:
-        character-variant(lc-l-with-tail, alt-double-s)
-        styleset(open-digits);
+        character-variant(lc-l-with-tail, alt-double-s, uc-g-with-spur)
+        styleset(open-digits, round-quotes-and-commas);
     /* Disable contextual alternates, since they may produce unwanted results with Inter (e.g., in “Step 1: ‘Go’” */
     font-feature-settings: "calt" 0;
     /* Settings related to number formatting */
@@ -145,8 +145,8 @@ span[id^="popover-content-"],
 td, th, *[style*="table-cell"], .d-table-cell {
     --fvn-spacing: tabular-nums;
     font-variant-alternates:
-    character-variant(lc-l-with-tail, alt-double-s)
-    styleset(open-digits);
+        character-variant(lc-l-with-tail, alt-double-s)
+        styleset(open-digits);
 }
 ol li::marker {
     --fvn-spacing: tabular-nums;  /* Probably unnecessary, most browsers’ default behavior */
