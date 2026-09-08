@@ -1007,7 +1007,7 @@ window.uproot = {
                 const prevLi = document.createElement("li");
                 prevLi.className = "page-item" + (currentPage === 1 ? " disabled" : "");
                 const prevA = document.createElement("a");
-                prevA.className = "page-link text-uproot";
+                prevA.className = "page-link";
                 prevA.href = "#";
                 prevA.setAttribute("aria-label", "Previous");
                 prevA.innerHTML = "&laquo;"; // SAFE
@@ -1046,14 +1046,14 @@ window.uproot = {
                     if (p === "⋯") {
                         li.className = "page-item disabled";
                         const span = document.createElement("span");
-                        span.className = "page-link text-uproot";
+                        span.className = "page-link";
                         span.textContent = "⋯";
                         li.appendChild(span);
                     } else {
                         const isActive = p === currentPage;
                         li.className = "page-item" + (isActive ? " active" : "");
                         const a = document.createElement("a");
-                        a.className = isActive ? "page-link bg-uproot border-uproot text-white" : "page-link text-uproot";
+                        a.className = "page-link";
                         a.href = "#";
                         const firstLabel = items[(p - 1) * itemsPerPage].dataset.paginationLabel;
                         const lastLabel = items[Math.min(p * itemsPerPage, items.length) - 1].dataset.paginationLabel;
@@ -1072,7 +1072,7 @@ window.uproot = {
                 const nextLi = document.createElement("li");
                 nextLi.className = "page-item" + (currentPage === totalPages ? " disabled" : "");
                 const nextA = document.createElement("a");
-                nextA.className = "page-link text-uproot";
+                nextA.className = "page-link";
                 nextA.href = "#";
                 nextA.setAttribute("aria-label", "Next");
                 nextA.innerHTML = "&raquo;"; // SAFE
