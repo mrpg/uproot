@@ -199,6 +199,27 @@ footer a {
     -moz-osx-font-smoothing: grayscale;
 }
 
+
+/* ============================================================================
+   Pagination Styles
+   ============================================================================ */
+
+.pagination .page-item .page-link {
+    color: var(--bs-uproot);
+}
+.pagination .page-item.disabled .page-link {
+    background-color: unset;
+    color: var(--bs-tertiary-color);
+}
+.pagination .page-item.active .page-link {
+    background-color: var(--bs-uproot-bg-light);
+    border-color: rgba(var(--bs-uproot-border-subtle-light-rgb), 0.6);
+    border-bottom-color: var(--bs-uproot-border-subtle);
+    font-weight: 800;
+    pointer-events: none;
+}
+
+
 /* ============================================================================
    Session Page Styles
    ============================================================================ */
@@ -244,6 +265,7 @@ a .not-yet-implemented {
 a:hover .not-yet-implemented {
     display: block;
 }
+
 
 /* ============================================================================
    Admin Chat Inbox
@@ -567,6 +589,7 @@ a:hover .not-yet-implemented {
         max-width: 100%;
     }
 }
+
 
 /* ============================================================================
    Tabulator Data Table Styling
