@@ -6,6 +6,7 @@ This file implements player routes.
 """
 
 import asyncio
+import contextlib
 import functools
 import hashlib
 import hmac
@@ -264,6 +265,32 @@ def valid_player(sname: t.Sessionname, uname: str) -> Storage:
     player = Player(sname, uname)
 
     if not player:
+        raise HTTPException(status_code=403, detail="Bad user")
+
+    return player
+
+
+def api2_player(request: Request, sname: t.Sessionname) -> Storage | None:
+    """Authenticate optional player credentials supplied by uproot.api2()."""
+    uname = request.headers.get("X-Uproot-Player")
+    supplied_csrf = request.headers.get("X-Uproot-CSRF")
+
+    if uname is None and supplied_csrf is None:
+        return None
+    if not uname or not supplied_csrf:
+        raise HTTPException(status_code=403, detail="Incomplete player credentials")
+
+    try:
+        player = valid_player(sname, uname)
+    except (TypeError, ValueError) as error:
+        raise HTTPException(status_code=403, detail="Bad user") from error
+
+    with player:
+        expected_csrf = f"{sname}+{uname}+{player._uproot_key}"
+
+    if not supplied_csrf.isascii() or not hmac.compare_digest(
+        supplied_csrf, expected_csrf
+    ):
         raise HTTPException(status_code=403, detail="Bad user")
 
     return player
@@ -993,12 +1020,23 @@ async def app_queries2(
         raise HTTPException(status_code=400, detail="App has no api2()")
 
     a.session_exists(sname)
+    player = api2_player(request, sname)
+    request.state.uproot_player = player
 
-    with Session(sname) as session:
+    with Session(sname) as session, contextlib.ExitStack() as stack:
+        if player is not None:
+            stack.enter_context(player)
+
+        kwargs = {
+            "request": request,
+            "session": session,
+        }
+        if player is not None:
+            kwargs["player"] = player
+
         result = await ensure_awaitable(
             u.APPS[appname].api2,
-            request=request,
-            session=session,
+            **kwargs,
         )
 
         if isinstance(result, Response):

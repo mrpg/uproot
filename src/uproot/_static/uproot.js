@@ -269,6 +269,24 @@ window.uproot = {
         });
     },
 
+    api2(appname, options = {}) {
+        if (this.root === null || !this.sname || !this.uname || !this.key) {
+            throw new Error("uproot must be initialized before api2() is used");
+        }
+
+        const headers = new Headers(options.headers);
+        headers.set("X-Uproot-CSRF", this.csrf());
+        headers.set("X-Uproot-Player", this.uname);
+
+        const app = encodeURIComponent(appname);
+        const session = encodeURIComponent(this.sname);
+        return fetch(`${this.root}/api2/${app}/${session}/`, {
+            ...options,
+            credentials: options.credentials || "same-origin",
+            headers: headers,
+        });
+    },
+
     invoke(mname, ...params) {
         const lastParam = params[params.length - 1];
         const isKwargs = params.length > 0 &&

@@ -40,6 +40,16 @@ MIN_PASSWORD_LENGTH: int = 5
 ADMINS_PASSWORDS_HASHED: bool = False
 
 
+async def finish_cancelled_tasks(tasks: list[asyncio.Task[Any]]) -> None:
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for result in results:
+        if isinstance(result, BaseException) and not isinstance(
+            result, asyncio.CancelledError
+        ):
+            raise result
+
+
 def validate_admin_password_lengths() -> None:
     for pw in d.ADMINS.values():
         if isinstance(pw, str) and len(pw) < MIN_PASSWORD_LENGTH:
@@ -221,7 +231,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     if hasattr(u, "APPS"):
         u.APPS.stop_watching()
 
-    await asyncio.gather(*tasks)
+    await finish_cancelled_tasks(tasks)
 
 
 uproot_server = FastAPI(
