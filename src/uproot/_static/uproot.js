@@ -1076,7 +1076,7 @@ window.uproot = {
                         a.href = "#";
                         const firstLabel = items[(p - 1) * itemsPerPage].dataset.paginationLabel;
                         const lastLabel = items[Math.min(p * itemsPerPage, items.length) - 1].dataset.paginationLabel;
-                        a.textContent = firstLabel && lastLabel ? `${firstLabel}\u200A–\u200A${lastLabel}` : p;
+                        a.textContent = firstLabel && lastLabel ? `${firstLabel}\u200B\u200A–\u200A\u200B${lastLabel}` : p;
                         if (isActive) a.setAttribute("aria-current", "page");
                         a.addEventListener("click", (e) => {
                             e.preventDefault();

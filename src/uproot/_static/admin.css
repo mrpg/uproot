@@ -205,7 +205,11 @@ footer a {
    ============================================================================ */
 
 .pagination .page-item .page-link {
+    align-items: center;
     color: var(--bs-uproot);
+    display: flex;
+    height: 100%;
+    text-align: center;
 }
 .pagination .page-item.disabled .page-link {
     background-color: unset;
