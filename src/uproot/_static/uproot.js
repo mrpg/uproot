@@ -98,6 +98,7 @@ class RobustWebSocket {
 }
 
 window.uproot = {
+    _domContentLoaded: false,
     dirty: false,
     form: null,
     futStore: {},
@@ -550,11 +551,11 @@ window.uproot = {
     },
 
     onStart(fun) {
-        if (document.readyState === "loading") {
-            window.addEventListener("DOMContentLoaded", fun);
+        if (this._domContentLoaded) {
+            fun();
         }
         else {
-            fun();
+            window.addEventListener("DOMContentLoaded", fun);
         }
     },
 
@@ -1599,6 +1600,15 @@ window.uproot = {
         },
     },
 };
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", () => {
+        uproot._domContentLoaded = true;
+    });
+}
+else {
+    uproot._domContentLoaded = true;
+}
 
 document.addEventListener("alpine:init", () => {
     uproot.installAlpineStore();
