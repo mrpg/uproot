@@ -13,7 +13,7 @@
 1. Push with `git push`. Ensure that CI passes.
 1. Tag with `git tag vX.Y.Z`.
 1. Push with `git push --tags`.
-1. Clean and build release artifacts: `rm -rf dist/ && uv run pip wheel . -w dist/`.
+1. Clean and build release artifacts: `rm -rf dist/ && export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" && umask 022 && uv run pip wheel . -w dist/`.
 1. Verify release artifacts: `uv run twine check dist/uproot*.whl`.
 1. Upload to PyPI: `uv run twine upload dist/uproot*.whl`.
 1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable. Signatures use GnuPG and [botan-slhdsa-signing](https://github.com/mrpg/botan-slhdsa-signing). Verifiers, see [here](https://max.pm/security/).
