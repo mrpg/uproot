@@ -204,12 +204,30 @@ footer a {
    Pagination Styles
    ============================================================================ */
 
+
+.pagination {
+    margin-bottom: 1.25rem !important;
+}
+.pagination > .page-item {
+    max-width: 4em;
+    min-width: 2em;
+    width: 12.5%;
+}
+
+.pagination > li:first-child,
+.pagination > li:last-child {
+    flex-shrink: 0;
+    min-width: 1.75em;
+    width: 1.75em;
+}
+
 .pagination .page-item .page-link {
     align-items: center;
     color: var(--bs-uproot);
     display: flex;
     height: 100%;
-    text-align: center;
+    justify-content: center;
+    padding-inline: 0;
 }
 .pagination .page-item.disabled .page-link {
     background-color: unset;

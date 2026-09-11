@@ -47,6 +47,11 @@ function createElement(tag, className, attrs = {}) {
     return el;
 }
 
+function getPaginationLabel(name) {
+    const [first = "", second = ""] = Array.from(name.trim());
+    return first.toLocaleUpperCase() + second.toLocaleLowerCase();
+}
+
 /**
  * Creates a table row with label and value for d-table layout.
  */
@@ -121,7 +126,7 @@ function renderRooms(rooms, containerId) {
 
     sortedRooms.forEach(room => {
         const col = createElement("div", "mb-4 uproot-pagination-item");
-        col.dataset.paginationLabel = Array.from(room.name.trim())[0]?.toLocaleUpperCase() || "";
+        col.dataset.paginationLabel = getPaginationLabel(room.name);
         const card = createElement("div", "border-uproot callout card");
 
         // Card header
@@ -433,7 +438,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
             "align-items-start border-start callout d-flex justify-content-between px-3 py-2 mb-3 uproot-pagination-item " +
             cardBodyClass
         );
-        item.dataset.paginationLabel = Array.from(displayKey.trim())[0]?.toLocaleUpperCase() || "";
+        item.dataset.paginationLabel = getPaginationLabel(displayKey);
 
         const content = createElement("div", "flex-grow-1 overflow-x-auto");
 

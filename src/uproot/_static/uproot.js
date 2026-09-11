@@ -991,7 +991,7 @@ window.uproot = {
 
     paginateBlocks() {
         document.querySelectorAll(".uproot-pagination").forEach((wrapper) => {
-            const itemsPerPage = parseInt(wrapper.dataset.itemsPerPage) || 15;
+            const itemsPerPage = parseInt(wrapper.dataset.itemsPerPage) || 8;
             const items = Array.from(wrapper.querySelectorAll(":scope > .uproot-pagination-item"));
 
             if (items.length <= itemsPerPage) return;
@@ -1074,9 +1074,7 @@ window.uproot = {
                         const a = document.createElement("a");
                         a.className = "page-link";
                         a.href = "#";
-                        const firstLabel = items[(p - 1) * itemsPerPage].dataset.paginationLabel;
-                        const lastLabel = items[Math.min(p * itemsPerPage, items.length) - 1].dataset.paginationLabel;
-                        a.textContent = firstLabel && lastLabel ? `${firstLabel}\u200B\u200A–\u200A\u200B${lastLabel}` : p;
+                        a.textContent = items[(p - 1) * itemsPerPage].dataset.paginationLabel || p;
                         if (isActive) a.setAttribute("aria-current", "page");
                         a.addEventListener("click", (e) => {
                             e.preventDefault();
