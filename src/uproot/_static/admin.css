@@ -205,6 +205,9 @@ footer a {
    ============================================================================ */
 
 
+.pagination {
+    margin-bottom: 1.25rem !important;
+}
 .pagination > .page-item {
     max-width: 4em;
     min-width: 2em;
