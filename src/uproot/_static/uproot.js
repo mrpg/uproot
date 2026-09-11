@@ -991,7 +991,7 @@ window.uproot = {
 
     paginateBlocks() {
         document.querySelectorAll(".uproot-pagination").forEach((wrapper) => {
-            const itemsPerPage = parseInt(wrapper.dataset.itemsPerPage) || 10;
+            const itemsPerPage = parseInt(wrapper.dataset.itemsPerPage) || 8;
             const items = Array.from(wrapper.querySelectorAll(":scope > .uproot-pagination-item"));
 
             if (items.length <= itemsPerPage) return;

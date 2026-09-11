@@ -205,12 +205,8 @@ footer a {
    ============================================================================ */
 
 
-.pagination {
-    dflex-wrap: wrap;
-}
-
 .pagination > .page-item {
-    max-width: 3.1em;
+    max-width: 4em;
     min-width: 2em;
     width: 12.5%;
 }
