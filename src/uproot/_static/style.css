@@ -778,6 +778,11 @@ input[type="radio"].form-check-input {
 .uproot-timeout {
     font-variant-numeric: tabular-nums;
 }
+.alert-uproot {
+    --bs-alert-bg: var(--bs-uproot-bg-subtle);
+    --bs-alert-border-color: var(--bs-uproot);
+    --bs-alert-color: var(--bs-black);
+}
 .uproot-timeout-light {
     --bs-alert-bg: var(--bs-light);
     --bs-alert-border-color: var(--bs-tertiary-color);

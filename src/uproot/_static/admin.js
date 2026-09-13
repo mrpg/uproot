@@ -513,7 +513,7 @@ function announcements() {
             document.getElementById("nudge-announcements")?.remove();
         }
 
-        let safeHTML = "<p>";
+        let safeHTML = `<p class="alert alert-uproot border-uproot callout text-black" role="alert">`;
 
         safeHTML += _("You are running version #i_am#. The current version is #recommended#.")
             .replace("#i_am#", uproot.escape(uproot.vars.uproot_version))
@@ -521,22 +521,22 @@ function announcements() {
 
         safeHTML += "</p>";
 
+        if (!data.versionIsCurrent) {
+            safeHTML += `<p class="alert alert-danger border-danger callout text-black" role="alert">`;
+            safeHTML += _("Your version is outdated.");
+            safeHTML += "</p>";
+        }
+        else if (data.versionAnnouncement == null) {
+            safeHTML += `<p class="alert alert-success border-success callout text-black" role="alert">`;
+            safeHTML += _("Your version appears to be up to date.");
+            safeHTML += "</p>";
+        }
+
         if (data.generalAnnouncement) {
-            safeHTML += `<div class="alert alert-success border-success callout text-black" role="alert">
+            safeHTML += `<div class="alert alert-warning border-warning callout text-black" role="alert">
                              <b>${_("General announcement")}</b>:
                              ${uproot.escape(data.generalAnnouncement)}
                          </div>`;
-        }
-
-        if (!data.versionIsCurrent) {
-            safeHTML += "<p><b>";
-            safeHTML += _("Your version is outdated.");
-            safeHTML += "</b></p>";
-        }
-        else if (data.versionAnnouncement == null) {
-            safeHTML += "<p><i>";
-            safeHTML += _("Your version appears to be up to date.");
-            safeHTML += "</i></p>";
         }
 
         if (data.versionAnnouncement != null) {
