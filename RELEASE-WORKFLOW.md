@@ -1,6 +1,7 @@
 # Release workflow
 
 1. Choose version `X.Y.Z` according to the versioning policy below.
+1. Add new version below.
 1. Update `__version_info__` in `src/uproot/__init__.py`.
 1. Update `version` in `pyproject.toml`.
 1. Update `recommendedVersion` in `announcements.json`, and add or update the matching version-specific announcement if needed.
@@ -16,7 +17,8 @@
 1. Clean and build release artifacts: `rm -rf dist/ && export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" && umask 022 && uv run pip wheel . -w dist/`.
 1. Verify release artifacts: `uv run twine check dist/uproot*.whl`.
 1. Upload to PyPI: `uv run twine upload dist/uproot*.whl`.
-1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable. Signatures use GnuPG and [botan-slhdsa-signing](https://github.com/mrpg/botan-slhdsa-signing). Verifiers, see [here](https://max.pm/security/).
+1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable. Signatures use GnuPG and [botan-slhdsa-signing](https://github.com/mrpg/botan-slhdsa-signing).
+    - Verifiers, see [here](https://max.pm/security/).
 
 # Versioning policy
 
@@ -28,6 +30,7 @@
 
 # Versions
 
+- `0.5.2` (2026-09-13)
 - `0.5.1` (2026-09-03)
 - `0.5.0` (2026-08-22)
 - `0.4.0` (2026-08-14)
