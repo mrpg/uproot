@@ -145,7 +145,7 @@ def test_empty_ip_never_banned():
 def test_sweep_removes_stale_attempts():
     auth.FAILED_ATTEMPTS["1.1.1.1"] = [monotonic() - auth.ATTEMPT_WINDOW - 1]
     auth.FAILED_ATTEMPTS["2.2.2.2"] = [monotonic()]
-    auth.LAST_CLEANUP = 0.0
+    auth.LAST_CLEANUP = monotonic() - auth.CLEANUP_INTERVAL - 1
     auth.sweep_stale_entries()
     assert "1.1.1.1" not in auth.FAILED_ATTEMPTS
     assert "2.2.2.2" in auth.FAILED_ATTEMPTS
@@ -154,7 +154,7 @@ def test_sweep_removes_stale_attempts():
 def test_sweep_removes_expired_bans():
     auth.BANNED_IPS["1.1.1.1"] = monotonic() - 1
     auth.BANNED_IPS["2.2.2.2"] = monotonic() + 9999
-    auth.LAST_CLEANUP = 0.0
+    auth.LAST_CLEANUP = monotonic() - auth.CLEANUP_INTERVAL - 1
     auth.sweep_stale_entries()
     assert "1.1.1.1" not in auth.BANNED_IPS
     assert "2.2.2.2" in auth.BANNED_IPS
