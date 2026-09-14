@@ -19,14 +19,12 @@ from uproot.services.auth import (
     get_active_tokens,
     get_secret_key,
     get_serializer,
-    make_pow_challenge,
     require_bearer_token,
     revoke_all_user_tokens,
     revoke_auth_token,
     store_active_tokens,
     verify_auth_token,
     verify_bearer_token,
-    verify_pow,
 )
 
 # Re-export from config service
@@ -157,7 +155,6 @@ __all__ = [
     "info_online",
     "insert_fields",
     "is_custom_data_export",
-    "make_pow_challenge",
     "mark_dropout",
     "pipeline_call_kwargs",
     "pipeline_result_display",
@@ -187,5 +184,4 @@ __all__ = [
     "update_settings",
     "verify_auth_token",
     "verify_bearer_token",
-    "verify_pow",
 ]

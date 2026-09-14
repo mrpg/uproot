@@ -5,8 +5,6 @@
 
 import hashlib
 import hmac
-import time
-from collections import OrderedDict
 from datetime import UTC, datetime
 from types import EllipsisType
 from typing import Any, cast
@@ -30,17 +28,6 @@ PASSWORD_HASH_ITERATIONS = 600_000
 PASSWORD_SALT_BYTES = 16
 PASSWORD_KEY_BYTES = 32
 DUMMY_PASSWORD_SALT = b"\0" * PASSWORD_SALT_BYTES
-
-# Login proof-of-work: the client must find a `solution` such that
-# sha256(challenge + ":" + user + ":" + solution) ends in POW_DIFFICULTY
-# (in hex).
-# Challenges are server-signed with the admin secret key, short-lived,
-# and single-use (tracked in POW_USED).  This replaces time-based login
-# rate limiting: each password guess costs the attacker ~2**(4*len(POW_DIFFICULTY))
-# hashes, while the server only pays one hash + one HMAC compare to verify.
-POW_DIFFICULTY = "0000"  # 16 bits; ≈ 1 s in-browser, ≈ 65k hashes for an attacker
-POW_MAX_AGE = 120  # seconds; challenges expire to bound memory of POW_USED
-POW_USED: OrderedDict[str, int] = OrderedDict()
 
 
 def ensure_globals() -> None:
@@ -397,71 +384,6 @@ def verify_auth_token(user: str, token: str) -> str | None:
         return user
     except (BadSignature, SignatureExpired):
         return None
-
-
-def make_pow_challenge() -> tuple[str, str]:
-    """Issue a fresh, HMAC-signed proof-of-work challenge.
-
-    Returns (challenge, difficulty).  The challenge is the string
-    f"{nonce}:{ts}:{sig}" where sig = HMAC-SHA256(secret, f"{nonce}:{ts}").
-    The difficulty is the hex suffix the client must hit.
-    """
-    ensure_globals()
-    nonce = t.rng().randbytes(16).hex()
-    ts = int(time.time())
-    secret = cast(str, ADMINS_SECRET_KEY).encode()
-    sig = hmac.new(secret, f"{nonce}:{ts}".encode(), hashlib.sha256).hexdigest()
-    return f"{nonce}:{ts}:{sig}", POW_DIFFICULTY
-
-
-def verify_pow(challenge: str, solution: str, user: str) -> bool:
-    """Verify a single-use PoW challenge + solution.
-
-    Checks: well-formedness, age (<= POW_MAX_AGE), HMAC signature,
-    sha256(challenge+":"+user+":"+solution) hex suffix, and that the nonce
-    has not been used before.  On success, the nonce is recorded so
-    the same solved challenge cannot be replayed for another attempt.
-    """
-    if not (isinstance(challenge, str) and isinstance(solution, str)):
-        return False  # type: ignore[unreachable]
-
-    parts = challenge.split(":")
-    if len(parts) != 3:
-        return False
-    nonce, ts_str, sig = parts
-
-    try:
-        ts = int(ts_str)
-    except ValueError:
-        return False
-
-    now_i = int(time.time())
-    if not 0 <= now_i - ts <= POW_MAX_AGE:
-        return False
-
-    ensure_globals()
-    secret = cast(str, ADMINS_SECRET_KEY).encode()
-    expected = hmac.new(secret, f"{nonce}:{ts}".encode(), hashlib.sha256).hexdigest()
-    if not hmac.compare_digest(expected, sig):
-        return False
-
-    digest = hashlib.sha256(f"{challenge}:{user}:{solution}".encode()).hexdigest()
-    if not digest.endswith(POW_DIFFICULTY):
-        return False
-
-    # Drop expired nonces (insertion order == expiry order because POW_MAX_AGE is constant).
-    while POW_USED:
-        first_nonce = next(iter(POW_USED))
-        if POW_USED[first_nonce] < now_i:
-            POW_USED.popitem(last=False)
-        else:
-            break
-
-    if nonce in POW_USED:
-        return False
-
-    POW_USED[nonce] = ts + POW_MAX_AGE
-    return True
 
 
 def verify_bearer_token(authorization: str | None) -> bool:

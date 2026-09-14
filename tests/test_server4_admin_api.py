@@ -45,7 +45,6 @@ def test_admin_api_uses_plural_resource_paths() -> None:
         f"{prefix}/configs/{{cname}}/",
         f"{prefix}/database/dump/",
         f"{prefix}/praise/",
-        f"{prefix}/auth/challenge/",
         f"{prefix}/auth/login/",
         f"{prefix}/auth/tokens/current/",
         f"{prefix}/auth/tokens/",
@@ -190,7 +189,6 @@ async def test_rest_auth_can_create_and_revoke_ui_browser_session(monkeypatch) -
     monkeypatch.setattr(d, "ADMINS", {"admin": ...}, raising=False)
     monkeypatch.setattr(d, "LOGIN_TOKEN", "test-login-token")
 
-    challenge = await api.get_auth_challenge()
     created = await api.create_auth_session(
         api.AuthLogin(user="admin", token="test-login-token")
     )
@@ -200,8 +198,6 @@ async def test_rest_auth_can_create_and_revoke_ui_browser_session(monkeypatch) -
         None,
     )
 
-    assert challenge["login_token_enabled"] is True
-    assert challenge["pow_challenge"]
     assert created["user"] == "admin"
     assert created["cookie"]["name"] == "uauth"
     assert sessions["admin"]["token_count"] == 1

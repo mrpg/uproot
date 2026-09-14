@@ -242,8 +242,6 @@ class AuthLogin(BaseModel):
     user: str = Field("admin", description="Admin username")
     pw: str = Field("", description="Admin password")
     token: str = Field("", description="Auto-login token")
-    pow_challenge: str = Field("", description="Proof-of-work challenge")
-    pow_solution: str = Field("", description="Proof-of-work solution")
 
 
 class AuthToken(BaseModel):
@@ -1505,18 +1503,6 @@ async def get_praise(
         raise HTTPException(status_code=502, detail="Failed to fetch praise")
 
 
-@router.get("/auth/challenge/")
-async def get_auth_challenge() -> dict[str, Any]:
-    """Issue the same login proof-of-work challenge used by the admin UI."""
-    pow_challenge, pow_difficulty = a.make_pow_challenge()
-
-    return {
-        "pow_challenge": pow_challenge,
-        "pow_difficulty": pow_difficulty,
-        "login_token_enabled": d.LOGIN_TOKEN is not None,
-    }
-
-
 @router.post("/auth/login/", status_code=201)
 async def create_auth_session(body: AuthLogin) -> dict[str, Any]:
     """Create the same browser admin session token as submitting /admin/login/."""
@@ -1527,9 +1513,6 @@ async def create_auth_session(body: AuthLogin) -> dict[str, Any]:
             a.ensure_globals()
             auth_token = a.create_auth_token_for_user(body.user)
     else:
-        if not a.verify_pow(body.pow_challenge, body.pow_solution, body.user):
-            raise HTTPException(status_code=401, detail="Invalid proof of work")
-
         auth_token = await a.create_auth_token_async(body.user, body.pw)
 
     if auth_token is None:

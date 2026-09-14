@@ -1,5 +1,3 @@
-import hashlib
-
 import pytest
 from fastapi import HTTPException
 
@@ -18,14 +16,11 @@ def clean_auth(monkeypatch):
     monkeypatch.setattr(auth, "ADMINS", {})
     monkeypatch.setattr(auth, "ADMINS_HASH", None)
     monkeypatch.setattr(auth, "ADMINS_SECRET_KEY", None)
-    auth.POW_USED.clear()
 
     with s.Admin() as admin:
         c.create_admin(admin)
 
     yield
-
-    auth.POW_USED.clear()
 
 
 def test_auth_token_lifecycle_requires_active_token(clean_auth):
@@ -56,18 +51,3 @@ def test_bearer_token_validation_uses_exact_bearer_scheme(monkeypatch):
         auth.require_bearer_token("Bearer wrong")
 
     assert excinfo.value.status_code == 401
-
-
-def test_pow_challenge_is_single_use(clean_auth, monkeypatch):
-    monkeypatch.setattr(auth, "POW_DIFFICULTY", "0")
-    challenge, difficulty = auth.make_pow_challenge()
-
-    solution = 0
-    while True:
-        digest = hashlib.sha256(f"{challenge}:admin:{solution}".encode()).hexdigest()
-        if digest.endswith(difficulty):
-            break
-        solution += 1
-
-    assert auth.verify_pow(challenge, str(solution), "admin") is True
-    assert auth.verify_pow(challenge, str(solution), "admin") is False

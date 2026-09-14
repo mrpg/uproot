@@ -23,8 +23,6 @@ async def test_login_token_page_hides_manual_login_form():
         {
             "bad": False,
             "login_token_enabled": True,
-            "pow_challenge": "challenge",
-            "pow_difficulty": "0000",
         },
     )
 
@@ -46,8 +44,6 @@ async def test_password_login_page_keeps_manual_login_form():
         {
             "bad": False,
             "login_token_enabled": False,
-            "pow_challenge": "challenge",
-            "pow_difficulty": "0000",
         },
     )
 

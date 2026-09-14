@@ -558,16 +558,12 @@ async def login_get(
     except HTTPException:
         pass
 
-    pow_challenge, pow_difficulty = a.make_pow_challenge()
-
     response = HTMLResponse(
         await render(
             "Login.html",
             {
                 "bad": bad,
                 "login_token_enabled": d.LOGIN_TOKEN is not None,
-                "pow_challenge": pow_challenge,
-                "pow_difficulty": pow_difficulty,
             },
         )
     )
@@ -593,15 +589,12 @@ async def login_post(
     user: str = Form(),
     pw: str = Form(""),
     token: str = Form(""),
-    pow_challenge: str = Form(""),
-    pow_solution: str = Form(""),
     x_forwarded_proto: str = Header(""),
 ) -> Response:
     secure = auth_cookie_secure(request, x_forwarded_proto)
 
-    # Login-token path: the token itself is a strong shared secret issued by
-    # `uproot` on startup, so no proof-of-work is required.  Verified with a
-    # constant-time compare.
+    # Login-token path: the token is a strong shared secret issued by `uproot`
+    # on startup and verified with a constant-time compare.
     if (
         token
         and user == "admin"
@@ -617,13 +610,6 @@ async def login_post(
             response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
             set_auth_cookie(response, auth_token, secure)
             return response
-
-    # Password path: require a valid, single-use PoW solution *before* touching
-    # the password.  This replaces the old time-based rate limit, which did not
-    # actually throttle credential checking.  Each guess now costs the client
-    # ~2**16 sha256 hashes; the server only pays one hash + one HMAC compare.
-    if not a.verify_pow(pow_challenge, pow_solution, user):
-        return RedirectResponse(f"{d.ROOT}/admin/login/?bad=1", status_code=303)
 
     auth_token = await a.create_auth_token_async(user, pw)
     if auth_token is not None:
