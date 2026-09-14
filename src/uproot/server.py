@@ -99,13 +99,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     if d.PUBLIC_DEMO:
         announcement_reminder = (
-            "REMINDER: Check for important announcements regularly with "
+            "REMINDER: Regularly check for important announcements with "
             "`uproot announcements`."
         )
     else:
         announcement_reminder = (
-            "REMINDER: Check for important announcements regularly on the "
-            "Status page in the admin area."
+            "REMINDER: Regularly check for important announcements in the "
+            "admin area."
         )
 
     click.secho(
