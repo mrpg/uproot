@@ -1,28 +1,18 @@
 import uproot.deployment as d
 from uproot import server
-from uproot.services.auth import PASSWORD_HASH_SCHEME, verify_admin_password
 
 
-def test_normalize_admin_passwords_hashes_plaintext_once(monkeypatch):
-    monkeypatch.setattr(server, "ADMINS_PASSWORDS_HASHED", False)
+def test_validate_admin_password_lengths_accepts_long_passwords(monkeypatch):
     monkeypatch.setattr(d, "ADMINS", {"alice": "secret", "admin": ...})
-
-    server.normalize_admin_passwords()
-
-    assert isinstance(d.ADMINS["alice"], str)
-    assert d.ADMINS["alice"].startswith(f"{PASSWORD_HASH_SCHEME}$")
-    assert verify_admin_password("alice", "secret", d.ADMINS["alice"])
-    assert not verify_admin_password("alice", "wrong", d.ADMINS["alice"])
-    assert d.ADMINS["admin"] is ...
+    server.validate_admin_password_lengths()
 
 
-def test_normalize_admin_passwords_is_idempotent(monkeypatch):
-    monkeypatch.setattr(server, "ADMINS_PASSWORDS_HASHED", False)
-    monkeypatch.setattr(d, "ADMINS", {"alice": "secret"})
+def test_validate_admin_password_lengths_rejects_short_passwords(monkeypatch):
+    monkeypatch.setattr(d, "ADMINS", {"alice": "abc"})
 
-    server.normalize_admin_passwords()
-    first_hash = d.ADMINS["alice"]
-
-    server.normalize_admin_passwords()
-
-    assert d.ADMINS["alice"] == first_hash
+    try:
+        server.validate_admin_password_lengths()
+    except SystemExit as exc:
+        assert exc.code == 1
+    else:
+        raise AssertionError("Expected SystemExit")

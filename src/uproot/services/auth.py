@@ -3,15 +3,15 @@
 
 """Authentication and authorization service."""
 
-import hashlib
 import hmac
+import ipaddress
 from datetime import UTC, datetime
+from time import monotonic
 from types import EllipsisType
 from typing import Any, cast
 
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Request
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
-from starlette.concurrency import run_in_threadpool
 
 import uproot as u
 import uproot.deployment as d
@@ -23,11 +23,110 @@ ADMINS: dict[str, str | EllipsisType] = {}
 ADMINS_HASH: str | None = None
 ADMINS_SECRET_KEY: str | None = None
 
-PASSWORD_HASH_SCHEME = "pbkdf2_sha256"  # nosec B105
-PASSWORD_HASH_ITERATIONS = 600_000
-PASSWORD_SALT_BYTES = 16
-PASSWORD_KEY_BYTES = 32
-DUMMY_PASSWORD_SALT = b"\0" * PASSWORD_SALT_BYTES
+# IP-based login rate limiting (in-memory)
+MAX_FAILED_ATTEMPTS = 50
+ATTEMPT_WINDOW = 3600.0
+BAN_DURATION = 6 * 3600.0
+MAX_TRACKED_IPS = 10_000
+CLEANUP_INTERVAL = 600.0
+
+FAILED_ATTEMPTS: dict[str, list[float]] = {}
+BANNED_IPS: dict[str, float] = {}
+LAST_CLEANUP: float = 0.0
+
+
+def is_localhost(ip: str) -> bool:
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    return addr.is_loopback
+
+
+def get_client_ip(request: Request) -> str:
+    if request.client is None:
+        return ""
+
+    ip = request.client.host
+
+    try:
+        return str(ipaddress.ip_address(ip))
+    except ValueError:
+        return ip
+
+
+def sweep_stale_entries() -> None:
+    global LAST_CLEANUP
+
+    now = monotonic()
+
+    if now - LAST_CLEANUP < CLEANUP_INTERVAL:
+        return
+
+    LAST_CLEANUP = now
+
+    cutoff = now - ATTEMPT_WINDOW
+    stale = [ip for ip, ts in FAILED_ATTEMPTS.items() if ts[-1] <= cutoff]
+
+    for ip in stale:
+        del FAILED_ATTEMPTS[ip]
+
+    expired = [ip for ip, expiry in BANNED_IPS.items() if now >= expiry]
+
+    for ip in expired:
+        del BANNED_IPS[ip]
+
+
+def is_ip_banned(ip: str) -> bool:
+    if not ip or is_localhost(ip):
+        return False
+
+    expiry = BANNED_IPS.get(ip)
+
+    if expiry is None:
+        return False
+
+    if monotonic() >= expiry:
+        BANNED_IPS.pop(ip, None)
+        FAILED_ATTEMPTS.pop(ip, None)
+        return False
+
+    return True
+
+
+def record_failed_login(ip: str) -> None:
+    """Reserve a login attempt; successful authentication removes it."""
+    if not ip or is_localhost(ip):
+        return
+
+    sweep_stale_entries()
+
+    if is_ip_banned(ip):
+        return
+
+    now = monotonic()
+    cutoff = now - ATTEMPT_WINDOW
+    attempts = FAILED_ATTEMPTS.get(ip)
+
+    if attempts is not None:
+        attempts = [ts for ts in attempts if ts > cutoff]
+    else:
+        tracked_ips = len(FAILED_ATTEMPTS) + len(BANNED_IPS)
+        if tracked_ips >= MAX_TRACKED_IPS:
+            return
+        attempts = []
+
+    attempts.append(now)
+    FAILED_ATTEMPTS[ip] = attempts
+
+    if len(attempts) >= MAX_FAILED_ATTEMPTS:
+        BANNED_IPS[ip] = now + BAN_DURATION
+        del FAILED_ATTEMPTS[ip]
+
+
+def clear_failed_logins(ip: str) -> None:
+    FAILED_ATTEMPTS.pop(ip, None)
+    BANNED_IPS.pop(ip, None)
 
 
 def ensure_globals() -> None:
@@ -54,58 +153,6 @@ def get_secret_key() -> str:
 def get_serializer() -> URLSafeTimedSerializer:
     """Get configured token serializer."""
     return URLSafeTimedSerializer(get_secret_key())
-
-
-def admin_password_salt(user: str) -> bytes:
-    """Derive a stable per-installation salt for configured plaintext passwords."""
-    return hashlib.sha256(f"uproot-admin-password\0{u.KEY}\0{user}".encode()).digest()[
-        :PASSWORD_SALT_BYTES
-    ]
-
-
-def hash_admin_password(user: str, pw: str, salt: bytes | None = None) -> str:
-    """Hash an admin password using a salted, slow password hash."""
-    if salt is None:
-        salt = t.rng().randbytes(PASSWORD_SALT_BYTES)
-
-    key = hashlib.pbkdf2_hmac(
-        "sha256",
-        f"{user}\n{pw}".encode(),
-        salt,
-        PASSWORD_HASH_ITERATIONS,
-        dklen=PASSWORD_KEY_BYTES,
-    )
-    return f"{PASSWORD_HASH_SCHEME}${PASSWORD_HASH_ITERATIONS}${salt.hex()}${key.hex()}"
-
-
-def verify_pbkdf2_admin_password(user: str, pw: str, stored_hash: str) -> bool:
-    try:
-        scheme, iterations_raw, salt_hex, key_hex = stored_hash.split("$", 3)
-        iterations = int(iterations_raw)
-        salt = bytes.fromhex(salt_hex)
-        expected_key = bytes.fromhex(key_hex)
-    except ValueError:
-        return False
-
-    if scheme != PASSWORD_HASH_SCHEME or iterations <= 0 or not expected_key:
-        return False
-
-    candidate_key = hashlib.pbkdf2_hmac(
-        "sha256",
-        f"{user}\n{pw}".encode(),
-        salt,
-        iterations,
-        dklen=len(expected_key),
-    )
-    return hmac.compare_digest(candidate_key, expected_key)
-
-
-def verify_admin_password(user: str, pw: str, stored_hash: str) -> bool:
-    """Verify an admin password against supported password hash formats."""
-    if stored_hash.startswith(f"{PASSWORD_HASH_SCHEME}$"):
-        return verify_pbkdf2_admin_password(user, pw, stored_hash)
-
-    return False
 
 
 def get_active_tokens() -> set[str]:
@@ -172,14 +219,11 @@ def create_token_internal(user: str) -> str:
 
 def admin_credentials_valid(user: str, pw: str) -> bool:
     if user not in ADMINS or ADMINS[user] is ...:
-        # Do comparable password-hashing work to avoid leaking whether the user
-        # exists via timing differences.
-        hash_admin_password(user, pw, DUMMY_PASSWORD_SALT)
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return False
 
-    stored_hash = cast(str, ADMINS[user])
-    if not verify_admin_password(user, pw, stored_hash):
+    stored_pw = cast(str, ADMINS[user])
+    if not hmac.compare_digest(pw.encode(), stored_pw.encode()):
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
         return False
 
@@ -206,10 +250,9 @@ def create_auth_token(user: str, pw: str) -> str | None:
 
 
 async def create_auth_token_async(user: str, pw: str) -> str | None:
-    """Create an authentication token without blocking the event loop."""
     ensure_globals()
 
-    if not await run_in_threadpool(admin_credentials_valid, user, pw):
+    if not admin_credentials_valid(user, pw):
         return None
 
     return create_token_internal(user)

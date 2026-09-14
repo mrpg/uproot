@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 from typing import Any
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -11,6 +12,17 @@ import uproot.deployment as d
 import uproot.server4 as api
 import uproot.storage as s
 from uproot.services import auth
+
+
+@pytest.fixture(autouse=True)
+def clean_rate_limit():
+    auth.FAILED_ATTEMPTS.clear()
+    auth.BANNED_IPS.clear()
+    auth.LAST_CLEANUP = 0.0
+    yield
+    auth.FAILED_ATTEMPTS.clear()
+    auth.BANNED_IPS.clear()
+    auth.LAST_CLEANUP = 0.0
 
 
 def reset_admin_state() -> None:
@@ -188,9 +200,11 @@ async def test_rest_auth_can_create_and_revoke_ui_browser_session(monkeypatch) -
     monkeypatch.setattr(auth, "ADMINS_SECRET_KEY", None)
     monkeypatch.setattr(d, "ADMINS", {"admin": ...}, raising=False)
     monkeypatch.setattr(d, "LOGIN_TOKEN", "test-login-token")
+    request = SimpleNamespace(client=SimpleNamespace(host="10.20.30.40"))
 
     created = await api.create_auth_session(
-        api.AuthLogin(user="admin", token="test-login-token")
+        request,
+        api.AuthLogin(user="admin", token="test-login-token"),
     )
     sessions = await api.get_auth_sessions(None)
     revoked = await api.revoke_current_auth_session(
@@ -200,6 +214,7 @@ async def test_rest_auth_can_create_and_revoke_ui_browser_session(monkeypatch) -
 
     assert created["user"] == "admin"
     assert created["cookie"]["name"] == "uauth"
+    assert auth.FAILED_ATTEMPTS == {}
     assert sessions["admin"]["token_count"] == 1
     assert revoked == {"user": "admin", "revoked": True}
     assert await api.get_auth_sessions(None) == {}
@@ -214,11 +229,16 @@ async def test_rest_auth_can_revoke_all_ui_browser_sessions_for_current_user(
     monkeypatch.setattr(auth, "ADMINS_SECRET_KEY", None)
     monkeypatch.setattr(d, "ADMINS", {"admin": ...}, raising=False)
     monkeypatch.setattr(d, "LOGIN_TOKEN", "test-login-token")
+    request = SimpleNamespace(client=SimpleNamespace(host="10.20.30.40"))
 
     first = await api.create_auth_session(
-        api.AuthLogin(user="admin", token="test-login-token")
+        request,
+        api.AuthLogin(user="admin", token="test-login-token"),
     )
-    await api.create_auth_session(api.AuthLogin(user="admin", token="test-login-token"))
+    await api.create_auth_session(
+        request,
+        api.AuthLogin(user="admin", token="test-login-token"),
+    )
 
     revoked = await api.revoke_current_user_auth_sessions(
         api.AuthToken(auth_token=first["auth_token"]),
@@ -227,3 +247,22 @@ async def test_rest_auth_can_revoke_all_ui_browser_sessions_for_current_user(
 
     assert revoked == {"user": "admin", "revoked": 2}
     assert await api.get_auth_sessions(None) == {}
+
+
+async def test_rest_auth_rate_limits_before_rechecking_credentials(monkeypatch):
+    ip = "10.20.30.40"
+    request = SimpleNamespace(client=SimpleNamespace(host=ip))
+    authenticate = AsyncMock(return_value=None)
+    monkeypatch.setattr(api.a, "create_auth_token_async", authenticate)
+    monkeypatch.setattr(auth, "MAX_FAILED_ATTEMPTS", 1)
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.create_auth_session(request, api.AuthLogin(user="admin", pw="bad"))
+
+    assert excinfo.value.status_code == 401
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.create_auth_session(request, api.AuthLogin(user="admin", pw="bad"))
+
+    assert excinfo.value.status_code == 429
+    assert authenticate.await_count == 1

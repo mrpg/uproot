@@ -591,6 +591,12 @@ async def login_post(
     token: str = Form(""),
     x_forwarded_proto: str = Header(""),
 ) -> Response:
+    client_ip = a.get_client_ip(request)
+
+    if a.is_ip_banned(client_ip):
+        raise HTTPException(status_code=429, detail="Too many failed login attempts")
+
+    a.record_failed_login(client_ip)
     secure = auth_cookie_secure(request, x_forwarded_proto)
 
     # Login-token path: the token is a strong shared secret issued by `uproot`
@@ -607,12 +613,14 @@ async def login_post(
         if auth_token is not None:
             d.LOGGER.info("Admin authenticated using auto login")
 
+            a.clear_failed_logins(client_ip)
             response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
             set_auth_cookie(response, auth_token, secure)
             return response
 
     auth_token = await a.create_auth_token_async(user, pw)
     if auth_token is not None:
+        a.clear_failed_logins(client_ip)
         response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
         set_auth_cookie(response, auth_token, secure)
         return response

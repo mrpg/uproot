@@ -1504,8 +1504,14 @@ async def get_praise(
 
 
 @router.post("/auth/login/", status_code=201)
-async def create_auth_session(body: AuthLogin) -> dict[str, Any]:
+async def create_auth_session(request: Request, body: AuthLogin) -> dict[str, Any]:
     """Create the same browser admin session token as submitting /admin/login/."""
+    client_ip = a.get_client_ip(request)
+
+    if a.is_ip_banned(client_ip):
+        raise HTTPException(status_code=429, detail="Too many failed login attempts")
+
+    a.record_failed_login(client_ip)
     auth_token = None
 
     if body.token and body.user == "admin" and d.LOGIN_TOKEN is not None:
@@ -1518,6 +1524,7 @@ async def create_auth_session(body: AuthLogin) -> dict[str, Any]:
     if auth_token is None:
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
 
+    a.clear_failed_logins(client_ip)
     session = a.from_cookie(auth_token)
 
     return {

@@ -29,7 +29,6 @@ from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
 from uproot.server4 import router as router4
-from uproot.services.auth import admin_password_salt, hash_admin_password
 from uproot.storage import Admin
 from uproot.types import (
     ensure_awaitable,
@@ -37,7 +36,6 @@ from uproot.types import (
 )
 
 MIN_PASSWORD_LENGTH: int = 5
-ADMINS_PASSWORDS_HASHED: bool = False
 
 
 async def finish_cancelled_tasks(tasks: list[asyncio.Task[Any]]) -> None:
@@ -57,19 +55,6 @@ def validate_admin_password_lengths() -> None:
                 "Configured admin password is shorter than the minimum length"
             )
             raise SystemExit(1)
-
-
-def normalize_admin_passwords() -> None:
-    global ADMINS_PASSWORDS_HASHED
-
-    if ADMINS_PASSWORDS_HASHED:
-        return
-
-    for user, pw in d.ADMINS.items():
-        if isinstance(pw, str):
-            d.ADMINS[user] = hash_admin_password(user, pw, admin_password_salt(user))
-
-    ADMINS_PASSWORDS_HASHED = True
 
 
 @asynccontextmanager
@@ -132,10 +117,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     else:
         click.echo(f"There are {nsessions} sessions.", err=True)
 
-    if not d.UNSAFE and not ADMINS_PASSWORDS_HASHED:
+    if not d.UNSAFE:
         validate_admin_password_lengths()
-
-    normalize_admin_passwords()
 
     if d.UNSAFE:
         click.echo(err=True)
