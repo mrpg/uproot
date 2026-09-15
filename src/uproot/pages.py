@@ -229,11 +229,10 @@ def make_timeout(
         if python_class:
             class_values.append(f"{python_class}")
         kwargs["class_"] = " ".join(class_values)
+        kwargs["data_uproot_timeout"] = True
         extra = html_params(**kwargs) if kwargs else ""
         space = " " if extra else ""
-        return Markup(  # nosec B704
-            f'<span x-text="$store.uproot.timeout.compact"{space}{extra}>__:__</span>'
-        )
+        return Markup(f"<span{space}{extra}>__:__</span>")  # nosec B704
 
     def timeout_box(**kwargs: Any) -> Markup:
         preamble = kwargs.pop("preamble", None) or translate(
@@ -242,15 +241,14 @@ def make_timeout(
         aria_label = translate("Remaining time on this page")
         class_ = kwargs.pop("class_", "alert callout mb-4-5 mt-4 pe-4")
         kwargs.setdefault("id", "uproot-timeout")
+        kwargs["data_uproot_timeout_box"] = True
         time_id = kwargs.pop("time_id", "uproot-time-remaining")
         preamble_id = kwargs.pop("preamble_id", "uproot-time-remaining-preamble")
         extra = html_params(**kwargs) if kwargs else ""
         space = " " if extra else ""
         time_span = timeout(id=time_id)
         return Markup(  # nosec B704
-            f"<div x-cloak"
-            f' x-show="$store.uproot.timeout.active"'
-            f" x-bind:class=\"'uproot-timeout-' + $store.uproot.timeout.level\""
+            f"<div hidden"
             f' class="{Markup.escape(class_)}"'
             f' role="timer"'
             f' aria-label="{Markup.escape(aria_label)}"'

@@ -130,13 +130,6 @@ window.uproot = {
         document.location = "https://www.econlib.org/library/Essays/hykKnw.html";
     },
 
-    installAlpineStore() {
-        Alpine.store("uproot", {
-            timeout: { active: false, level: "light", text: "__:__" },
-        });
-        this.syncTimeout();
-    },
-
     setPageTimeout(seconds) {
         const duration = Number(seconds);
         if (!Number.isFinite(duration)) {
@@ -195,13 +188,20 @@ window.uproot = {
             compact: active ? this.formatDurationCompact(remainingSeconds) : "__:__",
         };
 
-        const store = window.Alpine?.store?.("uproot");
-        if (store) Object.assign(store.timeout, state);
+        const boxes = document.querySelectorAll("[data-uproot-timeout-box]");
+        boxes.forEach((box) => {
+            box.hidden = !active;
+            box.classList.remove("uproot-timeout-light", "uproot-timeout-warning", "uproot-timeout-danger");
+            if (active) box.classList.add(`uproot-timeout-${level}`);
+        });
+
+        document.querySelectorAll("[data-uproot-timeout]").forEach((timeEl) => {
+            timeEl.textContent = state.compact;
+        });
 
         if (active && level !== this.lastTimeoutLevel && (level === "warning" || level === "danger")) {
             const announcer = document.getElementById("uproot-timeout-announcer");
-            const timeout = document.getElementById("uproot-timeout");
-            const label = timeout?.getAttribute("aria-label");
+            const label = boxes[0]?.getAttribute("aria-label");
             if (announcer) announcer.textContent = label ? `${label}: ${state.text}` : state.text;
         }
         this.lastTimeoutLevel = active ? level : null;
@@ -1607,10 +1607,6 @@ if (document.readyState === "loading") {
 else {
     uproot._domContentLoaded = true;
 }
-
-document.addEventListener("alpine:init", () => {
-    uproot.installAlpineStore();
-});
 
 window._ = (s) => {
     if (s in window.uproot.terms) {

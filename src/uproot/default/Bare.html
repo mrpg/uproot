@@ -57,7 +57,9 @@
 <script src="{{ internalstatic('simulate.js') }}"></script>
 {% endif %}
 
+{% if not (disable_alpinejs | default(false)) %}
 <script src="{{ internalstatic('vendor/alpinejs/cdn.min.js') }}" defer></script>
+{% endif %}
 
 {% block head %}
 {% endblock head %}
@@ -189,7 +191,7 @@
 {% block pre_form %}
 {% endblock pre_form %}
 
-<div id="uproot-wrapper" x-data>
+<div id="uproot-wrapper">
 
     <header id="uproot-header">
         <div id="uproot-block-header_start">
