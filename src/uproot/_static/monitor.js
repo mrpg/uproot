@@ -215,6 +215,7 @@ function createMonitorColumns(data) {
             column.width = 200;
         } else if (field === "progress") {
             column.formatter = formatProgressCell;
+            column.sorter = compareProgress;
         } else if (field === "lastSeen") {
             column.formatter = formatLastSeenCell;
         } else if (field === "dropout") {
@@ -277,6 +278,18 @@ function formatProgressCell(cell) {
         ? data.pageOrder.join(" → ")
         : "";
     return `<span title="${tooltip}">${cell.getValue()}</span>`;
+}
+
+function compareProgress(a, b) {
+    const [currentA, totalA] = String(a).split("/").map(Number);
+    const [currentB, totalB] = String(b).split("/").map(Number);
+
+    // Progress enters the table as "showPage + 1/pageOrder.length". Treat the
+    // pre-initialization value 0/0 as zero while preserving completed values
+    // such as (total + 1)/total, which represent End.html.
+    const denominatorA = Math.max(1, totalA);
+    const denominatorB = Math.max(1, totalB);
+    return currentA * denominatorB - currentB * denominatorA;
 }
 
 function formatDropoutCell(cell) {
