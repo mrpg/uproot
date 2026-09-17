@@ -275,7 +275,7 @@ function renderSessions(sessions, containerId) {
         );
 
         if (session.sname) {
-            const title = createElement("h5", "d-inline-block fw-semibold mb-1 me-3 text-nowrap");
+            const title = createElement("h5", "d-inline-block fw-semibold mb-1 me-3 overflow-x-auto text-nowrap");
             const sessionUrl = adminUrl("session", session.sname);
             title.innerHTML = `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.60;">&#xF56B;</i></a>`; // SAFE
             headerContent.appendChild(title);
