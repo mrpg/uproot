@@ -901,8 +901,8 @@
 ? 'Closed rooms'
 : 'Closed rooms'
 
-? 'Custom settings applied via <span class="font-monospace">session.settings</span>.'
-: 'Custom settings applied via <span class="font-monospace">session.settings</span>.'
+? 'Settings available via <span class="font-monospace">session.settings</span>.'
+: 'Settings available via <span class="font-monospace">session.settings</span>.'
 
 ? 'Disassociate &amp; close room'
 : 'Disassociate &amp; close room'
@@ -943,8 +943,8 @@
 ? 'Mark session as inactive'
 : 'Mark session as inactive'
 
-? 'No custom entries in <span class="font-monospace">session.settings</span>.'
-: 'No custom entries in <span class="font-monospace">session.settings</span>.'
+? 'No settings'
+: 'No settings'
 
 ? 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
 : 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'

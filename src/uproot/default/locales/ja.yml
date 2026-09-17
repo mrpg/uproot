@@ -901,8 +901,8 @@
 ? 'Closed rooms'
 : '受付停止中のルーム'
 
-? 'Custom settings applied via <span class="font-monospace">session.settings</span>.'
-: '<span class="font-monospace">session.settings</span>経由で適用されたカスタム設定。'
+? 'Settings available via <span class="font-monospace">session.settings</span>.'
+: '設定は<span class="font-monospace">session.settings</span>から利用できます。'
 
 ? 'Disassociate &amp; close room'
 : '関連付けを解除してルームの受付を停止'
@@ -943,8 +943,8 @@
 ? 'Mark session as inactive'
 : 'セッションを非アクティブにする'
 
-? 'No custom entries in <span class="font-monospace">session.settings</span>.'
-: '<span class="font-monospace">session.settings</span>にカスタムエントリはありません。'
+? 'No settings'
+: '設定なし'
 
 ? 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
 : '<code>main.py</code>ファイルで定義されたルームのみがデータベースリセット後に自動的に再作成されます。'
