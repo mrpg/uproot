@@ -135,7 +135,7 @@ function renderRooms(rooms, containerId) {
             "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 text-uproot"
         );
 
-        const title = createElement("h5", "fw-semibold mb-0 pb-1 me-3 overflow-x-scroll text-nowrap");
+        const title = createElement("h5", "fw-semibold mb-0 pb-1 me-3 overflow-x-auto text-nowrap");
         const roomUrl = adminUrl("room", room.name);
         title.innerHTML = `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.6;">&#xF56B;</i></a>`; // SAFE
 
@@ -159,7 +159,7 @@ function renderRooms(rooms, containerId) {
             "bg-white card-body d-flex justify-content-between pb-1 pe-0 pt-1 rounded-bottom"
         );
 
-        const leftCol = createElement("div", "overflow-x-scroll me-3");
+        const leftCol = createElement("div", "overflow-x-auto me-3");
         const infoTable = createElement("div", "col d-table mb-2");
 
         // Session row
@@ -296,7 +296,7 @@ function renderSessions(sessions, containerId) {
             "bg-white card-body d-flex flex-row justify-content-between pb-1 pe-0 pt-0 rounded-bottom"
         );
 
-        const infoTableWrapper = createElement("div", "overflow-x-scroll me-3");
+        const infoTableWrapper = createElement("div", "overflow-x-auto me-3");
         const infoTable = createElement("div", "d-table mb-2 mt-1");
 
         // Room row
