@@ -8,9 +8,12 @@ All endpoints require Bearer token authentication via the Authorization header.
 Tokens are configured in deployment.API_KEYS.
 """
 
+import gzip
 import hmac
 import importlib.metadata
+import io
 import sys
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Any, TypeAlias
 
@@ -1587,15 +1590,35 @@ async def revoke_user_auth_sessions(
     return {"user": user, "revoked": revoked_count}
 
 
+def gzip_iter(chunks: Iterable[bytes]) -> Iterator[bytes]:
+    buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=buf, mode="wb") as gz:
+        for chunk in chunks:
+            gz.write(chunk)
+            buf.seek(0)
+            data = buf.read()
+            if data:
+                yield data
+                buf.seek(0)
+                buf.truncate()
+    buf.seek(0)
+    trailing = buf.read()
+    if trailing:
+        yield trailing
+
+
 @router.get("/database/dump/")
 async def dump_database(
     bauth: None = Depends(a.require_bearer_token),
 ) -> StreamingResponse:
     """Download a complete machine-readable database dump."""
     return StreamingResponse(
-        d.DATABASE.dump(),
-        media_type="application/msgpack",
-        headers={"Content-Disposition": "attachment; filename=uproot.msgpack"},
+        gzip_iter(d.DATABASE.dump()),
+        media_type="application/gzip",
+        headers={
+            "Content-Disposition": "attachment; filename=uproot.msgpack.gz",
+            "Content-Encoding": "identity",
+        },
     )
 
 

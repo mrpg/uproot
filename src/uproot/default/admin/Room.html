@@ -316,7 +316,8 @@ Room
         // Validate session name if entered
         const snameValue = I("room-sname").value.trim();
         if (snameValue) {
-            snameValid = uproot.vars.sessions_available.includes(snameValue);
+            const sessionsAvailable = uproot.vars.sessions_available;
+            snameValid = sessionsAvailable === null || sessionsAvailable.includes(snameValue);
         }
 
         if (!labelsValid) {

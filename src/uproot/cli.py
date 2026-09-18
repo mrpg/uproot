@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
+import gzip
 import logging
 import os
 import platform
@@ -381,7 +382,7 @@ def reset(ctx: click.Context, yes: bool) -> None:
 @click.option("--file", required=True, help="Output file.")
 @click.pass_context
 def dump(ctx: click.Context, file: str) -> None:
-    with open(file, "wb") as f:
+    with gzip.open(file, "wb") as f:
         f.writelines(d.DATABASE.dump())
 
 
@@ -395,8 +396,14 @@ def restore(ctx: click.Context, file: str, yes: bool) -> None:
         d.DATABASE.reset()
         d.DATABASE.close()
 
-    with open(file, "rb") as f:
-        d.DATABASE.restore(f)
+    with open(file, "rb") as raw:
+        magic = raw.read(2)
+        raw.seek(0)
+        if magic == b"\x1f\x8b":
+            with gzip.open(raw, "rb") as gz:
+                d.DATABASE.restore(gz)
+        else:
+            d.DATABASE.restore(raw)
 
     if not yes:
         click.echo("Database was restored.")

@@ -6,10 +6,13 @@ This file implements admin routes.
 """
 
 import asyncio
+import gzip
 import hmac
 import importlib.metadata
+import io
 import os
 import sys
+from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter as now
@@ -745,8 +748,12 @@ async def new_room(
                 "RoomsNew.html",
                 {
                     "configs": a.configs(),
-                    "rooms_available": [*admin.rooms.keys()],
-                    "sessions_available": admin._uproot_sessions,
+                    "rooms_available": (
+                        None if d.PUBLIC_DEMO else [*admin.rooms.keys()]
+                    ),
+                    "sessions_available": (
+                        None if d.PUBLIC_DEMO else admin._uproot_sessions
+                    ),
                 },
             )
         )
@@ -833,7 +840,9 @@ async def roommain(
                     "configs_extra": u.CONFIGS_EXTRA,
                     "settings_forms": settings_forms,
                     "settings_errors": settings_errors,
-                    "sessions_available": admin._uproot_sessions,
+                    "sessions_available": (
+                        None if d.PUBLIC_DEMO else admin._uproot_sessions
+                    ),
                 }
                 | extra
                 | await a.info_online(f"^{roomname}"),
@@ -1446,6 +1455,23 @@ async def logout_all(
     return response
 
 
+def gzip_iter(chunks: Iterable[bytes]) -> Iterator[bytes]:
+    buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=buf, mode="wb") as gz:
+        for chunk in chunks:
+            gz.write(chunk)
+            buf.seek(0)
+            data = buf.read()
+            if data:
+                yield data
+                buf.seek(0)
+                buf.truncate()
+    buf.seek(0)
+    trailing = buf.read()
+    if trailing:
+        yield trailing
+
+
 # Database dump
 
 
@@ -1454,10 +1480,19 @@ async def dump(
     request: Request,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
+    if d.PUBLIC_DEMO:
+        raise HTTPException(
+            status_code=403,
+            detail="Database dumps are unavailable in public demo mode",
+        )
+
     return StreamingResponse(
-        d.DATABASE.dump(),
-        media_type="application/msgpack",
-        headers={"Content-Disposition": "attachment; filename=uproot.msgpack"},
+        gzip_iter(d.DATABASE.dump()),
+        media_type="application/gzip",
+        headers={
+            "Content-Disposition": "attachment; filename=uproot.msgpack.gz",
+            "Content-Encoding": "identity",
+        },
     )
 
 

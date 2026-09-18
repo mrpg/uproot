@@ -55,7 +55,8 @@ New room
         // Validate room name format
         nameValid = uproot.isValidToken(I("name").value);
         // Validate room name doesn't already exist
-        nameAvailable = !uproot.vars.rooms_available.includes(I("name").value);
+        const roomsAvailable = uproot.vars.rooms_available;
+        nameAvailable = roomsAvailable === null || !roomsAvailable.includes(I("name").value);
 
         // Validate labels if any are entered
         const labelsValue = I("labels").value.trim();
@@ -69,7 +70,8 @@ New room
         // Validate session name if entered
         const snameValue = I("room-sname").value.trim();
         if (snameValue) {
-            snameValid = uproot.vars.sessions_available.includes(snameValue);
+            const sessionsAvailable = uproot.vars.sessions_available;
+            snameValid = sessionsAvailable === null || sessionsAvailable.includes(snameValue);
         }
 
         if (!nameValid) {
