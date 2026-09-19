@@ -288,7 +288,7 @@
     function createSession() {
         let snameValid = true, unamesValid = true;
 
-        if (I("nplayers").value.trim() == "" || parseInt(I("nplayers").value) < 0) {
+        if (I("nplayers").value.trim() === "" || parseInt(I("nplayers").value) < 0) {
             return uproot.error(_("The number of players you entered is invalid."));
         }
 
