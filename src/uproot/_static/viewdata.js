@@ -519,12 +519,9 @@ function removeFilter() {
  */
 function filterThenRefreshData(key, value) {
     if (value === "") {
-        // Remove the key
-        const { [key]: _, ...rest } = viewdataState.filter;
-        viewdataState.filter = rest;
+        delete viewdataState.filter[key];
     } else {
-        // Add or update
-        viewdataState.filter = { ...viewdataState.filter, [key]: value };
+        viewdataState.filter[key] = value;
     }
     refreshData();
 }
