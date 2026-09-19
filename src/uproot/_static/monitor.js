@@ -133,7 +133,7 @@ function createTable(containerId) {
         data: transformMonitorDataForTabulator(initialData),
         height: "100%",
         layout: "fitColumns",
-        placeholder: "No players available",
+        placeholder: _("No players available"),
         rowFormatter: formatDropoutRow,
         rowHeight: monitorState.rowHeight
     });

@@ -1161,3 +1161,6 @@
 
 ? 'Show BibTeX entry'
 : 'Show BibTeX entry'
+
+? 'No players available'
+: 'No players available'

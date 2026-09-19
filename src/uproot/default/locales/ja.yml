@@ -1161,3 +1161,6 @@
 
 ? 'Show BibTeX entry'
 : 'BibTeXエントリを表示'
+
+? 'No players available'
+: 'プレイヤーがいません'
