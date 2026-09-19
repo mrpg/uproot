@@ -88,7 +88,7 @@ class MultiviewManager {
 
             const container = this.createContainer(
                 ids[i],
-                labels[i] == "" ? "<span class='text-body-tertiary'>N/A</span>": uproot.escape(labels[i]),
+                labels[i] === "" ? "<span class='text-body-tertiary'>N/A</span>": uproot.escape(labels[i]),
                 urls[i],
                 col * containerWidth,
                 row * containerHeight,
