@@ -305,7 +305,7 @@
             const wanted = parseInt(I("nplayers").value);
             unamesValid = unames.every(uproot.isValidToken);
 
-            if (unames.length != wanted) {
+            if (unames.length !== wanted) {
                 return uproot.error(_("You cannot create a session with #n1# players but #n2# player names.").replace("#n1#", wanted).replace("#n2#", unames.length));
             }
         }
