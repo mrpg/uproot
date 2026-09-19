@@ -427,7 +427,6 @@ def resolve_page_order(
             else:
                 raise TypeError(f"{app}.page_order must be list or callable")
 
-        for page in expand(full_pages):
-            result.append(page2path(page))
+        result.extend(page2path(page) for page in expand(full_pages))
 
     return result
