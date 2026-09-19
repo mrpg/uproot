@@ -277,7 +277,7 @@ async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> 
                         target_path = Path(rel_path)
 
                         # Only create parent directory if the file is not at root level
-                        if target_path.parent != Path("."):
+                        if target_path.parent != Path():
                             target_path.parent.mkdir(parents=True, exist_ok=True)
 
                         # Skip if it's a directory entry
@@ -416,9 +416,9 @@ def restore(ctx: click.Context, file: str, yes: bool) -> None:
 @click.pass_context
 def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
     if minimal:
-        ex.new_minimal_app(Path("."), app)
+        ex.new_minimal_app(Path(), app)
     else:
-        ex.new_prisoners_dilemma(Path("."), app)
+        ex.new_prisoners_dilemma(Path(), app)
 
 
 # fmt: off
@@ -427,7 +427,7 @@ def new(ctx: click.Context, app: str, minimal: bool = False) -> None:
 @click.argument("page")
 @click.pass_context
 def newpage(ctx: click.Context, app: str, page: str) -> None:
-    ex.new_page(Path("."), app, page)
+    ex.new_page(Path(), app, page)
 
 
 # fmt: off

@@ -1157,7 +1157,7 @@ async def session_digest(
             else:
                 data = rval
 
-            digest_template = Path(".") / appname / "AdminDigest.html"
+            digest_template = Path(appname) / "AdminDigest.html"
             ensure(
                 digest_template.exists(),
                 RuntimeError,
@@ -1221,7 +1221,7 @@ async def session_pipeline(
     with Session(sname) as session:
         for appname in available:
             app = u.APPS[appname]
-            pipeline_template = Path(".") / appname / "AdminPipeline.html"
+            pipeline_template = Path(appname) / "AdminPipeline.html"
 
             if not pipeline_template.exists():
                 continue

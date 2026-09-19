@@ -17,7 +17,7 @@ def is_uv() -> bool:
 
 
 def forward(args: list[str], command: str | None = None) -> None:
-    main_path = Path(".") / "main.py"
+    main_path = Path("main.py")
 
     if not main_path.is_file():
         print("Error: 'main.py' not found in current directory.", file=sys.stderr)

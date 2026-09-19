@@ -441,7 +441,7 @@ def jsonl_export_response(
 
 
 def admin_app_template(appname: str, template_name: str) -> Path:
-    template_path = Path(".") / appname / template_name
+    template_path = Path(appname) / template_name
     if not template_path.exists():
         raise HTTPException(status_code=404, detail=f"{template_name} not found")
 
@@ -1042,7 +1042,7 @@ async def list_session_pipeline_fragments(
     fragments = {}
 
     for appname in a.get_pipelines(sname):
-        template_path = Path(".") / appname / "AdminPipeline.html"
+        template_path = Path(appname) / "AdminPipeline.html"
         if template_path.exists():
             fragments[appname] = await rendered_pipeline_fragment(sname, appname)
 
