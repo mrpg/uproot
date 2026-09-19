@@ -844,7 +844,7 @@ class IBANValidator:
             try:
                 IBAN(field.data)
             except SchwiftyException:
-                raise wtforms.validators.ValidationError(self.message)
+                raise wtforms.validators.ValidationError(self.message) from None
 
 
 class IBANField(wtforms.fields.StringField):
@@ -910,7 +910,7 @@ class BICValidator:
             try:
                 BIC(field.data)
             except SchwiftyException:
-                raise wtforms.validators.ValidationError(self.message)
+                raise wtforms.validators.ValidationError(self.message) from None
 
 
 class BICField(wtforms.fields.StringField):
