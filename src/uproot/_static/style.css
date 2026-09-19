@@ -1,7 +1,6 @@
 /* uproot color scheme */
 :root {
     --bs-uproot: #4e1388;
-    --bs-uproot-rgb: 68, 17, 119;
     --bs-uproot-rgb: 78, 19, 136;
     --bs-uproot-bg-light: #f0e5fb;  /* rgb(240, 229, 251) */
     --bs-uproot-bg-subtle: #faf6fe;  /* rgb(250, 246, 254) */
