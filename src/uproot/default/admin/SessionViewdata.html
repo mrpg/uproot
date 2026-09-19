@@ -190,7 +190,7 @@
 <script>
     uproot.onStart(() => initializeTable());
 
-    var filterButtonsTemp = "";
+    let filterButtonsTemp = "";
 
     function fitFullScreenTable() {
         const tableContainer = I("tableContainer");
@@ -244,7 +244,7 @@
 
     window.addEventListener("resize", fitFullScreenTable);
 
-    var fullWidthTable = false;
+    let fullWidthTable = false;
     function toggleTableWidth() {
         if (fullWidthTable == true) {
             I("full-width-text").className = "d-inline-block";

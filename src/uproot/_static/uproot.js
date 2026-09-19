@@ -229,10 +229,10 @@ window.uproot = {
 
     formatDurationCompact(totalSeconds) {
         const s = Math.max(0, Math.ceil(totalSeconds));
-        var days = Math.floor(s / 86400);
-        var hours = Math.floor((s % 86400) / 3600);
-        var minutes = Math.floor((s % 3600) / 60);
-        var seconds = s % 60;
+        let days = Math.floor(s / 86400);
+        let hours = Math.floor((s % 86400) / 3600);
+        let minutes = Math.floor((s % 3600) / 60);
+        let seconds = s % 60;
         const pad2 = (n) => String(n).padStart(2, "0");
         if (s >= 86400) {
             return `${days}:${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)} ${_("days")}`;
