@@ -1164,3 +1164,9 @@
 
 ? 'No players available'
 : 'No players available'
+
+? '1 message'
+: '1 message'
+
+? '#n# messages'
+: '#n# messages'

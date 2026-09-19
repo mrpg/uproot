@@ -199,7 +199,7 @@ function renderInboxSidebar() {
                     </div>
                     <div class="adminchat-inbox-item-snippet">${adminchatSnippet(summary, uname)}</div>
                     <div class="adminchat-inbox-item-meta">
-                        ${count > 0 ? `<span>${count} msg${count !== 1 ? "s" : ""}</span>` : ""}
+                        ${count > 0 ? `<span>${count === 1 ? _("1 message") : _("#n# messages").replace("#n#", count)}</span>` : ""}
                     </div>
                 </div>
             </li>

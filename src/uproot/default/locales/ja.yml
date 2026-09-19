@@ -1164,3 +1164,9 @@
 
 ? 'No players available'
 : 'プレイヤーがいません'
+
+? '1 message'
+: '1件のメッセージ'
+
+? '#n# messages'
+: '#n#件のメッセージ'
