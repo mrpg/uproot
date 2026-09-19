@@ -19,11 +19,7 @@ def valid_token(x: str) -> bool:
     if not isinstance(x, str):
         return False  # type: ignore[unreachable]
 
-    for ch in x:
-        if ch not in TOKEN_CHARS:
-            return False
-
-    return True
+    return all(ch in TOKEN_CHARS for ch in x)
 
 
 def return_or_raise(
