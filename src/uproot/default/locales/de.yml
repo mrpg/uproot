@@ -1108,7 +1108,7 @@
 ? 'Set'
 : 'Festlegen'
 
-? 'We couldn''t load announcements.'
+? "We couldn't load announcements."
 : 'Die Ankündigungen konnten nicht geladen werden.'
 
 ? 'Please visit'
@@ -1128,3 +1128,21 @@
 
 ? 'Reveal password'
 : 'Passwort anzeigen'
+
+? 'Create room'
+: 'Raum erstellen'
+
+? 'Create session'
+: 'Session erstellen'
+
+? 'Keep default settings'
+: 'Standardeinstellungen beibehalten'
+
+? 'Player names'
+: 'Spielernamen'
+
+? 'Set player names automatically'
+: 'Spielernamen automatisch vergeben'
+
+? 'Set session name automatically'
+: 'Sessionname automatisch vergeben'

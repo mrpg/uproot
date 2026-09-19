@@ -37,7 +37,7 @@
         <div class="form-check mt-3">
             <input class="form-check-input" type="checkbox" id="automatic_settings"
                 onchange="settingsAutomaticChanged(true)" checked>
-            <label for="automatic_settings">Keep default settings</label>
+            <label for="automatic_settings">{% translate %}Keep default settings{% endtranslate %}</label>
         </div>
 
         <input id="settings" name="settings" type="hidden" value="">
@@ -56,7 +56,7 @@
 
         <div class="form-floating mt-3" id="settings-json-container" hidden>
             <textarea class="form-control h-auto font-monospace" id="settings-json" rows="10" placeholder="Settings"></textarea>
-            <label for="settings-json">Settings</label>
+            <label for="settings-json">{% translate %}Settings{% endtranslate %}</label>
             <small class="d-block form-text pt-2">
                 {% translate %}
                 Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.
@@ -79,11 +79,11 @@
         <div class="form-check mt-3">
             <input class="form-check-input" type="checkbox" id="automatic_sname"
                 @click="automatic = !automatic; if (automatic) { I('sname').value = ''; }" checked>
-            <label for="automatic_sname">Set session name automatically</label>
+            <label for="automatic_sname">{% translate %}Set session name automatically{% endtranslate %}</label>
         </div>
         <div class="form-floating mt-3" x-show="!automatic">
             <input class="font-monospace form-control" type="text" id="sname" name="sname" placeholder="Session name">
-            <label for="sname">Session name</label>
+            <label for="sname">{% translate %}Session name{% endtranslate %}</label>
             <small class="d-block form-text pt-2">
                 {% translate %}
                 The session name must only use the following characters: <code>A-Za-z0-9-._</code>
@@ -96,11 +96,11 @@
         <div class="form-check mt-3">
             <input class="form-check-input" type="checkbox" id="automatic_unames"
                 @click="automatic = !automatic; if (automatic) { I('unames').value = ''; }" checked>
-            <label for="automatic_unames">Set player names automatically</label>
+            <label for="automatic_unames">{% translate %}Set player names automatically{% endtranslate %}</label>
         </div>
         <div class="form-floating mt-3" x-show="!automatic">
             <textarea class="form-control h-auto font-monospace" id="unames" rows="10" name="unames" placeholder="Player names"></textarea>
-            <label for="unames">Player names</label>
+            <label for="unames">{% translate %}Player names{% endtranslate %}</label>
             <small class="d-block form-text pt-2">
                 {% translate %}
                 Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>
