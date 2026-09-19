@@ -1149,3 +1149,15 @@
 
 ? 'Toggling this has purely cosmetic consequences:'
 : 'この設定は見た目にのみ影響します：'
+
+? 'BibTeX entry'
+: 'BibTeXエントリ'
+
+? 'ID'
+: 'ID'
+
+? 'Reload iframe'
+: 'iframeを再読み込み'
+
+? 'Show BibTeX entry'
+: 'BibTeXエントリを表示'

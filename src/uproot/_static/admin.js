@@ -485,7 +485,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
 function showBibTeX() {
     uproot.alert(`<h5 class="mb-3">${_("Pre-formatted citation")} <span class="fw-light">(Chicago style)</span></h5>
 <p class="mb-4">Grossmann, Max&nbsp;R.&nbsp;P., and Holger Gerhardt. 2025. “uproot: A Software Framework for Behavioral Experiments.” Unpublished manuscript.</p>
-<h5 class="mb-3">BibTeX entry</h5>
+<h5 class="mb-3">${_("BibTeX entry")}</h5>
 <code class="text-uproot">
 <b>@unpublished</b>{<b>uproot</b>,<br>
 &nbsp;&nbsp;<b>author</b> = {Grossmann, Max~R.~P. and Gerhardt, Holger},<br>

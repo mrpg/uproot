@@ -117,12 +117,12 @@ class MultiviewManager {
         const titleSpan = document.createElement('span');
         titleSpan.className = 'iframe-title';
         titleSpan.innerHTML =
-            `<b>ID <span class="font-monospace">${id}</span></b> <span class="fw-light"><span class="text-body-tertiary">&nbsp;|&nbsp;</span> Label <span class="font-monospace">${label}</span> <span class="text-body-tertiary">&nbsp;|&nbsp;</span> URL ${this.getDisplayName(url)}</span>`;
+            `<b>${_("ID")} <span class="font-monospace">${id}</span></b> <span class="fw-light"><span class="text-body-tertiary">&nbsp;|&nbsp;</span> ${_("Label")} <span class="font-monospace">${label}</span> <span class="text-body-tertiary">&nbsp;|&nbsp;</span> ${_("URL")} ${this.getDisplayName(url)}</span>`;
 
         const reloadButton = document.createElement('button');
         reloadButton.className = 'reload-button';
         reloadButton.innerHTML = '↻';
-        reloadButton.title = 'Reload iframe';
+        reloadButton.title = _('Reload iframe');
 
         header.appendChild(titleSpan);
         header.appendChild(reloadButton);

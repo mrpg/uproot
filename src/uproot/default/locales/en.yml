@@ -1149,3 +1149,15 @@
 
 ? 'Toggling this has purely cosmetic consequences:'
 : 'Toggling this has purely cosmetic consequences:'
+
+? 'BibTeX entry'
+: 'BibTeX entry'
+
+? 'ID'
+: 'ID'
+
+? 'Reload iframe'
+: 'Reload iframe'
+
+? 'Show BibTeX entry'
+: 'Show BibTeX entry'

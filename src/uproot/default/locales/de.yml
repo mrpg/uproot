@@ -1149,3 +1149,15 @@
 
 ? 'Toggling this has purely cosmetic consequences:'
 : 'Diese Einstellung hat rein kosmetische Auswirkungen:'
+
+? 'BibTeX entry'
+: 'BibTeX-Eintrag'
+
+? 'ID'
+: 'ID'
+
+? 'Reload iframe'
+: 'Iframe neu laden'
+
+? 'Show BibTeX entry'
+: 'BibTeX-Eintrag anzeigen'
