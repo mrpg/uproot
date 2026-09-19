@@ -718,9 +718,6 @@
 ? 'To edit room settings, first disassociate the session from this room.'
 : 'To edit room settings, first disassociate the session from this room.'
 
-? 'Toggling this has purely cosmetical consequences:'
-: 'Toggling this has purely cosmetical consequences:'
-
 ? 'Toggling this will hide this session’s testing elements for everyone except admins.'
 : 'Toggling this will hide this session’s testing elements for everyone except admins.'
 
@@ -1149,3 +1146,6 @@
 
 ? 'Invalid JSON.'
 : 'Invalid JSON.'
+
+? 'Toggling this has purely cosmetic consequences:'
+: 'Toggling this has purely cosmetic consequences:'

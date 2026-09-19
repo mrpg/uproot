@@ -212,7 +212,7 @@
                         <button class="btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
                             data-bs-toggle="popover"
                             data-bs-trigger="hover"
-                            data-bs-content="{% translate %}Toggling this has purely cosmetical consequences:{% endtranslate %} {% if session.active %}{% translate %}It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”{% endtranslate %}{% else %}{% translate %}It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”{% endtranslate %}{% endif %}"
+                            data-bs-content="{% translate %}Toggling this has purely cosmetic consequences:{% endtranslate %} {% if session.active %}{% translate %}It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”{% endtranslate %}{% else %}{% translate %}It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”{% endtranslate %}{% endif %}"
                             onclick="flipActive()"
                             type="button">
                             {% if session.active %}

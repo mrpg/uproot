@@ -718,9 +718,6 @@
 ? 'To edit room settings, first disassociate the session from this room.'
 : 'ルーム設定を編集するには、まずこのルームからセッションの関連付けを解除してください。'
 
-? 'Toggling this has purely cosmetical consequences:'
-: 'この切り替えは見た目のみに影響します:'
-
 ? 'Toggling this will hide this session’s testing elements for everyone except admins.'
 : 'この切り替えにより、管理者以外の全員に対してこのセッションのテスト要素が非表示になります。'
 
@@ -1149,3 +1146,6 @@
 
 ? 'Invalid JSON.'
 : '無効なJSONです。'
+
+? 'Toggling this has purely cosmetic consequences:'
+: 'この設定は見た目にのみ影響します：'

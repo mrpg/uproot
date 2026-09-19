@@ -718,9 +718,6 @@
 ? 'To edit room settings, first disassociate the session from this room.'
 : 'Um die Raumeinstellungen zu bearbeiten, trennen Sie zuerst die Session von diesem Raum.'
 
-? 'Toggling this has purely cosmetical consequences:'
-: 'Das Umschalten hat rein kosmetische Auswirkungen:'
-
 ? 'Toggling this will hide this session’s testing elements for everyone except admins.'
 : 'Das Umschalten blendet die Testelemente dieser Session für alle außer Administratoren aus.'
 
@@ -1149,3 +1146,6 @@
 
 ? 'Invalid JSON.'
 : 'Ungültiges JSON.'
+
+? 'Toggling this has purely cosmetic consequences:'
+: 'Diese Einstellung hat rein kosmetische Auswirkungen:'
