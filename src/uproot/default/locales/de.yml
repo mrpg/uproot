@@ -1146,3 +1146,6 @@
 
 ? 'Set session name automatically'
 : 'Sessionname automatisch vergeben'
+
+? 'Invalid JSON.'
+: 'Ungültiges JSON.'

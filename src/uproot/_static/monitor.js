@@ -684,7 +684,7 @@ window.mmodal = function(modalName) {
         }
         modal?.show();
     } else {
-        uproot.error("No players selected.");
+        uproot.error(_("No players selected."));
     }
 };
 
@@ -700,10 +700,10 @@ window.actuallyManage = function() {
         window.invokeFromMonitor(action).then((data) => {
             if (data) window.newInfoOnline(data);
             loadExtraData();
-            uproot.alert("The action has completed.");
+            uproot.alert(_("The action has completed."));
         });
     } else {
-        uproot.error("No action selected.");
+        uproot.error(_("No action selected."));
     }
 };
 
@@ -715,13 +715,13 @@ window.actuallyInsert = function() {
     try {
         fields = JSON.parse(json);
     } catch {
-        return uproot.error("Invalid JSON.");
+        return uproot.error(_("Invalid JSON."));
     }
 
     window.bootstrap?.Modal.getOrCreateInstance(I("insert-modal")).hide();
     window.invokeFromMonitor("insert_fields", { fields, reload }).then(() => {
         loadExtraData();
-        uproot.alert("The action has completed.");
+        uproot.alert(_("The action has completed."));
     });
 };
 
@@ -730,7 +730,7 @@ window.actuallyAdminmessageSend = function() {
 
     window.bootstrap?.Modal.getOrCreateInstance(I("adminmessage_send-modal")).hide();
     window.invokeFromMonitor("adminmessage", msg).then(() => {
-        uproot.alert("The action has completed.");
+        uproot.alert(_("The action has completed."));
     });
 };
 
@@ -749,12 +749,12 @@ window.actuallyRedirect = function() {
     const url = I("redirect-url")?.value ?? "";
 
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
-        return uproot.error("URL must start with http:// or https://");
+        return uproot.error(_("URL must start with http:// or https://"));
     }
 
     window.bootstrap?.Modal.getOrCreateInstance(I("redirect-modal")).hide();
     window.invokeFromMonitor("redirect", url).then(() => {
-        uproot.alert("The action has completed.");
+        uproot.alert(_("The action has completed."));
     });
 };
 
