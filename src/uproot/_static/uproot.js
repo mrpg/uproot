@@ -367,7 +367,7 @@ window.uproot = {
 
             this.serverThere = Date.now();
 
-            if (kind == "invoke" && "future" in payload) {
+            if (kind === "invoke" && "future" in payload) {
                 const fut = this.futStore[payload.future];
 
                 if (!payload.error) {
@@ -379,20 +379,20 @@ window.uproot = {
 
                 delete this.futStore[payload.future];
             }
-            else if (kind == "action" && "action" in payload) {
+            else if (kind === "action" && "action" in payload) {
                 const action = payload.action;
 
-                if (action == "reload") {
+                if (action === "reload") {
                     this.reload();
                 }
-                else if (action == "redirect" && "url" in payload) {
+                else if (action === "redirect" && "url" in payload) {
                     this.redirect(payload.url);
                 }
-                else if (action == "submit") {
+                else if (action === "submit") {
                     this.submit();
                 }
             }
-            else if (kind == "event" && "event" in payload) {
+            else if (kind === "event" && "event" in payload) {
                 const eventName = payload.event;
                 const ev = new CustomEvent(`UprootCustom${eventName}`, {
                     detail: payload.detail,
@@ -400,8 +400,8 @@ window.uproot = {
 
                 window.dispatchEvent(ev);
             }
-            else if (kind == "queue") {
-                if (!("constraint" in payload.entry) || payload.entry.constraint === null || payload.entry.constraint == currentPage) {
+            else if (kind === "queue") {
+                if (!("constraint" in payload.entry) || payload.entry.constraint === null || payload.entry.constraint === currentPage) {
                     this.queueDispatch(payload.u, payload.entry);
                 }
             }
@@ -1575,11 +1575,11 @@ window.uproot = {
                         let senderRepresentation = msg.sender[1];
                         let colorCls = "text-success";
 
-                        if (msg.sender[0] == "self") {
+                        if (msg.sender[0] === "self") {
                             senderRepresentation = `${msg.sender[1]} (${_("You")})`;
                             colorCls = "text-primary";
                         }
-                        else if (msg.sender[0] == "admin") {
+                        else if (msg.sender[0] === "admin") {
                             senderRepresentation = _("Research Coordinator");
                             colorCls = "text-danger";
                         }
