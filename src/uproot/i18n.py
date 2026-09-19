@@ -132,7 +132,7 @@ def load(yaml_path: str) -> None:
     if os.path.isfile(yaml_path):
         # Single YAML file - assume it contains all languages
         try:
-            with open(yaml_path, "r", encoding="utf-8") as f:
+            with open(yaml_path, encoding="utf-8") as f:
                 data = strictyaml.load(f.read()).data
                 if isinstance(data, dict):
                     all_translations = data
@@ -149,7 +149,7 @@ def load(yaml_path: str) -> None:
                 lang = filename.split(".")[0]
                 file_path = os.path.join(yaml_path, filename)
 
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     lang_data = strictyaml.load(f.read()).data
 
                     if isinstance(lang_data, dict):
