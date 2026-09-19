@@ -138,7 +138,7 @@ def pipeline_call_kwargs(
         if data_was_provided:
             raise PipelineInvocationError(
                 "Cannot pass pipeline data to a callable with no signature"
-            )
+            ) from None
         return {}
 
     accepts_arbitrary_kwargs = any(
