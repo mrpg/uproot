@@ -127,7 +127,7 @@ Please wait
         });
 
         uproot.onCustomEvent("RoomLabelProvided", (event) => {
-            if (!hasLabel || label != event.detail.label) {
+            if (!hasLabel || label !== event.detail.label) {
                 setLabelAndSubmit(event);
             }
         });
