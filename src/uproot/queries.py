@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from operator import attrgetter
-from typing import Any, Union, cast
+from typing import Any, cast
 
 
-def resolve(referent: Union["FieldReferent", Any], obj: Any) -> Any:
+def resolve(referent: "FieldReferent | Any", obj: Any) -> Any:
     if isinstance(referent, FieldReferent):
         current = obj
 
@@ -21,8 +21,8 @@ class Comparison:
     def __init__(
         self,
         op: str,
-        lhs: Union["FieldReferent", Any],
-        rhs: Union["FieldReferent", Any],
+        lhs: "FieldReferent | Any",
+        rhs: "FieldReferent | Any",
     ) -> None:
         self.op = op
         self.lhs = lhs
