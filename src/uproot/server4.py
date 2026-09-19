@@ -606,7 +606,7 @@ async def update_session_description(
     try:
         await a.update_description(sname, body.description)
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from None
 
     return {"description": body.description if body.description else None}
 
@@ -745,7 +745,7 @@ async def adjust_timeout(
     try:
         await a.adjust_timeout(sname, body.unames, body.delta)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return {"adjusted": body.unames, "delta": body.delta}
 
@@ -762,7 +762,7 @@ async def redirect_players(
     try:
         await a.redirect(sname, body.unames, body.url)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return {"redirected": body.unames, "url": body.url}
 
@@ -1267,7 +1267,7 @@ async def delete_room(
     try:
         await a.delete_room(roomname)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return {"name": roomname, "deleted": True}
 
@@ -1303,7 +1303,7 @@ async def set_room_open(
     try:
         await a.set_room_open(roomname, body.open)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return room_detail(roomname) | {"open": body.open}
 
@@ -1320,7 +1320,7 @@ async def set_room_capacity(
     try:
         await a.set_room_capacity(roomname, body.capacity)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return room_detail(roomname)
 
@@ -1337,7 +1337,7 @@ async def close_room(
     try:
         await a.close_room(roomname, body.disassociate)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return room_detail(roomname) | {
         "closed": True,
@@ -1503,7 +1503,7 @@ async def get_praise(
     try:
         return PlainTextResponse(await a.praise())
     except Exception:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail="Failed to fetch praise")
+        raise HTTPException(status_code=502, detail="Failed to fetch praise") from None
 
 
 @router.post("/auth/login/", status_code=201)
