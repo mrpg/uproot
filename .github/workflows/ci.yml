@@ -82,7 +82,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run mypy
-        run: uv run mypy src/uproot/
+        run: uv run mypy
 
   security:
     runs-on: ubuntu-latest

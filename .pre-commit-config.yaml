@@ -24,7 +24,7 @@ repos:
         entry: uv run mypy
         language: system
         types: [python]
-        exclude: ^(tests|build|dist)/
+        pass_filenames: false
 
       - id: translations
         name: translations

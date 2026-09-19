@@ -9,7 +9,7 @@
 1. For `1.0.0` or the first PyPI release, update install and status text in `README.md` and `INSTALLATION-PIP.md`.
 1. Run `uv sync --extra dev --upgrade`.
 1. Run formatters and autofixes: `uv run ruff check --fix src/uproot/ && uv run black src/uproot/ && uv run isort src/uproot/`.
-1. Run release checks: `uv run pytest && uv run mypy src/uproot/ && uv run bandit -r src/uproot/ -c pyproject.toml && uvx pip-audit && uv run deptry src/uproot/ && uv run radon cc src/uproot/ -a -nb && uv run radon mi src/uproot/ -nb`.
+1. Run release checks: `uv run pytest && uv run mypy && uv run bandit -r src/uproot/ -c pyproject.toml && uvx pip-audit && uv run deptry src/uproot/ && uv run radon cc src/uproot/ -a -nb && uv run radon mi src/uproot/ -nb`.
 1. Commit changes with commit message `Release vX.Y.Z`.
 1. Push with `git push`. Ensure that CI passes.
 1. Tag with `git tag vX.Y.Z`.

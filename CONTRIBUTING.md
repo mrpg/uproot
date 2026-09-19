@@ -24,7 +24,7 @@ Add or update tests for behavioural changes. Before opening a pull request, run:
 ruff check --fix src/uproot
 black src/uproot
 isort src/uproot
-mypy src/uproot
+mypy
 python check_translations.py
 pytest
 ```
