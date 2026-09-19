@@ -5,7 +5,7 @@
 Compatibility layer that delegates to appendmuch Store.
 """
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import appendmuch
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from appendmuch import Store
 
 
-STORE: Optional["Store"] = None
+STORE: "Store | None" = None
 MEMORY_HISTORY: dict[str, Any] = {}
 
 dbns2tuple = appendmuch.dbns2tuple

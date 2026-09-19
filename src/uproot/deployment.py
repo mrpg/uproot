@@ -6,7 +6,7 @@ import os
 import secrets
 from time import perf_counter
 from types import EllipsisType
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import appendmuch
 import dotenv
@@ -90,7 +90,7 @@ def uproot_namespace_validator(namespace: tuple[str, ...]) -> bool:
     return namespace[0] in ("admin", "session", "player", "group", "model")
 
 
-store: Optional["appendmuch.Store"] = None
+store: "appendmuch.Store | None" = None
 
 
 def init_store() -> "appendmuch.Store":
