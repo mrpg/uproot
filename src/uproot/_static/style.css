@@ -560,11 +560,11 @@ code, .font-monospace {
     padding: 0.5rem 0;
 }
 .uproot-likert-responsive-scale-min {
-    padding-right: 2rem;  /* beetwen .pe-4 and .pe-5, ensures sufficient separation from the radio buttons */
+    padding-right: 2rem;  /* between .pe-4 and .pe-5, ensures sufficient separation from the radio buttons */
     text-align: right;
 }
 .uproot-likert-responsive-scale-max {
-    padding-left: 2rem;  /* beetwen .ps-4 and .ps-5, ensures sufficient separation from the radio buttons */
+    padding-left: 2rem;  /* between .ps-4 and .ps-5, ensures sufficient separation from the radio buttons */
     text-align: left;
 }
 .uproot-likert-matrix .likert-corner {
