@@ -1,3 +1,4 @@
 [submodule "security"]
 	path = security
 	url = https://github.com/mrpg/security.git
+	update = none
