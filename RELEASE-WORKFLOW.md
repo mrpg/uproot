@@ -4,18 +4,10 @@
 1. Add new version below.
 1. Update `__version_info__` in `src/uproot/__init__.py`.
 1. Update `version` in `pyproject.toml`.
-1. Update `recommendedVersion` in `announcements.json`, and add or update the matching version-specific announcement if needed. Deploy docs.
-1. Copy or move (after 2027-01-01) `announcements.json` to [uproot-docs](https://github.com/mrpg/uproot-docs).
+1. Update `recommendedVersion` in `announcements.json`, and add or update the matching version-specific announcement if needed.
+1. Copy or move (after 2027-01-01) `announcements.json` to [uproot-docs](https://github.com/mrpg/uproot-docs). Deploy docs.
 1. For `1.0.0` or the first PyPI release, update install and status text in `README.md` and `INSTALLATION-PIP.md`.
-1. Run `uv sync --extra dev --upgrade`.
-1. Run formatters and autofixes: `uv run ruff check --fix src/uproot/ && uv run black src/uproot/ && uv run isort src/uproot/`.
-1. Run release checks: `uv run pytest && uv run mypy && uv run bandit -r src/uproot/ -c pyproject.toml && uvx pip-audit && uv run deptry src/uproot/ && uv run radon cc src/uproot/ -a -nb && uv run radon mi src/uproot/ -nb`.
-1. Commit changes with commit message `Release vX.Y.Z`.
-1. Push with `git push`. Ensure that CI passes.
-1. Tag with `git tag vX.Y.Z`.
-1. Push with `git push --tags`.
-1. Clean and build release artifacts: `rm -rf dist/ && export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" && umask 022 && uv run pip wheel . -w dist/`.
-1. Verify release artifacts: `uv run twine check dist/uproot*.whl`.
+1. Run `./release.sh vX.Y.Z`. Ensure CI passes.
 1. Upload to PyPI: `uv run twine upload dist/uproot*.whl`.
 1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable. Signatures use GnuPG and [botan-slhdsa-signing](https://github.com/mrpg/botan-slhdsa-signing).
     - Verifiers, see [here](https://max.pm/security/).
@@ -30,6 +22,7 @@
 
 # Versions
 
+- `0.5.4` (2026-09-21)
 - `0.5.3` (2026-09-16)
 - `0.5.2` (2026-09-13)
 - `0.5.1` (2026-09-03)
