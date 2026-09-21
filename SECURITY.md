@@ -6,7 +6,7 @@ Cryptographic signatures can be verified using _(1)_ the following OpenPGP key:
 
     A09A92FC5015EE861A7098511999861C1636BA9B
 
-The public key is available [in this repository](./1636BA9B.asc) and from [here](https://max.pm/1636BA9B.asc). Consider reviewing Max Grossmann’s [security page](https://max.pm/security/) and [security repository](https://github.com/mrpg/security).
+The public key is available [in this repository](./security/1636BA9B.asc) and from [here](https://max.pm/1636BA9B.asc). Consider reviewing Max Grossmann’s [security page](https://max.pm/security/).
 
 and _(2)_ the following SLH-DSA public key:
 
@@ -33,4 +33,4 @@ For sensitive reports, please encrypt to the following OpenPGP key:
 
 If you don’t have a local OpenPGP setup, an in-browser tool to encrypt messages to this key is available [here](https://max.pm/contact/#encrypt).
 
-The public key is available [in this repository](./1636BA9B.asc) and from [here](https://max.pm/1636BA9B.asc). Consider reviewing Max Grossmann’s [security page](https://max.pm/security/) and [security repository](https://github.com/mrpg/security).
+The public key is available [in this repository](./security/1636BA9B.asc) and from [here](https://max.pm/1636BA9B.asc). Consider reviewing Max Grossmann’s [security page](https://max.pm/security/).
