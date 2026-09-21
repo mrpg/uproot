@@ -1090,8 +1090,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 
-? 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
-: 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
+? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
+: 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
 
 ? 'Formats'
 : 'Formats'

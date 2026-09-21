@@ -1090,8 +1090,8 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : '各フォーマットはストレージごとに1つのCSVファイル（latest/player.csvなど）で構成されます。'
 
-? 'Every download is a ZIP archive containing three key data formats, page times, a data dictionary, and integrity checksums.'
-: '各ダウンロードは、3つの主要なデータフォーマット、ページ滞在時間、データ辞書、チェックサムを含むZIPアーカイブです。'
+? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
+: '各ダウンロードは、3つまたは4つの主要なデータフォーマット、ページ滞在時間、データ辞書、チェックサムを含むZIPアーカイブです。'
 
 ? 'Formats'
 : 'フォーマット'
