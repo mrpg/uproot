@@ -556,9 +556,6 @@
 ? 'Latest &times; Field(s)'
 : 'Latest &times; Field(s)'
 
-? 'Learn more.'
-: 'Learn more.'
-
 ? 'Log in as admin to view more information on this page.'
 : 'Log in as admin to view more information on this page.'
 
@@ -1090,7 +1087,7 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 
-? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
+? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
 : 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
 
 ? 'Formats'
@@ -1099,8 +1096,8 @@
 ? 'Limit capacity'
 : 'Limit capacity'
 
-? 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
-: 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+? 'Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: 'Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
 
 ? 'Set'
 : 'Set'

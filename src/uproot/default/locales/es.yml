@@ -556,9 +556,6 @@
 ? 'Latest &times; Field(s)'
 : 'Más reciente &times; Campo(s)'
 
-? 'Learn more.'
-: 'Más información.'
-
 ? 'Log in as admin to view more information on this page.'
 : 'Inicie sesión como administrador para ver más información en esta página.'
 
@@ -1090,7 +1087,7 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : 'Cada formato consta de un archivo CSV por cada storage, por ejemplo latest/player.csv.'
 
-? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
+? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
 : 'Cada descarga es un archivo ZIP que contiene tres o cuatro formatos de datos principales, tiempos de página, un diccionario de datos y sumas de comprobación.'
 
 ? 'Formats'
@@ -1099,8 +1096,8 @@
 ? 'Limit capacity'
 : 'Limitar la capacidad'
 
-? 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
-: 'Opcionalmente añade una fila por jugador y por agrupación indicada (por ejemplo, por ronda): muestra el estado de cada participante al final de cada ronda, condición u otra agrupación que especifique.'
+? 'Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: 'Añade una fila por jugador y por agrupación indicada (por ejemplo, por ronda): muestra el estado de cada participante al final de cada ronda, condición u otra agrupación que especifique.'
 
 ? 'Set'
 : 'Establecer'

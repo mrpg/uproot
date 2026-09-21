@@ -556,9 +556,6 @@
 ? 'Latest &times; Field(s)'
 : '最新 &times; フィールド'
 
-? 'Learn more.'
-: '詳細を見る。'
-
 ? 'Log in as admin to view more information on this page.'
 : '管理者としてログインすると、このページの詳細情報を表示できます。'
 
@@ -1090,7 +1087,7 @@
 ? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
 : '各フォーマットはストレージごとに1つのCSVファイル（latest/player.csvなど）で構成されます。'
 
-? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
+? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
 : '各ダウンロードは、3つまたは4つの主要なデータフォーマット、ページ滞在時間、データ辞書、チェックサムを含むZIPアーカイブです。'
 
 ? 'Formats'
@@ -1099,8 +1096,8 @@
 ? 'Limit capacity'
 : '定員を制限する'
 
-? 'Optionally adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
-: 'オプションで、指定した区分（ラウンドや条件など）ごとにプレイヤー1人につき1行を追加し、各区分の終了時点における参加者の状態を表示します。'
+? 'Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: '指定した区分（ラウンドや条件など）ごとにプレイヤー1人につき1行を追加し、各区分の終了時点における参加者の状態を表示します。'
 
 ? 'Set'
 : '設定'
