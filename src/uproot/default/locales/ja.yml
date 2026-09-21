@@ -1099,6 +1099,9 @@
 ? 'Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
 : '指定した区分（ラウンドや条件など）ごとにプレイヤー1人につき1行を追加し、各区分の終了時点における参加者の状態を表示します。'
 
+? '“Latest × Field(s)” is enabled by default. It adds a derived view of data already present in the archive without changing the three standard data formats. Fields with many combinations may increase export time and size.'
+: '「最新 × フィールド」は既定で有効になっています。アーカイブ内にすでに存在するデータから派生したビューを追加しますが、3つの標準データ形式は変更しません。フィールドの組み合わせが多い場合、エクスポートにかかる時間とサイズが増加する可能性があります。'
+
 ? 'Set'
 : '設定'
 

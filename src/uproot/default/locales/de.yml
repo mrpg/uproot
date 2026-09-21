@@ -1099,6 +1099,9 @@
 ? 'Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
 : 'Fügt eine Zeile pro Spieler und angegebener Gruppierung hinzu (z. B. pro Runde): zeigt, welchen Stand jeder Teilnehmer am Ende jeder Runde, Bedingung oder sonstigen angegebenen Gruppierung hatte.'
 
+? '“Latest × Field(s)” is enabled by default. It adds a derived view of data already present in the archive without changing the three standard data formats. Fields with many combinations may increase export time and size.'
+: '„Aktuellste × Feld(er)“ ist standardmäßig aktiviert. Dieses Format fügt eine abgeleitete Ansicht von Daten hinzu, die bereits im Archiv enthalten sind, ohne die drei Standarddatenformate zu verändern. Felder mit vielen Kombinationen können die Exportdauer und -größe erhöhen.'
+
 ? 'Set'
 : 'Festlegen'
 
