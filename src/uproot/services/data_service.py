@@ -222,9 +222,9 @@ def briefcase_readme(
         f"DATA_DICTIONARY.json defines the uproot-internal columns, i.e.,\n"
         f'those whose names start with "!". All other columns have other\n'
         f"types, which are not documented there.\n\n"
-        f"SHA256SUMS lists the SHA-256 hash of every file in this archive.\n"
+        f"SHA3-256SUMS lists the SHA3-256 hash of every file in this archive.\n"
         f"Verify the files' integrity from within this directory using\n\n"
-        f"    sha256sum -c SHA256SUMS\n\n"
+        f"    sha3sum -a 256 -c SHA3-256SUMS\n\n"
         f"For more details, see https://uproot.science/running/export/\n"
     )
 

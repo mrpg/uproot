@@ -437,6 +437,13 @@ def sha256(b: str | bytes) -> str:
     return hashlib.sha256(b).hexdigest()
 
 
+def sha3_256(b: str | bytes) -> str:
+    if isinstance(b, str):
+        b = b.encode("utf-8")
+
+    return hashlib.sha3_256(b).hexdigest()
+
+
 def uuid() -> pyuuid.UUID:
     if hasattr(pyuuid, "uuid7"):
         return cast(pyuuid.UUID, pyuuid.uuid7())
