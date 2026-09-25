@@ -483,10 +483,11 @@ dependencies = [
     "ruff",
 ]
 
-[project.optional-dependencies]
-pg = [
-    "uproot-science[pg]<1",
-]
+# Uncomment the following if you need to use PostgreSQL:
+# [project.optional-dependencies]
+# pg = [
+#     "uproot-science[pg]<1",
+# ]
 
 [tool.setuptools]
 packages = []
