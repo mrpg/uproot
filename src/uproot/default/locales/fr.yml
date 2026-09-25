@@ -1,0 +1,1172 @@
+? 'The Use of Knowledge in Society'
+: 'The Use of Knowledge in Society'
+
+? 'Welcome'
+: 'Bienvenue'
+
+? 'Please wait'
+: 'Veuillez patienter'
+
+? 'Next'
+: 'Suivant'
+
+? 'Back'
+: 'Retour'
+
+? 'End'
+: 'Fin'
+
+? 'You have reached the end of this study.'
+: 'Vous êtes arrivé(e) à la fin de cette étude.'
+
+? 'You may now close this page.'
+: 'Vous pouvez maintenant fermer cette page.'
+
+? 'Close'
+: 'Fermer'
+
+? 'Remaining time on this page'
+: 'Temps restant sur cette page'
+
+? 'Remaining time on this page:'
+: 'Temps restant sur cette page :'
+
+? 'Skip to main content'
+: 'Aller au contenu principal'
+
+? 'Error'
+: 'Erreur'
+
+? 'Login'
+: 'Connexion'
+
+? 'Username'
+: 'Nom d’utilisateur'
+
+? 'Password'
+: 'Mot de passe'
+
+? 'Submit'
+: 'Envoyer'
+
+? 'You provided invalid credentials.'
+: 'Vous avez fourni des identifiants non valides.'
+
+? 'Dashboard'
+: 'Tableau de bord'
+
+? 'Send message'
+: 'Envoyer un message'
+
+? 'Insert fields'
+: 'Insérer des champs'
+
+? 'Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.'
+: 'Insérer des champs n’est pas une bonne pratique. N’utilisez cette fonction que pour des tests ou en cas d’urgence. Les insertions manuelles de champs sont enregistrées comme telles dans la base de données, de façon irrévocable.'
+
+? 'Mark as dropout'
+: 'Marquer comme abandon'
+
+? 'Put to end'
+: 'Placer à la fin'
+
+? 'Advance by one page'
+: 'Avancer d’une page'
+
+? 'Revert by one page'
+: 'Reculer d’une page'
+
+? 'Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):'
+: 'Veuillez saisir un <i>objet</i> JSON valide. Par exemple, ceci insère les champs <code>foo</code> (un entier) et <code>bar</code> (une liste) :'
+
+? 'Active logins'
+: 'Connexions actives'
+
+? 'Active sessions'
+: 'Sessions actives'
+
+? 'Admin area'
+: 'Espace d’administration'
+
+? 'Any app'
+: 'N’importe quelle app'
+
+? 'Apps'
+: 'Apps'
+
+? 'Associated config'
+: 'Configuration associée'
+
+? 'Associated labels'
+: 'Labels associés'
+
+? 'Associated room'
+: 'Salle associée'
+
+? 'Capacity'
+: 'Capacité'
+
+? 'Change at'
+: 'Modifié à'
+
+? 'Chat with Research Coordinator'
+: 'Discuter avec le coordinateur de recherche'
+
+? 'Check for important announcements'
+: 'Vérifier les annonces importantes'
+
+? 'Check now'
+: 'Vérifier maintenant'
+
+? 'Config'
+: 'Configuration'
+
+? 'Config or app'
+: 'Configuration ou app'
+
+? 'Configs'
+: 'Configurations'
+
+? 'Data'
+: 'Données'
+
+? 'Database'
+: 'Base de données'
+
+? 'Database driver'
+: 'Pilote de base de données'
+
+? 'Database size'
+: 'Taille de la base de données'
+
+? 'Description'
+: 'Description'
+
+? 'Disassociate room and session'
+: 'Dissocier la salle et la session'
+
+? 'Download'
+: 'Télécharger'
+
+? 'Download data'
+: 'Télécharger les données'
+
+? 'Download database dump'
+: 'Télécharger une sauvegarde de la base de données'
+
+? 'Existing session'
+: 'Session existante'
+
+? 'Field'
+: 'Champ'
+
+? 'Filter by app'
+: 'Filtrer par app'
+
+? 'Filter by round'
+: 'Filtrer par tour'
+
+? 'For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.'
+: 'À des fins de documentation et de réplication, chaque session enregistre automatiquement les paquets installés au moment de sa création. Voir <code>session.packages</code>.'
+
+? 'Full-screen table'
+: 'Tableau en plein écran'
+
+? 'Full-width table'
+: 'Tableau pleine largeur'
+
+? 'Hide information for uproot developers'
+: 'Masquer les informations pour les développeurs d’uproot'
+
+? 'If the next page is not shown, it will be skipped.'
+: 'Si la page suivante n’est pas affichée, elle sera ignorée.'
+
+? 'If the previous page was not shown, this will return to the current page.'
+: 'Si la page précédente n’a pas été affichée, ceci ramènera à la page actuelle.'
+
+? 'Individual player URLs'
+: 'URL individuelles des joueurs'
+
+? 'Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'Saisissez un nom de joueur par ligne. Le nombre de noms doit correspondre au nombre de joueurs. Chaque nom ne doit utiliser que les caractères suivants : <code>A-Za-z0-9-._</code>'
+
+? 'Installed packages'
+: 'Paquets installés'
+
+? 'It may be re-imported using <code>uproot restore</code>.'
+: 'Elle peut être réimportée avec <code>uproot restore</code>.'
+
+? 'Join mode'
+: 'Mode d’accès'
+
+? 'Labels'
+: 'Labels'
+
+? 'Logged in at (UTC)'
+: 'Connecté à (UTC)'
+
+? 'Logout'
+: 'Déconnexion'
+
+? 'Log out all'
+: 'Tout déconnecter'
+
+? 'Manage players'
+: 'Gérer les joueurs'
+
+? 'Multiview'
+: 'Vue multiple'
+
+? 'N/A'
+: 'N/A'
+
+? 'New room'
+: 'Nouvelle salle'
+
+? 'New session'
+: 'Nouvelle session'
+
+? 'No active authentication sessions found.'
+: 'Aucune session d’authentification active.'
+
+? 'No data available'
+: 'Aucune donnée disponible'
+
+? 'None'
+: 'Aucun'
+
+? 'Normal table'
+: 'Tableau normal'
+
+? 'Normal-width table'
+: 'Tableau de largeur normale'
+
+? 'Not recently seen'
+: 'Non vu récemment'
+
+? 'Number of players'
+: 'Nombre de joueurs'
+
+? 'room is Open'
+: 'Ouverte'
+
+? 'Open Chat with Research Coordinator'
+: 'Ouvrir la discussion avec le coordinateur de recherche'
+
+? 'Package'
+: 'Paquet'
+
+? 'Player monitor'
+: 'Moniteur des joueurs'
+
+? 'player(s)'
+: 'joueur(s)'
+
+? 'Players'
+: 'Joueurs'
+
+? 'Players can use the following URL for entering this room'
+: 'Les joueurs peuvent utiliser l’URL suivante pour entrer dans cette salle'
+
+? 'Player URL'
+: 'URL du joueur'
+
+? 'Player URLs'
+: 'URL des joueurs'
+
+? 'Recently seen'
+: 'Vu récemment'
+
+? 'Refresh'
+: 'Actualiser'
+
+? 'Reload players’ pages'
+: 'Recharger les pages des joueurs'
+
+? 'restricted'
+: 'restreint'
+
+? 'Room'
+: 'Salle'
+
+? 'Rooms'
+: 'Salles'
+
+? 'Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.'
+: 'Les salles sans labels prédéfinis attribuent des labels aléatoires ou acceptent des labels valides transmis par <code>?label=mylabel42</code> dans l’URL de la salle.'
+
+? 'Save changes'
+: 'Enregistrer les modifications'
+
+? 'Session'
+: 'Session'
+
+? 'Sessions'
+: 'Sessions'
+
+? 'Sessionwide URL'
+: 'URL de la session'
+
+? 'Show current state'
+: 'Afficher l’état actuel'
+
+? 'Show individual URLs'
+: 'Afficher les URL individuelles'
+
+? 'Show Player URLs'
+: 'Afficher les URL des joueurs'
+
+? 'Show information for uproot developers'
+: 'Afficher les informations pour les développeurs d’uproot'
+
+? 'Show testing elements'
+: 'Afficher les éléments de test'
+
+? 'Started'
+: 'Démarrée'
+
+? 'Study'
+: 'Étude'
+
+? 'Testing elements are shown only to logged-in admins or in testing sessions (not enabled by default, configurable in session settings).'
+: 'Les éléments de test ne sont affichés qu’aux administrateurs connectés ou dans les sessions de test (désactivé par défaut, configurable dans les paramètres de la session).'
+
+? 'The session name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'Le nom de la session ne doit utiliser que les caractères suivants : <code>A-Za-z0-9-._</code>'
+
+? 'This creates a complete machine-readable record of all data.'
+: 'Ceci crée un enregistrement complet et lisible par machine de toutes les données.'
+
+? 'This opens a new browser tab displaying the current pages of the selected players.'
+: 'Ceci ouvre un nouvel onglet affichant les pages actuelles des joueurs sélectionnés.'
+
+? 'This room is associated with the following config'
+: 'Cette salle est associée à la configuration suivante'
+
+? 'This room is associated with the following labels'
+: 'Cette salle est associée aux labels suivants'
+
+? 'This room is associated with the following session'
+: 'Cette salle est associée à la session suivante'
+
+? 'This room is not associated with any labels'
+: 'Cette salle n’est associée à aucun label'
+
+? 'This room is not associated with a particular config'
+: 'Cette salle n’est associée à aucune configuration particulière'
+
+? 'This session is associated with a room.'
+: 'Cette session est associée à une salle.'
+
+? 'This session is not associated with a room.'
+: 'Cette session n’est associée à aucune salle.'
+
+? 'This terminates the study for the selected player(s).'
+: 'Ceci met fin à l’étude pour le(s) joueur(s) sélectionné(s).'
+
+? 'This will run all dropout handlers registered with <code>watch_for_dropout()</code>.'
+: 'Ceci exécutera tous les gestionnaires d’abandon enregistrés avec <code>watch_for_dropout()</code>.'
+
+? 'This may run <code>new_player</code> for players who have not started yet.'
+: 'Ceci peut exécuter <code>new_player</code> pour les joueurs qui n’ont pas encore commencé.'
+
+? 'Total'
+: 'Total'
+
+? 'URLs copied to clipboard'
+: 'URL copiées dans le presse-papiers'
+
+? 'User'
+: 'Utilisateur'
+
+? 'Value'
+: 'Valeur'
+
+? 'version'
+: 'version'
+
+? 'Version'
+: 'Version'
+
+? 'View data'
+: 'Voir les données'
+
+? 'You are currently running'
+: 'Vous utilisez actuellement'
+
+? 'You have selected'
+: 'Vous avez sélectionné'
+
+? ' and '
+: ' et '
+
+? ', '
+: ', '
+
+? '<i>AdminDigest.html</i> must not extend <i>Base.html</i> or <i>Bare.html</i>. It must <i>only</i> have a <i>main</i> block.'
+: '<i>AdminDigest.html</i> ne doit pas étendre <i>Base.html</i> ni <i>Bare.html</i>. Il ne doit avoir <i>qu’un</i> bloc <i>main</i>.'
+
+? 'Add grouping variable'
+: 'Ajouter une variable de regroupement'
+
+? 'An error occurred.'
+: 'Une erreur s’est produite.'
+
+? 'An internal server error has occurred.'
+: 'Une erreur interne du serveur s’est produite.'
+
+? 'Announcement for your version'
+: 'Annonce pour votre version'
+
+? 'Apply grouping'
+: 'Appliquer le regroupement'
+
+? 'Apply reasonable filters'
+: 'Appliquer des filtres raisonnables'
+
+? 'Associate with a particular config'
+: 'Associer à une configuration particulière'
+
+? 'Associate with an existing session'
+: 'Associer à une session existante'
+
+? 'Beginning of Part {{ part }}'
+: 'Début de la partie {{ part }}'
+
+? 'CSV is the better choice for spreadsheet applications.'
+: 'Le format CSV convient mieux aux tableurs.'
+
+? 'Change settings'
+: 'Modifier les paramètres'
+
+? 'Click again to unselect.'
+: 'Cliquez à nouveau pour désélectionner.'
+
+? 'Click “Next” to proceed to Part {{ part }}.'
+: 'Cliquez sur « Suivant » pour passer à la partie {{ part }}.'
+
+? 'Closed'
+: 'Fermée'
+
+? 'Connection lost'
+: 'Connexion perdue'
+
+? 'Connection with server lost. Please check your internet connection.'
+: 'La connexion avec le serveur a été perdue. Veuillez vérifier votre connexion internet.'
+
+? 'Copy URLs as plain text'
+: 'Copier les URL en texte brut'
+
+? 'Create groups of size'
+: 'Créer des groupes de taille'
+
+? 'Created'
+: 'Créée'
+
+? 'Created #n# group(s).'
+: '#n# groupe(s) créé(s).'
+
+? 'Delete room'
+: 'Supprimer la salle'
+
+? 'Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”'
+: 'Déterminer quels labels sont « en ligne » n’est pas une science exacte. uproot utilise plutôt diverses heuristiques et algorithmes pour estimer au mieux quels labels ont été « vus récemment ».'
+
+? 'Digest'
+: 'Résumé'
+
+? 'Enter new description:'
+: 'Saisissez la nouvelle description :'
+
+? 'Error in #config#:'
+: 'Erreur dans #config# :'
+
+? 'Example Title'
+: 'Titre d’exemple'
+
+? 'Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.'
+: 'Exclut, renomme ou transforme les champs internes d’uproot pour fournir des données plus claires, centrées sur les variables expérimentales et les réponses des participants.'
+
+? 'File type'
+: 'Type de fichier'
+
+? 'Filters'
+: 'Filtres'
+
+? 'General announcement'
+: 'Annonce générale'
+
+? 'Get help'
+: 'Obtenir de l’aide'
+
+? 'Group players'
+: 'Grouper les joueurs'
+
+? 'Group size must be at least 1.'
+: 'La taille des groupes doit être d’au moins 1.'
+
+? 'Grouping variable'
+: 'Variable de regroupement'
+
+? 'Groups'
+: 'Groupes'
+
+? 'Hide testing elements'
+: 'Masquer les éléments de test'
+
+? 'Set room capacity to number of players'
+: 'Fixer la capacité de la salle au nombre de joueurs'
+
+? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
+: 'Si cette case n’est pas cochée, la capacité de la salle ne sera pas modifiée. De nouveaux arrivants dans la salle pourront alors agrandir la session.'
+
+? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
+: "Si uproot vous est utile, merci de le <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>citer</a> dans vos publications académiques."
+
+? 'Inactive sessions'
+: 'Sessions inactives'
+
+? 'Individual label URLs'
+: 'URL individuelles des labels'
+
+? 'Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.'
+: 'La saisie est évaluée comme une expression JavaScript. Vous pouvez utiliser des commentaires, des calculs, des variables, etc. Le résultat doit être sérialisable en JSON.'
+
+? 'Insert one label per line of text. Each label must be no longer than 128 characters and only use the following characters: <code>A-Za-z0-9-._</code> Labels restrict room access to players with matching labels. If no labels are entered, any Access Code will be accepted.'
+: 'Saisissez un label par ligne. Chaque label ne doit pas dépasser 128 caractères et ne doit utiliser que les caractères suivants : <code>A-Za-z0-9-._</code> Les labels limitent l’accès à la salle aux joueurs ayant un label correspondant. Si aucun label n’est saisi, tout code d’accès sera accepté.'
+
+? 'Internal Server Error'
+: 'Erreur interne du serveur'
+
+? 'It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”'
+: 'Ceci place cette session dans la section « Sessions actives » de la page « Sessions » et l’affiche dans le « Tableau de bord ».'
+
+? 'It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”'
+: 'Ceci place cette session dans la section « Sessions inactives » de la page « Sessions » et la masque du « Tableau de bord ».'
+
+? 'Keep this page open and watch it at all times.'
+: 'Gardez cette page ouverte et surveillez-la en permanence.'
+
+? 'Label'
+: 'Label'
+
+? 'Last changed'
+: 'Dernière modification'
+
+? 'Latest &times; Field(s)'
+: 'Plus récent &times; champ(s)'
+
+? 'Log in as admin to view more information on this page.'
+: 'Connectez-vous en tant qu’administrateur pour voir plus d’informations sur cette page.'
+
+? 'Main data'
+: 'Données principales'
+
+? 'Maximum players'
+: 'Nombre maximal de joueurs'
+
+? 'Multi View'
+: 'Vue multiple'
+
+? 'No action selected.'
+: 'Aucune action sélectionnée.'
+
+? 'No active sessions at this time.'
+: 'Aucune session active pour le moment.'
+
+? 'No apps defined at this time.'
+: 'Aucune app définie pour le moment.'
+
+? 'No configs defined at this time.'
+: 'Aucune configuration définie pour le moment.'
+
+? 'No more spots available'
+: 'Plus aucune place disponible'
+
+? 'No players selected.'
+: 'Aucun joueur sélectionné.'
+
+? 'No rooms defined at this time.'
+: 'Aucune salle définie pour le moment.'
+
+? 'Number of selected players must be divisible by group size.'
+: 'Le nombre de joueurs sélectionnés doit être divisible par la taille des groupes.'
+
+? 'OK'
+: 'OK'
+
+? 'Labels must be unique, no longer than 128 characters, and use only A-Za-z0-9-._.'
+: 'Les labels doivent être uniques, ne pas dépasser 128 caractères et n’utiliser que A-Za-z0-9-._.'
+
+? 'Player ID'
+: 'ID du joueur'
+
+? 'Please enter your Access Code.'
+: 'Veuillez saisir votre code d’accès.'
+
+? 'Please keep this page open.'
+: 'Veuillez garder cette page ouverte.'
+
+? 'Please note that a room created this way will disappear when you reset the database.'
+: 'Veuillez noter qu’une salle créée de cette façon disparaîtra lorsque vous réinitialiserez la base de données.'
+
+? 'Pre-formatted citation'
+: 'Citation préformatée'
+
+? 'Put all selected players in the same group'
+: 'Mettre tous les joueurs sélectionnés dans le même groupe'
+
+? 'Redirect players'
+: 'Rediriger les joueurs'
+
+? 'Redirect to URL'
+: 'Rediriger vers l’URL'
+
+? 'Regrettably, this study has reached capacity.'
+: 'Malheureusement, cette étude a atteint sa capacité maximale.'
+
+? 'Reload'
+: 'Recharger'
+
+? 'Remove'
+: 'Retirer'
+
+? 'Report a bug'
+: 'Signaler un bogue'
+
+? 'Reset group assignment for #n# player(s).'
+: 'Affectation aux groupes réinitialisée pour #n# joueur(s).'
+
+? 'Reset group assignment for selected players'
+: 'Réinitialiser l’affectation aux groupes des joueurs sélectionnés'
+
+? 'Room name'
+: 'Nom de la salle'
+
+? 'Room settings'
+: 'Paramètres de la salle'
+
+? 'Save'
+: 'Enregistrer'
+
+? 'Save settings'
+: 'Enregistrer les paramètres'
+
+? 'Session name'
+: 'Nom de la session'
+
+? 'Settings'
+: 'Paramètres'
+
+? 'Shuffle players before grouping'
+: 'Mélanger les joueurs avant de les grouper'
+
+? 'Start this config immediately'
+: 'Démarrer cette configuration immédiatement'
+
+? 'Submit praise'
+: 'Envoyer des éloges'
+
+? 'Target URL'
+: 'URL cible'
+
+? 'The action has completed.'
+: 'L’action est terminée.'
+
+? 'The number of players you entered is invalid.'
+: 'Le nombre de joueurs saisi n’est pas valide.'
+
+? 'The player names you entered are invalid.'
+: 'Les noms de joueurs saisis ne sont pas valides.'
+
+? 'The room name must only use the following characters: <code>A-Za-z0-9-._</code>'
+: 'Le nom de la salle ne doit utiliser que les caractères suivants : <code>A-Za-z0-9-._</code>'
+
+? 'The room name you entered already exists.'
+: 'Le nom de salle saisi existe déjà.'
+
+? 'The room name you entered is invalid.'
+: 'Le nom de salle saisi n’est pas valide.'
+
+? 'The session must exist. This can be used to add players to an existing session. The room will be opened immediately.'
+: 'La session doit exister. Ceci permet d’ajouter des joueurs à une session existante. La salle sera ouverte immédiatement.'
+
+? 'The default settings of this config are invalid.'
+: 'Les paramètres par défaut de cette configuration ne sont pas valides.'
+
+? 'The session name you entered is invalid.'
+: 'Le nom de session saisi n’est pas valide.'
+
+? 'The session you entered does not exist.'
+: 'La session saisie n’existe pas.'
+
+? 'The settings you entered cannot be properly encoded as JSON.'
+: 'Les paramètres saisis ne peuvent pas être encodés correctement en JSON.'
+
+? 'This page will advance automatically.'
+: 'Cette page avancera automatiquement.'
+
+? 'This room’s capacity is infinite.'
+: 'La capacité de cette salle est illimitée.'
+
+? 'This room’s capacity is {{ room.capacity }}.'
+: 'La capacité de cette salle est de {{ room.capacity }}.'
+
+? 'To edit room settings, first disassociate the session from this room.'
+: 'Pour modifier les paramètres de la salle, dissociez d’abord la session de cette salle.'
+
+? 'Toggling this will hide this session’s testing elements for everyone except admins.'
+: 'Activer cette option masquera les éléments de test de cette session pour tous sauf les administrateurs.'
+
+? 'Toggling this will show this session’s testing elements for everyone.'
+: 'Activer cette option affichera les éléments de test de cette session pour tous.'
+
+? 'Too many players selected (#n#). The maximum number of players that can be displayed in multiview is #m#.'
+: 'Trop de joueurs sélectionnés (#n#). La vue multiple peut afficher au maximum #m# joueurs.'
+
+? 'Type'
+: 'Type'
+
+? 'Type your message'
+: 'Saisissez votre message'
+
+? 'URL'
+: 'URL'
+
+? 'URL must start with http:// or https://'
+: 'L’URL doit commencer par http:// ou https://'
+
+? 'Unknown'
+: 'Inconnu'
+
+? 'Unset or deleted'
+: 'Non défini ou supprimé'
+
+? 'You'
+: 'Vous'
+
+? 'You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.'
+: 'Vous exécutez uproot avec l’option <code>--unsafe</code>. Ne le faites que sur <code>localhost</code>, car cette option permet à n’importe qui de se connecter en tant qu’administrateur.'
+
+? 'You are running version #i_am#. The current version is #recommended#.'
+: 'Vous utilisez la version #i_am#. La version actuelle est #recommended#.'
+
+? 'You cannot create a session with #n1# players but #n2# player names.'
+: 'Vous ne pouvez pas créer une session avec #n1# joueurs mais #n2# noms de joueurs.'
+
+? 'Your version appears to be up to date.'
+: 'Votre version semble être à jour.'
+
+? 'Your version is outdated.'
+: 'Votre version est obsolète.'
+
+? 'e.g.,'
+: 'p. ex.,'
+
+? 'free join'
+: 'accès libre'
+
+? 'unset'
+: 'non défini'
+
+? 'uproot docs'
+: 'Documentation d’uproot'
+
+? 'uproot examples'
+: 'Exemples d’uproot'
+
+? 'uproot on GitHub'
+: 'uproot sur GitHub'
+
+? 'Admin chat'
+: 'Discussion admin'
+
+? 'All'
+: 'Tous'
+
+? 'Broadcast message'
+: 'Message à tous'
+
+? 'Click a player in the sidebar, or check multiple to broadcast.'
+: 'Cliquez sur un joueur dans la barre latérale, ou cochez-en plusieurs pour envoyer un message à tous.'
+
+? 'Disable admin chat replies'
+: 'Désactiver les réponses à la discussion admin'
+
+? 'Disabled admin chat replies for #n# player(s).'
+: 'Réponses à la discussion admin désactivées pour #n# joueur(s).'
+
+? 'Enable admin chat replies'
+: 'Activer les réponses à la discussion admin'
+
+? 'Enabled admin chat replies for #n# player(s).'
+: 'Réponses à la discussion admin activées pour #n# joueur(s).'
+
+? 'Filter players'
+: 'Filtrer les joueurs'
+
+? 'Loading conversation...'
+: 'Chargement de la conversation...'
+
+? 'Message'
+: 'Message'
+
+? 'No label'
+: 'Sans label'
+
+? 'No messages yet'
+: 'Pas encore de messages'
+
+? 'No players found'
+: 'Aucun joueur trouvé'
+
+? 'Open player page'
+: 'Ouvrir la page du joueur'
+
+? 'Player can reply'
+: 'Le joueur peut répondre'
+
+? 'Research Coordinator'
+: 'Coordinateur de recherche'
+
+? 'Select'
+: 'Sélectionner'
+
+? 'Select a player'
+: 'Sélectionnez un joueur'
+
+? 'Send the first message to open this channel.'
+: 'Envoyez le premier message pour ouvrir ce canal.'
+
+? 'Send to #n# players'
+: 'Envoyer à #n# joueurs'
+
+? 'Toggle monitor'
+: 'Afficher/masquer le moniteur'
+
+? 'Type a message for this participant'
+: 'Saisissez un message pour ce participant'
+
+? 'Type a message that will be sent to all selected players'
+: 'Saisissez un message qui sera envoyé à tous les joueurs sélectionnés'
+
+? 'With messages'
+: 'Avec messages'
+
+? 'players'
+: 'joueurs'
+
+? 'read-only'
+: 'lecture seule'
+
+? 'replies on'
+: 'réponses actives'
+
+? 'new'
+: 'nouveau'
+
+? 'days'
+: 'jours'
+
+? 'hours'
+: 'heures'
+
+? 'minutes'
+: 'minutes'
+
+? 'second'
+: 'seconde'
+
+? 'seconds'
+: 'secondes'
+
+? 'Actions'
+: 'Actions'
+
+? 'Automatic (CSV if tabular)'
+: 'Automatique (CSV si tabulaire)'
+
+? 'Change description'
+: 'Modifier la description'
+
+? 'Close room'
+: 'Fermer la salle'
+
+? 'Closed rooms'
+: 'Salles fermées'
+
+? 'Settings available via <span class="font-monospace">session.settings</span>.'
+: 'Paramètres disponibles via <span class="font-monospace">session.settings</span>.'
+
+? 'Disassociate &amp; close room'
+: 'Dissocier &amp; fermer la salle'
+
+? 'Display testing elements'
+: 'Afficher les éléments de test'
+
+? 'Documentation'
+: 'Documentation'
+
+? 'Free join'
+: 'Accès libre'
+
+? 'Here be dragons.'
+: 'À vos risques et périls.'
+
+? 'If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.'
+: 'Si cette option est activée, le fichier <code>simulate.js</code> de l’app s’exécutera à chaque chargement d’une page de joueur dans cette session.'
+
+? 'If you are using a VPN, consider disabling it.'
+: 'Si vous utilisez un VPN, essayez de le désactiver.'
+
+? 'Initialize session'
+: 'Initialiser la session'
+
+? 'Invoke with data'
+: 'Appeler avec des données'
+
+? 'Invoke with data...'
+: 'Appeler avec des données...'
+
+? 'Limit capacity of resulting session'
+: 'Limiter la capacité de la session résultante'
+
+? 'Mark session as active'
+: 'Marquer la session comme active'
+
+? 'Mark session as inactive'
+: 'Marquer la session comme inactive'
+
+? 'No settings'
+: 'Aucun paramètre'
+
+? 'Only rooms defined in your <code>main.py</code> file will be automatically recreated after a database reset.'
+: 'Seules les salles définies dans votre fichier <code>main.py</code> seront recréées automatiquement après une réinitialisation de la base de données.'
+
+? 'Open'
+: 'Ouvrir'
+
+? 'Open rooms'
+: 'Salles ouvertes'
+
+? 'Output'
+: 'Résultat'
+
+? 'Pipeline data'
+: 'Données du pipeline'
+
+? 'Pipeline options'
+: 'Options du pipeline'
+
+? 'Pipelines'
+: 'Pipelines'
+
+? 'Please enter pipeline data.'
+: 'Veuillez saisir les données du pipeline.'
+
+? 'Pre-created player slots can always be claimed regardless of capacity. Use a capacity only to restrict a session from growing beyond a fixed number of players.'
+: 'Les places de joueurs créées à l’avance peuvent toujours être occupées, quelle que soit la capacité. N’utilisez une capacité que pour empêcher une session de dépasser un nombre fixe de joueurs.'
+
+? 'Reopen room'
+: 'Rouvrir la salle'
+
+? 'Restricted'
+: 'Restreint'
+
+? 'Resume accepting new participants into the existing session.'
+: 'Recommencer à accepter de nouveaux participants dans la session existante.'
+
+? 'Room status'
+: 'État de la salle'
+
+? 'Run <code>new_player</code>'
+: 'Exécuter <code>new_player</code>'
+
+? 'Run as JSONL'
+: 'Exécuter en JSONL'
+
+? 'Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.'
+: 'Exécute les fonctions new_session de toutes les apps. Cela se produit automatiquement lorsque le premier joueur arrive, mais peut être déclenché manuellement ici. Cette action est irréversible.'
+
+? 'Run pipeline'
+: 'Exécuter le pipeline'
+
+? 'Send'
+: 'Envoyer'
+
+? 'Session is initialized.'
+: 'La session est initialisée.'
+
+? 'Session is marked as active.'
+: 'La session est marquée comme active.'
+
+? 'Session is marked as inactive.'
+: 'La session est marquée comme inactive.'
+
+? 'Session is not initialized.'
+: 'La session n’est pas initialisée.'
+
+? 'Session properties'
+: 'Propriétés de la session'
+
+? 'Session status'
+: 'État de la session'
+
+? 'Simulate responses'
+: 'Simuler les réponses'
+
+? 'Simulating responses.'
+: 'Simulation des réponses en cours.'
+
+? 'Status'
+: 'État'
+
+? 'Stop accepting new participants while keeping the session active.'
+: 'Cesser d’accepter de nouveaux participants tout en gardant la session active.'
+
+? 'Testing elements are disabled except for admins.'
+: 'Les éléments de test sont désactivés, sauf pour les administrateurs.'
+
+? 'Testing elements are displayed for all participants.'
+: 'Les éléments de test sont affichés pour tous les participants.'
+
+? 'The data you entered cannot be properly encoded as JSON.'
+: 'Les données saisies ne peuvent pas être encodées correctement en JSON.'
+
+? 'The number of players is not a multiple of #n#.'
+: 'Le nombre de joueurs n’est pas un multiple de #n#.'
+
+? 'This creates a new session, with the current configuration preselected.'
+: 'Ceci crée une nouvelle session, avec la configuration actuelle présélectionnée.'
+
+? 'This is useful for testing and development purposes.'
+: 'Ceci est utile pour les tests et le développement.'
+
+? 'This room is closed. Players will wait until the room is opened or a session is created.'
+: 'Cette salle est fermée. Les joueurs attendront que la salle soit ouverte ou qu’une session soit créée.'
+
+? 'This room is open and will auto-create a session when the first player joins.'
+: 'Cette salle est ouverte et créera automatiquement une session à l’arrivée du premier joueur.'
+
+? 'This room is open but has no config associated. Players will wait until a session is created manually.'
+: 'Cette salle est ouverte mais n’est associée à aucune configuration. Les joueurs attendront qu’une session soit créée manuellement.'
+
+? 'Use labels/Access Codes'
+: 'Utiliser des labels/codes d’accès'
+
+? 'You are using the following Python version'
+: 'Vous utilisez la version de Python suivante'
+
+? 'You must create a new session to disable simulating responses.'
+: 'Vous devez créer une nouvelle session pour désactiver la simulation des réponses.'
+
+? 'Adjust timeout'
+: 'Ajuster le délai'
+
+? 'Time adjustment (seconds)'
+: 'Ajustement du délai (secondes)'
+
+? 'Apply'
+: 'Appliquer'
+
+? 'Please enter a valid number.'
+: 'Veuillez saisir un nombre valide.'
+
+? 'Use negative values to reduce the timeout.'
+: 'Utilisez des valeurs négatives pour réduire le délai.'
+
+? 'Capacity must be at least 1.'
+: 'La capacité doit être d’au moins 1.'
+
+? 'Dropout'
+: 'Abandon'
+
+? 'Dropouts'
+: 'Abandons'
+
+? 'Each format comes as one CSV file per storage, such as latest/player.csv.'
+: 'Chaque format est fourni sous la forme d’un fichier CSV par stockage, comme latest/player.csv.'
+
+? 'Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.'
+: 'Chaque téléchargement est une archive ZIP contenant trois ou quatre formats de données principaux, les temps passés par page, un dictionnaire des données et des sommes de contrôle d’intégrité.'
+
+? 'Formats'
+: 'Formats'
+
+? 'Limit capacity'
+: 'Limiter la capacité'
+
+? 'Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.'
+: 'Ajoute une ligne par joueur et par regroupement spécifié (par exemple par tour) : montre l’état de chaque participant à la fin de chaque tour, condition ou autre regroupement que vous spécifiez.'
+
+? '“Latest × Field(s)” is enabled by default. It adds a derived view of data already present in the archive without changing the three standard data formats. Fields with many combinations may increase export time and size.'
+: '« Plus récent × champ(s) » est activé par défaut. Il ajoute une vue dérivée des données déjà présentes dans l’archive, sans modifier les trois formats de données standard. Les champs ayant de nombreuses combinaisons peuvent augmenter la durée et la taille de l’export.'
+
+? 'Set'
+: 'Définir'
+
+? "We couldn't load announcements."
+: 'Nous n’avons pas pu charger les annonces.'
+
+? 'Please visit'
+: 'Veuillez consulter'
+
+? 'You have not checked for important announcements recently.'
+: 'Vous n’avez pas vérifié les annonces importantes récemment.'
+
+? 'uproot never automatically phones home.'
+: 'uproot ne contacte jamais ses développeurs automatiquement.'
+
+? 'Clicking this button makes your uproot server check whether the developers have posted any relevant announcements.'
+: 'Cliquer sur ce bouton fait vérifier par votre serveur uproot si les développeurs ont publié des annonces pertinentes.'
+
+? 'Conceal password'
+: 'Masquer le mot de passe'
+
+? 'Reveal password'
+: 'Afficher le mot de passe'
+
+? 'Create room'
+: 'Créer la salle'
+
+? 'Create session'
+: 'Créer la session'
+
+? 'Keep default settings'
+: 'Conserver les paramètres par défaut'
+
+? 'Player names'
+: 'Noms des joueurs'
+
+? 'Set player names automatically'
+: 'Définir les noms des joueurs automatiquement'
+
+? 'Set session name automatically'
+: 'Définir le nom de la session automatiquement'
+
+? 'Invalid JSON.'
+: 'JSON non valide.'
+
+? 'Toggling this has purely cosmetic consequences:'
+: 'Activer ou désactiver ceci n’a que des conséquences esthétiques :'
+
+? 'BibTeX entry'
+: 'Entrée BibTeX'
+
+? 'ID'
+: 'ID'
+
+? 'Reload iframe'
+: 'Recharger l’iframe'
+
+? 'Show BibTeX entry'
+: 'Afficher l’entrée BibTeX'
+
+? 'No players available'
+: 'Aucun joueur disponible'
+
+? '1 message'
+: '1 message'
+
+? '#n# messages'
+: '#n# messages'
