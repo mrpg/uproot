@@ -8,10 +8,10 @@ See `pyproject.toml`.
 
 | Library | Version |
 |---|---|
-| [Alpine.js](https://alpinejs.dev/) | 3.15.12 |
+| [Alpine.js](https://alpinejs.dev/) | 3.17.4 |
 | [Bootstrap](https://getbootstrap.com/) | 5.3.8 |
 | [Bootstrap Icons](https://icons.getbootstrap.com/) | 1.13.1 |
-| [Tabulator](https://tabulator.info/) | 6.5.2 |
+| [Tabulator](https://tabulator.info/) | 6.5.3 |
 
 ## Fonts
 
