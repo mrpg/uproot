@@ -656,6 +656,12 @@ class SelectField(wtforms.fields.SelectField):
             **kwargs,  # Unpacks WTForms-internal kwargs
         )
 
+    def placeholder(self) -> bool:
+        """Whether to render an empty first option. Without one, browsers
+        preselect the first choice, which is saved if the participant skips
+        the question. Choices that already include "" need no placeholder."""
+        return not any(str(choice[0]) == "" for choice in self.iter_choices())
+
 
 class StringField(wtforms.fields.StringField):
     def __init__(

@@ -541,6 +541,9 @@
                 {% set noop = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
             <select {{ select_html_params(field, " ".join(class_list)) | safe }}{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
+                {% if field.placeholder() %}
+                    <option value=""{% if field.data is none %} selected{% endif %}>—</option>
+                {% endif %}
                 {% if field.has_groups() %}
                     {% for group, choices in field.iter_groups() %}
                         <optgroup label="{{ translate(group | string) if group is not none else '' }}">
