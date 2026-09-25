@@ -36,6 +36,13 @@ def test_integers_and_booleans():
     assert fmtnum(True) == "1.00"
 
 
+def test_large_values_keep_all_digits():
+    assert fmtnum(10**30, places=0) == "1,000,000,000,000,000,000,000,000,000,000"
+    assert fmtnum(Decimal("123456789012345678901234567890.125")) == (
+        "123,456,789,012,345,678,901,234,567,890.13"
+    )
+
+
 def test_negative_values_use_minus_sign():
     assert fmtnum(-1234.5, pre="$") == "−$1,234.50"
     assert fmtnum(-2.345) == "−2.35"

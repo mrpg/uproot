@@ -11,7 +11,7 @@ import urllib.parse
 from collections.abc import Callable
 from contextlib import nullcontext
 from datetime import UTC, datetime
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, localcontext
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -802,8 +802,13 @@ def fmtnum_filter(
     if not exact.is_finite():
         return f"{pre}{value}{post}"
 
-    rounded = exact.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
-    formatted = f"{abs(rounded):,.{places}f}" if sep else f"{abs(rounded):.{places}f}"
+    # quantize uses the current decimal precision, which defaults to 28 and
+    # rejects larger finite values even when no digits need rounding.
+    with localcontext() as context:
+        context.prec = max(context.prec, exact.adjusted() + places + 2, places + 2)
+        rounded = exact.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
+    magnitude = rounded.copy_abs()
+    formatted = f"{magnitude:,.{places}f}" if sep else f"{magnitude:.{places}f}"
 
     if sep:
         if decsep != ".":
