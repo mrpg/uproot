@@ -278,6 +278,11 @@ For HTTPS or non-default servers:
         default=".",
         help="Project directory (default: current directory)",
     )
+    check_parser.add_argument(
+        "--untranslated",
+        action="store_true",
+        help="List form field texts that have no translation in any language",
+    )
 
     for cmd in cmds:
         subparsers.add_parser(cmd, add_help=False)
@@ -309,7 +314,7 @@ For HTTPS or non-default servers:
     elif args.command == "check-translations":
         from uproot.i18ncheck import check_project
 
-        sys.exit(check_project(args.path))
+        sys.exit(check_project(args.path, args.untranslated))
     elif args.command in cmds:
         forward(unknown, args.command)
     else:

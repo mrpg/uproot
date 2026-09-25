@@ -26,6 +26,9 @@ KEY_FUNCTIONS = {"translate", "lookup"}
 # field.gettext("..."), i18n.lookup("...", language)
 KEY_METHODS = {"gettext", "lookup"}
 
+# Field attributes that uproot's form macros pass through translate()
+FIELD_TEXTS = {"label", "description", "label_floating", "label_min", "label_max"}
+
 SKIPPED_DIRS = {"__pycache__", "node_modules", "site-packages", "vendor"}
 LANGUAGE_FILE = re.compile(r"^[a-z]{2,3}([_-][A-Za-z0-9]+)?$")
 QUOTES = str.maketrans({"“": '"', "”": '"', "„": '"', "‘": "'", "’": "'"})
@@ -120,6 +123,62 @@ def find_python_translate_calls(filepath: str) -> list[tuple[str, int]]:
     return results
 
 
+def choice_labels(node: ast.expr) -> list[str]:
+    """Return the literal labels of choices=[(value, "label"), "label", ...]
+    or choices={value: "label"}."""
+    labels: list[ast.expr] = []
+
+    if isinstance(node, (ast.List, ast.Tuple)):
+        for element in node.elts:
+            if isinstance(element, ast.Tuple) and len(element.elts) == 2:
+                labels.append(element.elts[1])
+            else:
+                labels.append(element)
+    elif isinstance(node, ast.Dict):
+        labels = list(node.values)
+
+    return [
+        label.value
+        for label in labels
+        if isinstance(label, ast.Constant) and isinstance(label.value, str)
+    ]
+
+
+def find_field_texts(filepath: str) -> list[tuple[str, int]]:
+    """Return literal labels, descriptions, and choice labels of form fields,
+    such as RadioField(label="...", choices=[...]). uproot translates these
+    when rendering a form."""
+    with open(filepath, "r", encoding="utf-8") as f:
+        tree = ast.parse(f.read(), filename=filepath)
+
+    results: list[tuple[str, int]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+
+        func = node.func
+        name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+
+        if not name.endswith("Field"):
+            continue
+
+        for keyword in node.keywords:
+            if (
+                keyword.arg in FIELD_TEXTS
+                and isinstance(keyword.value, ast.Constant)
+                and isinstance(keyword.value.value, str)
+                and keyword.value.value
+            ):
+                results.append((keyword.value.value, keyword.value.lineno))
+            elif keyword.arg == "choices":
+                results += [
+                    (label, keyword.value.lineno)
+                    for label in choice_labels(keyword.value)
+                ]
+
+    return results
+
+
 def find_used_keys(top: str) -> list[tuple[str, str, int]]:
     """Return (file, key, line) for all translation keys used below top."""
     used = []
@@ -168,10 +227,14 @@ def load_locale_dir_terms(top: str) -> dict[str, set[str]]:
     return terms
 
 
-def check_project(top: str) -> int:
+def check_project(top: str, list_untranslated: bool = False) -> int:
     """Check that every key a project uses exists for each language that has a
     YAML file in the project, either there or among uproot's built-in
-    translations. Print a report and return an exit code."""
+    translations. Print a report and return an exit code.
+
+    Texts of form fields are translated automatically, whether or not they
+    are meant to be. So they only count as missing if they are translated for
+    some languages but not for others."""
     if not os.path.isdir(top):
         print(f"{top} is not a directory.")
         return 2
@@ -179,6 +242,13 @@ def check_project(top: str) -> int:
     project = load_locale_dir_terms(top)
     builtin = load_locale_dir_terms(LOCALES_DIR)
     used = find_used_keys(top)
+    field_texts = [
+        (filepath, key, line)
+        for filepath in collect_files(top, (".py",))
+        for key, line in find_field_texts(filepath)
+    ]
+    anywhere = set().union(*project.values()) if project else set()
+    untranslated = sorted({k for _, k, _ in field_texts if k not in anywhere})
     rc = 0
 
     if not project:
@@ -188,10 +258,11 @@ def check_project(top: str) -> int:
     for language in sorted(project):
         known = project[language] | builtin.get(language, set())
         by_loose_key = {loosely(k): k for k in project[language]}
-        missing = [(f, k, line) for f, k, line in used if k not in known]
+        checked = used + [(f, k, line) for f, k, line in field_texts if k in anywhere]
+        missing = [(f, k, line) for f, k, line in checked if k not in known]
 
         if not missing:
-            print(f"{language}: all {len(used)} translation key uses found.")
+            print(f"{language}: all {len(checked)} translation key uses found.")
             continue
 
         rc = 1
@@ -205,5 +276,17 @@ def check_project(top: str) -> int:
                 print(f"    Differs only in quotes or spacing from: {similar!r}")
 
             print()
+
+    if untranslated:
+        print(
+            f"\n{len(untranslated)} form field text(s) have no translation in "
+            "any language and are shown as written."
+        )
+
+        if list_untranslated:
+            for key in untranslated:
+                print(f"  {key!r}")
+        else:
+            print("Use --untranslated to list them.")
 
     return rc

@@ -123,3 +123,71 @@ def test_check_translations_command_rejects_missing_directory(
 
     assert exit_info.value.code == 2
     assert "is not a directory" in capsys.readouterr().out
+
+
+def test_find_field_texts(tmp_path: Path):
+    source = tmp_path / "example.py"
+    source.write_text(
+        "\n".join(  # noqa: FLY002
+            [
+                "rain = RadioField(",
+                '    label="Is it raining?",',
+                '    choices=[(True, "Yes"), (False, "No")],',
+                '    description="Look outside.",',
+                ")",
+                'team = wtforms.SelectField(choices=["Red", "Blue"], label=name)',
+                'plain = StringField(render_kw={"placeholder": "Not translated"})',
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert sorted(i18ncheck.find_field_texts(str(source))) == [
+        ("Blue", 6),
+        ("Is it raining?", 2),
+        ("Look outside.", 4),
+        ("No", 3),
+        ("Red", 6),
+        ("Yes", 3),
+    ]
+
+
+def write_field_project(tmp_path: Path, german: str) -> Path:
+    app = tmp_path / "myapp"
+    app.mkdir()
+    (app / "__init__.py").write_text(
+        'rain = RadioField(label="Is it raining?", choices=["Deutsch"])\n'
+        'sun = RadioField(label="Is it sunny?")\n',
+        encoding="utf-8",
+    )
+    (app / "de.yml").write_text(german, encoding="utf-8")
+    (app / "fr.yml").write_text(
+        "? 'Is it raining?'\n: 'Pleut-il ?'\n", encoding="utf-8"
+    )
+    return tmp_path
+
+
+def test_check_project_reports_partly_translated_field_texts(tmp_path: Path, capsys):
+    project = write_field_project(tmp_path, "? 'Welcome'\n: 'Willkommen'\n")
+
+    assert i18ncheck.check_project(str(project)) == 1
+
+    out = capsys.readouterr().out
+    assert "de: 1 translation key use(s) not found" in out
+    assert "'Is it raining?'" in out
+
+
+def test_check_project_lists_untranslated_field_texts_on_request(
+    tmp_path: Path, capsys
+):
+    project = write_field_project(tmp_path, "? 'Is it raining?'\n: 'Regnet es?'\n")
+
+    assert i18ncheck.check_project(str(project)) == 0
+    out = capsys.readouterr().out
+    assert "2 form field text(s) have no translation" in out
+    assert "'Deutsch'" not in out
+
+    assert i18ncheck.check_project(str(project), list_untranslated=True) == 0
+    out = capsys.readouterr().out
+    assert "  'Deutsch'" in out
+    assert "  'Is it sunny?'" in out
