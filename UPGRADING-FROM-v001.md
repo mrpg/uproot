@@ -18,7 +18,7 @@ dependencies = [
 ]
 ```
 
-If your `pyproject.toml` also contains this section (projects created by `uproot setup` do):
+If your `pyproject.toml` also contains this section (projects created by older versions of `uproot setup` do):
 
 ```toml
 [project.optional-dependencies]
@@ -27,13 +27,10 @@ pg = [
 ]
 ```
 
-replace that entry as well:
+delete it entirely. New projects no longer contain it. If you use PostgreSQL, add PostgreSQL support to your main dependencies instead:
 
-```toml
-[project.optional-dependencies]
-pg = [
-    "uproot-science[pg]<1",
-]
+```console
+uv add 'uproot-science[pg]<1'
 ```
 
 **Do not skip this step.** If a `git+` entry relating to `uproot-science` remains anywhere in your `pyproject.toml`, it silently takes precedence, and your project will keep tracking uproot’s current development version.
