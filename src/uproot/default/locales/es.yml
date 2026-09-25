@@ -1170,3 +1170,24 @@
 
 ? '#n# messages'
 : '#n# mensajes'
+
+? 'Invalid email address.'
+: 'Dirección de correo electrónico no válida.'
+
+? 'Invalid IBAN format.'
+: 'Formato de IBAN no válido.'
+
+? 'Invalid BIC format.'
+: 'Formato de BIC no válido.'
+
+? 'Please select at least one option.'
+: 'Seleccione al menos una opción.'
+
+? 'Please select at least #n# options.'
+: 'Seleccione al menos #n# opciones.'
+
+? 'Please select at most one option.'
+: 'Seleccione como máximo una opción.'
+
+? 'Please select at most #n# options.'
+: 'Seleccione como máximo #n# opciones.'

@@ -233,18 +233,12 @@ class EmailField(wtforms.fields.EmailField):
         if not optional:
             v = [
                 wtforms.validators.InputRequired(),
-                wtforms.validators.Regexp(
-                    EMAIL_PATTERN,
-                    message="Invalid email address.",
-                ),
+                EmailValidator(),
             ]
         else:
             v = [
                 wtforms.validators.Optional(),
-                wtforms.validators.Regexp(
-                    EMAIL_PATTERN,
-                    message="Invalid email address.",
-                ),
+                EmailValidator(),
             ]
 
         self.class_wrapper = class_wrapper
@@ -753,6 +747,18 @@ class TextAreaField(wtforms.fields.TextAreaField):
         )
 
 
+class EmailValidator(wtforms.validators.Regexp):
+    def __init__(self) -> None:
+        super().__init__(EMAIL_PATTERN)
+
+    def __call__(
+        self, form: wtforms.Form, field: wtforms.Field, message: str | None = None
+    ) -> Any:
+        return super().__call__(
+            form, field, message or field.gettext("Invalid email address.")
+        )
+
+
 class BoundedChoiceValidator:
     def __init__(self, min: int, max: int | None) -> None:
         self.min = min
@@ -762,23 +768,25 @@ class BoundedChoiceValidator:
         count = len(field.data) if field.data else 0
 
         if count < self.min:
-            if self.min == 1:
-                raise wtforms.validators.ValidationError(
-                    "Please select at least one option."
-                )
+            message = field.ngettext(
+                "Please select at least one option.",
+                "Please select at least #n# options.",
+                self.min,
+            )
 
             raise wtforms.validators.ValidationError(
-                f"Please select at least {self.min} options."
+                message.replace("#n#", str(self.min))
             )
 
         if self.max is not None and count > self.max:
-            if self.max == 1:
-                raise wtforms.validators.ValidationError(
-                    "Please select at most one option."
-                )
+            message = field.ngettext(
+                "Please select at most one option.",
+                "Please select at most #n# options.",
+                self.max,
+            )
 
             raise wtforms.validators.ValidationError(
-                f"Please select at most {self.max} options."
+                message.replace("#n#", str(self.max))
             )
 
 
@@ -840,7 +848,7 @@ class BoundedChoiceField(wtforms.fields.SelectMultipleField):
 
 class IBANValidator:
     def __init__(self, message: str | None = None) -> None:
-        self.message = message or "Invalid IBAN format."
+        self.message = message
 
     def __call__(self, form: wtforms.Form, field: wtforms.Field) -> None:
         from schwifty import IBAN
@@ -850,7 +858,9 @@ class IBANValidator:
             try:
                 IBAN(field.data)
             except SchwiftyException:
-                raise wtforms.validators.ValidationError(self.message) from None
+                raise wtforms.validators.ValidationError(
+                    self.message or field.gettext("Invalid IBAN format.")
+                ) from None
 
 
 class IBANField(wtforms.fields.StringField):
@@ -906,7 +916,7 @@ class IBANField(wtforms.fields.StringField):
 
 class BICValidator:
     def __init__(self, message: str | None = None) -> None:
-        self.message = message or "Invalid BIC format."
+        self.message = message
 
     def __call__(self, form: wtforms.Form, field: wtforms.Field) -> None:
         from schwifty import BIC
@@ -916,7 +926,9 @@ class BICValidator:
             try:
                 BIC(field.data)
             except SchwiftyException:
-                raise wtforms.validators.ValidationError(self.message) from None
+                raise wtforms.validators.ValidationError(
+                    self.message or field.gettext("Invalid BIC format.")
+                ) from None
 
 
 class BICField(wtforms.fields.StringField):

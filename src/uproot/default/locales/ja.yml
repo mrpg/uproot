@@ -1170,3 +1170,24 @@
 
 ? '#n# messages'
 : '#n#件のメッセージ'
+
+? 'Invalid email address.'
+: 'メールアドレスが正しくありません。'
+
+? 'Invalid IBAN format.'
+: 'IBANの形式が正しくありません。'
+
+? 'Invalid BIC format.'
+: 'BICの形式が正しくありません。'
+
+? 'Please select at least one option.'
+: '少なくとも1つ選択してください。'
+
+? 'Please select at least #n# options.'
+: '少なくとも#n#個選択してください。'
+
+? 'Please select at most one option.'
+: '選択できるのは1つまでです。'
+
+? 'Please select at most #n# options.'
+: '選択できるのは#n#個までです。'

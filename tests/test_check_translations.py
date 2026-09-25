@@ -22,3 +22,23 @@ def test_find_python_translate_calls_finds_literal_keys(tmp_path: Path):
         ("First key", 1),
         ("Second key", 2),
     ]
+
+
+def test_find_python_translate_calls_finds_gettext_keys(tmp_path: Path):
+    source = tmp_path / "example.py"
+    source.write_text(
+        "\n".join(  # noqa: FLY002
+            [
+                'one = field.gettext("Singular key")',
+                'two = field.ngettext("One thing", "#n# things", n)',
+                "three = field.gettext(message)",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert check_translations.find_python_translate_calls(str(source)) == [
+        ("Singular key", 1),
+        ("One thing", 2),
+        ("#n# things", 2),
+    ]

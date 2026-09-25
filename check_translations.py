@@ -13,6 +13,7 @@ import ast
 import os
 import re
 import sys
+from typing import cast
 
 import strictyaml
 
@@ -130,22 +131,38 @@ def find_underscore_calls(filepath: str) -> list[tuple[str, int]]:
     return results
 
 
+def literal_args(node: ast.Call, count: int) -> list[str]:
+    """Return the first count arguments if all are string literals."""
+    args = node.args[:count]
+    if len(args) == count and all(
+        isinstance(arg, ast.Constant) and isinstance(arg.value, str) for arg in args
+    ):
+        return [cast(ast.Constant, arg).value for arg in args]
+    return []
+
+
 def find_python_translate_calls(filepath: str) -> list[tuple[str, int]]:
-    """Return literal keys from translate("...") calls in Python files."""
+    """Return literal keys from translate("...") calls, and from gettext("...")
+    and ngettext("...", "...", n) method calls (form validation messages), in
+    Python files."""
     with open(filepath, "r", encoding="utf-8") as f:
         tree = ast.parse(f.read(), filename=filepath)
 
     results = []
     for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == "translate"
-            and node.args
-            and isinstance(node.args[0], ast.Constant)
-            and isinstance(node.args[0].value, str)
+        if not isinstance(node, ast.Call):
+            continue
+
+        if (isinstance(node.func, ast.Name) and node.func.id == "translate") or (
+            isinstance(node.func, ast.Attribute) and node.func.attr == "gettext"
         ):
-            results.append((node.args[0].value, node.lineno))
+            keys = literal_args(node, 1)
+        elif isinstance(node.func, ast.Attribute) and node.func.attr == "ngettext":
+            keys = literal_args(node, 2)
+        else:
+            keys = []
+
+        results.extend((key, node.lineno) for key in keys)
     return results
 
 

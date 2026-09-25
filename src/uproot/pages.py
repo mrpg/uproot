@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import builtins
+import gettext
 import os
 import re
 import time
@@ -30,6 +31,7 @@ from jinja2.parser import Parser
 from markupsafe import Markup
 from pydantic import validate_call
 from wtforms import Form as BaseForm
+from wtforms.i18n import messages_path
 from wtforms.widgets.core import clean_key, html_params
 
 import uproot as u
@@ -287,13 +289,71 @@ def template_get_setting(session: Any, key: str, default: Any = None) -> Any:
     return get_setting(session, key, default)
 
 
-async def form_factory(page: type[Page], player: object) -> type[BaseForm]:
+def page_app(page: type[Page], player: Storage | None) -> Any:
+    if page.__module__ in u.APPS:
+        return u.APPS[page.__module__]
+
+    if player is not None:
+        for page_path in reversed(player.page_order):
+            app_name = page_path.split("/", 1)[0]
+
+            if app_name in u.APPS:
+                return u.APPS[app_name]
+
+    return None
+
+
+async def page_language(page: type[Page], player: Storage | None) -> str:
+    return cast(
+        str,
+        await ensure_awaitable(
+            optional_call,
+            page_app(page, player),
+            "language",
+            default_return=d.LANGUAGE,
+            player=player,
+        ),
+    )
+
+
+class FormTranslations:
+    """Translates form validation messages. uproot's own terms come from its
+    locales; WTForms' built-in messages come from WTForms' catalog."""
+
+    def __init__(self, language: i18n.ISO639) -> None:
+        self.language = language
+        self.wtforms = gettext.translation(
+            "wtforms", messages_path(), [language], fallback=True
+        )
+
+    def gettext(self, string: str) -> str:
+        if self.language in i18n.TERMS.get(string, {}):
+            return i18n.TERMS[string][self.language]
+
+        return self.wtforms.gettext(string)
+
+    def ngettext(self, singular: str, plural: str, n: int) -> str:
+        chosen = singular if n == 1 else plural
+
+        if self.language in i18n.TERMS.get(chosen, {}):
+            return i18n.TERMS[chosen][self.language]
+
+        return self.wtforms.ngettext(singular, plural, n)
+
+
+async def form_factory(page: type[Page], player: Storage | None) -> type[BaseForm]:
     fields = await ensure_awaitable(
         optional_call, page, "fields", default_return=None, player=player
     )
 
     if fields is not None:
-        return type("FormOnPage", (BaseForm,), fields)
+        translations = FormTranslations(await page_language(page, player))
+
+        class Meta:
+            def get_translations(self, form: BaseForm) -> FormTranslations:
+                return translations
+
+        return type("FormOnPage", (BaseForm,), fields | {"Meta": Meta})
 
     raise ValueError
 
@@ -386,23 +446,8 @@ async def render(
     except ValueError:
         form = None
 
-    app = u.APPS[page.__module__] if page.__module__ in u.APPS else None  # noqa: SIM401
-
-    if app is None and player is not None:
-        for page_path in reversed(player.page_order):
-            app_name = page_path.split("/", 1)[0]
-
-            if app_name in u.APPS:
-                app = u.APPS[app_name]
-                break
-
-    language = await ensure_awaitable(
-        optional_call,
-        app,
-        "language",
-        default_return=d.LANGUAGE,
-        player=player,
-    )
+    app = page_app(page, player)
+    language = await page_language(page, player)
 
     internal = {
         "_uproot_internal": {
@@ -479,7 +524,7 @@ async def render(
                 "safe": Markup,
                 "session": session,
                 "show2path": show2path,
-                "uproot_terms_url": terms_url(cast(i18n.ISO639, language)),
+                "uproot_terms_url": terms_url(language),
                 "_uproot_errors": custom_errors,
                 "_uproot_field_errors": (
                     field_errors if field_errors is not None else {}
