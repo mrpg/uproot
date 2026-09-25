@@ -49,19 +49,22 @@ def show_help() -> None:
     print("  --help       Show this message")
     print()
     print("Commands:")
-    print("  setup          Create a new uproot project")
-    print("  api            Access the Admin REST API")
+    print("  setup               Create a new uproot project")
+    print("  api                 Access the Admin REST API")
+    print("  check-translations  Check the translations of a project")
     print()
     print("Project commands (require main.py in current directory):")
-    print("  announcements  Check for important announcements")
-    print("  run            Run this uproot project")
-    print("  start          Create and open a quick room, then run this uproot project")
-    print("  reset          Reset database")
-    print("  dump           Dump database to file")
-    print("  restore        Restore database from file")
-    print("  new            Create new app")
-    print("  examples       Download examples")
-    print("  deployment     View deployment")
+    print("  announcements       Check for important announcements")
+    print("  run                 Run this uproot project")
+    print(
+        "  start               Create and open a quick room, then run this uproot project"
+    )
+    print("  reset               Reset database")
+    print("  dump                Dump database to file")
+    print("  restore             Restore database from file")
+    print("  new                 Create new app")
+    print("  examples            Download examples")
+    print("  deployment          View deployment")
     print()
     print("For more help on a specific command, run:")
     print("\tuproot <command> --help")
@@ -260,6 +263,22 @@ For HTTPS or non-default servers:
     )
     api_parser.add_argument("endpoint", help="API endpoint")
 
+    check_parser = subparsers.add_parser(
+        "check-translations",
+        help="Check the translations of a project",
+        description=(
+            "Check that every translation key used in a project exists for each "
+            "language that has a YAML file in the project, either there or among "
+            "uproot's built-in translations."
+        ),
+    )
+    check_parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="Project directory (default: current directory)",
+    )
+
     for cmd in cmds:
         subparsers.add_parser(cmd, add_help=False)
 
@@ -287,6 +306,10 @@ For HTTPS or non-default servers:
             args.data,
             args.endpoint,
         )
+    elif args.command == "check-translations":
+        from uproot.i18ncheck import check_project
+
+        sys.exit(check_project(args.path))
     elif args.command in cmds:
         forward(unknown, args.command)
     else:
