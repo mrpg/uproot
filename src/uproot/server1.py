@@ -323,6 +323,25 @@ def initialize(player: Storage) -> None:
     player.page_order = resolve_page_order(player, player.config)
 
 
+async def timeout_fires(page: type[t.Page], player: Storage) -> bool:
+    """A page timeout counts as reached up to TIMEOUT_TOLERANCE seconds early.
+    Within that window, the page only advances if may_proceed allows it. Once
+    the deadline has passed, may_proceed is skipped, so that wait pages that
+    time out cannot loop forever."""
+    if not timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
+        return False
+
+    if timeout_reached(page, player, 0.0):
+        return True
+
+    allowed = await ensure_awaitable(
+        optional_call, page, "may_proceed", default_return=True, player=player
+    )
+    player.refresh("show_page")
+
+    return bool(allowed)
+
+
 async def show_page(
     request: Request,
     player: Storage,
@@ -339,7 +358,7 @@ async def show_page(
     metadata = {}
     state = PageTransitionState(original_show_page=player.show_page)
 
-    if timeout_reached(page, player, d.TIMEOUT_TOLERANCE):
+    if await timeout_fires(page, player):
         await ensure_awaitable(
             optional_call, page, "timeout_reached", default_return=None, player=player
         )
