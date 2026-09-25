@@ -95,6 +95,31 @@ def test_check_project_reports_near_misses(tmp_path: Path, capsys):
     assert "Differs only in quotes or spacing from: 'Click “Next”.'" in out
 
 
+def test_check_project_rejects_invalid_locale(tmp_path: Path, capsys):
+    project = write_project(tmp_path, "")
+    (project / "myapp" / "fr.yml").write_text("[broken", encoding="utf-8")
+
+    assert i18ncheck.check_project(str(project)) == 2
+    assert "Could not read" in capsys.readouterr().out
+
+
+def test_check_project_ignores_unrelated_yaml(tmp_path: Path):
+    project = write_project(tmp_path, "")
+    (project / "config.yml").write_text("[not-strictyaml", encoding="utf-8")
+
+    assert i18ncheck.check_project(str(project)) == 0
+
+
+def test_builtin_field_text_is_translated(tmp_path: Path, capsys):
+    project = write_project(tmp_path, "")
+    (project / "myapp" / "Page.py").write_text(
+        'answer = StringField(label="Next")\n', encoding="utf-8"
+    )
+
+    assert i18ncheck.check_project(str(project)) == 0
+    assert "no translation in any language" not in capsys.readouterr().out
+
+
 @pytest.mark.parametrize(
     ("page", "code"),
     [
@@ -137,17 +162,20 @@ def test_find_field_texts(tmp_path: Path):
                 ")",
                 'team = wtforms.SelectField(choices=["Red", "Blue"], label=name)',
                 'plain = StringField(render_kw={"placeholder": "Not translated"})',
+                'grouped = wtforms.SelectField(choices={"Team": [("a", "Alpha")]})',
             ]
         ),
         encoding="utf-8",
     )
 
     assert sorted(i18ncheck.find_field_texts(str(source))) == [
+        ("Alpha", 8),
         ("Blue", 6),
         ("Is it raining?", 2),
         ("Look outside.", 4),
         ("No", 3),
         ("Red", 6),
+        ("Team", 8),
         ("Yes", 3),
     ]
 

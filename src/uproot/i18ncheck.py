@@ -125,23 +125,25 @@ def find_python_translate_calls(filepath: str) -> list[tuple[str, int]]:
 
 def choice_labels(node: ast.expr) -> list[str]:
     """Return the literal labels of choices=[(value, "label"), "label", ...]
-    or choices={value: "label"}."""
-    labels: list[ast.expr] = []
+    or choices={value: "label", "Group": [(value, "label"), ...]}."""
+    labels: list[str] = []
 
     if isinstance(node, (ast.List, ast.Tuple)):
         for element in node.elts:
             if isinstance(element, ast.Tuple) and len(element.elts) == 2:
-                labels.append(element.elts[1])
-            else:
-                labels.append(element)
+                element = element.elts[1]
+            if isinstance(element, ast.Constant) and isinstance(element.value, str):
+                labels.append(element.value)
     elif isinstance(node, ast.Dict):
-        labels = list(node.values)
+        for key, value in zip(node.keys, node.values):
+            if isinstance(value, (ast.List, ast.Tuple)):
+                if isinstance(key, ast.Constant) and isinstance(key.value, str):
+                    labels.append(key.value)
+                labels.extend(choice_labels(value))
+            elif isinstance(value, ast.Constant) and isinstance(value.value, str):
+                labels.append(value.value)
 
-    return [
-        label.value
-        for label in labels
-        if isinstance(label, ast.Constant) and isinstance(label.value, str)
-    ]
+    return labels
 
 
 def find_field_texts(filepath: str) -> list[tuple[str, int]]:
@@ -206,23 +208,34 @@ def load_locale_dir_terms(top: str) -> dict[str, set[str]]:
 
     for filepath in collect_files(top, (".yml", ".yaml")):
         stem = os.path.splitext(os.path.basename(filepath))[0]
+        locale_file = bool(LANGUAGE_FILE.fullmatch(stem)) or os.path.basename(
+            os.path.dirname(filepath)
+        ) in {"locale", "locales", "translations"}
 
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = strictyaml.load(f.read()).data
-        except (OSError, UnicodeError, strictyaml.YAMLError):
+        except (OSError, UnicodeError, strictyaml.YAMLError) as error:
+            if locale_file:
+                raise ValueError(f"Could not read {filepath}: {error}") from error
             continue
 
         if not isinstance(data, dict):
+            if locale_file:
+                raise ValueError(f"Invalid translation entries in {filepath}.")
             continue
 
-        if LANGUAGE_FILE.match(stem) and all(isinstance(v, str) for v in data.values()):
+        if LANGUAGE_FILE.fullmatch(stem):
+            if not all(isinstance(value, str) for value in data.values()):
+                raise ValueError(f"Invalid translation entries in {filepath}.")
             terms.setdefault(stem, set()).update(data)
         elif data and all(
             LANGUAGE_FILE.match(str(k)) and isinstance(v, dict) for k, v in data.items()
         ):
             for language, translations in data.items():
                 terms.setdefault(language, set()).update(translations)
+        elif locale_file:
+            raise ValueError(f"Invalid translation entries in {filepath}.")
 
     return terms
 
@@ -239,15 +252,19 @@ def check_project(top: str, list_untranslated: bool = False) -> int:
         print(f"{top} is not a directory.")
         return 2
 
-    project = load_locale_dir_terms(top)
-    builtin = load_locale_dir_terms(LOCALES_DIR)
+    try:
+        project = load_locale_dir_terms(top)
+        builtin = load_locale_dir_terms(LOCALES_DIR)
+    except ValueError as error:
+        print(error)
+        return 2
     used = find_used_keys(top)
     field_texts = [
         (filepath, key, line)
         for filepath in collect_files(top, (".py",))
         for key, line in find_field_texts(filepath)
     ]
-    anywhere = set().union(*project.values()) if project else set()
+    anywhere = set().union(*project.values(), *builtin.values())
     untranslated = sorted({k for _, k, _ in field_texts if k not in anywhere})
     rc = 0
 
