@@ -13,7 +13,7 @@ import uproot.deployment as d
 from uproot import cache
 from uproot.constraints import ensure
 from uproot.stable import encode_raw
-from uproot.types import Value, sha3_256
+from uproot.types import Value, sha256
 
 
 def value2json(data: Any, unavailable: bool = False) -> str:
@@ -342,12 +342,12 @@ def rows_to_bytes(rows: Iterable[dict[str, Any]], filetype: str) -> bytes:
 def briefcase_extras(zf: ZipFile, wrapper: str, contents: dict[str, bytes]) -> None:
     """Add general non-data files to a briefcase.
 
-    For now, this writes a SHA3-256SUMS file that `sha3sum -a 256 -c` can
-    verify from within the extracted wrapper directory.
+    For now, this writes a SHA256SUMS file that `sha256sum -c` can verify
+    from within the extracted wrapper directory.
     """
     zf.writestr(
-        f"{wrapper}/SHA3-256SUMS",
-        "".join(f"{sha3_256(blob)}  {name}\n" for name, blob in contents.items()),
+        f"{wrapper}/SHA256SUMS",
+        "".join(f"{sha256(blob)}  {name}\n" for name, blob in contents.items()),
     )
 
 
@@ -364,7 +364,7 @@ def briefcase_out(
     storage kind (player.csv, session.csv, …). Each file only contains columns
     for the fields that actually occur within its own storage kind. A
     README.txt, a DATA_DICTIONARY.json defining the uproot-internal (!)
-    columns, any `extras` (path → file body), and a SHA3-256SUMS file covering
+    columns, any `extras` (path → file body), and a SHA256SUMS file covering
     every other file sit directly inside the wrapper directory.
     """
     buffer = BytesIO()

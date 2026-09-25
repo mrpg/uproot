@@ -24,7 +24,7 @@ from uproot.data import (
 )
 from uproot.services import data_service, session_service
 from uproot.stable import decode, encode
-from uproot.types import Value, sha3_256
+from uproot.types import Value, sha256
 
 
 def sequenced(rows):
@@ -343,14 +343,14 @@ def test_briefcase_out():
         assert sorted(zf.namelist()) == [
             "session1/DATA_DICTIONARY.json",
             "session1/README.txt",
-            "session1/SHA3-256SUMS",
+            "session1/SHA256SUMS",
             "session1/latest/player.csv",
             "session1/latest/session.csv",
         ]
 
         player_csv = zf.read("session1/latest/player.csv").decode("utf-8")
         session_csv = zf.read("session1/latest/session.csv").decode("utf-8")
-        sums = zf.read("session1/SHA3-256SUMS").decode("utf-8")
+        sums = zf.read("session1/SHA256SUMS").decode("utf-8")
 
         assert zf.read("session1/README.txt").decode("utf-8") == "hello"
 
@@ -358,16 +358,16 @@ def test_briefcase_out():
     assert "choice" in player_csv and "players" not in player_csv
     assert "players" in session_csv and "choice" not in session_csv
 
-    # SHA3-256SUMS covers every file, with paths relative to the wrapper
+    # SHA256SUMS covers every file, with paths relative to the wrapper
     with ZipFile(BytesIO(briefcase)) as zf:
         hashed = set()
 
         for line in sums.strip().split("\n"):
             digest, name = line.split("  ")
-            assert sha3_256(zf.read(f"session1/{name}")) == digest
+            assert sha256(zf.read(f"session1/{name}")) == digest
             hashed.add(f"session1/{name}")
 
-        assert hashed == set(zf.namelist()) - {"session1/SHA3-256SUMS"}
+        assert hashed == set(zf.namelist()) - {"session1/SHA256SUMS"}
 
 
 def test_briefcase_out_jsonl():
@@ -438,7 +438,7 @@ def test_generate_briefcase(monkeypatch):
         assert sorted(zf.namelist()) == [
             "session1/DATA_DICTIONARY.json",
             "session1/README.txt",
-            "session1/SHA3-256SUMS",
+            "session1/SHA256SUMS",
             "session1/latest/player.csv",
             "session1/latest/session.csv",
             "session1/page_times.csv",
@@ -453,7 +453,7 @@ def test_generate_briefcase(monkeypatch):
         page_times_csv = zf.read("session1/page_times.csv").decode("utf-8")
 
     assert "https://uproot.science/running/export/" in readme
-    assert "sha3sum -a 256 -c SHA3-256SUMS" in readme
+    assert "sha256sum -c SHA256SUMS" in readme
     assert "nothing in these files is sorted by !time" in readme
     assert "DATA_DICTIONARY.json" in readme
     assert "page_times.csv" in readme
@@ -482,7 +482,7 @@ def test_generate_briefcase_grouped(monkeypatch):
         assert sorted(zf.namelist()) == [
             "session1/DATA_DICTIONARY.json",
             "session1/README.txt",
-            "session1/SHA3-256SUMS",
+            "session1/SHA256SUMS",
             "session1/latest/player.jsonl",
             "session1/latest_by_round/player.jsonl",
             "session1/page_times.jsonl",
