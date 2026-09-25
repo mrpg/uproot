@@ -10,6 +10,7 @@ import urllib.parse
 from collections.abc import Callable
 from contextlib import nullcontext
 from datetime import UTC, datetime
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -741,7 +742,7 @@ def tojson_filter(x: Any, indent: int | None = None) -> str:
 
 
 def fmtnum_filter(
-    value: float,
+    value: float | Decimal,
     pre: str = "",
     post: str = "",
     places: int = 2,
@@ -749,7 +750,15 @@ def fmtnum_filter(
     sep: str = ",",
     decsep: str = ".",
 ) -> str:
-    formatted = f"{value:,.{places}f}" if sep else f"{value:.{places}f}"
+    # Round half up on the decimal representation, so that 2.345 and 1.005
+    # both round up like on paper. uproot.fmtnum() in uproot.js does the same.
+    exact = Decimal(value) if isinstance(value, Decimal | int) else Decimal(str(value))
+
+    if not exact.is_finite():
+        return f"{pre}{value}{post}"
+
+    rounded = exact.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
+    formatted = f"{abs(rounded):,.{places}f}" if sep else f"{abs(rounded):.{places}f}"
 
     if sep:
         if decsep != ".":
@@ -764,8 +773,8 @@ def fmtnum_filter(
 
     formatted = f"{pre}{formatted}{post}"
 
-    if value < 0:
-        formatted = "\u2212" + formatted.replace("-", "")
+    if rounded < 0:
+        formatted = "\u2212" + formatted
 
     if use_nbsp:
         formatted = formatted.replace(" ", "\xa0")

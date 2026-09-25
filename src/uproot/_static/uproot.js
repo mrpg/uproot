@@ -251,6 +251,50 @@ window.uproot = {
         return `${s} ${s <= 1 ? _("second") : _("seconds")}`;
     },
 
+    fmtnum(value, { pre = "", post = "", places = 2, use_nbsp = true, sep = ",", decsep = "." } = {}) {
+        // Same output as the fmtnum filter in Python: rounds half up on the
+        // shortest decimal representation of the number
+        const num = Number(value);
+
+        if (!Number.isFinite(num)) {
+            return `${pre}${value}${post}`;
+        }
+
+        const [mantissa, exponent = "0"] = String(Math.abs(num)).split("e");
+        const [intDigits, fracDigits = ""] = mantissa.split(".");
+        let digits = intDigits + fracDigits;
+        let point = intDigits.length + Number(exponent);
+
+        if (point <= 0) {
+            digits = "0".repeat(1 - point) + digits;
+            point = 1;
+        }
+
+        digits = digits.padEnd(point + places + 1, "0");
+
+        let scaled = BigInt(digits.slice(0, point + places));
+
+        if (digits[point + places] >= "5") {
+            scaled += 1n;
+        }
+
+        const padded = scaled.toString().padStart(places + 1, "0");
+        let whole = padded.slice(0, padded.length - places);
+        const frac = padded.slice(padded.length - places);
+
+        if (sep) {
+            whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+        }
+
+        let formatted = `${pre}${whole}${places > 0 ? decsep + frac : ""}${post}`;
+
+        if (num < 0 && scaled > 0n) {
+            formatted = "−" + formatted;
+        }
+
+        return use_nbsp ? formatted.replaceAll(" ", " ") : formatted;
+    },
+
     getParam(name) {
         return new URLSearchParams(location.search).get(name);
     },
