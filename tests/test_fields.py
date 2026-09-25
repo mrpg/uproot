@@ -169,3 +169,16 @@ def test_select_field_placeholder_is_not_a_valid_answer():
 
     assert form.validate() is False
     assert form.study.errors == ["This field is required."]
+
+
+async def test_plain_wtforms_select_field_renders_without_placeholder():
+    class PlainForm(wtforms.Form):
+        team = wtforms.SelectField(choices=[("a", "A"), ("b", "B")])
+
+    template = ENV.from_string(
+        '{% from "Macros.html" import field with context %}{{ field(form.team) }}'
+    )
+    html = await template.render_async(form=PlainForm(), _=lambda text: text)
+    options = [line.strip() for line in html.splitlines() if "<option" in line]
+
+    assert options == ['<option value="a">A</option>', '<option value="b">B</option>']
