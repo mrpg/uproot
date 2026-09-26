@@ -1,7 +1,10 @@
+import httpx
 import pytest
+from fastapi import FastAPI
 
 import uproot.deployment as d
 from uproot.pages import static_context, static_exists, static_search
+from uproot.server1 import router
 
 
 @pytest.fixture
@@ -28,6 +31,26 @@ def test_falls_back_to_project(project):
     static = static_search("myapp", "_project")
 
     assert static("project.css") == f"{d.ROOT}/static/_project/project.css"
+
+
+@pytest.mark.parametrize("realm", ["myapp", "_project"])
+async def test_static_url_serves_filename_with_special_characters(project, realm):
+    directory = project if realm == "_project" else project / realm
+    filename = "img/a file+%20#é.txt"
+    (directory / "_static" / filename).write_text("correct asset", encoding="utf-8")
+    (directory / "_static" / filename.replace(" ", "+")).write_text(
+        "different asset", encoding="utf-8"
+    )
+    server = FastAPI()
+    server.include_router(router)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=server), base_url="http://test"
+    ) as client:
+        response = await client.get(static_search("myapp", "_project")(filename))
+
+    assert response.status_code == 200
+    assert response.text == "correct asset"
 
 
 def test_missing_file_links_to_first_realm(project):

@@ -172,7 +172,9 @@ def static_dir(realm: str) -> Path:
 
 def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     def localstatic(fname: str) -> str:
-        last_mile = "/".join(urllib.parse.quote_plus(part) for part in fname.split("/"))
+        last_mile = "/".join(
+            urllib.parse.quote(part, safe="") for part in fname.split("/")
+        )
         return f"{d.ROOT}/static/{realm}/{last_mile}"
 
     return localstatic
