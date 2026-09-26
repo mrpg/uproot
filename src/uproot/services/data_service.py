@@ -229,7 +229,7 @@ def briefcase_readme(
     )
 
 
-def generate_briefcase(
+async def generate_briefcase(
     sname: t.Sessionname,
     gvar: list[str],
     filters: bool,
@@ -242,10 +242,36 @@ def generate_briefcase(
     The briefcase always contains the ultralong, sparse, and latest formats
     as well as the page times; a non-empty `gvar` adds a grouped "latest"
     format on top. `wrapper` names the archive's top-level directory.
+
+    The session is read on the event loop, which is the only place where it
+    can safely be read. Stored values are never modified in place, so the
+    rest runs in a thread and does not block the event loop.
     """
     gvar = [gv for gv in gvar if gv]
     rows = list(data_rows_for_session(sname, filters))
+    page_times = page_times_rows(sname)
 
+    return await asyncio.to_thread(
+        briefcase_from_rows,
+        str(sname),
+        rows,
+        page_times,
+        gvar,
+        filters,
+        filetype,
+        wrapper,
+    )
+
+
+def briefcase_from_rows(
+    sname: str,
+    rows: list[dict[str, Any]],
+    page_times: list[dict[str, Any]],
+    gvar: list[str],
+    filters: bool,
+    filetype: str,
+    wrapper: str,
+) -> bytes:
     formats: dict[str, DataRows] = {
         "ultralong": data.noop(rows),
         "sparse": data.long_to_wide(rows),
@@ -259,11 +285,9 @@ def generate_briefcase(
         formats,
         wrapper=wrapper,
         filetype=filetype,
-        readme=briefcase_readme(str(sname), filetype, gvar, filters),
+        readme=briefcase_readme(sname, filetype, gvar, filters),
         extras={
-            f"page_times.{filetype}": data.rows_to_bytes(
-                page_times_rows(sname), filetype
-            ),
+            f"page_times.{filetype}": data.rows_to_bytes(page_times, filetype),
         },
     )
 

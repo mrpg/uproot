@@ -1,4 +1,5 @@
 import random
+import threading
 from datetime import UTC, date, datetime, time
 from io import BytesIO
 from unittest.mock import patch
@@ -403,7 +404,7 @@ def test_grouped_format_name():
     assert data_service.grouped_format_name(["!!!"]) == "latest_grouped"
 
 
-def test_generate_briefcase(monkeypatch):
+async def test_generate_briefcase(monkeypatch):
     session_data = {
         ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
         ("session", "session1", "players"): [Value(2.0, False, ["p1"], "")],
@@ -430,7 +431,7 @@ def test_generate_briefcase(monkeypatch):
         ],
     )
 
-    briefcase = data_service.generate_briefcase(
+    briefcase = await data_service.generate_briefcase(
         "session1", [], False, wrapper="session1"
     )
 
@@ -461,7 +462,7 @@ def test_generate_briefcase(monkeypatch):
     assert "myapp/MyPage" in page_times_csv
 
 
-def test_generate_briefcase_grouped(monkeypatch):
+async def test_generate_briefcase_grouped(monkeypatch):
     session_data = {
         ("player", "session1", "p1", "round"): [Value(1.0, False, 1, "")],
         ("player", "session1", "p1", "choice"): [Value(2.0, False, "A", "")],
@@ -474,7 +475,7 @@ def test_generate_briefcase_grouped(monkeypatch):
     )
     monkeypatch.setattr(data_service, "page_times_rows", lambda sname: [])
 
-    briefcase = data_service.generate_briefcase(
+    briefcase = await data_service.generate_briefcase(
         "session1", ["round"], False, "jsonl", wrapper="session1"
     )
 
@@ -493,6 +494,33 @@ def test_generate_briefcase_grouped(monkeypatch):
         readme = zf.read("session1/README.txt").decode("utf-8")
 
     assert "latest_by_round/" in readme
+
+
+async def test_generate_briefcase_reads_on_loop_and_builds_in_thread(monkeypatch):
+    threads = {}
+
+    def everything_from_session(sname):
+        threads["read"] = threading.get_ident()
+        return {("player", "session1", "p1", "x"): [Value(1.0, False, 1, "")]}
+
+    def page_times_rows(sname):
+        threads["page_times"] = threading.get_ident()
+        return []
+
+    def briefcase_from_rows(*args):
+        threads["build"] = threading.get_ident()
+        return b""
+
+    monkeypatch.setattr(
+        data_service, "everything_from_session", everything_from_session
+    )
+    monkeypatch.setattr(data_service, "page_times_rows", page_times_rows)
+    monkeypatch.setattr(data_service, "briefcase_from_rows", briefcase_from_rows)
+
+    await data_service.generate_briefcase("session1", [], False, wrapper="session1")
+
+    assert threads["read"] == threads["page_times"] == threading.get_ident()
+    assert threads["build"] != threading.get_ident()
 
 
 def test_data_dictionary_covers_internal_columns():

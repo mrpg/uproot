@@ -399,7 +399,7 @@ def valid_export_format(format: str) -> None:
         )
 
 
-def briefcase_export_response(
+async def briefcase_export_response(
     sname: str,
     gvar: list[str],
     filters: bool,
@@ -413,7 +413,7 @@ def briefcase_export_response(
     briefcase_name = str(sname)
 
     return Response(
-        a.generate_briefcase(
+        await a.generate_briefcase(
             sname,
             gvar,
             filters,
@@ -935,7 +935,7 @@ async def download_session_export(
     """
     a.session_exists(sname)
 
-    return briefcase_export_response(sname, gvar, filters, filetype)
+    return await briefcase_export_response(sname, gvar, filters, filetype)
 
 
 @router.get("/sessions/{sname}/data/jsonl/")

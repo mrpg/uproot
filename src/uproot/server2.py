@@ -1305,7 +1305,7 @@ async def session_data_download(
     briefcase_name = f"{sname}_{stamp}"
 
     t0 = now()
-    briefcase = a.generate_briefcase(
+    briefcase = await a.generate_briefcase(
         sname,
         gvar,
         filters,
