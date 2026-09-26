@@ -54,6 +54,7 @@ from uproot.pages import (
     render,
     render_error,
     show2path,
+    static_dir,
     timeout_reached,
     validate,
     verify_csrf,
@@ -979,14 +980,7 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     if not realm.isidentifier():
         raise HTTPException(status_code=404)
 
-    if realm == "_uproot":
-        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_static")
-    elif realm == "_project":
-        base_path = os.path.join(os.getcwd(), "_static")
-    else:
-        base_path = os.path.join(os.getcwd(), realm, "_static")
-
-    base_path = os.path.abspath(base_path)
+    base_path = os.path.abspath(static_dir(realm))
     static_files = StaticFiles(
         directory=base_path, check_dir=False, follow_symlink=True
     )

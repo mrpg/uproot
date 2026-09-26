@@ -52,7 +52,7 @@ import uproot.deployment as d
 import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
-from uproot import i18n
+from uproot import i18n, pages
 from uproot.constraints import ensure
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
@@ -196,17 +196,13 @@ async def render_session_settings_forms() -> (
                         "appname": appname,
                         "config": config,
                         "editor_id": f"session-settings-editor-{editor_number}",
-                        "internalstatic": static_factory(),
-                        "projectstatic": static_factory("_project"),
                         "settings": settings,
+                        **pages.static_context(appname),
                     }
                 )
 
                 if appname is not None:
-                    context |= {
-                        "appstatic": static_factory(appname),
-                        "C": getattr(app, "C", {}),
-                    }
+                    context |= {"C": getattr(app, "C", {})}
 
                 html = await PENV.get_template(template_name).render_async(**context)
 
@@ -1170,9 +1166,7 @@ async def session_digest(
                 | {
                     "__panic__": True,
                     "session": session,
-                    "internalstatic": static_factory(),
-                    "projectstatic": static_factory("_project"),
-                    "appstatic": static_factory(appname),
+                    **pages.static_context(appname),
                     "C": getattr(app, "C", {}),
                 }
             )
@@ -1229,9 +1223,7 @@ async def session_pipeline(
             context = BUILTINS | {
                 "__panic__": True,
                 "session": session,
-                "internalstatic": static_factory(),
-                "projectstatic": static_factory("_project"),
-                "appstatic": static_factory(appname),
+                **pages.static_context(appname),
                 "C": getattr(app, "C", {}),
             }
 

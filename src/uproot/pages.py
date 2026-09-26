@@ -161,6 +161,15 @@ def app_or_default(app: Any, filename: str) -> str:
     return filename
 
 
+def static_dir(realm: str) -> Path:
+    if realm == "_uproot":
+        return Path(os.path.abspath(__file__)).parent / "_static"
+    elif realm == "_project":
+        return Path.cwd() / "_static"
+    else:
+        return Path.cwd() / realm / "_static"
+
+
 def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     def localstatic(fname: str) -> str:
         last_mile = "/".join(urllib.parse.quote_plus(part) for part in fname.split("/"))
@@ -169,23 +178,51 @@ def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     return localstatic
 
 
-def terms_url(language: i18n.ISO639) -> str:
-    language_path = urllib.parse.quote(str(language), safe="")
-    return f"{d.ROOT}/terms/{language_path}.js?v={i18n.VERSION}"
+def static_exists(realm: str, fname: str) -> bool:
+    """Whether /static/ would serve fname from realm. Like StaticFiles with
+    follow_symlink=True, this follows symlinks but rejects paths that lexically
+    escape the realm's directory."""
+    if fname.startswith(("/", "\\")):
+        return False
+
+    directory = os.path.abspath(static_dir(realm))
+    path = os.path.abspath(os.path.join(directory, fname))
+
+    return os.path.commonpath([path, directory]) == directory and os.path.isfile(path)
 
 
-def function_context(page: type[Page] | None) -> dict[str, Any]:
-    if page is not None:
-        return {
-            "internalstatic": static_factory(),
-            "projectstatic": static_factory("_project"),
-            "appstatic": static_factory(page.__module__),
-        }
+def static_search(*realms: str) -> Callable[[str], str]:
+    """Link to a static file from the first realm that has it, from specific to
+    general. If no realm has it, link to the first realm."""
 
-    return {
+    def static(fname: str) -> str:
+        for realm in realms:
+            if static_exists(realm, fname):
+                return static_factory(realm)(fname)
+
+        return static_factory(realms[0])(fname)
+
+    return static
+
+
+def static_context(appname: str | None) -> dict[str, Any]:
+    context = {
         "internalstatic": static_factory(),
         "projectstatic": static_factory("_project"),
     }
+
+    if appname is None:
+        return context | {"static": static_search("_project")}
+
+    return context | {
+        "appstatic": static_factory(appname),
+        "static": static_search(appname, "_project"),
+    }
+
+
+def terms_url(language: i18n.ISO639) -> str:
+    language_path = urllib.parse.quote(str(language), safe="")
+    return f"{d.ROOT}/terms/{language_path}.js?v={i18n.VERSION}"
 
 
 def make_buttons(
@@ -536,7 +573,7 @@ async def render(
                 "show_testing": sname is not None
                 and (is_admin or cast(Storage, session)._uproot_testing),
             }
-            | function_context(page)
+            | static_context(page.__module__)
             | internal
         )
 
@@ -581,7 +618,7 @@ async def render_error(
             "_uproot_js": internal,  # not a huge fan of this construction
             "uproot_terms_url": terms_url(d.LANGUAGE),
         }
-        | function_context(None)
+        | static_context(None)
         | internal
         | {
             "player": player,

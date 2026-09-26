@@ -36,7 +36,7 @@ import uproot.types as t
 from uproot import i18n
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
-from uproot.pages import static_factory
+from uproot.pages import static_context
 from uproot.storage import Admin, Session, Storage
 
 router = APIRouter(prefix=f"{d.ROOT}/admin/api/v1")
@@ -457,9 +457,7 @@ def admin_app_context(
         | {
             "__panic__": True,
             "session": session,
-            "internalstatic": static_factory(),
-            "projectstatic": static_factory("_project"),
-            "appstatic": static_factory(appname),
+            **static_context(appname),
             "C": getattr(u.APPS[appname], "C", {}),
         }
     )
