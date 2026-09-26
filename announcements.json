@@ -1,6 +1,6 @@
 {
-    "recommendedVersion": "0.5.4",
-    "generalAnnouncement": "Please participate in uproot’s public review: https://uproot.science/public-review/",
+    "recommendedVersion": "0.6.0",
+    "generalAnnouncement": null,
     "announcements": {
         "0.0.1": "uproot 0.1.0 has been released. Older versions are no longer supported. Upgrade as soon as possible. See here: https://q.mg.sb/upgradeuproot"
     }

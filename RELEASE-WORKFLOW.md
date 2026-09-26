@@ -6,8 +6,7 @@
 1. Update `version` in `pyproject.toml`.
 1. Update `recommendedVersion` in `announcements.json`, and add or update the matching version-specific announcement if needed.
 1. Copy or move (after 2027-01-01) `announcements.json` to [uproot-docs](https://github.com/mrpg/uproot-docs). Deploy docs.
-1. For `1.0.0` or the first PyPI release, update install and status text in `README.md` and `INSTALLATION-PIP.md`.
-1. Run `./release.sh vX.Y.Z`. Ensure CI passes.
+1. Run `./release.sh vX.Y.Z`. Push. Ensure CI passes.
 1. Upload to PyPI: `uv run twine upload dist/uproot*.whl`.
 1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable. Signatures use GnuPG and [botan-slhdsa-signing](https://github.com/mrpg/botan-slhdsa-signing).
     - Verifiers, see [here](https://max.pm/security/).
@@ -22,6 +21,7 @@
 
 # Versions
 
+- `0.6.0` (2026-09-26)
 - `0.5.4` (2026-09-21)
 - `0.5.3` (2026-09-16)
 - `0.5.2` (2026-09-13)
