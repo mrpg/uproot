@@ -10,7 +10,7 @@ GIL, so compressing in worker threads does not block the event loop.
 
 import asyncio
 import gzip
-from typing import Literal
+from typing import Literal, cast
 
 import anyio.to_thread
 import brotli
@@ -21,6 +21,8 @@ from starlette.middleware.gzip import (
     IdentityResponder,
 )
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+from uproot.constraints import ensure
 
 Encoding = Literal["br", "gzip"]
 
@@ -125,13 +127,15 @@ class BrotliResponder(IdentityResponder):
         return await anyio.to_thread.run_sync(self.compress_body, body, more_body)
 
     def compress_body(self, body: bytes, more_body: bool) -> bytes:
-        assert self.compressor is not None
-        data = self.compressor.process(body)
+        ensure(self.compressor is not None)
+        compressor = cast(brotli.Compressor, self.compressor)
+
+        data = compressor.process(body)
 
         if more_body:
-            return bytes(data + self.compressor.flush())
+            return bytes(data + compressor.flush())
         else:
-            return bytes(data + self.compressor.finish())
+            return bytes(data + compressor.finish())
 
 
 class CompressionMiddleware(GZipMiddleware):
