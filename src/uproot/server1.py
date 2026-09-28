@@ -10,7 +10,6 @@ import contextlib
 import functools
 import hashlib
 import hmac
-import mimetypes
 import os.path
 import traceback
 from collections import deque
@@ -39,7 +38,6 @@ from fastapi.responses import (
     Response,
 )
 from starlette.datastructures import UploadFile
-from starlette.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 
 import uproot as u
@@ -49,16 +47,15 @@ import uproot.jobs as j
 import uproot.queues as q
 import uproot.types as t
 from uproot import chat, i18n
-from uproot.compression import compressed_file, compressible, negotiate
 from uproot.constraints import ensure, valid_token
 from uproot.core import find_free_slot, resolve_page_order
 from uproot.pages import (
-    file_sha256,
     path2page,
     render,
     render_error,
     show2path,
     static_dir,
+    static_version,
     timeout_reached,
     validate,
     verify_csrf,
@@ -994,52 +991,18 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     )
     response = await static_files.get_response(location, request.scope)
 
-    if response.status_code not in (200, 304):
-        return response
+    if response.status_code in (200, 206, 304):
+        # Versioned links (see static_factory) may be cached indefinitely
+        version = request.query_params.get("v")
 
-    # Versioned links (see static_factory) may be cached indefinitely
-    version = request.query_params.get("v")
+        if version is None:
+            response.headers["Cache-Control"] = "public, max-age=3600"
+        elif version == static_version(os.path.join(base_path, location)):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "no-cache"
 
-    sha256 = (
-        file_sha256(os.path.join(base_path, location)) if version is not None else None
-    )
-
-    if version is None:
-        response.headers["Cache-Control"] = "public, max-age=3600"
-    elif sha256 is not None and version == sha256[:16]:
-        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-    else:
-        response.headers["Cache-Control"] = "no-cache"
-
-    if not compressible(mimetypes.guess_type(location)[0]):
-        response.headers["Accept-Ranges"] = "bytes"
-        return response
-
-    response.headers.add_vary_header("Accept-Encoding")
-    encoding = negotiate(",".join(request.headers.getlist("accept-encoding")))
-
-    if (
-        not isinstance(response, FileResponse)
-        or response.stat_result is None
-        or encoding is None
-        or request.method != "GET"
-        or "range" in request.headers
-    ):
-        response.headers["Accept-Ranges"] = "bytes"
-        return response
-
-    body = await compressed_file(
-        str(response.path), sha256 or file_sha256(str(response.path)), encoding
-    )
-    headers = {
-        key: value
-        for key, value in response.headers.items()
-        if key not in ("content-length", "accept-ranges")
-    }
-    headers["content-encoding"] = encoding
-    headers["etag"] = f"W/{response.headers['etag']}"
-
-    return Response(body, headers=headers)
+    return response
 
 
 @router.get("/api/{appname}/{sname}/")

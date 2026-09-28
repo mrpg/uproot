@@ -16,13 +16,13 @@ import click
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse
 from pydantic import validate_call
+from starlette_compress import CompressMiddleware
 
 import uproot as u
 import uproot.core as c
 import uproot.deployment as d
 import uproot.jobs as j
 from uproot.cache import load_database_into_memory
-from uproot.compression import CompressionMiddleware
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
 from uproot.server1 import router as router1
@@ -254,7 +254,7 @@ uproot_server = FastAPI(
     redirect_slashes=False,
 )
 
-uproot_server.add_middleware(CompressionMiddleware)
+uproot_server.add_middleware(CompressMiddleware)
 
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)
