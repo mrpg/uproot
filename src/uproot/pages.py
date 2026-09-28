@@ -7,6 +7,7 @@ import gettext
 import hashlib
 import os
 import re
+import stat
 import time
 import traceback
 import urllib.parse
@@ -32,6 +33,7 @@ from jinja2.ext import Extension
 from jinja2.parser import Parser
 from markupsafe import Markup
 from pydantic import validate_call
+from starlette.staticfiles import StaticFiles
 from wtforms import Form as BaseForm
 from wtforms.i18n import messages_path
 from wtforms.widgets.core import clean_key, html_params
@@ -187,8 +189,7 @@ def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
         )
         url = f"{d.ROOT}/static/{realm}/{last_mile}"
 
-        if static_exists(realm, fname):
-            path = os.path.join(os.path.abspath(static_dir(realm)), fname)
+        if (path := static_path(realm, fname)) is not None:
             url += f"?v={static_version(path)}"
 
         return url
@@ -239,12 +240,12 @@ def minified(fname: str) -> str:
 
     min_fname = f"{fname.removesuffix('.js')}.min.js"
 
-    if not (static_exists("_uproot", fname) and static_exists("_uproot", min_fname)):
+    source = static_path("_uproot", fname)
+    build = static_path("_uproot", min_fname)
+
+    if source is None or build is None:
         return fname
 
-    directory = os.path.abspath(static_dir("_uproot"))
-    source = os.path.join(directory, fname)
-    build = os.path.join(directory, min_fname)
     source_sha256 = file_sha256(source)
 
     if minified_from(build) == source_sha256:
@@ -288,17 +289,26 @@ def warn_outdated_build(min_fname: str, source_sha256: str) -> None:
     d.LOGGER.warning(f"Serving the full source because {min_fname} is outdated")
 
 
+def static_files(realm: str) -> StaticFiles:
+    """What /static/{realm}/ serves. Symlinks are followed, but paths that
+    lexically escape the realm's directory are rejected."""
+    return StaticFiles(
+        directory=static_dir(realm), check_dir=False, follow_symlink=True
+    )
+
+
+def static_path(realm: str, fname: str) -> str | None:
+    """The file that /static/ would serve for fname from realm, if any."""
+    path, stat_result = static_files(realm).lookup_path(fname)
+
+    if stat_result is not None and stat.S_ISREG(stat_result.st_mode):
+        return path
+    else:
+        return None
+
+
 def static_exists(realm: str, fname: str) -> bool:
-    """Whether /static/ would serve fname from realm. Like StaticFiles with
-    follow_symlink=True, this follows symlinks but rejects paths that lexically
-    escape the realm's directory."""
-    if fname.startswith(("/", "\\")):
-        return False
-
-    directory = os.path.abspath(static_dir(realm))
-    path = os.path.abspath(os.path.join(directory, fname))
-
-    return os.path.commonpath([path, directory]) == directory and os.path.isfile(path)
+    return static_path(realm, fname) is not None
 
 
 def static_search(*realms: str) -> Callable[[str], str]:

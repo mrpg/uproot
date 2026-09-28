@@ -10,7 +10,6 @@ import contextlib
 import functools
 import hashlib
 import hmac
-import os.path
 import traceback
 from collections import deque
 from collections.abc import Iterable
@@ -38,7 +37,6 @@ from fastapi.responses import (
     Response,
 )
 from starlette.datastructures import UploadFile
-from starlette.staticfiles import StaticFiles
 
 import uproot as u
 import uproot.admin as a
@@ -54,7 +52,8 @@ from uproot.pages import (
     render,
     render_error,
     show2path,
-    static_dir,
+    static_files,
+    static_path,
     static_version,
     timeout_reached,
     validate,
@@ -985,19 +984,16 @@ async def anystatic(request: Request, realm: str, location: str) -> Response:
     if not realm.isidentifier():
         raise HTTPException(status_code=404)
 
-    base_path = os.path.abspath(static_dir(realm))
-    static_files = StaticFiles(
-        directory=base_path, check_dir=False, follow_symlink=True
-    )
-    response = await static_files.get_response(location, request.scope)
+    response = await static_files(realm).get_response(location, request.scope)
 
     if response.status_code in (200, 206, 304):
         # Versioned links (see static_factory) may be cached indefinitely
         version = request.query_params.get("v")
+        path = static_path(realm, location)
 
         if version is None:
             response.headers["Cache-Control"] = "public, max-age=3600"
-        elif version == static_version(os.path.join(base_path, location)):
+        elif path is not None and version == static_version(path):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         else:
             response.headers["Cache-Control"] = "no-cache"
