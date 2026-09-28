@@ -6,6 +6,7 @@ import math
 from collections.abc import AsyncIterator, Callable, Coroutine
 from contextlib import asynccontextmanager
 from typing import (
+    Annotated,
     Any,
     Never,
     cast,
@@ -15,7 +16,15 @@ from urllib.parse import quote
 import click
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse
-from pydantic import validate_call
+from pydantic import (
+    Field,
+    InstanceOf,
+    StrictBool,
+    TypeAdapter,
+    ValidationError,
+    create_model,
+    validate_call,
+)
 from starlette_compress import CompressMiddleware
 
 import uproot as u
@@ -62,34 +71,33 @@ def validate_keepalive_interval() -> None:
     tolerance must cover the interval plus the time for a response."""
     maximum = j.DEFAULT_DROPOUT_TOLERANCE - j.KEEPALIVE_SLACK
 
-    if not (
-        isinstance(d.KEEPALIVE_INTERVAL, (int, float))
-        and 1.0 <= d.KEEPALIVE_INTERVAL <= maximum
-    ):
+    interval: TypeAdapter[int | float] = TypeAdapter(
+        Annotated[InstanceOf[int] | InstanceOf[float], Field(ge=1.0, le=maximum)]
+    )
+
+    try:
+        interval.validate_python(d.KEEPALIVE_INTERVAL)
+    except ValidationError:
         d.LOGGER.critical(
             f"KEEPALIVE_INTERVAL must be between 1 and {maximum:g} seconds"
         )
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 def validate_template_defaults() -> None:
-    names = set(d.TEMPLATE_DEFAULTS)
-    problems = [
-        *(f"unknown switch {name!r}" for name in names - d.TEMPLATE_SWITCHES),
-        *(f"missing switch {name!r}" for name in d.TEMPLATE_SWITCHES - names),
-        *(
-            f"{name!r} must be True or False"
-            for name, value in d.TEMPLATE_DEFAULTS.items()
-            if not isinstance(value, bool)
-        ),
-    ]
+    fields: dict[str, Any] = {
+        name: (StrictBool, ...) for name in sorted(d.TEMPLATE_SWITCHES)
+    }
+    model = create_model("TemplateDefaults", **fields)
 
-    if problems:
+    try:
+        model.model_validate(d.TEMPLATE_DEFAULTS, extra="forbid")
+    except ValidationError as error:
         d.LOGGER.critical(
-            f"Invalid TEMPLATE_DEFAULTS: {'; '.join(problems)}. "
+            f"Invalid TEMPLATE_DEFAULTS: {error}. "
             f"Valid switches: {', '.join(sorted(d.TEMPLATE_SWITCHES))}."
         )
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 @asynccontextmanager
