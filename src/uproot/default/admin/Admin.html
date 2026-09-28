@@ -34,6 +34,7 @@ Admin area
         <script src="{{ uproot_terms_url }}"></script>
         <script>
             uproot.vars = {{ _uproot_js | tojson | safe }};
+            uproot.keepAliveSeconds = uproot.vars.keepalive_interval;
 
             uproot.wsurl = () => {
                 const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";

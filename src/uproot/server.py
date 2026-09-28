@@ -14,7 +14,6 @@ from urllib.parse import quote
 
 import click
 from fastapi import FastAPI, Request
-from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import PlainTextResponse, RedirectResponse
 from pydantic import validate_call
 
@@ -23,6 +22,7 @@ import uproot.core as c
 import uproot.deployment as d
 import uproot.jobs as j
 from uproot.cache import load_database_into_memory
+from uproot.compression import CompressionMiddleware
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
 from uproot.server1 import router as router1
@@ -55,6 +55,35 @@ def validate_admin_password_lengths() -> None:
                 "Configured admin password is shorter than the minimum length"
             )
             raise SystemExit(1)
+
+
+def validate_keepalive_interval() -> None:
+    if not (
+        isinstance(d.KEEPALIVE_INTERVAL, (int, float))
+        and 1.0 <= d.KEEPALIVE_INTERVAL <= 3600.0
+    ):
+        d.LOGGER.critical("KEEPALIVE_INTERVAL must be between 1 and 3600 seconds")
+        raise SystemExit(1)
+
+
+def validate_template_defaults() -> None:
+    names = set(d.TEMPLATE_DEFAULTS)
+    problems = [
+        *(f"unknown switch {name!r}" for name in names - d.TEMPLATE_SWITCHES),
+        *(f"missing switch {name!r}" for name in d.TEMPLATE_SWITCHES - names),
+        *(
+            f"{name!r} must be True or False"
+            for name, value in d.TEMPLATE_DEFAULTS.items()
+            if not isinstance(value, bool)
+        ),
+    ]
+
+    if problems:
+        d.LOGGER.critical(
+            f"Invalid TEMPLATE_DEFAULTS: {'; '.join(problems)}. "
+            f"Valid switches: {', '.join(sorted(d.TEMPLATE_SWITCHES))}."
+        )
+        raise SystemExit(1)
 
 
 @asynccontextmanager
@@ -119,6 +148,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
 
     if not d.UNSAFE:
         validate_admin_password_lengths()
+
+    validate_keepalive_interval()
+    validate_template_defaults()
 
     if d.UNSAFE:
         click.echo(err=True)
@@ -222,11 +254,7 @@ uproot_server = FastAPI(
     redirect_slashes=False,
 )
 
-uproot_server.add_middleware(
-    GZipMiddleware,
-    minimum_size=2048,
-    compresslevel=3,
-)
+uproot_server.add_middleware(CompressionMiddleware)
 
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)

@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import builtins
+import functools
 import gettext
+import hashlib
 import os
 import re
 import time
@@ -171,13 +173,82 @@ def static_dir(realm: str) -> Path:
 
 
 def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
+    """Link to a static file. Existing files get their version (?v=...), so
+    that browsers may cache them indefinitely. The server ignores a missing or
+    outdated version and always serves the current file. uproot's own scripts
+    are replaced by their minified builds where these are up to date."""
+
     def localstatic(fname: str) -> str:
+        if realm == "_uproot":
+            fname = minified(fname)
+
         last_mile = "/".join(
             urllib.parse.quote(part, safe="") for part in fname.split("/")
         )
-        return f"{d.ROOT}/static/{realm}/{last_mile}"
+        url = f"{d.ROOT}/static/{realm}/{last_mile}"
+
+        if static_exists(realm, fname):
+            path = os.path.join(os.path.abspath(static_dir(realm)), fname)
+            url += f"?v={static_version(path)}"
+
+        return url
 
     return localstatic
+
+
+def static_version(path: str) -> str:
+    return file_sha256(path)[:16]
+
+
+def file_sha256(path: str) -> str:
+    with open(path, "rb") as f:
+        return hashlib.file_digest(f, "sha256").hexdigest()
+
+
+def minified(fname: str) -> str:
+    """X.min.js instead of X.js if the former was built from the current X.js.
+    The build (see release.sh) states the SHA-256 of its source in its first
+    line, formatted like MINIFIED_HEADER."""
+    if not fname.endswith(".js") or fname.endswith(".min.js"):
+        return fname
+
+    min_fname = f"{fname.removesuffix('.js')}.min.js"
+
+    if not (static_exists("_uproot", fname) and static_exists("_uproot", min_fname)):
+        return fname
+
+    directory = os.path.abspath(static_dir("_uproot"))
+    source = os.path.join(directory, fname)
+    build = os.path.join(directory, min_fname)
+    source_sha256 = file_sha256(source)
+
+    if minified_from(build) == source_sha256:
+        return min_fname
+    else:
+        warn_outdated_build(min_fname, source_sha256)
+
+        return fname
+
+
+MINIFIED_HEADER = "/* Minified from source with SHA-256 {} */"
+
+
+def minified_from(path: str) -> str | None:
+    """SHA-256 of the source that the minified file at path was built from."""
+    prefix, suffix = MINIFIED_HEADER.split("{}")
+
+    with open(path, encoding="utf-8") as f:
+        line = f.readline().rstrip("\n")
+
+    if line.startswith(prefix) and line.endswith(suffix):
+        return line.removeprefix(prefix).removesuffix(suffix)
+    else:
+        return None
+
+
+@functools.lru_cache(maxsize=64)
+def warn_outdated_build(min_fname: str, source_sha256: str) -> None:
+    d.LOGGER.warning(f"Serving the full source because {min_fname} is outdated")
 
 
 def static_exists(realm: str, fname: str) -> bool:
@@ -224,7 +295,7 @@ def static_context(appname: str | None) -> dict[str, Any]:
 
 def terms_url(language: i18n.ISO639) -> str:
     language_path = urllib.parse.quote(str(language), safe="")
-    return f"{d.ROOT}/terms/{language_path}.js?v={i18n.VERSION}"
+    return f"{d.ROOT}/terms/{language_path}.js?v={i18n.version(language)}"
 
 
 def make_buttons(
@@ -494,6 +565,7 @@ async def render(
             "is_admin": is_admin,
             "key": key,
             "language": language,
+            "keepalive_interval": d.KEEPALIVE_INTERVAL,
             "root": d.ROOT,
             "sname": sname,
             "thisis": thisis,
@@ -529,7 +601,8 @@ async def render(
 
     with session, group:
         context = (
-            cast(
+            d.TEMPLATE_DEFAULTS
+            | cast(
                 dict[str, Any],
                 await ensure_awaitable(
                     optional_call,
@@ -607,6 +680,7 @@ async def render_error(
         "_uproot_internal": {
             "sname": sname,
             "uname": uname,
+            "keepalive_interval": d.KEEPALIVE_INTERVAL,
             "root": d.ROOT,
             "language": d.LANGUAGE,
             "is_admin": is_admin,
@@ -614,7 +688,8 @@ async def render_error(
     }
 
     context = (
-        BUILTINS
+        d.TEMPLATE_DEFAULTS
+        | BUILTINS
         | {
             "_uproot_errors": None,
             "_uproot_js": internal,  # not a huge fan of this construction

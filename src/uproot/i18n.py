@@ -12,6 +12,7 @@ Basic usage:
     # Use in code: i18n.lookup("Welcome", "de") -> "Willkommen"
 """
 
+import hashlib
 import os
 import re
 from collections.abc import Callable
@@ -113,9 +114,17 @@ def json(target: ISO639) -> str:
             if target in translations
         }
 
-        JSON[target] = orjson.dumps(translations).decode()
+        JSON[target] = orjson.dumps(translations, option=orjson.OPT_SORT_KEYS).decode()
 
     return JSON[target]
+
+
+def script(target: ISO639) -> str:
+    return f"window.uproot = window.uproot || {{}};\nwindow.uproot.terms = {json(target)};\n"
+
+
+def version(target: ISO639) -> str:
+    return hashlib.sha256(script(target).encode()).hexdigest()[:16]
 
 
 def load(yaml_path: str) -> None:

@@ -102,9 +102,11 @@ window.uproot = {
     dirty: false,
     form: null,
     futStore: {},
+    futureCounter: 0,
     I: (id_) => document.getElementById(id_),
     isInitialized: false,
     keepAliveInterval: null,
+    keepAliveSeconds: null,
     key: null,
     lastTimeoutLevel: null,
     missing: new Set(),
@@ -301,7 +303,7 @@ window.uproot = {
 
     api(endpoint, data = null) {
         return new Promise((resolve, reject) => {
-            const futid = this.uuid();
+            const futid = ++this.futureCounter; // short ids save bandwidth
             this.futStore[futid] = { resolve, reject };
 
             const message = JSON.stringify({
@@ -479,12 +481,19 @@ window.uproot = {
     },
 
     wsstart() {
+        if (!(this.keepAliveSeconds > 0)) {
+            throw new Error("uproot.keepAliveSeconds must be set before wsstart()");
+        }
+
         this.ws = new RobustWebSocket(this.wsurl(), {
             onOpen: (ws) => {
                 if (this.keepAliveInterval !== null) {
                     window.clearInterval(this.keepAliveInterval);
                 }
-                this.keepAliveInterval = window.setInterval(this.hello, 9000);
+                this.keepAliveInterval = window.setInterval(
+                    this.hello,
+                    1000 * this.keepAliveSeconds,
+                );
 
                 if (this.isInitialized) {
                     this.replaySubscriptions();

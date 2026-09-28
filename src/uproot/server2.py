@@ -103,6 +103,7 @@ async def render(
 
     context |= {
         "language": d.LANGUAGE,
+        "keepalive_interval": d.KEEPALIVE_INTERVAL,
         "root": d.ROOT,
     }
 

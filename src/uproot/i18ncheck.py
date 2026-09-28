@@ -45,14 +45,18 @@ def loosely(key: str) -> str:
 
 def collect_files(top: str, suffixes: tuple[str, ...]) -> list[str]:
     """Return files below top with the given suffixes, skipping hidden files,
-    hidden directories (such as .venv), and third-party code."""
+    hidden directories (such as .venv), third-party code, and minified builds."""
     result = []
     for root, directories, files in os.walk(top):
         directories[:] = [
             d for d in directories if not d.startswith(".") and d not in SKIPPED_DIRS
         ]
         for f in files:
-            if f.endswith(suffixes) and not f.startswith("."):
+            if (
+                f.endswith(suffixes)
+                and not f.startswith(".")
+                and not f.endswith(".min.js")
+            ):
                 result.append(os.path.join(root, f))
     return sorted(result)
 

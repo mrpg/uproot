@@ -1,10 +1,13 @@
-import httpx
+import hashlib
+import os
+
 import pytest
-from fastapi import FastAPI
 
 import uproot.deployment as d
+from uproot import i18n, pages
 from uproot.pages import static_context, static_exists, static_search
-from uproot.server1 import router
+
+EMPTY = hashlib.sha256(b"").hexdigest()[:16]  # version of an empty file
 
 
 @pytest.fixture
@@ -23,34 +26,26 @@ def project(tmp_path, monkeypatch):
 def test_prefers_app_over_project(project):
     static = static_search("myapp", "_project")
 
-    assert static("img/both.png") == f"{d.ROOT}/static/myapp/img/both.png"
-    assert static("app.js") == f"{d.ROOT}/static/myapp/app.js"
+    assert static("img/both.png") == f"{d.ROOT}/static/myapp/img/both.png?v={EMPTY}"
+    assert static("app.js") == f"{d.ROOT}/static/myapp/app.js?v={EMPTY}"
 
 
 def test_falls_back_to_project(project):
     static = static_search("myapp", "_project")
 
-    assert static("project.css") == f"{d.ROOT}/static/_project/project.css"
+    assert static("project.css") == f"{d.ROOT}/static/_project/project.css?v={EMPTY}"
 
 
 @pytest.mark.parametrize("realm", ["myapp", "_project"])
-async def test_static_url_serves_filename_with_special_characters(project, realm):
+def test_static_url_encodes_filename_with_special_characters(project, realm):
     directory = project if realm == "_project" else project / realm
     filename = "img/a file+%20#é.txt"
     (directory / "_static" / filename).write_text("correct asset", encoding="utf-8")
-    (directory / "_static" / filename.replace(" ", "+")).write_text(
-        "different asset", encoding="utf-8"
+    url = static_search("myapp", "_project")(filename)
+
+    assert url.startswith(
+        f"{d.ROOT}/static/{realm}/img/a%20file%2B%2520%23%C3%A9.txt?v="
     )
-    server = FastAPI()
-    server.include_router(router)
-
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=server), base_url="http://test"
-    ) as client:
-        response = await client.get(static_search("myapp", "_project")(filename))
-
-    assert response.status_code == 200
-    assert response.text == "correct asset"
 
 
 def test_missing_file_links_to_first_realm(project):
@@ -65,7 +60,7 @@ def test_directories_are_not_files(project):
     (project / "myapp" / "_static" / "dir").mkdir()
     (project / "_static" / "dir").touch()
 
-    assert static("dir") == f"{d.ROOT}/static/_project/dir"
+    assert static("dir") == f"{d.ROOT}/static/_project/dir?v={EMPTY}"
 
 
 def test_follows_symlinks(project, tmp_path_factory):
@@ -77,15 +72,18 @@ def test_follows_symlinks(project, tmp_path_factory):
     (project / "myapp" / "_static" / "linkdir").symlink_to(outside / "dir")
     static = static_search("myapp", "_project")
 
-    assert static("linked.js") == f"{d.ROOT}/static/myapp/linked.js"
-    assert static("linkdir/nested.js") == f"{d.ROOT}/static/myapp/linkdir/nested.js"
+    assert static("linked.js") == f"{d.ROOT}/static/myapp/linked.js?v={EMPTY}"
+    assert (
+        static("linkdir/nested.js")
+        == f"{d.ROOT}/static/myapp/linkdir/nested.js?v={EMPTY}"
+    )
 
 
 def test_broken_symlink_is_skipped(project):
     (project / "myapp" / "_static" / "project.css").symlink_to(project / "nowhere")
     static = static_search("myapp", "_project")
 
-    assert static("project.css") == f"{d.ROOT}/static/_project/project.css"
+    assert static("project.css") == f"{d.ROOT}/static/_project/project.css?v={EMPTY}"
 
 
 def test_paths_escaping_realm_are_skipped(project):
@@ -102,7 +100,7 @@ def test_context_without_app(project):
 
     assert "appstatic" not in context
     assert context["static"]("img/both.png") == (
-        f"{d.ROOT}/static/_project/img/both.png"
+        f"{d.ROOT}/static/_project/img/both.png?v={EMPTY}"
     )
 
 
@@ -110,4 +108,70 @@ def test_context_with_app(project):
     context = static_context("myapp")
 
     assert context["appstatic"]("x") == f"{d.ROOT}/static/myapp/x"
-    assert context["static"]("img/both.png") == f"{d.ROOT}/static/myapp/img/both.png"
+    assert (
+        context["static"]("img/both.png")
+        == f"{d.ROOT}/static/myapp/img/both.png?v={EMPTY}"
+    )
+
+
+@pytest.fixture
+def internal(tmp_path, monkeypatch):
+    """A stand-in for uproot's own _static directory."""
+    monkeypatch.setattr(
+        pages, "static_dir", lambda realm: tmp_path if realm == "_uproot" else None
+    )
+    (tmp_path / "script.js").write_text("function f() { return 1; }\n")
+
+    return tmp_path
+
+
+def build_minified(directory, source_text):
+    sha256 = hashlib.sha256(source_text.encode()).hexdigest()
+    (directory / "script.min.js").write_text(
+        pages.MINIFIED_HEADER.format(sha256) + "\nfunction f(){return 1}\n"
+    )
+
+
+def test_minified_build_of_current_source_is_linked(internal):
+    build_minified(internal, (internal / "script.js").read_text())
+
+    assert "/script.min.js?v=" in pages.static_factory()("script.js")
+
+
+def test_outdated_minified_build_is_ignored(internal):
+    build_minified(internal, "function f() { return 0; }\n")
+
+    assert "/script.js?v=" in pages.static_factory()("script.js")
+
+
+def test_minified_build_without_header_is_ignored(internal):
+    (internal / "script.min.js").write_text("function f(){return 1}\n")
+
+    assert "/script.js?v=" in pages.static_factory()("script.js")
+
+
+def test_edited_source_falls_back_to_full_script(internal):
+    build_minified(internal, (internal / "script.js").read_text())
+    (internal / "script.js").write_text("function f() { return 2; }\n")
+
+    assert "/script.js?v=" in pages.static_factory()("script.js")
+
+
+def test_same_size_asset_with_preserved_mtime_gets_new_version(project):
+    path = project / "_static" / "project.css"
+    path.write_bytes(b"old!")
+    stamp = path.stat()
+    before = pages.static_factory("_project")("project.css")
+
+    path.write_bytes(b"new!")
+    os.utime(path, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+
+    assert pages.static_factory("_project")("project.css") != before
+
+
+def test_terms_version_tracks_content(monkeypatch):
+    monkeypatch.setattr(i18n, "JSON", {"en": '{"key":"old"}'})
+    before = pages.terms_url("en")
+    i18n.JSON["en"] = '{"key":"new"}'
+
+    assert pages.terms_url("en") != before

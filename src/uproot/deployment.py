@@ -36,6 +36,9 @@ else:
 DEFAULT_ROOMS: list["RoomType"] = []
 HERE_TOLERANCE: float = 5.0
 HOST: str = "127.0.0.1"
+# Seconds between the browser's keepalive messages. A lost connection shows
+# within this interval plus three seconds. Longer intervals save bandwidth.
+KEEPALIVE_INTERVAL: float = 9.0
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: str | None = None
 LOGGER: Any = logging.getLogger("uproot")
@@ -64,6 +67,20 @@ PROJECT_METADATA: dict[str, Any] = {}
 PUBLIC_DEMO: bool = False
 QUICK_ROOM: str | None = None
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
+# Project-wide defaults of the switches in participant-facing templates. A
+# template overrides them with, e.g., {% set disable_uproot_fonts = True %}.
+# Change values in place, e.g., TEMPLATE_DEFAULTS["disable_alpinejs"] = True.
+TEMPLATE_DEFAULTS: dict[str, bool] = {
+    "buttons": True,
+    "disable_alpinejs": False,
+    "disable_auto_start": False,
+    "disable_bootstrap": False,
+    "disable_connection_lost_modal": False,
+    "disable_tabular_numbers": False,
+    "disable_terms": False,
+    "disable_uproot_fonts": False,
+}
+TEMPLATE_SWITCHES: frozenset[str] = frozenset(TEMPLATE_DEFAULTS)
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
 UNSAFE: bool = False

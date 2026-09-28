@@ -15,31 +15,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
 
-{% if not (disable_bootstrap | default(false)) %}
+{% if not disable_bootstrap %}
 <link rel="stylesheet" href="{{ internalstatic('vendor/bootstrap/bootstrap.min.css') }}">
 <script src="{{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 {% endif %}
 
 <link rel="stylesheet" href="{{ internalstatic('style.css') }}">
 
-{% if not (disable_uproot_fonts | default(false)) %}
+{% if not disable_uproot_fonts %}
 <link rel="stylesheet" href="{{ internalstatic('webfonts.css') }}">
-{% if not (disable_tabular_numbers | default(false)) %}
+{% if not disable_tabular_numbers %}
 <link rel="stylesheet" href="{{ internalstatic('inter-tnum.css') }}">
 {% endif %}
 {% endif %}
 
 <script src="{{ internalstatic('uproot.js') }}"></script>
-{% if not (disable_terms | default(false)) %}
+{% if not disable_terms %}
 <script src="{{ uproot_terms_url }}"></script>
 {% endif %}
 <script>
     uproot.vars = {{ _uproot_js | tojson | safe }};
     window.C = uproot.vars._uproot_internal?.C;
+    uproot.keepAliveSeconds = uproot.vars._uproot_internal.keepalive_interval;
 
-    {% if not (disable_auto_start | default(false)) %}
+    {% if not disable_auto_start %}
     uproot.onStart(() => {
-        {% if not (disable_connection_lost_modal | default(false)) %}
+        {% if not disable_connection_lost_modal %}
         // Enable Connection lost modal monitoring first (includes startup failsafe)
         uproot.enableConnectionLostModal();
         {% endif %}
@@ -57,7 +58,7 @@
 <script src="{{ internalstatic('simulate.js') }}"></script>
 {% endif %}
 
-{% if not (disable_alpinejs | default(false)) %}
+{% if not disable_alpinejs %}
 <script src="{{ internalstatic('vendor/alpinejs/cdn.min.js') }}" defer></script>
 {% endif %}
 
@@ -140,7 +141,7 @@
     </div>
 </div>
 
-{% if not (disable_connection_lost_modal | default(false)) %}
+{% if not disable_connection_lost_modal %}
 <div class="modal fade" id="connection-timeout-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" aria-modal="true" role="alertdialog">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -182,6 +183,7 @@
         title="{% translate %}Open Chat with Research Coordinator{% endtranslate %}">
         <img
             src="{{ internalstatic('buddy.svg') }}"
+            loading="lazy"
             width="142"
             height="142"
             alt="">

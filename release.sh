@@ -5,6 +5,9 @@ set -euxo pipefail
 # Sync dependencies
 uv sync --extra dev --upgrade
 
+# Build minified scripts
+./minify.sh
+
 # Run formatters and autofixes
 uv run ruff check --fix src/uproot/
 uv run black src/uproot/
