@@ -169,12 +169,20 @@ def test_same_size_asset_with_preserved_mtime_gets_new_version(project):
     assert pages.static_factory("_project")("project.css") != before
 
 
-def test_terms_version_tracks_content(monkeypatch):
-    monkeypatch.setattr(i18n, "JSON", {"en": '{"key":"old"}'})
-    before = pages.terms_url("en")
-    i18n.JSON["en"] = '{"key":"new"}'
+def test_terms_version_tracks_content(tmp_path, monkeypatch):
+    for name in ("TERMS", "JSON", "VERSIONS"):
+        monkeypatch.setattr(i18n, name, {})
+    monkeypatch.setattr(i18n, "LANGUAGES", i18n.LANGUAGES.copy())
+    locale = tmp_path / "de.yml"
 
-    assert pages.terms_url("en") != before
+    locale.write_text("Hello: Hallo\n")
+    i18n.load(str(tmp_path))
+    before = pages.terms_url("de")
+
+    locale.write_text("Hello: Servus\n")
+    i18n.load(str(tmp_path))
+
+    assert pages.terms_url("de") != before
 
 
 def test_stable_file_is_hashed_once(tmp_path, monkeypatch):

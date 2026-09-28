@@ -35,6 +35,7 @@ LOCALES_DIR = os.path.join(
 MISSING: set[tuple[str, ISO639]] = set()
 TERMS: dict[str, dict[ISO639, str]] = {}
 JSON: dict[ISO639, str] = {}
+VERSIONS: dict[ISO639, str] = {}
 VERSION: int = 0
 
 
@@ -124,7 +125,10 @@ def script(target: ISO639) -> str:
 
 
 def version(target: ISO639) -> str:
-    return hashlib.sha256(script(target).encode()).hexdigest()[:16]
+    if target not in VERSIONS:
+        VERSIONS[target] = hashlib.sha256(script(target).encode()).hexdigest()[:16]
+
+    return VERSIONS[target]
 
 
 def load(yaml_path: str) -> None:
@@ -182,6 +186,7 @@ def load(yaml_path: str) -> None:
 
         LANGUAGES.update(all_translations.keys())
         JSON.clear()
+        VERSIONS.clear()
         VERSION += 1
 
 
