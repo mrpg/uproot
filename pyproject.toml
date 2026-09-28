@@ -24,6 +24,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "anyio>=4.15.1",
     "httpx>=0.28.1,<0.29",
     "appendmuch>=0.2.0,<1.0.0",
     "brotli>=1.1.0,<2",

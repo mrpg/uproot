@@ -2267,6 +2267,7 @@ name = "uproot-science"
 version = "0.6.0"
 source = { editable = "." }
 dependencies = [
+    { name = "anyio" },
     { name = "appendmuch" },
     { name = "brotli" },
     { name = "click" },
@@ -2314,6 +2315,7 @@ pg = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anyio", specifier = ">=4.15.1" },
     { name = "appendmuch", specifier = ">=0.2.0,<1.0.0" },
     { name = "appendmuch", extras = ["pg"], marker = "extra == 'pg'", specifier = ">=0.2.0,<1.0.0" },
     { name = "bandit", marker = "extra == 'dev'" },
