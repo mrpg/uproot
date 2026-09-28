@@ -5,7 +5,7 @@ import uproot.jobs as j
 from uproot import server
 
 
-@pytest.mark.parametrize("value", [0, 0.5, -1, 1e9, "30", float("nan")])
+@pytest.mark.parametrize("value", [0, 0.5, -1, 27.5, 1e9, "30", float("nan")])
 def test_invalid_keepalive_interval_is_rejected(monkeypatch, value):
     monkeypatch.setattr(d, "KEEPALIVE_INTERVAL", value)
 
@@ -14,7 +14,14 @@ def test_invalid_keepalive_interval_is_rejected(monkeypatch, value):
 
 
 def test_short_dropout_tolerance_is_clamped(monkeypatch):
-    monkeypatch.setattr(d, "KEEPALIVE_INTERVAL", 60.0)
+    monkeypatch.setattr(d, "KEEPALIVE_INTERVAL", 20.0)
 
-    assert j.effective_tolerance(30.0) == 63.0
+    assert j.effective_tolerance(10.0) == 23.0
     assert j.effective_tolerance(120.0) == 120.0
+
+
+@pytest.mark.parametrize("value", [1, 9.0, 27.0])
+def test_valid_keepalive_interval_is_accepted(monkeypatch, value):
+    monkeypatch.setattr(d, "KEEPALIVE_INTERVAL", value)
+
+    server.validate_keepalive_interval()

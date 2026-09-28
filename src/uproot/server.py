@@ -58,11 +58,17 @@ def validate_admin_password_lengths() -> None:
 
 
 def validate_keepalive_interval() -> None:
+    """Dropouts are detected by missing keepalives, so the default dropout
+    tolerance must cover the interval plus the time for a response."""
+    maximum = j.DEFAULT_DROPOUT_TOLERANCE - j.KEEPALIVE_SLACK
+
     if not (
         isinstance(d.KEEPALIVE_INTERVAL, (int, float))
-        and 1.0 <= d.KEEPALIVE_INTERVAL <= 3600.0
+        and 1.0 <= d.KEEPALIVE_INTERVAL <= maximum
     ):
-        d.LOGGER.critical("KEEPALIVE_INTERVAL must be between 1 and 3600 seconds")
+        d.LOGGER.critical(
+            f"KEEPALIVE_INTERVAL must be between 1 and {maximum:g} seconds"
+        )
         raise SystemExit(1)
 
 

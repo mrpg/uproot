@@ -101,10 +101,14 @@ def spawn(coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
     return task
 
 
+DEFAULT_DROPOUT_TOLERANCE = 30.0
+KEEPALIVE_SLACK = 3.0  # time allowed for the server's response to a keepalive
+
+
 def effective_tolerance(tolerance: float) -> float:
     """Browsers only report in every KEEPALIVE_INTERVAL seconds (and responses
     may take up to three more), so shorter tolerances would flag everyone."""
-    minimum = d.KEEPALIVE_INTERVAL + 3.0
+    minimum = d.KEEPALIVE_INTERVAL + KEEPALIVE_SLACK
 
     if tolerance < minimum:
         warn_short_tolerance(tolerance, minimum)

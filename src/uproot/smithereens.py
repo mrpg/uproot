@@ -363,7 +363,7 @@ def mark_dropout(pid: t.PlayerIdentifier) -> None:
 def watch_for_dropout(
     player: Storage,
     fun: Callable[[Storage], Awaitable[None]],
-    tolerance: float = 30.0,
+    tolerance: float = j.DEFAULT_DROPOUT_TOLERANCE,
 ) -> None:
     triplet = (tolerance, fun.__module__, fun.__name__)
 
