@@ -175,3 +175,17 @@ def test_terms_version_tracks_content(monkeypatch):
     i18n.JSON["en"] = '{"key":"new"}'
 
     assert pages.terms_url("en") != before
+
+
+def test_stable_file_is_hashed_once(tmp_path, monkeypatch):
+    path = tmp_path / "stable.css"
+    path.write_bytes(b"body {}")
+    now = pages.time.time_ns()
+    monkeypatch.setattr(pages.time, "time_ns", lambda: now + 10**10)
+    hashed = []
+    monkeypatch.setattr(pages, "sha256", lambda p: hashed.append(p) or "x")
+
+    pages.file_sha256(str(path))
+    pages.file_sha256(str(path))
+
+    assert len(hashed) == 1

@@ -201,13 +201,38 @@ def static_version(path: str) -> str:
 
 
 def file_sha256(path: str) -> str:
+    """SHA-256 of a file, rehashed only when the file may have changed."""
+    if (key := stamp(path)) is None:
+        return sha256(path)
+    else:
+        return cached_sha256(path, key)
+
+
+def stamp(path: str) -> tuple[int, ...] | None:
+    """Changes whenever the file does. Unlike the mtime, the ctime cannot be
+    reset. The ctime ticks coarsely, however, so recently changed files get no
+    stamp (like racily clean files in Git)."""
+    st = os.stat(path)
+
+    if time.time_ns() - st.st_ctime_ns < 2_000_000_000:
+        return None
+    else:
+        return st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns, st.st_ctime_ns
+
+
+@functools.lru_cache(maxsize=1024)
+def cached_sha256(path: str, stamp: tuple[int, ...]) -> str:
+    return sha256(path)
+
+
+def sha256(path: str) -> str:
     with open(path, "rb") as f:
         return hashlib.file_digest(f, "sha256").hexdigest()
 
 
 def minified(fname: str) -> str:
     """X.min.js instead of X.js if the former was built from the current X.js.
-    The build (see release.sh) states the SHA-256 of its source in its first
+    The build (see minify.sh) states the SHA-256 of its source in its first
     line, formatted like MINIFIED_HEADER."""
     if not fname.endswith(".js") or fname.endswith(".min.js"):
         return fname
@@ -235,6 +260,18 @@ MINIFIED_HEADER = "/* Minified from source with SHA-256 {} */"
 
 def minified_from(path: str) -> str | None:
     """SHA-256 of the source that the minified file at path was built from."""
+    if (key := stamp(path)) is None:
+        return read_minified_from(path)
+    else:
+        return cached_minified_from(path, key)
+
+
+@functools.lru_cache(maxsize=64)
+def cached_minified_from(path: str, stamp: tuple[int, ...]) -> str | None:
+    return read_minified_from(path)
+
+
+def read_minified_from(path: str) -> str | None:
     prefix, suffix = MINIFIED_HEADER.split("{}")
 
     with open(path, encoding="utf-8") as f:
