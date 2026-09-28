@@ -37,7 +37,8 @@ DEFAULT_ROOMS: list["RoomType"] = []
 HERE_TOLERANCE: float = 5.0
 HOST: str = "127.0.0.1"
 # Seconds between the browser's keepalive messages. A lost connection shows
-# within this interval plus three seconds. Longer intervals save bandwidth.
+# within this interval plus three seconds. Longer intervals save bandwidth but
+# raise shorter dropout tolerances to this interval plus three seconds.
 KEEPALIVE_INTERVAL: float = 9.0
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: str | None = None

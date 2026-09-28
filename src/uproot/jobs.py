@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import asyncio
+import functools
 from collections.abc import Coroutine
 from typing import Any, cast
 from uuid import UUID
@@ -100,6 +101,27 @@ def spawn(coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
     return task
 
 
+def effective_tolerance(tolerance: float) -> float:
+    """Browsers only report in every KEEPALIVE_INTERVAL seconds (and responses
+    may take up to three more), so shorter tolerances would flag everyone."""
+    minimum = d.KEEPALIVE_INTERVAL + 3.0
+
+    if tolerance < minimum:
+        warn_short_tolerance(tolerance, minimum)
+
+        return minimum
+    else:
+        return tolerance
+
+
+@functools.lru_cache(maxsize=64)
+def warn_short_tolerance(tolerance: float, minimum: float) -> None:
+    d.LOGGER.warning(
+        f"Dropout tolerance of {tolerance} s is below KEEPALIVE_INTERVAL + 3 s, "
+        f"using {minimum} s instead"
+    )
+
+
 async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
     removals = set()
 
@@ -111,7 +133,9 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
                 triplet = [tolerance, fmodule, fname]
                 last = u.find_online_delta(pid)
 
-                if pid not in u.MANUAL_DROPOUTS and (last is None or last <= tolerance):
+                if pid not in u.MANUAL_DROPOUTS and (
+                    last is None or last <= effective_tolerance(tolerance)
+                ):
                     # player is online or assumed to be
                     pass
                 else:
