@@ -40,6 +40,8 @@ HOST: str = "127.0.0.1"
 # within this interval plus three seconds. Longer intervals save bandwidth but
 # raise shorter dropout tolerances to this interval plus three seconds. At most
 # 27 seconds, so that the default dropout tolerance of 30 seconds holds.
+# Values near the maximum make dropout detection sensitive to a single late
+# keepalive.
 KEEPALIVE_INTERVAL: float = 9.0
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: str | None = None
