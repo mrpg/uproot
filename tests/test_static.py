@@ -1,11 +1,14 @@
 import hashlib
 import os
 
+import httpx
 import pytest
+from fastapi import FastAPI
 
 import uproot.deployment as d
 from uproot import i18n, pages
 from uproot.pages import static_context, static_exists, static_search
+from uproot.server1 import router
 
 EMPTY = hashlib.sha256(b"").hexdigest()[:16]  # version of an empty file
 
@@ -37,15 +40,28 @@ def test_falls_back_to_project(project):
 
 
 @pytest.mark.parametrize("realm", ["myapp", "_project"])
-def test_static_url_encodes_filename_with_special_characters(project, realm):
+async def test_static_url_serves_filename_with_special_characters(project, realm):
     directory = project if realm == "_project" else project / realm
     filename = "img/a file+%20#é.txt"
     (directory / "_static" / filename).write_text("correct asset", encoding="utf-8")
+    (directory / "_static" / filename.replace(" ", "+")).write_text(
+        "different asset", encoding="utf-8"
+    )
+    server = FastAPI()
+    server.include_router(router)
     url = static_search("myapp", "_project")(filename)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=server), base_url="http://test"
+    ) as client:
+        response = await client.get(url)
 
     assert url.startswith(
         f"{d.ROOT}/static/{realm}/img/a%20file%2B%2520%23%C3%A9.txt?v="
     )
+    assert response.status_code == 200
+    assert response.text == "correct asset"
+    assert "immutable" in response.headers["cache-control"]
 
 
 def test_missing_file_links_to_first_realm(project):
