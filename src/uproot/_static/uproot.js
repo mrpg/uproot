@@ -7,6 +7,8 @@ class RobustWebSocket {
         this.reconnectInterval = options.reconnectInterval || 1000;
         this.isConnected = false;
         this.shouldReconnect = true;
+        this.giveUpAfterMs = 86400 * 1000;
+        this.lastContact = Date.now();
 
         this.connect();
     }
@@ -14,18 +16,25 @@ class RobustWebSocket {
     connect() {
         try {
             this.ws = new WebSocket(this.url);
+            let opened = false;
 
             this.ws.onopen = () => {
                 this.isConnected = true;
+                opened = true;
+                this.lastContact = Date.now();
                 this.processQueue();
                 this.options.onOpen?.(this);
             };
 
             this.ws.onmessage = (event) => {
+                this.lastContact = Date.now();
                 this.options.onMessage?.(event, this);
             };
 
             this.ws.onclose = (event) => {
+                if (opened) {
+                    this.lastContact = Date.now();
+                }
                 this.isConnected = false;
                 this.options.onClose?.(event, this);
                 if (this.shouldReconnect) {
@@ -44,6 +53,11 @@ class RobustWebSocket {
     }
 
     scheduleReconnect() {
+        if (Date.now() - this.lastContact > this.giveUpAfterMs) {
+            this.shouldReconnect = false;
+            return;
+        }
+
         setTimeout(() => {
             this.connect();
         }, this.reconnectInterval);
