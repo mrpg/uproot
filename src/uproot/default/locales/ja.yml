@@ -1191,3 +1191,6 @@
 
 ? 'Please select at most #n# options.'
 : '選択できるのは#n#個までです。'
+
+? 'Loading data…'
+: 'データを読み込み中…'

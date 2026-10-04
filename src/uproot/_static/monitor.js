@@ -19,6 +19,7 @@ const UPDATE_DEBOUNCE_MS = 150;
 
 const monitorState = {
     table: null,
+    tableReady: false,
     currentContainer: "tableOuter",
     pendingUpdate: null,       // For debouncing
     activeHeartbeats: new Map(), // uname -> timeoutId (for cleanup)
@@ -31,11 +32,11 @@ const monitorState = {
 // ============================================================================
 
 uproot.onStart(() => {
-    createTable("tableOuter");
     // Subscribe before loading, as changes are only sent to existing subscribers
     uproot.subscribe("subscribe_to_attendance", uproot.vars.sname);
     uproot.subscribe("subscribe_to_fieldchange", uproot.vars.sname, EXTRA_FIELDS);
-    loadExtraData();
+    // Build the table (replacing the loading state) once all columns are known
+    loadExtraData().finally(() => createTable("tableOuter"));
     // Changes from while disconnected are not replayed, so reload after reconnecting
     uproot.onReconnect(() => {
         uproot.invoke("info_online", uproot.vars.sname).then(window.newInfoOnline);
@@ -53,7 +54,7 @@ uproot.onStart(() => {
 // ============================================================================
 
 function loadExtraData() {
-    uproot.invoke("fields_from_all", uproot.vars.sname, EXTRA_FIELDS)
+    return uproot.invoke("fields_from_all", uproot.vars.sname, EXTRA_FIELDS)
         .then(reshapeAndUpdateExtraData);
 }
 
@@ -117,6 +118,7 @@ function reshapeAndUpdateExtraData(data) {
 
 function createTable(containerId) {
     monitorState.currentContainer = containerId;
+    monitorState.tableReady = false;
 
     if (monitorState.table) {
         monitorState.table.destroy();
@@ -151,10 +153,16 @@ function createTable(containerId) {
         cell.getRow().toggleSelect();
     });
 
+    const builtTable = monitorState.table;
     monitorState.table.on("tableBuilt", function() {
         if (initialData && Object.keys(initialData).length > 0) {
-            monitorState.table.setSort("id", "asc");
+            builtTable.setSort("id", "asc");
         }
+        queueMicrotask(() => {
+            if (monitorState.table !== builtTable) return;
+            monitorState.tableReady = true;
+            window.dispatchEvent(new Event("UprootCustomMonitorTableBuilt"));
+        });
     });
 
     monitorState.table.on("rowSelectionChanged", emitSelectionChanged);

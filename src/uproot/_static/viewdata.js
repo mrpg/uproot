@@ -43,7 +43,9 @@ const viewdataState = {
     currentContainer: "tableOuter",
     fullDataset: {},
     recentlyUpdated: new Set(),
-    rowHeight: 41
+    rowHeight: 41,
+    requestId: 0,
+    defaultSortApplied: false
 };
 
 // ============================================================================
@@ -300,7 +302,7 @@ function transformDataForTabulator(rawData) {
 /**
  * Creates and initializes the Tabulator table.
  */
-function createTable(containerId) {
+function createTable(containerId, columns = createColumns({}), data = []) {
     viewdataState.currentContainer = containerId;
 
     if (viewdataState.table) {
@@ -317,18 +319,19 @@ function createTable(containerId) {
     container.appendChild(tableEl);
 
     viewdataState.table = new Tabulator("#data-table", {
-        columns: [{
-            title: "player",
-            field: "player",
-            frozen: true,
-            width: 120,
-            headerFilter: "input"
-        }],
-        data: [],
+        columns: columns,
+        data: data,
         height: containerId === "tableModalInner" ? "100%" : "400px",
         layout: "fitColumns",
         placeholder: _("No data available"),
         rowHeight: viewdataState.rowHeight
+    });
+
+    viewdataState.table.on("tableBuilt", function() {
+        if (!viewdataState.defaultSortApplied && data.length > 0 && columns.some(col => col.field === "id")) {
+            viewdataState.table.setSort("id", "asc");
+            viewdataState.defaultSortApplied = true;
+        }
     });
 }
 
@@ -534,14 +537,16 @@ function filterThenRefreshData(key, value) {
  * Fetches new data from the server and updates the table.
  */
 async function updateData() {
-    try {
-        const firstLoad = viewdataState.lastUpdate === 0;
+    const requestId = ++viewdataState.requestId;
 
+    try {
         const [lastData, lastUpdate] = await uproot.invoke(
             "everything_from_session_display",
             uproot.vars.sname,
             viewdataState.lastUpdate
         );
+
+        if (requestId !== viewdataState.requestId) return;
 
         viewdataState.lastData = lastData;
         viewdataState.lastUpdate = lastUpdate;
@@ -549,11 +554,14 @@ async function updateData() {
         // Merge the diff into our full dataset
         mergeDiffIntoDataset(lastData);
 
-        if (viewdataState.table) {
-            const latestOnly = latest(viewdataState.fullDataset, viewdataState.filter);
-            const transformedData = transformDataForTabulator(latestOnly);
-            const columns = createColumns(latestOnly);
+        const latestOnly = latest(viewdataState.fullDataset, viewdataState.filter);
+        const transformedData = transformDataForTabulator(latestOnly);
+        const columns = createColumns(latestOnly);
 
+        if (!viewdataState.table) {
+            // Initial load: build the table, replacing the loading state
+            createTable(viewdataState.currentContainer, columns, transformedData);
+        } else {
             // Update columns if they've changed
             const currentColumnFields = viewdataState.table.getColumnDefinitions().map(col => col.field);
             const newColumnFields = columns.map(col => col.field);
@@ -564,14 +572,19 @@ async function updateData() {
 
             viewdataState.table.setData(transformedData);
 
-            if (firstLoad) {
+            if (!viewdataState.defaultSortApplied && transformedData.length > 0 && newColumnFields.includes("id")) {
                 viewdataState.table.setSort("id", "asc");
+                viewdataState.defaultSortApplied = true;
             }
         }
     } catch (error) {
+        if (requestId !== viewdataState.requestId) return;
+
         console.error("Error updating data:", error);
         if (viewdataState.table) {
             viewdataState.table.setData([]);
+        } else {
+            createTable(viewdataState.currentContainer);
         }
     }
 
@@ -583,21 +596,20 @@ async function updateData() {
  */
 async function refreshData() {
     const tableHolder = document.getElementsByClassName("tabulator-tableholder")[0];
-    if (!tableHolder) return;
-
-    const scrollPosX = tableHolder.scrollLeft;
-    const scrollPosY = tableHolder.scrollTop;
+    const scrollPosX = tableHolder?.scrollLeft;
+    const scrollPosY = tableHolder?.scrollTop;
 
     await updateData();
 
-    tableHolder.scrollLeft = scrollPosX;
-    tableHolder.scrollTop = scrollPosY;
+    if (tableHolder) {
+        tableHolder.scrollLeft = scrollPosX;
+        tableHolder.scrollTop = scrollPosY;
+    }
 }
 
 /**
- * Initializes the table and loads initial data.
+ * Loads initial data, then builds the table.
  */
 function initializeTable() {
-    createTable(viewdataState.currentContainer);
     updateData();
 }

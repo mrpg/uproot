@@ -1191,3 +1191,6 @@
 
 ? 'Please select at most #n# options.'
 : 'Bitte wählen Sie höchstens #n# Optionen aus.'
+
+? 'Loading data…'
+: 'Daten werden geladen…'

@@ -7,6 +7,7 @@ const adminchatState = {
     filter: "",
     unreadUnames: new Set(),
     syncingSelection: false,
+    pendingMonitorSelection: false,
 };
 
 const adminchatView = {
@@ -567,10 +568,12 @@ function patchSendButton() {
 // ============================================================================
 
 function syncToMonitor() {
-    if (!monitorState?.table?.initialized) {
+    if (!monitorState?.tableReady) {
+        adminchatState.pendingMonitorSelection = true;
         return;
     }
 
+    adminchatState.pendingMonitorSelection = false;
     adminchatState.syncingSelection = true;
 
     try {
@@ -594,7 +597,12 @@ function syncToMonitor() {
 }
 
 function applyMonitorSelection() {
-    if (adminchatState.syncingSelection) {
+    if (adminchatState.syncingSelection || !monitorState?.tableReady) {
+        return;
+    }
+
+    if (adminchatState.pendingMonitorSelection) {
+        syncToMonitor();
         return;
     }
 
@@ -893,6 +901,12 @@ uproot.onReconnect(() => {
 
 window.addEventListener("UprootCustomMonitorSelectionChanged", () => {
     applyMonitorSelection();
+});
+
+window.addEventListener("UprootCustomMonitorTableBuilt", () => {
+    if (adminchatState.pendingMonitorSelection) {
+        syncToMonitor();
+    }
 });
 
 uproot.onCustomEvent("AdminchatUpdated", (event) => {
