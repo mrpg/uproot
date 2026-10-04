@@ -344,6 +344,19 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
 
                 if fname == "from_websocket":
                     match result:
+                        case {"endpoint": "hello", "future": future}:
+                            await websocket.send_bytes(
+                                orjson.dumps(
+                                    {
+                                        "kind": "invoke",
+                                        "payload": {
+                                            "data": None,
+                                            "future": future,
+                                            "error": False,
+                                        },
+                                    }
+                                )
+                            )
                         case {
                             "endpoint": "invoke",
                             "payload": {

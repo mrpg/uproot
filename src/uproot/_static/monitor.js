@@ -36,6 +36,8 @@ uproot.onStart(() => {
     uproot.subscribe("subscribe_to_attendance", uproot.vars.sname);
     uproot.subscribe("subscribe_to_fieldchange", uproot.vars.sname, EXTRA_FIELDS);
     loadExtraData();
+    // Changes from while disconnected are not replayed, so reload after reconnecting
+    uproot.onReconnect(loadExtraData);
 
     // Initialize Alpine store counts once Alpine is ready
     document.addEventListener("alpine:initialized", () => {

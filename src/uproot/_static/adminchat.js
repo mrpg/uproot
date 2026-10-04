@@ -849,21 +849,29 @@ window.adminchat = {
 // Initialization & Events
 // ============================================================================
 
-uproot.onStart(() => {
-    // Subscribe before loading, as messages are only sent to existing subscribers
-    uproot.subscribe("subscribe_to_adminchat", uproot.vars.sname);
-
+function loadAdminchatOverview() {
     uproot.invoke("adminchat_overview", uproot.vars.sname).then((data) => {
+        const previous = adminchatState.overview;
+
         adminchatState.overview = data || {};
 
         for (const [uname, summary] of Object.entries(data || {})) {
-            if (summary?.last_sender === "player") {
+            // Only mark threads with new messages, so that reloading keeps read threads read
+            const changed = summary?.message_count !== previous[uname]?.message_count;
+
+            if (changed && summary?.last_sender === "player" && adminchatState.focusedUname !== uname) {
                 adminchatMarkUnread(uname);
             }
         }
 
         renderAll();
     });
+}
+
+uproot.onStart(() => {
+    // Subscribe before loading, as messages are only sent to existing subscribers
+    uproot.subscribe("subscribe_to_adminchat", uproot.vars.sname);
+    loadAdminchatOverview();
 
     const search = I("adminchat-search");
 
@@ -875,6 +883,12 @@ uproot.onStart(() => {
     }
 
     renderAll();
+});
+
+// Messages from while disconnected are not replayed, so reload after reconnecting
+uproot.onReconnect(() => {
+    loadAdminchatOverview();
+    adminchat.refreshCurrent();
 });
 
 window.addEventListener("UprootCustomMonitorSelectionChanged", () => {
