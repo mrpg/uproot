@@ -15,10 +15,6 @@ import uproot.types as t
 from uproot.types import ensure_awaitable
 
 
-class PipelineInvocationError(TypeError):
-    pass
-
-
 def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
     """Check if a session exists.
 
@@ -136,8 +132,9 @@ def pipeline_call_kwargs(
         params = inspect.signature(pipeline).parameters
     except (TypeError, ValueError):
         if data_was_provided:
-            raise PipelineInvocationError(
-                "Cannot pass pipeline data to a callable with no signature"
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot pass pipeline data to a callable with no signature",
             ) from None
         return {}
 
@@ -148,8 +145,9 @@ def pipeline_call_kwargs(
     accepts_data = data_param is not None or accepts_arbitrary_kwargs
 
     if data_was_provided and not accepts_data:
-        raise PipelineInvocationError(
-            "Pipeline data was provided, but pipeline() does not accept data"
+        raise HTTPException(
+            status_code=400,
+            detail="Pipeline data was provided, but pipeline() does not accept data",
         )
 
     if data_param is not None:
@@ -163,8 +161,9 @@ def pipeline_call_kwargs(
         )
 
         if data_required and not data_was_provided:
-            raise PipelineInvocationError(
-                "pipeline() requires data, but no pipeline data was provided"
+            raise HTTPException(
+                status_code=400,
+                detail="pipeline() requires data, but no pipeline data was provided",
             )
 
         return {"data": data}

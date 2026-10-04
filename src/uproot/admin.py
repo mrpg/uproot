@@ -92,7 +92,6 @@ from uproot.services.room_service import (
 
 # Re-export from session service
 from uproot.services.session_service import (
-    PipelineInvocationError,
     flip_active,
     flip_testing,
     get_digest,
@@ -113,8 +112,6 @@ __all__ = [
     "ADMINS_SECRET_KEY",
     # Data
     "DisplayValue",
-    # Session
-    "PipelineInvocationError",
     # Player
     "adjust_timeout",
     "adminchat_overview",

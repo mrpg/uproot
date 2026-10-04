@@ -7,6 +7,7 @@ from zipfile import ZipFile
 
 import orjson as json
 import pytest
+from fastapi import HTTPException
 from sortedcontainers import SortedList
 
 from uproot.data import (
@@ -663,7 +664,7 @@ def test_pipeline_call_kwargs_rejects_data_for_legacy_pipeline_signature():
     def pipeline(session):
         return session
 
-    with pytest.raises(TypeError, match="does not accept data"):
+    with pytest.raises(HTTPException, match="does not accept data"):
         session_service.pipeline_call_kwargs(pipeline, {"limit": 3}, True)
 
 
@@ -681,7 +682,7 @@ def test_pipeline_call_kwargs_rejects_missing_required_data():
     def pipeline(session, data):
         return session, data
 
-    with pytest.raises(TypeError, match="requires data"):
+    with pytest.raises(HTTPException, match="requires data"):
         session_service.pipeline_call_kwargs(pipeline, None, False)
 
 

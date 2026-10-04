@@ -1254,10 +1254,7 @@ async def session_pipeline_run(
 
     ensure(appname in a.get_pipelines(sname), ValueError, "No pipeline available")
     pipeline_data, data_was_provided = await pipeline_data_from_request(request)
-    try:
-        rval = await a.run_pipeline(sname, appname, pipeline_data, data_was_provided)
-    except a.PipelineInvocationError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    rval = await a.run_pipeline(sname, appname, pipeline_data, data_was_provided)
 
     if not a.is_custom_data_export(rval):
         return PlainTextResponse(a.pipeline_result_display(rval))
