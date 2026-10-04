@@ -850,6 +850,9 @@ window.adminchat = {
 // ============================================================================
 
 uproot.onStart(() => {
+    // Subscribe before loading, as messages are only sent to existing subscribers
+    uproot.subscribe("subscribe_to_adminchat", uproot.vars.sname);
+
     uproot.invoke("adminchat_overview", uproot.vars.sname).then((data) => {
         adminchatState.overview = data || {};
 
@@ -861,8 +864,6 @@ uproot.onStart(() => {
 
         renderAll();
     });
-
-    uproot.subscribe("subscribe_to_adminchat", uproot.vars.sname);
 
     const search = I("adminchat-search");
 

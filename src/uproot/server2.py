@@ -49,6 +49,7 @@ import uproot as u
 import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
+import uproot.events as e
 import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
@@ -315,9 +316,20 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
 
         tasks[asyncio.create_task(fun(**args[jj.__name__]))] = jj.__name__, jj
 
+    subscriptions: list[tuple[t.BoundedPulse, asyncio.Queue[Any]]] = []
+
+    def subscribe(pulse: t.BoundedPulse) -> asyncio.Queue[Any]:
+        queue = pulse.subscribe()
+        subscriptions.append((pulse, queue))
+
+        return queue
+
     async def cleanup_tasks() -> None:
         for task in tasks:
             task.cancel()
+
+        for pulse, queue in subscriptions:
+            pulse.unsubscribe(queue)
 
         await asyncio.gather(*tasks.keys(), return_exceptions=True)
 
@@ -340,7 +352,7 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             },
                         } if isinstance(sname, str):
                             newfname = "subscribe_to_attendance"
-                            args[newfname] = {"sname": sname}
+                            args[newfname] = {"queue": subscribe(e.ATTENDANCE[sname])}
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_attendance(**args[newfname])
@@ -359,7 +371,10 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             fields, (list, type(None))
                         ):
                             newfname = "subscribe_to_fieldchange"
-                            args[newfname] = {"sname": sname, "fields": fields}
+                            args[newfname] = {
+                                "queue": subscribe(e.FIELDCHANGE[sname]),
+                                "fields": fields,
+                            }
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_fieldchange(**args[newfname])
@@ -376,7 +391,7 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             },
                         } if isinstance(sname, str):
                             newfname = "subscribe_to_adminchat"
-                            args[newfname] = {"sname": sname}
+                            args[newfname] = {"queue": subscribe(e.ADMINCHAT[sname])}
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_adminchat(**args[newfname])
@@ -460,10 +475,9 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             pass
                             # ~ raise NotImplementedError(result)
                 elif fname == "subscribe_to_attendance":
-                    sname = args[fname]["sname"]
-                    pid = t.PlayerIdentifier(sname, result)
+                    pid = result
 
-                    if not sname.startswith("^"):
+                    if not pid.sname.startswith("^"):
                         with t.materialize(pid) as p:
                             info = (
                                 p.id,

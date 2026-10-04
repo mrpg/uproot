@@ -920,11 +920,12 @@ class TestPulseClass:
     def test_pulse_init(self):
         """Test BoundedPulse initialization."""
         pulse = BoundedPulse()
-        assert not pulse.is_set()
+        assert pulse.subscribers == []
 
     async def test_pulse_wait_with_data(self):
-        """Test BoundedPulse wait returns data."""
+        """Test BoundedPulse delivers data to a subscriber."""
         pulse = BoundedPulse()
+        queue = pulse.subscribe()
 
         async def set_pulse():
             await asyncio.sleep(0.01)
@@ -934,12 +935,13 @@ class TestPulseClass:
         asyncio.create_task(set_pulse())
 
         # Wait for the pulse
-        data = await pulse.wait()
+        data = await queue.get()
         assert data == "test_data"
 
     async def test_pulse_wait_without_data(self):
-        """Test BoundedPulse wait returns None when no data set."""
+        """Test BoundedPulse delivers None when no data set."""
         pulse = BoundedPulse()
+        queue = pulse.subscribe()
 
         async def set_pulse():
             await asyncio.sleep(0.01)
@@ -949,8 +951,41 @@ class TestPulseClass:
         asyncio.create_task(set_pulse())
 
         # Wait for the pulse
-        data = await pulse.wait()
+        data = await queue.get()
         assert data is None
+
+    def test_pulse_delivers_every_event_to_every_subscriber(self):
+        """Test that subscribers do not compete for events."""
+        pulse = BoundedPulse()
+        first = pulse.subscribe()
+        second = pulse.subscribe()
+
+        for i in range(10):
+            pulse.set(i)
+
+        assert [first.get_nowait() for _ in range(10)] == list(range(10))
+        assert [second.get_nowait() for _ in range(10)] == list(range(10))
+
+    def test_pulse_unsubscribe(self):
+        """Test that unsubscribed queues receive no further events."""
+        pulse = BoundedPulse()
+        queue = pulse.subscribe()
+
+        pulse.unsubscribe(queue)
+        pulse.unsubscribe(queue)  # Unknown queues are ignored
+        pulse.set("test_data")
+
+        assert queue.empty()
+
+    def test_pulse_keeps_most_recent_events(self):
+        """Test that a full subscriber queue discards its oldest event."""
+        pulse = BoundedPulse(maxsize=2)
+        queue = pulse.subscribe()
+
+        for i in range(3):
+            pulse.set(i)
+
+        assert [queue.get_nowait() for _ in range(2)] == [1, 2]
 
 
 class TestMaybeAwait:

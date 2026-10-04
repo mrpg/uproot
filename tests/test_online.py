@@ -7,6 +7,7 @@ uproot_src = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(uproot_src))
 
 import uproot as u
+import uproot.events as e
 import uproot.types as t
 
 
@@ -32,3 +33,17 @@ def test_who_online_session_filter_skips_other_sessions(
     monkeypatch.setattr(u, "time", lambda: 110.0)
 
     assert u.who_online(tolerance=30, sname="A") == {player_a}
+
+
+def test_set_online_notifies_every_attendance_subscriber(clean_online_state):
+    pid = t.PlayerIdentifier(sname="attendance-fanout", uname="alice")
+    first = e.ATTENDANCE[pid.sname].subscribe()
+    second = e.ATTENDANCE[pid.sname].subscribe()
+
+    try:
+        u.set_online(pid)
+
+        assert first.get_nowait() == pid
+        assert second.get_nowait() == pid
+    finally:
+        del e.ATTENDANCE[pid.sname]

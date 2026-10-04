@@ -873,32 +873,36 @@ def vertical(matrix: Iterable[Any]) -> Iterator[list[Any]]:
 
 class BoundedPulse:
     """
-    A bounded queue-like event system that preserves data when no one is listening.
-    Keeps the most recent 1024 events and automatically discards older ones.
+    A bounded event system that delivers every event to every subscriber.
+    Each subscriber has its own queue, which keeps the most recent 1024 events
+    and automatically discards older ones. Events without subscribers are lost.
     """
 
     def __init__(self, maxsize: int = 1024) -> None:
-        self.queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=maxsize)
+        self.subscribers: list[asyncio.Queue[Any]] = []
         self.maxsize = maxsize
 
-    def set(self, data: Any = None) -> None:
+    def subscribe(self) -> asyncio.Queue[Any]:
+        queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=self.maxsize)
+        self.subscribers.append(queue)
+
+        return queue
+
+    def unsubscribe(self, queue: asyncio.Queue[Any]) -> None:
         try:
-            self.queue.put_nowait(data)
-        except asyncio.QueueFull:
-            # Remove oldest item to make room for new one
+            self.subscribers.remove(queue)
+        except ValueError:
+            pass
+
+    def set(self, data: Any = None) -> None:
+        for queue in self.subscribers:
             try:
-                self.queue.get_nowait()
-                self.queue.put_nowait(data)
-            except asyncio.QueueEmpty:
-                # Race condition - queue became empty, try again
-                self.queue.put_nowait(data)
-
-    async def wait(self) -> Any:
-        return await self.queue.get()
-
-    def is_set(self) -> bool:
-        return not self.queue.empty()
-
-    def qsize(self) -> int:
-        """Return approximate number of pending events."""
-        return self.queue.qsize()
+                queue.put_nowait(data)
+            except asyncio.QueueFull:
+                # Remove oldest item to make room for new one
+                try:
+                    queue.get_nowait()
+                    queue.put_nowait(data)
+                except asyncio.QueueEmpty:
+                    # Race condition - queue became empty, try again
+                    queue.put_nowait(data)

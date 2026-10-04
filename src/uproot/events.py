@@ -14,7 +14,7 @@ ROOMS: defaultdict[str, Event] = defaultdict(Event)
 
 def set_attendance(pid: PlayerIdentifier) -> None:
     if pid.sname in ATTENDANCE:
-        ATTENDANCE[pid.sname].set(pid.uname)
+        ATTENDANCE[pid.sname].set(pid)
 
 
 def set_fieldchange(

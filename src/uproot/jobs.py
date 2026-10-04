@@ -19,7 +19,6 @@ from uproot.constraints import ensure
 from uproot.types import (
     PlayerIdentifier,
     Sessionname,
-    Username,
     Value,
     ensure_awaitable,
     materialize,
@@ -37,29 +36,26 @@ async def from_websocket(websocket: WebSocket) -> dict[str, Any]:
 
 
 async def subscribe_to_attendance(
-    sname: Sessionname,
-) -> Username:
-    return cast(
-        Username,
-        await e.ATTENDANCE[sname].wait(),
-    )
+    queue: asyncio.Queue[Any],
+) -> PlayerIdentifier:
+    return cast(PlayerIdentifier, await queue.get())
 
 
 async def subscribe_to_fieldchange(
-    sname: Sessionname,
+    queue: asyncio.Queue[Any],
     fields: list[str] | None = None,
 ) -> tuple[tuple[str, ...], str, Value]:
     while True:
-        received = await e.FIELDCHANGE[sname].wait()
+        received = await queue.get()
 
         if fields is None or received[1] in fields:
             return cast(tuple[tuple[str, ...], str, Value], received)
 
 
 async def subscribe_to_adminchat(
-    sname: Sessionname,
+    queue: asyncio.Queue[Any],
 ) -> dict[str, Any]:
-    return cast(dict[str, Any], await e.ADMINCHAT[sname].wait())
+    return cast(dict[str, Any], await queue.get())
 
 
 async def subscribe_to_room(roomname: str) -> bool:

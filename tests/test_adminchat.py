@@ -60,6 +60,7 @@ async def test_adminchat_overview_is_empty_before_first_message():
 
 async def test_send_adminchat_creates_thread_and_notifies_player():
     pid = make_player()
+    adminchat = e.ADMINCHAT[pid.sname].subscribe()
 
     payload = await ps.send_adminchat(
         pid.sname, pid.uname, "Please stay on this page.", True
@@ -79,7 +80,7 @@ async def test_send_adminchat_creates_thread_and_notifies_player():
     assert queued["data"]["sender"][0] == "admin"
     assert queued["data"]["can_reply"] is True
 
-    event = await e.ADMINCHAT[pid.sname].wait()
+    event = await adminchat.get()
     assert event["uname"] == pid.uname
     assert event["kind"] in {"state", "message"}
 
