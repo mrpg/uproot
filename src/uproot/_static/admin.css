@@ -152,7 +152,7 @@ footer a {
 }
 
 .sort-indicator {
-    font-family: monospace;
+    font-family: var(--bs-font-monospace);
     color: var(--bs-uproot);
 }
 

@@ -95,7 +95,7 @@
 /* Adapted from https://tailwindcss.com/docs/font-family, extending Bootstrap’s default fonts  */
 :root {
     --bs-font-math: "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", math, serif;
-    --bs-font-monospace: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Mono", "Source Code Pro", "Fira Mono", "Droid Sans Mono", Consolas, "Courier New", monospace;
+    --bs-font-monospace: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
     --bs-font-serif: ui-serif, "New York", "Noto Serif", "Liberation Serif", "Times New Roman", Times, Cambria, Georgia, serif;
 }
 /* Class for formulas in math font */
@@ -119,8 +119,6 @@ button, input, select, textarea {
     font-variant-alternates:
         character-variant(lc-l-with-tail, alt-double-s, uc-g-with-spur)
         styleset(open-digits, round-quotes-and-commas);
-    /* Disable contextual alternates, since they may produce unwanted results with Inter (e.g., in “Step 1: ‘Go’” */
-    font-feature-settings: "calt" 0;
     /* Settings related to number formatting */
     font-variant-numeric:
         var(--fvn-figure-style,)
@@ -198,9 +196,6 @@ ol li::marker {
 /* Override bootstrap.css to make font size of <code> elements match the surrounding text */
 code {
     font-size: unset;
-}
-code, .font-monospace {
-    font-size-adjust: ex-height 0.54;  /* Match Cascadia Mono to Inter */
 }
 
 /* Extension of the Bootstrap .fs-* classes */

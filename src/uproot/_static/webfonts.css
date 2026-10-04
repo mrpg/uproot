@@ -98,3 +98,12 @@
     --bs-font-sans-serif: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Roboto", "Helvetica Neue", "Noto Sans", "Liberation Sans", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --bs-font-serif: "IBM Plex Serif", ui-serif, "New York", "Noto Serif", "Liberation Serif", "Times New Roman", "Times", "Cambria", "Georgia", serif;
 }
+
+/* Disable contextual alternates, since they may produce unwanted results with Inter (e.g., in “Step 1: ‘Go’” */
+* {
+    font-feature-settings: "calt" 0;
+}
+
+code, .font-monospace {
+    font-size-adjust: ex-height 0.54;  /* Match Cascadia Mono to Inter */
+}
