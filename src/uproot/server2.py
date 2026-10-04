@@ -1541,6 +1541,7 @@ FUNS = {
     "flip_active": a.flip_active,
     "flip_testing": a.flip_testing,
     "group_players": a.group_players,
+    "info_online": a.info_online,
     "insert_fields": a.insert_fields,
     "mark_dropout": a.mark_dropout,
     "praise": a.praise,
