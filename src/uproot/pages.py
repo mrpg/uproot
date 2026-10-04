@@ -5,6 +5,7 @@ import builtins
 import functools
 import gettext
 import hashlib
+import hmac
 import os
 import re
 import stat
@@ -912,10 +913,13 @@ async def validate(
 
 
 def verify_csrf(page: type[Page], player: Storage, formdata: "FormData") -> bool:
+    supplied = formdata.get("_uproot_csrf")
+    expected = f"{player._uproot_session}+{player.name}+{player._uproot_key}"
+
     return (
-        "_uproot_csrf" in formdata
-        and formdata["_uproot_csrf"]
-        == f"{player._uproot_session}+{player.name}+{player._uproot_key}"
+        isinstance(supplied, str)
+        and supplied.isascii()
+        and hmac.compare_digest(supplied, expected)
     )
 
 
