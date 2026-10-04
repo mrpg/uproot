@@ -328,6 +328,10 @@ def transition_to_page(
     target_path = page2path(target)
 
     with player:
+        if player.show_page < 0:
+            # Players who have not started yet have no page to move from
+            return
+
         target_index = player.page_order.index(target_path, player.show_page)
 
     player.show_page = target_index
