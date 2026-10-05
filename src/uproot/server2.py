@@ -316,11 +316,22 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
 
         tasks[asyncio.create_task(fun(**args[jj.__name__]))] = jj.__name__, jj
 
-    subscriptions: list[tuple[t.BoundedPulse, asyncio.Queue[Any]]] = []
+    subscriptions: dict[str, tuple[t.BoundedPulse, asyncio.Queue[Any]]] = {}
 
-    def subscribe(pulse: t.BoundedPulse) -> asyncio.Queue[Any]:
+    def subscribe(fname: str, pulse: t.BoundedPulse) -> asyncio.Queue[Any]:
+        # A repeated subscription replaces the previous one, so that its queue
+        # does not keep filling and its task does not linger
+        if fname in subscriptions:
+            old_pulse, old_queue = subscriptions.pop(fname)
+            old_pulse.unsubscribe(old_queue)
+
+            for task, (task_fname, _) in list(tasks.items()):
+                if task_fname == fname:
+                    task.cancel()
+                    del tasks[task]
+
         queue = pulse.subscribe()
-        subscriptions.append((pulse, queue))
+        subscriptions[fname] = pulse, queue
 
         return queue
 
@@ -328,7 +339,7 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
         for task in tasks:
             task.cancel()
 
-        for pulse, queue in subscriptions:
+        for pulse, queue in subscriptions.values():
             pulse.unsubscribe(queue)
 
         await asyncio.gather(*tasks.keys(), return_exceptions=True)
@@ -337,6 +348,9 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
         done, _ = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
 
         for finished in done:
+            if finished not in tasks:
+                continue  # replaced by a repeated subscription
+
             fname, factory = tasks.pop(finished)
 
             try:
@@ -365,7 +379,9 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             },
                         } if isinstance(sname, str):
                             newfname = "subscribe_to_attendance"
-                            args[newfname] = {"queue": subscribe(e.ATTENDANCE[sname])}
+                            args[newfname] = {
+                                "queue": subscribe(newfname, e.ATTENDANCE[sname])
+                            }
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_attendance(**args[newfname])
@@ -385,7 +401,7 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                         ):
                             newfname = "subscribe_to_fieldchange"
                             args[newfname] = {
-                                "queue": subscribe(e.FIELDCHANGE[sname]),
+                                "queue": subscribe(newfname, e.FIELDCHANGE[sname]),
                                 "fields": fields,
                             }
                             tasks[
@@ -404,7 +420,9 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             },
                         } if isinstance(sname, str):
                             newfname = "subscribe_to_adminchat"
-                            args[newfname] = {"queue": subscribe(e.ADMINCHAT[sname])}
+                            args[newfname] = {
+                                "queue": subscribe(newfname, e.ADMINCHAT[sname])
+                            }
                             tasks[
                                 asyncio.create_task(
                                     j.subscribe_to_adminchat(**args[newfname])

@@ -362,7 +362,11 @@ window.uproot = {
     },
 
     subscribe(mname, ...args) {
-        const key = JSON.stringify([mname, args]);
+        const key = [
+            "subscribe_to_attendance",
+            "subscribe_to_fieldchange",
+            "subscribe_to_adminchat",
+        ].includes(mname) ? mname : JSON.stringify([mname, args]);
         this.subscriptions.set(key, { mname, args });
         this.sendSubscription(mname, args);
     },
