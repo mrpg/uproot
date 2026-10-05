@@ -36,13 +36,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run tests with coverage
-        run: uv run pytest --cov=uproot --cov-report=xml --cov-report=term-missing
-
-      - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v4
-        if: matrix.python-version == '3.13'
-        with:
-          fail_ci_if_error: false
+        run: uv run pytest --cov=uproot --cov-report=term-missing
 
   lint:
     runs-on: ubuntu-latest
