@@ -1,7 +1,7 @@
 import hashlib
 import os
 
-import httpx
+import httpx2
 import pytest
 from fastapi import FastAPI
 
@@ -51,8 +51,8 @@ async def test_static_url_serves_filename_with_special_characters(project, realm
     server.include_router(router)
     url = static_search("myapp", "_project")(filename)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=server), base_url="http://test"
+    async with httpx2.AsyncClient(
+        transport=httpx2.ASGITransport(app=server), base_url="http://test"
     ) as client:
         response = await client.get(url)
 

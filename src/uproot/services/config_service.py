@@ -6,7 +6,7 @@
 from time import time
 from typing import Any, cast
 
-import httpx
+import httpx2
 from packaging.version import InvalidVersion, Version
 from sortedcontainers import SortedDict
 
@@ -68,11 +68,11 @@ async def announcements() -> dict[str, Any]:
     ANNOUNCEMENTS_URL = "https://uproot.science/announcements.json"
 
     try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+        async with httpx2.AsyncClient(follow_redirects=True) as client:
             response = await client.get(ANNOUNCEMENTS_URL)
             data = cast(dict[str, Any], response.json())
             recommended = str(data["recommendedVersion"])
-    except (httpx.HTTPError, KeyError, TypeError, ValueError):
+    except (httpx2.HTTPError, KeyError, TypeError, ValueError):
         return {"error": True}
 
     with s.Admin() as admin:
@@ -95,7 +95,7 @@ async def praise() -> str:
     PRAISE_URL = "https://uproot.science/praise/"
 
     try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+        async with httpx2.AsyncClient(follow_redirects=True) as client:
             response = await client.get(PRAISE_URL)
             return response.text
     except Exception:  # noqa: BLE001

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import httpx
+import httpx2
 import orjson
 
 
@@ -125,7 +125,7 @@ def api_request(
     if data is not None:
         kwargs["json"] = data
 
-    response = httpx.request(method, url, **kwargs)
+    response = httpx2.request(method, url, **kwargs)
     try:
         result = response.json()
     except ValueError:
@@ -154,7 +154,7 @@ def api_command(
         status, result = api_request(
             url, version, auth, method.upper(), endpoint, parsed_data
         )
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
         print(f"Error: Connection failed: {e}", file=sys.stderr)
         sys.exit(1)
 

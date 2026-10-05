@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import click
-import httpx
+import httpx2
 import uvicorn
 
 import uproot.deployment as d
@@ -240,7 +240,7 @@ async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> 
     zip_path = None
     try:
         async with (
-            httpx.AsyncClient(follow_redirects=True) as client,
+            httpx2.AsyncClient(follow_redirects=True) as client,
             client.stream("GET", url) as response,
         ):
             response.raise_for_status()
@@ -348,13 +348,13 @@ def announcements() -> None:
     import uproot as u
     from uproot.services import config_service
 
-    httpx_logger = logging.getLogger("httpx")
-    previous_level = httpx_logger.level
-    httpx_logger.setLevel(logging.WARNING)
+    httpx2_logger = logging.getLogger("httpx2")
+    previous_level = httpx2_logger.level
+    httpx2_logger.setLevel(logging.WARNING)
     try:
         data = asyncio.run(config_service.announcements())
     finally:
-        httpx_logger.setLevel(previous_level)
+        httpx2_logger.setLevel(previous_level)
 
     if data.get("error"):
         click.secho(
