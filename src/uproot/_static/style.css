@@ -182,6 +182,20 @@ ol li::marker {
     font-variant-alternates: styleset(disambiguation-except-zero) !important;
 }
 
+/* Extension of the Bootstrap .bg-opacity-* classes */
+.bg-opacity-5 {
+  --bs-bg-opacity: 0.05;
+}
+.bg-opacity-8 {
+  --bs-bg-opacity: 0.08;
+}
+.bg-opacity-15 {
+  --bs-bg-opacity: 0.15;
+}
+.bg-opacity-20 {
+  --bs-bg-opacity: 0.20;
+}
+
 /* Adding classes for highlighting, inspired by https://getbootstrap.com/docs/5.3/docsref/#callouts */
 /* Use in conjunction with utilities like .alert, .bg-*, .border-*, card, etc. */
 .callout {
