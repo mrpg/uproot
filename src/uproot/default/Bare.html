@@ -181,12 +181,19 @@
         onclick="uproot.adminMessage()"
         aria-label="{% translate %}Open Chat with Research Coordinator{% endtranslate %}"
         title="{% translate %}Open Chat with Research Coordinator{% endtranslate %}">
+        {% if buddy_image %}
+        <img
+            src="{{ static(buddy_image) }}"
+            loading="lazy"
+            alt="">
+        {% else %}
         <img
             src="{{ internalstatic('buddy.svg') }}"
             loading="lazy"
             width="142"
             height="142"
             alt="">
+        {% endif %}
     </button>
 </div>
 

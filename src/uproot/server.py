@@ -20,6 +20,7 @@ from pydantic import (
     Field,
     InstanceOf,
     StrictBool,
+    StrictStr,
     TypeAdapter,
     ValidationError,
     create_model,
@@ -87,7 +88,7 @@ def validate_keepalive_interval() -> None:
 def validate_template_defaults() -> None:
     fields: dict[str, Any] = {
         name: (StrictBool, ...) for name in sorted(d.TEMPLATE_SWITCHES)
-    }
+    } | {"buddy_image": (StrictStr | None, ...)}
     model = create_model("TemplateDefaults", **fields)
 
     try:

@@ -47,6 +47,20 @@ async def test_template_set_overrides_defaults(defaults):
     assert "uproot.wsstart()" not in html
 
 
+async def test_builtin_buddy_by_default(defaults):
+    html = await render_page("RoomFull.html")
+
+    assert "/static/_uproot/buddy.svg" in html
+
+
+async def test_buddy_image_uses_static(defaults):
+    defaults["buddy_image"] = "mybuddy.png"
+    html = await render_page("RoomFull.html")
+
+    assert "buddy.svg" not in html
+    assert '/mybuddy.png"' in html  # missing file, so no ?v=
+
+
 def test_shipped_defaults_are_valid():
     server.validate_template_defaults()
 
@@ -57,6 +71,7 @@ def test_shipped_defaults_are_valid():
         {"disable_uproot_font": True},  # misspelt
         {"disable_alpinejs": "yes"},
         {"disable_alpinejs": 1},
+        {"buddy_image": True},
     ],
 )
 def test_invalid_defaults_are_rejected(defaults, change):
