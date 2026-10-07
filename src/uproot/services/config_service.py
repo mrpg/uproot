@@ -67,6 +67,9 @@ async def announcements() -> dict[str, Any]:
     """
     ANNOUNCEMENTS_URL = "https://uproot.science/announcements.json"
 
+    if not u.deployment.UPSTREAM:
+        return {"error": True}
+
     try:
         async with httpx2.AsyncClient(follow_redirects=True) as client:
             response = await client.get(ANNOUNCEMENTS_URL)
@@ -99,6 +102,9 @@ async def dismiss_announcements() -> None:
 async def praise() -> str:
     """Fetch praise message."""
     PRAISE_URL = "https://uproot.science/praise/"
+
+    if not u.deployment.UPSTREAM:
+        return "We couldn't load praise right now."
 
     try:
         async with httpx2.AsyncClient(follow_redirects=True) as client:

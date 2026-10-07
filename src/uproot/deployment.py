@@ -92,6 +92,7 @@ TEMPLATE_SWITCHES: frozenset[str] = frozenset(TEMPLATE_DEFAULTS)
 TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
 UNSAFE: bool = False
+UPSTREAM: bool = True
 UVICORN_KWARGS: dict[str, Any] = {
     "reload": False,
     "log_level": "info",

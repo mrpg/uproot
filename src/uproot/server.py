@@ -140,12 +140,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
             "admin area."
         )
 
-    click.secho(
-        announcement_reminder,
-        fg="yellow",
-        bold=True,
-        err=True,
-    )
+    if d.UPSTREAM:
+        click.secho(
+            announcement_reminder,
+            fg="yellow",
+            bold=True,
+            err=True,
+        )
 
     try:
         import setproctitle

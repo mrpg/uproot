@@ -65,6 +65,7 @@ Status
                     uproot {{ uproot_version }}.
                 </p>
 
+                {% if deployment.UPSTREAM %}
                 {% if nudge_announcements %}
                 <div class="alert alert-warning align-items-start border-warning callout d-flex mb-4 text-black" id="nudge-announcements">
                     <i class="bi bi-megaphone me-2 pe-1"></i>
@@ -96,6 +97,7 @@ Status
                     Clicking this button makes your uproot server check whether the developers have posted any relevant announcements.
                     {% endtranslate %}
                 </small>
+                {% endif %}
             </div>
         </div>
     </div>

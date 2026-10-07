@@ -720,7 +720,7 @@ def auth_cookie_secure(request: Request, x_forwarded_proto: str = "") -> bool:
 
 
 def nudge_announcements() -> bool:
-    if not d.PUBLIC_DEMO and now() - d.PROCESS_START > 60:
+    if d.UPSTREAM and not d.PUBLIC_DEMO and now() - d.PROCESS_START > 60:
         with Admin() as admin:
             queried = admin.get("announcements_queried")
 
