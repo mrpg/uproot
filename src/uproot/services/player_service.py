@@ -14,7 +14,7 @@ import uproot.storage as s
 import uproot.types as t
 from uproot import chat
 from uproot.core import resolve_page_order
-from uproot.services.session_service import session_exists
+from uproot.services.session_service import players_exist, session_exists
 
 
 async def info_online(sname: t.Sessionname) -> dict[t.Username, Any]:
@@ -62,6 +62,8 @@ async def insert_fields(
     reload: bool = False,
 ) -> None:
     """Insert fields into player objects."""
+    players_exist(sname, unames, False)
+
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 
@@ -84,7 +86,7 @@ async def insert_fields(
 
 async def run_new_player(sname: t.Sessionname, unames: list[str]) -> None:
     """Manually run new_player callbacks for players that haven't been initialized."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     with s.Session(sname) as session:
         run_new_session_callbacks(session)
@@ -155,18 +157,9 @@ async def mark_dropout(
     sname: t.Sessionname, unames: list[str]
 ) -> dict[str, dict[t.Username, Any]]:
     """Mark players as dropouts."""
-    session_exists(sname, False)
-
-    with s.Session(sname) as session:
-        session_players = set(session._uproot_players)
+    players_exist(sname, unames, False)
 
     pids = [t.PlayerIdentifier(sname, uname) for uname in unames]
-    invalid_unames = [pid.uname for pid in pids if pid not in session_players]
-
-    if invalid_unames:
-        raise ValueError(
-            f"Player {invalid_unames[0]!r} does not exist in session {sname!r}"
-        )
 
     with s.Session(sname) as session:
         run_new_session_callbacks(session)
@@ -187,7 +180,7 @@ async def advance_by_one(
     sname: t.Sessionname, unames: list[str]
 ) -> dict[str, dict[t.Username, Any]]:
     """Advance players by one page."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
@@ -214,7 +207,7 @@ async def put_to_end(
     sname: t.Sessionname, unames: list[str]
 ) -> dict[str, dict[str, Any]]:
     """Put players to the end of their page order."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
@@ -241,7 +234,7 @@ async def revert_by_one(
     sname: t.Sessionname, unames: list[str]
 ) -> dict[str, dict[str, Any]]:
     """Revert players by one page."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
@@ -266,7 +259,7 @@ async def revert_by_one(
 
 async def reload(sname: t.Sessionname, unames: list[str]) -> None:
     """Force reload for specified players."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     for uname in unames:
         ptuple = sname, uname
@@ -287,7 +280,7 @@ async def adjust_timeout(
     sname: t.Sessionname, unames: list[str], delta: float = 60.0
 ) -> None:
     """Adjust the page timeout for selected players by delta seconds."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     try:
         finite = isfinite(delta)
@@ -322,7 +315,7 @@ async def adjust_timeout(
 
 async def redirect(sname: t.Sessionname, unames: list[str], url: str) -> None:
     """Redirect specified players to a URL."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     if not url.startswith("http://") and not url.startswith("https://"):
         raise ValueError("URL must start with http:// or https://")
@@ -345,7 +338,7 @@ async def redirect(sname: t.Sessionname, unames: list[str], url: str) -> None:
 
 async def adminmessage(sname: t.Sessionname, unames: list[str], msg: str) -> None:
     """Send an admin message to specified players."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     for uname in unames:
         ptuple = sname, uname
@@ -409,7 +402,7 @@ async def adminchat_thread(
     uname: str,
 ) -> dict[str, Any]:
     """Get admin chat metadata and transcript for a single player."""
-    session_exists(sname, False)
+    players_exist(sname, [uname], False)
 
     pid = t.PlayerIdentifier(sname, uname)
     mid = chat.adminchat_for_player(pid)
@@ -444,7 +437,7 @@ async def send_adminchat(
     enable_replies: bool | None = None,
 ) -> dict[str, Any]:
     """Send an admin chat message to one player."""
-    session_exists(sname, False)
+    players_exist(sname, [uname], False)
 
     pid = t.PlayerIdentifier(sname, uname)
     mid = chat.ensure_adminchat(pid)
@@ -470,7 +463,7 @@ async def set_adminchat_replies(
     enabled: bool,
 ) -> dict[str, Any]:
     """Enable or disable replies for one player's admin chat."""
-    session_exists(sname, False)
+    players_exist(sname, [uname], False)
 
     pid = t.PlayerIdentifier(sname, uname)
     mid = chat.adminchat_for_player(pid)
@@ -493,7 +486,7 @@ async def send_adminchat_to_players(
     enable_replies: bool | None = None,
 ) -> dict[str, Any]:
     """Send the same admin chat message to multiple players at once."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     results = []
 
@@ -512,7 +505,7 @@ async def set_adminchat_replies_for_players(
     enabled: bool,
 ) -> dict[str, Any]:
     """Enable or disable replies for multiple players at once."""
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     updated = []
 
@@ -554,7 +547,7 @@ async def group_players(
     """
     import uproot.core as c
 
-    session_exists(sname, False)
+    players_exist(sname, unames, False)
 
     sid = t.SessionIdentifier(sname)
     pids = [t.PlayerIdentifier(sname, uname) for uname in unames]

@@ -679,7 +679,7 @@ async def set_player_fields(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Set arbitrary fields on specified players."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     await a.insert_fields(sname, body.unames, body.fields, body.reload)
 
     return {"updated": body.unames, "fields": list(body.fields.keys())}
@@ -692,7 +692,7 @@ async def advance_players(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Advance specified players by one page."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     return await a.advance_by_one(sname, body.unames)
 
 
@@ -703,7 +703,7 @@ async def revert_players(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Revert specified players by one page."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     return await a.revert_by_one(sname, body.unames)
 
 
@@ -714,7 +714,7 @@ async def put_players_to_end(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Move specified players to the end of the experiment."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     return await a.put_to_end(sname, body.unames)
 
 
@@ -725,7 +725,7 @@ async def reload_players(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Force page reload for specified players."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     await a.reload(sname, body.unames)
 
     return {"reloaded": body.unames}
@@ -738,7 +738,7 @@ async def adjust_timeout(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Adjust the page timeout for specified players."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
 
     try:
         await a.adjust_timeout(sname, body.unames, body.delta)
@@ -755,7 +755,7 @@ async def redirect_players(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Redirect specified players to an external URL."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
 
     try:
         await a.redirect(sname, body.unames, body.url)
@@ -772,7 +772,7 @@ async def message_players(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Send an admin message to specified players."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     await a.adminmessage(sname, body.unames, body.message)
 
     return {"messaged": body.unames}
@@ -785,7 +785,7 @@ async def initialize_players(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Run new_player callbacks for players that have not been initialized."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     await a.run_new_player(sname, body.unames)
 
     return {"initialized": body.unames}
@@ -798,7 +798,7 @@ async def group_players(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Manage group assignments for selected players."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
 
     try:
         return await a.group_players(
@@ -830,7 +830,7 @@ async def get_player_adminchat(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Get admin chat metadata and transcript for one player."""
-    a.session_exists(sname)
+    a.players_exist(sname, [uname])
     return await a.adminchat_thread(sname, uname)
 
 
@@ -842,7 +842,7 @@ async def send_player_adminchat(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Send an admin chat message to one player."""
-    a.session_exists(sname)
+    a.players_exist(sname, [uname])
     return await a.send_adminchat(sname, uname, body.message, body.enable_replies)
 
 
@@ -854,7 +854,7 @@ async def set_player_adminchat_replies(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Enable or disable a player's ability to reply in admin chat."""
-    a.session_exists(sname)
+    a.players_exist(sname, [uname])
     return await a.set_adminchat_replies(sname, uname, body.enabled)
 
 
@@ -865,7 +865,7 @@ async def broadcast_adminchat(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Send an admin chat message to multiple players at once."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     return await a.send_adminchat_to_players(
         sname, body.unames, body.message, body.enable_replies
     )
@@ -878,7 +878,7 @@ async def set_players_adminchat_replies(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Enable or disable admin chat replies for multiple players."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     return await a.set_adminchat_replies_for_players(sname, body.unames, body.enabled)
 
 
@@ -889,7 +889,7 @@ async def mark_players_dropout(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Mark specified players as manually dropped out."""
-    a.session_exists(sname)
+    a.players_exist(sname, body.unames)
     info_online = await a.mark_dropout(sname, body.unames)
 
     return {

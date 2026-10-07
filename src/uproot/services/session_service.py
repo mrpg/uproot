@@ -4,6 +4,7 @@
 """Session management service."""
 
 import inspect
+from collections.abc import Iterable
 from typing import Any
 
 from fastapi import HTTPException
@@ -28,6 +29,31 @@ def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
                 raise HTTPException(status_code=404, detail="Session not found")
             else:
                 raise ValueError("Session not found")
+
+
+def players_exist(
+    sname: t.Sessionname, unames: Iterable[str], raise_http: bool = True
+) -> None:
+    """Check that a session exists and contains all given players.
+
+    Args:
+        sname: Session name to check
+        unames: Usernames that must belong to the session
+        raise_http: If True, raise HTTPException; otherwise raise ValueError
+    """
+    session_exists(sname, raise_http)
+
+    with s.Session(sname) as session:
+        known = {pid.uname for pid in session._uproot_players}
+
+    for uname in unames:
+        if uname not in known:
+            detail = f"Player {uname!r} not found in session {sname!r}"
+
+            if raise_http:
+                raise HTTPException(status_code=404, detail=detail)
+            else:
+                raise ValueError(detail)
 
 
 def sessions() -> dict[str, dict[str, Any]]:
