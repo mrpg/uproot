@@ -58,14 +58,16 @@ def test_admin_api_uses_plural_resource_paths() -> None:
         f"{prefix}/database/dump/",
         f"{prefix}/praise/",
         f"{prefix}/auth/login/",
-        f"{prefix}/auth/tokens/current/",
-        f"{prefix}/auth/tokens/",
+        f"{prefix}/auth/logout/",
+        f"{prefix}/auth/logout-all/",
+        f"{prefix}/sessions/{{sname}}/players/{{uname}}/",
     }
 
     assert expected_paths <= paths
     assert not any(path.startswith(f"{prefix}/session/") for path in paths)
     assert not any(path.startswith(f"{prefix}/room/") for path in paths)
     assert f"{prefix}/configs/{{cname}}/summary/" not in paths
+    assert not any(path.startswith(f"{prefix}/auth/tokens/") for path in paths)
 
     pipeline_path = f"{prefix}/sessions/{{sname}}/pipelines/{{appname}}/runs/"
     pipeline_methods = set()
@@ -207,7 +209,7 @@ async def test_rest_auth_can_create_and_revoke_ui_browser_session(monkeypatch) -
         api.AuthLogin(user="admin", token="test-login-token"),
     )
     sessions = await api.get_auth_sessions(None)
-    revoked = await api.revoke_current_auth_session(
+    revoked = await api.revoke_auth_session(
         api.AuthToken(auth_token=created["auth_token"]),
         None,
     )
@@ -240,7 +242,7 @@ async def test_rest_auth_can_revoke_all_ui_browser_sessions_for_current_user(
         api.AuthLogin(user="admin", token="test-login-token"),
     )
 
-    revoked = await api.revoke_current_user_auth_sessions(
+    revoked = await api.revoke_token_user_auth_sessions(
         api.AuthToken(auth_token=first["auth_token"]),
         None,
     )
@@ -266,3 +268,153 @@ async def test_rest_auth_rate_limits_before_rechecking_credentials(monkeypatch):
 
     assert excinfo.value.status_code == 429
     assert authenticate.await_count == 1
+
+
+async def create_api_session(n_players: int = 0) -> tuple[str, list[str]]:
+    sname = f"api-{uuid4().hex[:8]}"
+
+    await api.create_session(
+        api.SessionCreate(config="test-api", n_players=n_players, sname=sname),
+        None,
+    )
+
+    return sname, (await api.get_session(sname, None))["players"]
+
+
+async def test_session_settings_may_contain_any_key() -> None:
+    reset_admin_state()
+    sname, _ = await create_api_session()
+
+    result = await api.update_session_settings(
+        sname,
+        api.SettingsUpdate(settings={"sname": 1, "settings": 2}),
+        None,
+    )
+    detail = await api.get_session(sname, None)
+
+    assert result == {"settings": {"sname": 1, "settings": 2}}
+    assert detail["settings"] == {"sname": 1, "settings": 2}
+
+
+async def test_invalid_player_field_names_are_bad_requests() -> None:
+    reset_admin_state()
+    sname, unames = await create_api_session(1)
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.set_player_fields(
+            sname,
+            api.PlayersFields(unames=unames, fields={"ok": 1, "a b": 2}),
+            None,
+        )
+
+    assert excinfo.value.status_code == 400
+    assert (await api.get_player(sname, unames[0], ["ok"], None)) == {"ok": None}
+
+
+async def test_get_player_returns_requested_fields() -> None:
+    reset_admin_state()
+    sname, unames = await create_api_session(2)
+
+    await api.set_player_fields(
+        sname,
+        api.PlayersFields(unames=unames[:1], fields={"score": 7}),
+        None,
+    )
+
+    assert await api.get_player(sname, unames[0], ["score"], None) == {"score": 7}
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.get_player(sname, "nobody", ["score"], None)
+
+    assert excinfo.value.status_code == 404
+
+
+async def test_session_active_and_testing_are_set_explicitly() -> None:
+    reset_admin_state()
+    sname, _ = await create_api_session()
+
+    for _ in range(2):
+        assert await api.set_session_active(
+            sname, api.SessionActive(active=False), None
+        ) == {"active": False}
+        assert await api.set_session_testing(
+            sname, api.SessionTesting(testing=True), None
+        ) == {"testing": True}
+
+
+async def test_room_session_defaults_to_room_config() -> None:
+    reset_admin_state()
+    roomname = f"api-room-{uuid4().hex[:8]}"
+    bare_roomname = f"api-bare-{uuid4().hex[:8]}"
+
+    await api.create_room(api.RoomCreate(name=roomname, config="test-api"), None)
+    await api.create_room(api.RoomCreate(name=bare_roomname), None)
+
+    result = await api.create_session_in_room(
+        roomname,
+        api.RoomSessionCreate(n_players=1),
+        None,
+    )
+
+    assert result["config"] == "test-api"
+    assert result["roomname"] == roomname
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.create_session_in_room(
+            bare_roomname,
+            api.RoomSessionCreate(n_players=1),
+            None,
+        )
+
+    assert excinfo.value.status_code == 400
+
+
+async def test_pipeline_filetype_is_checked_before_running(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    reset_admin_state()
+    calls = []
+
+    def pipeline(session: s.Storage) -> list[dict[str, Any]]:
+        calls.append(session.name)
+        return [{"a": 1}]
+
+    app = SimpleNamespace(pipeline=pipeline)
+    monkeypatch.setattr(u, "APPS", {"pipeline_app": app}, raising=False)
+    monkeypatch.setitem(u.CONFIGS, "test-api", ["pipeline_app"])
+    sname, _ = await create_api_session()
+    request = SimpleNamespace(method="GET")
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.get_session_pipeline_run(request, sname, "pipeline_app", "xlsx", None)
+
+    assert excinfo.value.status_code == 400
+    assert calls == []
+
+
+async def test_digest_fragments_skip_apps_without_template(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    reset_admin_state()
+    app = SimpleNamespace(digest=lambda session: 1)
+    monkeypatch.setattr(u, "APPS", {"digest_app_without_template": app}, raising=False)
+    monkeypatch.setitem(u.CONFIGS, "test-api", ["digest_app_without_template"])
+    sname, _ = await create_api_session()
+
+    assert await api.get_session_digest_fragments(sname, None) == {
+        "apps": ["digest_app_without_template"],
+        "html": {},
+    }
+
+
+async def test_dashboard_reports_version_and_announcements_nudge(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    reset_admin_state()
+    monkeypatch.setattr(d, "UPSTREAM", False)
+    monkeypatch.setattr(api.a, "sessions", dict)
+
+    dashboard = await api.get_dashboard(None)
+
+    assert dashboard["uproot_version"] == u.__version__
+    assert dashboard["nudge_announcements"] is False

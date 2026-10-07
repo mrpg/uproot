@@ -38,6 +38,7 @@ from uproot.services.config_service import (
     configs,
     dismiss_announcements,
     displaystr,
+    nudge_announcements,
     praise,
 )
 
@@ -103,6 +104,8 @@ from uproot.services.session_service import (
     run_pipeline,
     session_exists,
     sessions,
+    set_active,
+    set_testing,
     update_description,
     update_settings,
 )
@@ -163,6 +166,7 @@ __all__ = [
     "is_custom_data_export",
     "is_ip_banned",
     "mark_dropout",
+    "nudge_announcements",
     "pipeline_call_kwargs",
     "pipeline_result_display",
     "players_exist",
@@ -184,10 +188,12 @@ __all__ = [
     "send_adminchat_to_players",
     "session_exists",
     "sessions",
+    "set_active",
     "set_adminchat_replies",
     "set_adminchat_replies_for_players",
     "set_room_capacity",
     "set_room_open",
+    "set_testing",
     "store_active_tokens",
     "update_description",
     "update_settings",

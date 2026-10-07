@@ -91,12 +91,28 @@ async def flip_active(sname: t.Sessionname) -> None:
         session.active = not session.active
 
 
+async def set_active(sname: t.Sessionname, active: bool) -> None:
+    """Set the active status of a session."""
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        session.active = active
+
+
 async def flip_testing(sname: t.Sessionname) -> None:
     """Toggle the testing status of a session."""
     session_exists(sname, False)
 
     with s.Session(sname) as session:
         session._uproot_testing = not session._uproot_testing
+
+
+async def set_testing(sname: t.Sessionname, testing: bool) -> None:
+    """Set the testing status of a session."""
+    session_exists(sname, False)
+
+    with s.Session(sname) as session:
+        session._uproot_testing = testing
 
 
 async def run_new_session(sname: t.Sessionname) -> None:
@@ -127,13 +143,16 @@ async def update_description(sname: t.Sessionname, newdesc: str) -> None:
         session.description = newdesc if newdesc else None
 
 
-async def update_settings(sname: t.Sessionname, **newsettings: Any) -> None:
+async def update_settings(sname: t.Sessionname, settings: dict[str, Any]) -> None:
     """Update session settings."""
     session_exists(sname, False)
 
+    if not isinstance(settings, dict):
+        raise TypeError("Session settings must be a JSON object")
+
     with s.Admin() as admin, s.Session(sname) as session:
-        c.validate_session_settings(admin, session.config, newsettings)
-        session._uproot_settings = newsettings
+        c.validate_session_settings(admin, session.config, settings)
+        session._uproot_settings = settings
 
 
 def get_digest(sname: t.Sessionname) -> list[str]:

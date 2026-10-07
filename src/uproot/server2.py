@@ -16,7 +16,6 @@ from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter as now
-from time import time
 from typing import Any, cast
 from urllib.parse import quote
 
@@ -719,16 +718,6 @@ def auth_cookie_secure(request: Request, x_forwarded_proto: str = "") -> bool:
     return request.url.scheme == "https"
 
 
-def nudge_announcements() -> bool:
-    if d.UPSTREAM and not d.PUBLIC_DEMO and now() - d.PROCESS_START > 60:
-        with Admin() as admin:
-            queried = admin.get("announcements_queried")
-
-        return queried is None or time() - queried > 7 * 86400
-
-    return False
-
-
 # Dashboard
 
 
@@ -748,7 +737,7 @@ async def dashboard(
                     for sname, sinfo in a.sessions().items()
                     if sinfo["active"]
                 },
-                "nudge_announcements": nudge_announcements(),
+                "nudge_announcements": a.nudge_announcements(),
                 "uproot_version": u.__version__,
             },
         )
@@ -1448,7 +1437,7 @@ async def status(
                     "dbsize": dbsize,
                     "missing": missing,
                     "sessions": sessions,
-                    "nudge_announcements": nudge_announcements(),
+                    "nudge_announcements": a.nudge_announcements(),
                     "python_version": sys.version,
                     "uproot_version": u.__version__,
                 },

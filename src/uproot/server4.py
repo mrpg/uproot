@@ -160,6 +160,18 @@ class DescriptionUpdate(BaseModel):
     description: str = Field("", description="New description (empty to clear)")
 
 
+class SessionActive(BaseModel):
+    """Request body for setting a session's active status."""
+
+    active: bool = Field(..., description="Whether the session is active")
+
+
+class SessionTesting(BaseModel):
+    """Request body for setting a session's testing mode."""
+
+    testing: bool = Field(..., description="Whether testing mode is enabled")
+
+
 class SettingsUpdate(BaseModel):
     """Request body for updating session settings."""
 
@@ -169,7 +181,9 @@ class SettingsUpdate(BaseModel):
 class RoomSessionCreate(BaseModel):
     """Request body for creating a session within a room."""
 
-    config: str = Field(..., description="Configuration name")
+    config: str | None = Field(
+        None, description="Configuration name (defaults to the room's config)"
+    )
     n_players: int = Field(..., ge=0, description="Number of players")
     assignees: list[str] | None = Field(None, description="Labels to assign to players")
     settings: dict[str, Any] | None = Field(None, description="Session settings")
@@ -572,26 +586,28 @@ async def create_session(
 
 
 @router.patch("/sessions/{sname}/active/")
-async def toggle_session_active(
+async def set_session_active(
     sname: str,
+    body: SessionActive,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
-    """Toggle the active status of a session."""
+    """Set the active status of a session."""
     a.session_exists(sname)
-    await a.flip_active(sname)
+    await a.set_active(sname, body.active)
 
     with Session(sname) as session:
         return {"active": session.active}
 
 
 @router.patch("/sessions/{sname}/testing/")
-async def toggle_session_testing(
+async def set_session_testing(
     sname: str,
+    body: SessionTesting,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
-    """Toggle the testing mode of a session."""
+    """Set the testing mode of a session."""
     a.session_exists(sname)
-    await a.flip_testing(sname)
+    await a.set_testing(sname, body.testing)
 
     with Session(sname) as session:
         return {"testing": session._uproot_testing}
@@ -637,7 +653,7 @@ async def update_session_settings(
     a.session_exists(sname)
 
     with bad_request():
-        await a.update_settings(sname, **body.settings)
+        await a.update_settings(sname, body.settings)
 
     return {"settings": body.settings}
 
@@ -666,6 +682,20 @@ async def get_online_players(
     """Get online status and info for all players in a session."""
     a.session_exists(sname)
     return await a.info_online(sname)
+
+
+@router.get("/sessions/{sname}/players/{uname}/")
+async def get_player(
+    sname: str,
+    uname: str,
+    fields: list[str] = DefaultPlayerFieldsQuery,
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Get specified fields for one player in a session."""
+    a.players_exist(sname, [uname])
+
+    with t.materialize(t.PlayerIdentifier(sname, uname)) as player:
+        return {field: player.get(field) for field in fields}
 
 
 @router.get("/sessions/{sname}/multiview/")
@@ -700,7 +730,9 @@ async def set_player_fields(
 ) -> dict[str, Any]:
     """Set arbitrary fields on specified players."""
     a.players_exist(sname, body.unames)
-    await a.insert_fields(sname, body.unames, body.fields, body.reload)
+
+    with bad_request():
+        await a.insert_fields(sname, body.unames, body.fields, body.reload)
 
     return {"updated": body.unames, "fields": list(body.fields.keys())}
 
@@ -1000,9 +1032,11 @@ async def get_session_digest_fragments(
     fragments = {}
 
     for appname in a.get_digest(sname):
-        fragments[appname] = await rendered_digest_fragment(sname, appname)
+        template_path = Path(appname) / "AdminDigest.html"
+        if template_path.exists():
+            fragments[appname] = await rendered_digest_fragment(sname, appname)
 
-    return {"apps": list(fragments), "html": fragments}
+    return {"apps": a.get_digest(sname), "html": fragments}
 
 
 @router.get("/sessions/{sname}/digests/{appname}/")
@@ -1086,15 +1120,17 @@ async def run_session_pipeline_response(
     if appname not in a.get_pipelines(sname):
         raise HTTPException(status_code=404, detail="Pipeline not found")
 
+    if filetype not in ("csv", "jsonl"):
+        raise HTTPException(
+            status_code=400, detail="Invalid filetype. Use: csv or jsonl"
+        )
+
     pipeline_data, data_was_provided = await pipeline_data_from_request(request)
 
     result = await a.run_pipeline(sname, appname, pipeline_data, data_was_provided)
 
     if not a.is_custom_data_export(result):
         return PlainTextResponse(a.pipeline_result_display(result))
-
-    if filetype not in ("csv", "jsonl"):
-        raise HTTPException(status_code=400, detail="Invalid filetype")
 
     rows = result
     filename = f"{sname}-{appname}"
@@ -1353,22 +1389,32 @@ async def create_session_in_room(
     body: RoomSessionCreate,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
-    """Create a new session within a room."""
+    """Create a new session within a room, by default using the room's config."""
     a.room_exists(roomname)
-    ensure_config_exists(body.config)
-    ensure_unames(body.n_players, body.unames)
-    ensure_assignees(body.n_players, body.assignees)
 
     with Admin() as admin:
-        if admin.rooms[roomname]["sname"] is not None:
+        room = admin.rooms[roomname]
+
+        if room["sname"] is not None:
             raise HTTPException(
                 status_code=400, detail="Room already has an active session"
             )
 
+        config = body.config or room["config"]
+
+    if not config:
+        raise HTTPException(
+            status_code=400, detail="No config given and room has no default config"
+        )
+
+    ensure_config_exists(config)
+    ensure_unames(body.n_players, body.unames)
+    ensure_assignees(body.n_players, body.assignees)
+
     settings_parsed = (
         body.settings
         if body.settings is not None
-        else u.CONFIGS_EXTRA.get(body.config, {}).get("settings", {})
+        else u.CONFIGS_EXTRA.get(config, {}).get("settings", {})
     )
 
     assignees_list: list[Any] = body.assignees or []
@@ -1388,7 +1434,7 @@ async def create_session_in_room(
         with bad_request():
             sid = c.create_session(
                 admin,
-                body.config,
+                config,
                 sname=body.sname,
                 settings=settings_parsed,
             )
@@ -1476,6 +1522,8 @@ async def get_dashboard(
     sessions = a.sessions()
 
     return {
+        "uproot_version": u.__version__,
+        "nudge_announcements": a.nudge_announcements(),
         "configs": a.configs(),
         "rooms": a.rooms(),
         "active_sessions": {
@@ -1559,8 +1607,8 @@ async def get_auth_sessions(
     return a.get_active_auth_sessions()
 
 
-@router.delete("/auth/tokens/current/")
-async def revoke_current_auth_session(
+@router.post("/auth/logout/")
+async def revoke_auth_session(
     body: AuthToken,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
@@ -1573,12 +1621,13 @@ async def revoke_current_auth_session(
     return {"user": session["user"], "revoked": revoked}
 
 
-@router.delete("/auth/tokens/")
-async def revoke_current_user_auth_sessions(
+@router.post("/auth/logout-all/")
+async def revoke_token_user_auth_sessions(
     body: AuthToken,
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
-    """Revoke all browser admin sessions for the user named by one token."""
+    """Revoke all browser admin sessions for the token's user, matching
+    /admin/status/logout-all/."""
     session = a.from_cookie(body.auth_token)
     if not session["user"]:
         raise HTTPException(status_code=404, detail="Auth token not found")

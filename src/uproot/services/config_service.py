@@ -3,6 +3,7 @@
 
 """Configuration management service."""
 
+from time import perf_counter as now
 from time import time
 from typing import Any, cast
 
@@ -11,6 +12,7 @@ from packaging.version import InvalidVersion, Version
 from sortedcontainers import SortedDict
 
 import uproot as u
+import uproot.deployment as d
 import uproot.storage as s
 
 
@@ -91,6 +93,17 @@ async def announcements() -> dict[str, Any]:
     data["versionAnnouncement"] = version_announcements.get(u.__version__)
 
     return data
+
+
+def nudge_announcements() -> bool:
+    """Whether the admin UI should nudge admins to check announcements."""
+    if d.UPSTREAM and not d.PUBLIC_DEMO and now() - d.PROCESS_START > 60:
+        with s.Admin() as admin:
+            queried = admin.get("announcements_queried")
+
+        return queried is None or time() - queried > 7 * 86400
+
+    return False
 
 
 async def dismiss_announcements() -> None:

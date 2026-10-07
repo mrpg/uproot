@@ -64,6 +64,10 @@ async def insert_fields(
     """Insert fields into player objects."""
     players_exist(sname, unames, False)
 
+    for k in fields:
+        if not k.isidentifier():
+            raise ValueError(f"Field name {k!r} is not a valid identifier")
+
     for uname in unames:
         pid = t.PlayerIdentifier(sname, uname)
 

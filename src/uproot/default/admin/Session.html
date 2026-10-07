@@ -612,7 +612,7 @@
     function saveSettings() {
         try {
             const settings = JSON.parse(uproot.looseJSONtoJSON(I("settings-input").value));
-            uproot.invoke("update_settings", uproot.vars.sname, settings).then(uproot.reload);
+            uproot.invoke("update_settings", uproot.vars.sname, { settings }).then(uproot.reload);
         } catch (error) {
             uproot.error(_("The settings you entered cannot be properly encoded as JSON."));
         }
