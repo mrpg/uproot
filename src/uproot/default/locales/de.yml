@@ -154,6 +154,9 @@
 ? 'Download database dump'
 : 'Datenbank-Dump herunterladen'
 
+? 'Download project code'
+: 'Projektcode herunterladen'
+
 ? 'Existing session'
 : 'Vorhandene Session'
 
@@ -334,8 +337,14 @@
 ? 'This creates a complete machine-readable record of all data.'
 : 'Dies erstellt eine vollständige, maschinenlesbare Kopie aller Daten.'
 
+? 'This creates an archive of all project files that are not excluded by <code>.gitignore</code>.'
+: 'Dies erstellt ein Archiv aller Projektdateien, die nicht per <code>.gitignore</code> ausgeschlossen sind.'
+
 ? 'This opens a new browser tab displaying the current pages of the selected players.'
 : 'Dies öffnet einen neuen Browser-Tab mit den aktuellen Seiten der ausgewählten Spieler.'
+
+? 'This requires a <code>.gitignore</code> file in the project directory.'
+: 'Dafür muss im Projektverzeichnis eine <code>.gitignore</code>-Datei liegen.'
 
 ? 'This room is associated with the following config'
 : 'Dieser Raum ist mit der folgenden Konfiguration verknüpft'

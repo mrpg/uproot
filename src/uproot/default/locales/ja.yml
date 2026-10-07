@@ -154,6 +154,9 @@
 ? 'Download database dump'
 : 'データベースダンプをダウンロード'
 
+? 'Download project code'
+: 'プロジェクトコードをダウンロード'
+
 ? 'Existing session'
 : '既存のセッション'
 
@@ -334,8 +337,14 @@
 ? 'This creates a complete machine-readable record of all data.'
 : 'すべてのデータの完全な機械可読レコードを作成します。'
 
+? 'This creates an archive of all project files that are not excluded by <code>.gitignore</code>.'
+: '<code>.gitignore</code> で除外されていないすべてのプロジェクトファイルのアーカイブを作成します。'
+
 ? 'This opens a new browser tab displaying the current pages of the selected players.'
 : '選択したプレイヤーの現在のページを新しいブラウザタブで表示します。'
+
+? 'This requires a <code>.gitignore</code> file in the project directory.'
+: 'プロジェクトディレクトリに <code>.gitignore</code> ファイルが必要です。'
 
 ? 'This room is associated with the following config'
 : 'このルームは以下の構成に関連付けられています'

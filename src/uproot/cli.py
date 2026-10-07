@@ -22,6 +22,7 @@ import uvicorn
 
 import uproot.deployment as d
 import uproot.examples as ex
+from uproot import archive
 
 sys.argv[0] = "uproot"
 
@@ -387,6 +388,28 @@ def dump(ctx: click.Context, file: str) -> None:
 
 
 # fmt: off
+@click.command(name="archive", help="Archive project code to file")
+@click.option("--file", required=True, help="Output file.")
+@click.pass_context
+def archive_project(ctx: click.Context, file: str) -> None:
+    root = Path(d.PATH)
+
+    if not archive.available(root):
+        raise click.ClickException(
+            "Project code can only be archived if the project has a .gitignore."
+        )
+
+    if archive.contains(root, Path(file)):
+        raise click.ClickException(
+            "The archive must be stored outside the project, e.g., "
+            f"--file {Path('..') / f'{root.resolve().name}.tar.gz'}"
+        )
+
+    with open(file, "wb") as f:
+        archive.write(root, f)
+
+
+# fmt: off
 @click.command(help="Restore database from file")
 @click.option("--file", required=True, help="Input file.")
 @click.option("--yes", is_flag=True, help="Do not ask for confirmation.")
@@ -451,6 +474,7 @@ def deployment(ctx: click.Context) -> None:
 
 
 cli.add_command(announcements)
+cli.add_command(archive_project)
 cli.add_command(deployment)
 cli.add_command(dump)
 cli.add_command(examples)

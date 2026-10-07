@@ -52,7 +52,7 @@ import uproot.events as e
 import uproot.jobs as j
 import uproot.rooms as r
 import uproot.types as t
-from uproot import i18n, pages
+from uproot import archive, i18n, pages
 from uproot.constraints import ensure
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
@@ -1434,6 +1434,7 @@ async def status(
             await render(
                 "Status.html",
                 {
+                    "archivable": archive.available(Path(d.PATH)),
                     "dbsize": dbsize,
                     "missing": missing,
                     "sessions": sessions,
@@ -1518,6 +1519,23 @@ async def dump(
             "Content-Encoding": "identity",
         },
     )
+
+
+# Project code archive
+
+
+@router.get("/archive/")
+async def project_archive(
+    request: Request,
+    auth: dict[str, Any] = AuthRequired,
+) -> Response:
+    if d.PUBLIC_DEMO:
+        raise HTTPException(
+            status_code=403,
+            detail="Project archives are unavailable in public demo mode",
+        )
+
+    return await archive.download(Path(d.PATH))
 
 
 # Dummy route (for benchmarking)

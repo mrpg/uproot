@@ -51,6 +51,26 @@ Status
                         {% endtranslate %}
                     </a>
                 </p>
+                <h5 class="mb-3 mt-4">{% translate %}Download project code{% endtranslate %}</h5>
+                <p class="text-secondary">
+                    {% translate %}
+                    This creates an archive of all project files that are not excluded by <code>.gitignore</code>.
+                    {% endtranslate %}
+                    {% if not archivable %}
+                    {% translate %}
+                    This requires a <code>.gitignore</code> file in the project directory.
+                    {% endtranslate %}
+                    {% endif %}
+                </p>
+                {% if archivable %}
+                <p class="mb-1">
+                    <a class="btn btn-sm btn-uproot" href="../archive/">
+                        {% translate %}
+                        Download
+                        {% endtranslate %}
+                    </a>
+                </p>
+                {% endif %}
             </div>
         </div>
     </div>

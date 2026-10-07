@@ -34,7 +34,7 @@ import uproot.core as c
 import uproot.deployment as d
 import uproot.rooms as r
 import uproot.types as t
-from uproot import i18n
+from uproot import archive, i18n
 from uproot.pages import BUILTINS
 from uproot.pages import ENV as PENV
 from uproot.pages import static_context
@@ -1676,6 +1676,15 @@ async def dump_database(
             "Content-Encoding": "identity",
         },
     )
+
+
+@router.get("/project/archive/")
+async def project_archive(
+    bauth: None = Depends(a.require_bearer_token),
+) -> StreamingResponse:
+    """Download a reproducible .tar.gz archive of the project code, excluding files
+    ignored by .gitignore."""
+    return await archive.download(Path(d.PATH))
 
 
 @router.get("/status/")
