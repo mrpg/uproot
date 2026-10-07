@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import io
+import os
 import tarfile
 from pathlib import Path
 
@@ -53,17 +54,20 @@ def test_files_respect_gitignore_and_follow_symlinks(tmp_path: Path) -> None:
 
 def test_archive_is_reproducible(tmp_path: Path) -> None:
     root = project(tmp_path)
-    first, second = io.BytesIO(), io.BytesIO()
+    os.utime(root / "main.py", (0, 1700000000))
+    first, second, third = io.BytesIO(), io.BytesIO(), io.BytesIO()
 
     archive.write(root, first)
-    (root / "main.py").touch()
     archive.write(root, second)
+    os.utime(root / "main.py", (0, 1800000000))
+    archive.write(root, third)
 
-    assert first.getvalue() == second.getvalue()
+    assert first.getvalue() == second.getvalue() != third.getvalue()
 
     with tarfile.open(fileobj=io.BytesIO(first.getvalue())) as tar:
         assert "study/app/static/logo.svg" in tar.getnames()
-        assert all(info.mtime == 0 and info.uid == 0 for info in tar.getmembers())
+        assert tar.getmember("study/main.py").mtime == 1700000000
+        assert all(info.uid == 0 for info in tar.getmembers())
 
 
 def test_archive_requires_gitignore(tmp_path: Path) -> None:

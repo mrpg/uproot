@@ -97,9 +97,9 @@ def contains(root: Path, path: Path) -> bool:
 
 
 def write(root: Path, fileobj: IO[bytes]) -> None:
-    """Write a reproducible .tar.gz archive of root to fileobj. Timestamps and
-    ownership are zeroed and modes are normalized, so identical project files
-    always produce identical archives."""
+    """Write a reproducible .tar.gz archive of root to fileobj. Files keep their
+    modification times (in whole seconds), while ownership is zeroed and modes are
+    normalized, so unmodified project files always produce identical archives."""
     prefix = PurePosixPath(root.resolve().name)
 
     with (
@@ -111,6 +111,7 @@ def write(root: Path, fileobj: IO[bytes]) -> None:
             info = tarfile.TarInfo(str(prefix / rel))
             stat = path.stat()
             info.size = stat.st_size
+            info.mtime = int(stat.st_mtime)
             info.mode = 0o755 if stat.st_mode & 0o111 else 0o644
 
             with path.open("rb") as f:
