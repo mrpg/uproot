@@ -1078,8 +1078,7 @@ async def run_session_pipeline_response(
     request: Request,
     sname: str,
     appname: str,
-    filetype: str = Query(default="csv", description="Export file type: csv or jsonl"),
-    bauth: None = Depends(a.require_bearer_token),
+    filetype: str,
 ) -> Response:
     """Run an app pipeline, optionally passing a JSON request body."""
     a.session_exists(sname)
@@ -1123,7 +1122,7 @@ async def get_session_pipeline_run(
     bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
     """Run an app pipeline without custom JSON data, matching the admin UI button."""
-    return await run_session_pipeline_response(request, sname, appname, filetype, bauth)
+    return await run_session_pipeline_response(request, sname, appname, filetype)
 
 
 @router.post("/sessions/{sname}/pipelines/{appname}/runs/")
@@ -1135,7 +1134,7 @@ async def create_session_pipeline_run(
     bauth: None = Depends(a.require_bearer_token),
 ) -> Response:
     """Run an app pipeline, optionally passing a JSON request body."""
-    return await run_session_pipeline_response(request, sname, appname, filetype, bauth)
+    return await run_session_pipeline_response(request, sname, appname, filetype)
 
 
 # =============================================================================
@@ -1436,22 +1435,6 @@ async def get_room_online(
 # =============================================================================
 
 
-@router.get("/dashboard/")
-async def get_dashboard(
-    bauth: None = Depends(a.require_bearer_token),
-) -> dict[str, Any]:
-    """Get the same top-level aggregate shown on the admin dashboard."""
-    sessions = a.sessions()
-
-    return {
-        "configs": a.configs(),
-        "rooms": a.rooms(),
-        "active_sessions": {
-            sname: sinfo for sname, sinfo in sessions.items() if sinfo["active"]
-        },
-    }
-
-
 @router.get("/configs/")
 async def list_configs(
     bauth: None = Depends(a.require_bearer_token),
@@ -1483,6 +1466,22 @@ async def get_config(
 # =============================================================================
 # System API
 # =============================================================================
+
+
+@router.get("/dashboard/")
+async def get_dashboard(
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Get the same top-level aggregate shown on the admin dashboard."""
+    sessions = a.sessions()
+
+    return {
+        "configs": a.configs(),
+        "rooms": a.rooms(),
+        "active_sessions": {
+            sname: sinfo for sname, sinfo in sessions.items() if sinfo["active"]
+        },
+    }
 
 
 @router.get("/announcements/")
