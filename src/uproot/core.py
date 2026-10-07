@@ -30,6 +30,26 @@ def create_admin(admin: s.Storage) -> None:
         admin.rooms = {}
 
 
+def validate_session_settings(
+    admin: s.Storage, config: str, settings: dict[str, Any]
+) -> None:
+    for appname in u.CONFIGS[config]:
+        app = u.APPS[appname]
+
+        if hasattr(app, "validate_session_settings"):
+            validator = app.validate_session_settings
+            ensure(
+                not inspect.iscoroutinefunction(validator),
+                TypeError,
+                "validate_session_settings() must be synchronous",
+            )
+            validator(
+                admin=admin,
+                config=config,
+                settings=settings,
+            )
+
+
 def create_session(
     admin: s.Storage,
     config: str,
@@ -56,21 +76,7 @@ def create_session(
             "Session name already exists",
         )
 
-    for appname in u.CONFIGS[config]:
-        app = u.APPS[appname]
-
-        if hasattr(app, "validate_session_settings"):
-            validator = app.validate_session_settings
-            ensure(
-                not inspect.iscoroutinefunction(validator),
-                TypeError,
-                "validate_session_settings() must be synchronous",
-            )
-            validator(
-                admin=admin,
-                config=config,
-                settings=settings,
-            )
+    validate_session_settings(admin, config, settings)
 
     sid = t.SessionIdentifier(sname)
 

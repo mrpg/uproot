@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import HTTPException
 
 import uproot as u
+import uproot.core as c
 import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
@@ -130,7 +131,8 @@ async def update_settings(sname: t.Sessionname, **newsettings: Any) -> None:
     """Update session settings."""
     session_exists(sname, False)
 
-    with s.Session(sname) as session:
+    with s.Admin() as admin, s.Session(sname) as session:
+        c.validate_session_settings(admin, session.config, newsettings)
         session._uproot_settings = newsettings
 
 

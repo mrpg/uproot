@@ -635,7 +635,9 @@ async def update_session_settings(
 ) -> dict[str, Any]:
     """Update the settings of a session."""
     a.session_exists(sname)
-    await a.update_settings(sname, **body.settings)
+
+    with bad_request():
+        await a.update_settings(sname, **body.settings)
 
     return {"settings": body.settings}
 
