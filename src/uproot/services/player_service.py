@@ -439,12 +439,13 @@ async def send_adminchat(
     """Send an admin chat message to one player."""
     players_exist(sname, [uname], False)
 
-    pid = t.PlayerIdentifier(sname, uname)
-    mid = chat.ensure_adminchat(pid)
     msgtext = message.strip()
 
     if msgtext == "":
         raise ValueError("Admin chat message cannot be empty")
+
+    pid = t.PlayerIdentifier(sname, uname)
+    mid = chat.ensure_adminchat(pid)
 
     if enable_replies is not None:
         chat.set_adminchat_replies(pid, enable_replies)

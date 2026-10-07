@@ -14,6 +14,7 @@ import importlib.metadata
 import io
 import sys
 from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, TypeAlias
 
@@ -258,20 +259,41 @@ def ensure_config_exists(config: str) -> None:
         raise HTTPException(status_code=400, detail="Invalid configuration")
 
 
-def ensure_unames_count(n_players: int, unames: list[str] | None) -> None:
-    if unames is not None and len(unames) != n_players:
+@contextmanager
+def bad_request() -> Iterator[None]:
+    """Translate validation errors raised by admin services into 400s."""
+    try:
+        yield
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def ensure_unames(n_players: int, unames: list[str] | None) -> None:
+    if unames is None:
+        return
+
+    if len(unames) != n_players:
         raise HTTPException(
             status_code=400,
             detail="Number of player names must match n_players",
         )
 
+    if len(set(unames)) != len(unames):
+        raise HTTPException(status_code=400, detail="Duplicate player names")
 
-def ensure_assignees_count(n_players: int, assignees: list[str] | None) -> None:
-    if assignees is not None and len(assignees) > n_players:
+
+def ensure_assignees(n_players: int, assignees: list[str] | None) -> None:
+    if assignees is None:
+        return
+
+    if len(assignees) > n_players:
         raise HTTPException(
             status_code=400,
             detail="Number of assignees cannot exceed n_players",
         )
+
+    if len(set(assignees)) != len(assignees):
+        raise HTTPException(status_code=400, detail="Duplicate assignees")
 
 
 def create_room_payload(
@@ -282,7 +304,7 @@ def create_room_payload(
     open: bool,
     sname: str | None,
 ) -> dict[str, Any]:
-    try:
+    with bad_request():
         return r.room(
             name=name,
             config=config,
@@ -291,8 +313,6 @@ def create_room_payload(
             open=open,
             sname=sname,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 def api_value(value: Any) -> Any:
@@ -518,7 +538,7 @@ async def create_session(
 ) -> dict[str, Any]:
     """Create a new session with the specified configuration and players."""
     ensure_config_exists(body.config)
-    ensure_unames_count(body.n_players, body.unames)
+    ensure_unames(body.n_players, body.unames)
 
     settings_parsed = (
         body.settings
@@ -530,15 +550,13 @@ async def create_session(
         if body.sname and body.sname in admin._uproot_sessions:
             raise HTTPException(status_code=400, detail="Session name already exists")
 
-        try:
+        with bad_request():
             sid = c.create_session(
                 admin,
                 body.config,
                 sname=body.sname,
                 settings=settings_parsed,
             )
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     with t.materialize(sid) as session:
         if body.simulate:
@@ -740,10 +758,8 @@ async def adjust_timeout(
     """Adjust the page timeout for specified players."""
     a.players_exist(sname, body.unames)
 
-    try:
+    with bad_request():
         await a.adjust_timeout(sname, body.unames, body.delta)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return {"adjusted": body.unames, "delta": body.delta}
 
@@ -757,10 +773,8 @@ async def redirect_players(
     """Redirect specified players to an external URL."""
     a.players_exist(sname, body.unames)
 
-    try:
+    with bad_request():
         await a.redirect(sname, body.unames, body.url)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return {"redirected": body.unames, "url": body.url}
 
@@ -800,7 +814,7 @@ async def group_players(
     """Manage group assignments for selected players."""
     a.players_exist(sname, body.unames)
 
-    try:
+    with bad_request():
         return await a.group_players(
             sname,
             body.unames,
@@ -809,8 +823,6 @@ async def group_players(
             body.shuffle,
             body.reload,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/sessions/{sname}/admin-chat/")
@@ -843,7 +855,8 @@ async def send_player_adminchat(
 ) -> dict[str, Any]:
     """Send an admin chat message to one player."""
     a.players_exist(sname, [uname])
-    return await a.send_adminchat(sname, uname, body.message, body.enable_replies)
+    with bad_request():
+        return await a.send_adminchat(sname, uname, body.message, body.enable_replies)
 
 
 @router.patch("/sessions/{sname}/players/{uname}/admin-chat/replies/")
@@ -866,9 +879,10 @@ async def broadcast_adminchat(
 ) -> dict[str, Any]:
     """Send an admin chat message to multiple players at once."""
     a.players_exist(sname, body.unames)
-    return await a.send_adminchat_to_players(
-        sname, body.unames, body.message, body.enable_replies
-    )
+    with bad_request():
+        return await a.send_adminchat_to_players(
+            sname, body.unames, body.message, body.enable_replies
+        )
 
 
 @router.patch("/sessions/{sname}/players/admin-chat/replies/")
@@ -1259,10 +1273,8 @@ async def delete_room(
     """Delete a room (only when no session is associated)."""
     a.room_exists(roomname)
 
-    try:
+    with bad_request():
         await a.delete_room(roomname)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return {"name": roomname, "deleted": True}
 
@@ -1295,10 +1307,8 @@ async def set_room_open(
     """Set a room's open status without requiring disassociation."""
     a.room_exists(roomname)
 
-    try:
+    with bad_request():
         await a.set_room_open(roomname, body.open)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return room_detail(roomname) | {"open": body.open}
 
@@ -1312,10 +1322,8 @@ async def set_room_capacity(
     """Set a room's capacity, even while a session is associated."""
     a.room_exists(roomname)
 
-    try:
+    with bad_request():
         await a.set_room_capacity(roomname, body.capacity)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return room_detail(roomname)
 
@@ -1329,10 +1337,8 @@ async def close_room(
     """Close a room, optionally disassociating its session first."""
     a.room_exists(roomname)
 
-    try:
+    with bad_request():
         await a.close_room(roomname, body.disassociate)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
 
     return room_detail(roomname) | {
         "closed": True,
@@ -1349,8 +1355,8 @@ async def create_session_in_room(
     """Create a new session within a room."""
     a.room_exists(roomname)
     ensure_config_exists(body.config)
-    ensure_unames_count(body.n_players, body.unames)
-    ensure_assignees_count(body.n_players, body.assignees)
+    ensure_unames(body.n_players, body.unames)
+    ensure_assignees(body.n_players, body.assignees)
 
     with Admin() as admin:
         if admin.rooms[roomname]["sname"] is not None:
@@ -1378,15 +1384,13 @@ async def create_session_in_room(
             data.append({"label": label})
 
     with Admin() as admin:
-        try:
+        with bad_request():
             sid = c.create_session(
                 admin,
                 body.config,
                 sname=body.sname,
                 settings=settings_parsed,
             )
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         admin.rooms[roomname]["sname"] = sid.sname
         admin.rooms[roomname]["open"] = True
