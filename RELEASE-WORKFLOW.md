@@ -14,10 +14,9 @@
 # Versioning policy
 
 1. uproot follows [Semantic Versioning](https://semver.org/). Versions are represented by Git tags with the `v` prefix, for example `v1.0.0`.
-1. uproot avoids SemVer pre-release identifiers.
+1. uproot tries to avoid SemVer pre-release identifiers, but if they are used, tags like `vX.Y.Z-rc.I` will be applied.
 1. Versions `0.x.y` are development versions.
 1. Version `1.0.0` is the first release recommended for public use.
-1. Version `1.0.0` may only be released after *(i)* conclusion of a public review (after 2026-09-25) and *(ii)* seven days of inactivity on `main`.
 
 # Versions
 

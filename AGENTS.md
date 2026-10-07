@@ -1,8 +1,8 @@
 - Never run `git add` or `git restore` unless specifically instructed to do so.
 - Examples of how this library is commonly used are available at https://github.com/mrpg/uproot-examples
+- The docs are available at https://github.com/mrpg/uproot-docs and the website is https://uproot.science
 - Authors of apps and templates are trusted.
 - Never start any identifier whatsoever with an underscore.
-- Always feel free to utterly break backwards compatibility. Work with reckless abandon.
 - When asked to review code, output "OK" on a separate line at the end if the code is acceptable.
-- Do not use `uv run` to run tests, linters, or other dev tools. Assume a standard venv is activated and invoke tools directly (e.g., `pytest`, `ruff`, `black`, `mypy`).
+- Use `uv run` to run tests, linters, or other dev tools, but always with a strict reasonable timeout.
 - Tools like `ruff` and `black` must NOT be run in read-only mode. Allow them to directly fix files.
