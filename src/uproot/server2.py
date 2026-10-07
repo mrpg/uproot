@@ -1554,6 +1554,7 @@ FUNS = {
     "close_room": a.close_room,
     "delete_room": a.delete_room,
     "disassociate": a.disassociate,
+    "dismiss_announcements": a.dismiss_announcements,
     "everything_from_session_display": a.everything_from_session_display,
     "fields_from_all": a.fields_from_all,
     "flip_active": a.flip_active,

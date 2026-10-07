@@ -504,6 +504,12 @@ function praise() {
     });
 }
 
+function dismissAnnouncements() {
+    uproot.invoke("dismiss_announcements").then(() => {
+        document.getElementById("nudge-announcements")?.remove();
+    });
+}
+
 function announcements() {
     uproot.invoke("announcements").then((data) => {
         if (data.error) {

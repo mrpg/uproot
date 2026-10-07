@@ -72,6 +72,11 @@ Status
                         {% translate %}
                         You have not checked for important announcements recently.
                         {% endtranslate %}
+                        <button type="button" class="btn btn-link btn-sm d-block link-subtle p-0 pt-1" onclick="dismissAnnouncements()">
+                            {% translate %}
+                            Dismiss nudge
+                            {% endtranslate %}
+                        </button>
                     </div>
                 </div>
                 {% endif %}

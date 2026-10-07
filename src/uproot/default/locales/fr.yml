@@ -1117,6 +1117,9 @@
 ? 'Clicking this button makes your uproot server check whether the developers have posted any relevant announcements.'
 : 'Cliquer sur ce bouton fait vérifier par votre serveur uproot si les développeurs ont publié des annonces pertinentes.'
 
+? 'Dismiss nudge'
+: 'Masquer le rappel'
+
 ? 'Conceal password'
 : 'Masquer le mot de passe'
 

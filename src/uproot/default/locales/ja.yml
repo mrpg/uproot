@@ -1117,6 +1117,9 @@
 ? 'Clicking this button makes your uproot server check whether the developers have posted any relevant announcements.'
 : 'このボタンを押した場合にのみ、uprootサーバーが開発者からの関連するお知らせの有無を確認します。'
 
+? 'Dismiss nudge'
+: '通知を閉じる'
+
 ? 'Conceal password'
 : 'パスワードを隠す'
 

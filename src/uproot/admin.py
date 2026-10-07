@@ -36,6 +36,7 @@ from uproot.services.config_service import (
     announcements,
     config_summary,
     configs,
+    dismiss_announcements,
     displaystr,
     praise,
 )
@@ -133,6 +134,7 @@ __all__ = [
     "data_display",
     "delete_room",
     "disassociate",
+    "dismiss_announcements",
     "displaystr",
     "ensure_globals",
     "ensure_session_available_for_room",

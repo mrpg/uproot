@@ -90,6 +90,12 @@ async def announcements() -> dict[str, Any]:
     return data
 
 
+async def dismiss_announcements() -> None:
+    """Silence the announcements nudge for ten years."""
+    with s.Admin() as admin:
+        admin.announcements_queried = time() + 10 * 365.25 * 86400
+
+
 async def praise() -> str:
     """Fetch praise message."""
     PRAISE_URL = "https://uproot.science/praise/"
