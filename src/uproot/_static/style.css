@@ -753,10 +753,24 @@ input[type="radio"].form-check-input {
     opacity: 0.9;
 }
 #uproot-buddy button {
+    align-items: center;
     background: none;
     border: none;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     padding: 0;
+}
+.uproot-buddy-label {
+    background-color: #fff;
+    border: 1px solid var(--bs-uproot);
+    border-radius: var(--bs-border-radius-pill);
+    color: var(--bs-uproot);
+    font-size: 0.8rem;
+    font-weight: 600;
+    max-width: 10rem;
+    padding: 0.125rem 0.625rem;
 }
 
 #uproot-button-wrapper {

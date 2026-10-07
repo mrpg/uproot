@@ -75,8 +75,10 @@ TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 # template overrides them with, e.g., {% set disable_uproot_fonts = True %}.
 # Change values in place, e.g., TEMPLATE_DEFAULTS["disable_alpinejs"] = True.
 # "buddy_image" replaces the chat buddy with a file found by static().
+# "buddy_label" replaces the chat buddy's label and the chat's title.
 TEMPLATE_DEFAULTS: dict[str, bool | str | None] = {
     "buddy_image": None,
+    "buddy_label": None,
     "buttons": True,
     "disable_alpinejs": False,
     "disable_auto_start": False,

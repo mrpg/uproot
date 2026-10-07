@@ -250,9 +250,6 @@
 ? 'room is Open'
 : '受付中'
 
-? 'Open Chat with Research Coordinator'
-: 'リサーチコーディネーターとのチャットを開く'
-
 ? 'Package'
 : 'パッケージ'
 

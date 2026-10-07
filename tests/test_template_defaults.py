@@ -61,6 +61,20 @@ async def test_buddy_image_uses_static(defaults):
     assert '/mybuddy.png"' in html  # missing file, so no ?v=
 
 
+async def test_builtin_buddy_label_by_default(defaults):
+    html = await render_page("RoomFull.html")
+
+    assert html.count("Chat with Research Coordinator") == 2
+
+
+async def test_buddy_label_replaces_label_and_title(defaults):
+    defaults["buddy_label"] = "Messages from the study team"
+    html = await render_page("RoomFull.html")
+
+    assert "Chat with Research Coordinator" not in html
+    assert html.count("Messages from the study team") == 2
+
+
 def test_shipped_defaults_are_valid():
     server.validate_template_defaults()
 
@@ -72,6 +86,7 @@ def test_shipped_defaults_are_valid():
         {"disable_alpinejs": "yes"},
         {"disable_alpinejs": 1},
         {"buddy_image": True},
+        {"buddy_label": 1},
     ],
 )
 def test_invalid_defaults_are_rejected(defaults, change):

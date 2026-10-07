@@ -121,9 +121,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    {% translate %}
-                    Chat with Research Coordinator
-                    {% endtranslate %}
+                    {% if buddy_label %}{{ buddy_label }}{% else %}{% translate %}Chat with Research Coordinator{% endtranslate %}{% endif %}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -178,9 +176,10 @@
 
 <div id="uproot-buddy" hidden>
     <button type="button"
-        onclick="uproot.adminMessage()"
-        aria-label="{% translate %}Open Chat with Research Coordinator{% endtranslate %}"
-        title="{% translate %}Open Chat with Research Coordinator{% endtranslate %}">
+        onclick="uproot.adminMessage()">
+        <span class="uproot-buddy-label">
+            {% if buddy_label %}{{ buddy_label }}{% else %}{% translate %}Chat with Research Coordinator{% endtranslate %}{% endif %}
+        </span>
         {% if buddy_image %}
         <img
             src="{{ static(buddy_image) }}"
@@ -190,8 +189,8 @@
         <img
             src="{{ internalstatic('buddy.svg') }}"
             loading="lazy"
-            width="142"
-            height="142"
+            width="80"
+            height="80"
             alt="">
         {% endif %}
     </button>

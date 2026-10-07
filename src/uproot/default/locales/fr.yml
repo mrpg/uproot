@@ -250,9 +250,6 @@
 ? 'room is Open'
 : 'Ouverte'
 
-? 'Open Chat with Research Coordinator'
-: 'Ouvrir la discussion avec le coordinateur de recherche'
-
 ? 'Package'
 : 'Paquet'
 
