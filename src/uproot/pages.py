@@ -833,7 +833,7 @@ def path2page(path: str) -> type[Page]:
     if path in u.PAGES:
         return u.PAGES[path]
 
-    # Smithereens internal pages (#RandomStart, #{, etc.)
+    # Smithereens internal pages (#RandomOrderStart, #{, etc.)
     if path.startswith("#"):
         from uproot.smithereens import INTERNAL_PAGES
 
