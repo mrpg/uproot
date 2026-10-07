@@ -1490,10 +1490,17 @@ async def get_announcements(
     bauth: None = Depends(a.require_bearer_token),
 ) -> dict[str, Any]:
     """Fetch announcements from upstream."""
-    try:
-        return await a.announcements()
-    except Exception:  # noqa: BLE001
-        return {"error": "Failed to fetch announcements"}
+    return await a.announcements()
+
+
+@router.post("/announcements/dismiss/")
+async def dismiss_announcements(
+    bauth: None = Depends(a.require_bearer_token),
+) -> dict[str, Any]:
+    """Silence the admin UI's nudge to check announcements."""
+    await a.dismiss_announcements()
+
+    return {"dismissed": True}
 
 
 @router.get("/praise/")
