@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
+from starlette.routing import Match
 
 import uproot as u
 import uproot.core as c
@@ -61,6 +62,7 @@ def test_admin_api_uses_plural_resource_paths() -> None:
         f"{prefix}/auth/logout/",
         f"{prefix}/auth/logout-all/",
         f"{prefix}/sessions/{{sname}}/players/{{uname}}/",
+        f"{prefix}/sessions/{{sname}}/online-players/",
     }
 
     assert expected_paths <= paths
@@ -68,6 +70,7 @@ def test_admin_api_uses_plural_resource_paths() -> None:
     assert not any(path.startswith(f"{prefix}/room/") for path in paths)
     assert f"{prefix}/configs/{{cname}}/summary/" not in paths
     assert not any(path.startswith(f"{prefix}/auth/tokens/") for path in paths)
+    assert f"{prefix}/sessions/{{sname}}/players/online/" not in paths
 
     pipeline_path = f"{prefix}/sessions/{{sname}}/pipelines/{{appname}}/runs/"
     pipeline_methods = set()
@@ -327,6 +330,34 @@ async def test_get_player_returns_requested_fields() -> None:
         await api.get_player(sname, "nobody", ["score"], None)
 
     assert excinfo.value.status_code == 404
+
+
+async def test_online_username_reaches_the_player_detail_route() -> None:
+    reset_admin_state()
+    sname = f"api-online-{uuid4().hex[:8]}"
+    await api.create_session(
+        api.SessionCreate(
+            config="test-api", n_players=1, sname=sname, unames=["online"]
+        ),
+        None,
+    )
+
+    assert await api.get_player(sname, "online", ["id"], None) == {"id": 0}
+
+    for path, expected_endpoint in (
+        (f"{api.router.prefix}/sessions/{sname}/players/online/", api.get_player),
+        (
+            f"{api.router.prefix}/sessions/{sname}/online-players/",
+            api.get_online_players,
+        ),
+    ):
+        scope = {"type": "http", "method": "GET", "path": path, "root_path": ""}
+        matched_route = next(
+            route
+            for route in api.router.routes
+            if route.matches(scope)[0] is Match.FULL
+        )
+        assert matched_route.endpoint is expected_endpoint
 
 
 async def test_session_active_and_testing_are_set_explicitly() -> None:

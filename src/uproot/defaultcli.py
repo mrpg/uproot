@@ -230,7 +230,7 @@ Examples:
   uproot api dashboard                         # Get dashboard aggregate
   uproot api status                            # Get status
   uproot api sessions/mysession/players        # Get player fields
-  uproot api sessions/mysession/players/online # Get online players
+  uproot api sessions/mysession/online-players # Get online players
   uproot api sessions/mysession/pipelines      # List pipelines
 
   uproot api -X POST sessions -d '{"config":"myconfig","n_players":4}'

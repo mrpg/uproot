@@ -674,7 +674,7 @@ async def list_players(
     return await a.fields_from_all(sname, fields)
 
 
-@router.get("/sessions/{sname}/players/online/")
+@router.get("/sessions/{sname}/online-players/")
 async def get_online_players(
     sname: str,
     bauth: None = Depends(a.require_bearer_token),
