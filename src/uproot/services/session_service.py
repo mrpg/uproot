@@ -25,9 +25,9 @@ def session_exists(sname: t.Sessionname, raise_http: bool = True) -> None:
     with s.Admin() as admin:
         if sname not in admin._uproot_sessions:
             if raise_http:
-                raise HTTPException(status_code=400, detail="Invalid session")
+                raise HTTPException(status_code=404, detail="Session not found")
             else:
-                raise ValueError("Invalid session")
+                raise ValueError("Session not found")
 
 
 def sessions() -> dict[str, dict[str, Any]]:

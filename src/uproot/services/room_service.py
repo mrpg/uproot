@@ -25,9 +25,9 @@ def room_exists(roomname: str, raise_http: bool = True) -> None:
     with s.Admin() as admin:
         if roomname not in admin.rooms:
             if raise_http:
-                raise HTTPException(status_code=400, detail="Invalid room")
+                raise HTTPException(status_code=404, detail="Room not found")
             else:
-                raise ValueError("Invalid room")
+                raise ValueError("Room not found")
 
 
 def rooms() -> SortedDict[str, dict[str, Any]]:
