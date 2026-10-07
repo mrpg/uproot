@@ -119,6 +119,7 @@ iban = [
 
 [tool.mypy]
 files = ["src"]
+exclude = ["^build/", "^tests/"]
 python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true

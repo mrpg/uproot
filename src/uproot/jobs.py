@@ -90,7 +90,9 @@ def spawn(coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
     Tasks do not survive server restarts. A task that outlives a reload of the
     app module it was defined in raises when it next touches that module.
     """
-    task = asyncio.create_task(coro, name=coro.__qualname__)
+    task = asyncio.create_task(
+        coro, name=getattr(coro, "__qualname__", type(coro).__name__)
+    )
     BACKGROUND_TASKS.add(task)
     task.add_done_callback(reap_spawned)
 
