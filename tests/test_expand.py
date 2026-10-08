@@ -1529,3 +1529,33 @@ def test_rounds_sequential_resets_player_round():
     asyncio.run(SmithereensRounds.next(mock_player))
     assert mock_player.round == 2
     assert mock_player.round_nested == [2]
+
+
+def test_rounds_nested_in_repeat_keeps_counting():
+    """Rounds() inside Repeat() does not reset player.round"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    mock_player = Mock(round=1)  # Set by #RepeatStart
+    mock_player.page_order = [
+        "#{",
+        "#RepeatStart",
+        "#{",
+        "#RoundsReset",
+        "#{",
+        "#RoundStart",  # pos 5
+        "A",
+        "#RoundEnd",
+        "#}",
+        "#}",
+        "#RepeatEnd",
+        "#}",
+    ]
+    mock_player.show_page = 5
+
+    asyncio.run(SmithereensRounds.next(mock_player))
+
+    assert mock_player.round == 2
+    assert mock_player.round_nested == [1]

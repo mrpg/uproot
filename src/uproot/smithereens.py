@@ -626,9 +626,9 @@ class Rounds(t.SmoothOperator):
 
         player.round_nested = round_nested
 
-        # Reset player.round at the beginning of the Rounds sequence,
+        # Reset player.round at the beginning of an outermost Rounds sequence,
         # otherwise increment it.
-        if round_nested == [1]:
+        if round_nested == [1] and loop_depth(player.page_order, player.show_page) == 0:
             player.round = 1
         else:
             if not hasattr(player, "round") or player.round is None:
