@@ -1137,6 +1137,30 @@ def test_repeat_continue_maybe_multiple_iterations():
     ]
 
 
+def test_repeat_continue_maybe_repeats_outer_of_nested_repeat():
+    """The outer #RepeatEnd of Repeat(A, Repeat(B)) repeats the outer iteration"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    iteration = ["#RepeatStart", "A", "#{", "#RepeatStart", "B", "#RepeatEnd", "#}"]
+    mock_player = Mock(add_round=True)
+    mock_player.page_order = ["#{", *iteration, "#RepeatEnd", "#}"]
+    mock_player.show_page = 8  # Outer #RepeatEnd
+
+    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+
+    assert mock_player.page_order == [
+        "#{",
+        *iteration,
+        "#RepeatEnd",
+        *iteration,
+        "#RepeatEnd",
+        "#}",
+    ]
+
+
 def test_repeat_continue_maybe_raises_without_start_marker():
     """Test that Repeat.continue_maybe() raises if #RepeatStart not found"""
     import asyncio

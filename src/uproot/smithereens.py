@@ -656,9 +656,16 @@ class Repeat(t.SmoothOperator):
     async def continue_maybe(page, player: Storage) -> None:
         end_ix = player.page_order.index("#RepeatEnd", player.show_page)
 
+        depth = 0  # Skip nested Repeat sequences
+
         for start_ix in range(end_ix - 1, -1, -1):
-            if player.page_order[start_ix] == "#RepeatStart":
-                break
+            if player.page_order[start_ix] == "#RepeatEnd":
+                depth += 1
+            elif player.page_order[start_ix] == "#RepeatStart":
+                if depth == 0:
+                    break
+
+                depth -= 1
         else:
             raise RuntimeError("Could not find #RepeatStart")
 
