@@ -967,7 +967,9 @@ def test_repeat_next_initializes_round():
 
     from uproot.smithereens import Repeat as SmithereensRepeat
 
-    mock_player = Mock(spec=[])
+    mock_player = Mock(spec=["page_order", "show_page"])
+    mock_player.page_order = ["#{", "#RepeatStart", "A", "#RepeatEnd", "#}"]
+    mock_player.show_page = 1
 
     asyncio.run(SmithereensRepeat.next(mock_player))
 
@@ -982,11 +984,45 @@ def test_repeat_next_increments_round():
     from uproot.smithereens import Repeat as SmithereensRepeat
 
     mock_player = Mock()
+    mock_player.page_order = [
+        "#{",
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+        "#RepeatStart",
+        "A",
+        "#RepeatEnd",
+        "#}",
+    ]
+    mock_player.show_page = 4
     mock_player.round = 5
 
     asyncio.run(SmithereensRepeat.next(mock_player))
 
     assert mock_player.round == 6
+
+
+def test_repeat_next_resets_round_unless_nested():
+    """An outermost Repeat() starts again at round 1, a nested one keeps counting"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock(round=10)  # Left over from an earlier loop, e.g., in another app
+    mock_player.page_order = ["#{", "#RepeatStart", "A", "#RepeatEnd", "#}"]
+    mock_player.show_page = 1
+
+    asyncio.run(SmithereensRepeat.next(mock_player))
+
+    assert mock_player.round == 1
+
+    mock_player.page_order = ["#{", "#RoundStart", *mock_player.page_order]
+    mock_player.show_page = 3
+
+    asyncio.run(SmithereensRepeat.next(mock_player))
+
+    assert mock_player.round == 2
 
 
 def test_repeat_continue_maybe_adds_pages_when_add_round_true():

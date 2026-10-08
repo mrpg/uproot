@@ -550,6 +550,15 @@ class Random(t.SmoothOperator):
         player.page_order[start_ix + 1 : end_ix] = shuffled_pages
 
 
+def loop_depth(page_order: list[str], ix: int) -> int:
+    """Number of Rounds/Repeat iterations that enclose position ix"""
+    before = page_order[:ix]
+
+    return sum(p in ("#RoundStart", "#RepeatStart") for p in before) - sum(
+        p in ("#RoundEnd", "#RepeatEnd") for p in before
+    )
+
+
 class Rounds(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike, n: int) -> None:
         # Call parent __init__ before setting custom pages
@@ -664,7 +673,14 @@ class Repeat(t.SmoothOperator):
 
     @classmethod
     async def next(page, player: Storage) -> None:
-        if not hasattr(player, "round") or player.round is None:
+        # Reset player.round at the beginning of an outermost Repeat sequence,
+        # otherwise increment it.
+        outermost_start = (
+            player.page_order[player.show_page - 1] == "#{"
+            and loop_depth(player.page_order, player.show_page) == 0
+        )
+
+        if outermost_start or not hasattr(player, "round") or player.round is None:
             player.round = 1
         else:
             player.round += 1
