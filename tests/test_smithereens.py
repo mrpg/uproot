@@ -11,7 +11,7 @@ from uproot.server1 import (
     advance_to_next_visible_page,
     run_current_page_after_hooks,
 )
-from uproot.smithereens import Repeat, data_uri, move_to_page, rng
+from uproot.smithereens import Repeat, data_uri, move_to_end, move_to_page, rng
 from uproot.stable import decode, encode
 
 
@@ -91,6 +91,19 @@ def test_move_to_page_moves_players_forward():
 
     with s.Player(*pid) as player:
         assert player.show_page == 1
+
+
+def test_move_to_end_moves_players_to_the_end():
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", page2path(Target)]
+        player.show_page = 0
+
+    move_to_end(s.Player(*pid), reload_=False)
+
+    with s.Player(*pid) as player:
+        assert player.show_page == 2
 
 
 async def test_repeat_does_not_intercept_move_to_page(monkeypatch):

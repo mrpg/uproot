@@ -342,7 +342,8 @@ def transition_to_page(
 
 @flexible
 def transition_to_end(player: Storage, reload_: bool = True) -> None:
-    player.show_page = len(player.page_order)
+    with player:
+        player.show_page = len(player.page_order)
 
     if reload_:
         reload(player)
