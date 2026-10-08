@@ -613,11 +613,14 @@ def enter_round(player: Storage) -> None:
 
 
 def loops(item: Any, nested: bool = False) -> Iterable[tuple[Any, bool]]:
-    """All Rounds and Repeat in item, and whether each is nested in another"""
+    """All loops that can run in item, and whether each is nested in another"""
     if isinstance(item, list):
         for page in item:
             yield from loops(page, nested)
     elif isinstance(item, t.SmoothOperator):
+        if isinstance(item, Rounds) and item.n <= 0:
+            return
+
         is_loop = isinstance(item, (Rounds, Repeat))
 
         if is_loop:
@@ -629,7 +632,9 @@ def loops(item: Any, nested: bool = False) -> Iterable[tuple[Any, bool]]:
 
 def max_loops(item: Any) -> int:
     """Maximum number of outermost Rounds and Repeat a participant runs through"""
-    if isinstance(item, (Rounds, Repeat)):
+    if isinstance(item, Rounds):
+        return int(item.n > 0)
+    elif isinstance(item, Repeat):
         return 1
     elif isinstance(item, list):
         return sum(map(max_loops, item))

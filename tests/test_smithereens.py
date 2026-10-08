@@ -499,3 +499,11 @@ def test_check_blocks_demands_blocks_where_rounds_could_mix():
 
     with pytest.raises(ValueError, match="identifier"):
         Rounds(Target, n=2, block="two words")
+
+
+def test_check_blocks_ignores_empty_rounds():
+    check_blocks("app", [Rounds(Target, n=0), Rounds(Target, n=2)])
+    check_blocks("app", [Rounds(Rounds(Target, n=1, block="unused"), n=0)])
+
+    with pytest.raises(ValueError, match="needs a block"):
+        check_blocks("app", [Rounds(Target, n=0), Rounds(Target, n=2), Repeat(Target)])
