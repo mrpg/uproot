@@ -1,5 +1,7 @@
 import random
 
+import pytest
+
 import uproot as u
 import uproot.core as c
 import uproot.deployment as d
@@ -10,13 +12,24 @@ from uproot.server1 import (
     PageTransitionState,
     advance_to_next_visible_page,
     run_current_page_after_hooks,
+    show_page,
 )
+from uproot.services import player_service as ps
 from uproot.smithereens import Repeat, data_uri, move_to_end, move_to_page, rng
 from uproot.stable import decode, encode
 
 
 class Target(t.Page):
     pass
+
+
+class GetRequest:
+    method = "GET"
+    app = None
+
+
+async def render_name(app, request, player, page, *args):
+    return page.__name__
 
 
 def create_player() -> t.PlayerIdentifier:
@@ -104,6 +117,56 @@ def test_move_to_end_moves_players_to_the_end():
 
     with s.Player(*pid) as player:
         assert player.show_page == 2
+
+
+@pytest.mark.parametrize("how", ["move_to_end", "put_to_end", "advance_by_one"])
+async def test_players_put_at_the_end_leave_their_app(how):
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", page2path(Target)]
+        player.show_page = 1
+        player.app = "test"
+
+    if how == "move_to_end":
+        move_to_end(s.Player(*pid), reload_=False)
+    elif how == "put_to_end":
+        await ps.put_to_end(pid.sname, [pid.uname])
+    else:
+        await ps.advance_by_one(pid.sname, [pid.uname])
+
+    with s.Player(*pid) as player:
+        assert player.show_page == len(player.page_order)
+        assert player.app is None
+
+
+async def test_advancing_players_within_their_page_order_keeps_their_app():
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", page2path(Target), page2path(Target)]
+        player.show_page = 1
+        player.app = "test"
+
+    await ps.advance_by_one(pid.sname, [pid.uname])
+
+    with s.Player(*pid) as player:
+        assert player.show_page == 2
+        assert player.app == "test"
+
+
+async def test_loading_the_end_page_runs_its_hook(monkeypatch):
+    monkeypatch.setattr("uproot.server1.render", render_name)
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First"]
+        player.started = True
+        player.app = "test"
+        player.show_page = 1  # At the end without its hook having run
+
+        assert await show_page(GetRequest(), player) == "End"
+        assert player.app is None
 
 
 async def test_repeat_does_not_intercept_move_to_page(monkeypatch):

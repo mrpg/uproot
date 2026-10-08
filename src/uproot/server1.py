@@ -383,7 +383,8 @@ async def show_page(
                 # Page wants to be skipped (e.g. InternalPage).
                 state.proceed = True
         elif len(player.page_order) == player.show_page:
-            pass
+            # The same holds for players moved to the end
+            await call_before_always_once(page, player, player.show_page)
         else:
             raise HTTPException(status_code=501)
     elif request.method == "POST":

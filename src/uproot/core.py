@@ -385,6 +385,19 @@ def make_start_app(appname: str) -> type[t.InternalPage]:
     return StartApp
 
 
+def reach_end(player: s.Storage) -> None:
+    """Run the End page's hook for a player who was put at the end directly
+    (e.g., by an admin) instead of navigating there. The hook cannot wait until
+    the player loads the End page, which players who dropped out never do."""
+    t.optional_call_once(
+        u.PAGES["End.html"],
+        "before_always_once",
+        storage=player,
+        show_page=len(player.page_order),
+        player=player,
+    )
+
+
 def make_landing_page(app: Any, appname: str) -> type[t.InternalPage]:
     from uproot.pages import app_or_default
 
