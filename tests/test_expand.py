@@ -1161,6 +1161,69 @@ def test_repeat_continue_maybe_repeats_outer_of_nested_repeat():
     ]
 
 
+def test_repeat_copies_iteration_before_between_draws():
+    """Between() inside Repeat() offers all options again in the next iteration"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.pages import page2path
+    from uproot.smithereens import Between as SmithereensBetween
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    ops = [SmithereensRepeat(SmithereensBetween(A, B))]
+    mock_player = Mock(add_round=True, between_showed=None)
+    mock_player.page_order = [page2path(p) for p in expand(ops)]
+
+    for marker, hook in [
+        ("#RepeatStart", SmithereensRepeat.next),
+        ("#BetweenStart", SmithereensBetween.start),
+        ("#RepeatEnd", SmithereensRepeat.continue_maybe),
+    ]:
+        mock_player.show_page = mock_player.page_order.index(marker)
+        asyncio.run(hook(mock_player))
+
+    next_iteration = mock_player.page_order[mock_player.show_page + 1 :]
+    assert page2path(A) in next_iteration
+    assert page2path(B) in next_iteration
+
+
+def test_repeat_copies_nested_repeat_with_one_iteration():
+    """Iterations added to an inner Repeat() are not copied by the outer one"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.smithereens import Repeat as SmithereensRepeat
+
+    mock_player = Mock()
+    mock_player.get = lambda attr, default=None: getattr(mock_player, attr, default)
+    mock_player.page_order = [
+        "#{",
+        "#RepeatStart",  # pos 1: outer
+        "A",
+        "#{",
+        "#RepeatStart",  # pos 4: inner
+        "B",
+        "#RepeatEnd",
+        "#}",
+        "#RepeatEnd",
+        "#}",
+    ]
+    pristine = mock_player.page_order[1:9]
+
+    for show_page, hook, add_round in [
+        (1, SmithereensRepeat.next, None),  # Outer iteration 1
+        (4, SmithereensRepeat.next, None),  # Inner iteration 1
+        (6, SmithereensRepeat.continue_maybe, True),
+        (7, SmithereensRepeat.next, None),  # Inner iteration 2
+        (9, SmithereensRepeat.continue_maybe, False),
+        (11, SmithereensRepeat.continue_maybe, True),  # Outer end
+    ]:
+        mock_player.show_page, mock_player.add_round = show_page, add_round
+        asyncio.run(hook(mock_player))
+
+    assert mock_player.page_order[12:20] == pristine
+
+
 def test_repeat_continue_maybe_raises_without_start_marker():
     """Test that Repeat.continue_maybe() raises if #RepeatStart not found"""
     import asyncio
