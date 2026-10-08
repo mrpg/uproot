@@ -846,6 +846,7 @@ def test_between_selects_whole_rounds():
 
     shown = [p for p in mock_player.page_order if not p.startswith("#")]
     assert shown in ([page2path(A)] * 2, [page2path(B)] * 2)
+    assert mock_player.between_showed == [shown[0]]
 
 
 def test_random_keeps_rounds_together():

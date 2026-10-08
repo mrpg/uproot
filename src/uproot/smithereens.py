@@ -775,8 +775,8 @@ class Between(t.SmoothOperator):
         # Randomly select exactly one group
         selected_group = rng().choice(grouped_pages)
 
-        # Record which page was selected (filter out bracket markers)
-        selected_page = next((p for p in selected_group if p not in ("#{", "#}")), None)
+        # Record which page was selected (filter out internal markers)
+        selected_page = next((p for p in selected_group if not p.startswith("#")), None)
         if selected_page is not None:
             if not hasattr(player, "between_showed") or player.between_showed is None:
                 player.between_showed = []
