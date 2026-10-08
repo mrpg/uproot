@@ -374,17 +374,22 @@ def expand(pages: Any) -> list[type[t.Page]]:
     return result
 
 
+def switch_app(player: s.Storage, appname: str | None) -> None:
+    """Move the player to the given app, or out of all apps at the end (None)"""
+    if hasattr(player, "block"):
+        # Rounds do not carry over into the next app or the end
+        del player.round, player.round_nested, player.block
+
+    player.app = appname
+
+
 def make_start_app(appname: str) -> type[t.InternalPage]:
     class StartApp(t.InternalPage):
         __module__ = appname
 
         @classmethod
         def after_always_once(page, player: s.Storage) -> None:
-            if hasattr(player, "block"):
-                # Rounds do not carry over from the previous app
-                del player.round, player.round_nested, player.block
-
-            player.app = appname
+            switch_app(player, appname)
 
     return StartApp
 

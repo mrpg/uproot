@@ -5,6 +5,7 @@
 
 import asyncio
 import re
+import textwrap
 from bisect import bisect_right
 from collections.abc import AsyncGenerator, Callable, Iterator
 from datetime import UTC, datetime
@@ -179,12 +180,25 @@ def briefcase_readme(
 
     grouped = ""
     if gvar:
-        grouped = (
-            f"{grouped_format_name(gvar)}/\n"
-            f"    One row per storage and per combination of "
-            f"({', '.join(gvar)}): the\n"
-            f"    state as it was at the end of each combination.\n\n"
+        description = (
+            f"One row per storage and per combination of ({', '.join(gvar)}): "
+            "the state as it was at the end of each combination."
         )
+
+        if "app" in gvar:
+            description += (
+                " Apps in which these fields are never all set (e.g., apps without"
+                " rounds) get one row: the state at the end of the app. Changes"
+                " outside of apps get no rows of their own; those after the end"
+                " only appear in latest/."
+            )
+
+        description += (
+            " Storages without any such row (e.g., sessions) get one row: their"
+            " final state."
+        )
+        body = textwrap.indent(textwrap.fill(description, 68), "    ")
+        grouped = f"{grouped_format_name(gvar)}/\n{body}\n\n"
 
     if filters:
         filtered = (

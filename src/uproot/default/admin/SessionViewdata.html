@@ -135,6 +135,15 @@
             </div>
         </div>
         <div class="mb-3 me-3">
+            <div class="btn-group dropup p-0">
+                <span class="border border-uproot px-3 py-2 rounded-start text-uproot">
+                    {% translate %}Filter by block{% endtranslate %}<span class="font-monospace" id="current-block-filter"></span>
+                </span>
+                <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu" id="all-block-names"></ul>
+            </div>
+        </div>
+        <div class="mb-3 me-3">
             <div class="border border-uproot input-group rounded" style="width: 15rem;">
                 <span class="text-uproot px-3 py-2">{% translate %}Filter by round{% endtranslate %}</span>
                 <input
@@ -163,6 +172,15 @@
                 </span>
                 <button type="button" class="btn btn-outline-uproot btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
                 <ul class="dropdown-menu" id="all-app-names"></ul>
+            </div>
+        </div>
+        <div class="mb-2 me-3">
+            <div class="btn-group btn-group-sm-alike dropup p-0">
+                <span class="border border-uproot px-2 py-2 rounded-start-1 text-uproot">
+                    {% translate %}Filter by block{% endtranslate %}<span class="font-monospace" id="current-block-filter"></span>
+                </span>
+                <button type="button" class="btn btn-outline-uproot btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu" id="all-block-names"></ul>
             </div>
         </div>
         <div class="mb-2 me-3">
@@ -225,7 +243,7 @@
         I("uproot-navbar").classList.add("d-none");
         I("uproot-title").classList.add("h4");
         I("uproot-title").classList.add("pt-1");
-        writeAllAppNames();
+        writeAllFilterNames();
         fitFullScreenTable();
     }
 

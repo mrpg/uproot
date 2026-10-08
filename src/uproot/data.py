@@ -126,8 +126,14 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: list[str] | None = None
 ) -> Iterator[dict[str, Any]]:
+    # WITHIN-ADJACENT
+    # Each row should be the state that latest() in viewdata.js shows when
+    # filtering by the row's values of group_by_fields (or only by its app).
+
     if group_by_fields is None:
         group_by_fields = []
+
+    by_app = "app" in group_by_fields
 
     # Collect changes by storage
     storage_changes: dict[str, list[dict[str, Any]]] = {}
@@ -144,9 +150,11 @@ def latest(
     for storage, changes in storage_changes.items():
         changes.sort(key=lambda x: x["!seq"])
 
-        # Build state evolution and track all seen combinations
+        # Build state evolution and track the latest state of each row in order
+        # of first appearance, keyed by (True, combination) or (False, app)
         current_state: dict[str, dict[str, Any]] = {}
-        seen_combinations: dict[str, dict[str, Any]] = {}
+        rows: dict[tuple[bool, str], dict[str, Any]] = {}
+        grouped_apps: set[str] = set()
         latest_state: dict[str, Any] | None = None
 
         for change in changes:
@@ -172,6 +180,12 @@ def latest(
             latest_state = state_snapshot
 
             if group_by_fields:
+                app = state_snapshot.get("app")
+
+                if by_app and app is None:
+                    # Outside of apps, i.e., before the first app or after the end
+                    continue
+
                 # Check if all group_by_fields exist and are available
                 all_fields_valid = True
                 combination_values = []
@@ -184,17 +198,30 @@ def latest(
                     combination_values.append(current_state[gf]["data"])
 
                 if all_fields_valid:
-                    combination_key = repr(tuple(combination_values))
-                    seen_combinations[combination_key] = state_snapshot
+                    rows[True, repr(tuple(combination_values))] = state_snapshot
+
+                    if by_app:
+                        grouped_apps.add(repr(app))
+                elif by_app:
+                    # Apps that never complete a combination (e.g., apps without
+                    # rounds) get one row. Other apps need none: changes before
+                    # their first combination carry over into it, and they only
+                    # leave combinations to switch blocks or apps.
+                    rows[False, repr(app)] = state_snapshot
             else:
                 # No grouping - track single latest state
-                seen_combinations[""] = state_snapshot
+                rows[True, ""] = state_snapshot
 
-        # Yield all tracked combinations
-        if group_by_fields and latest_state is not None and not seen_combinations:
+        if not rows and latest_state is not None:
+            # No state forms a row, e.g., in sessions or for players who have not
+            # started yet when grouping by app
             yield latest_state
 
-        yield from seen_combinations.values()
+        yield from (
+            snapshot
+            for (complete, key), snapshot in rows.items()
+            if complete or key not in grouped_apps
+        )
 
 
 DATA_DICTIONARY: dict[str, Any] = {
