@@ -6,7 +6,12 @@ import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
 from uproot.pages import page2path
-from uproot.smithereens import data_uri, move_to_page, rng
+from uproot.server1 import (
+    PageTransitionState,
+    advance_to_next_visible_page,
+    run_current_page_after_hooks,
+)
+from uproot.smithereens import Repeat, data_uri, move_to_page, rng
 from uproot.stable import decode, encode
 
 
@@ -86,3 +91,33 @@ def test_move_to_page_moves_players_forward():
 
     with s.Player(*pid) as player:
         assert player.show_page == 1
+
+
+async def test_repeat_does_not_intercept_move_to_page(monkeypatch):
+    class Feedback(t.Page):
+        @classmethod
+        def after_once(page, player):
+            player.add_round = False
+            move_to_page(player, Target, reload_=False)
+
+    for page in (Target, Feedback):
+        monkeypatch.setitem(u.PAGES, page2path(page), page)
+
+    pid = create_player()
+    with s.Player(*pid) as player:
+        player.page_order = [
+            page2path(page) for page in c.expand([Repeat(Target, Feedback), Target])
+        ]
+
+    current = None
+    for expected in (Target, Feedback, Target):
+        with s.Player(*pid) as player:
+            state = PageTransitionState(player.show_page, proceed=True)
+            if current is not None:
+                await run_current_page_after_hooks(current, player, state)
+            current = await advance_to_next_visible_page(None, player, state)
+            assert current is expected
+
+    with s.Player(*pid) as player:
+        assert player.show_page == len(player.page_order) - 1
+        assert player.round == 1
