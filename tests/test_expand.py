@@ -984,7 +984,7 @@ def test_repeat_next_increments_round():
 
     from uproot.smithereens import Repeat as SmithereensRepeat
 
-    mock_player = Mock()
+    mock_player = Mock(repeat_templates={})
     mock_player.page_order = [
         "#{",
         "#RepeatStart",
@@ -1009,7 +1009,8 @@ def test_repeat_next_resets_round_unless_nested():
 
     from uproot.smithereens import Repeat as SmithereensRepeat
 
-    mock_player = Mock(round=10)  # Left over from an earlier loop, e.g., in another app
+    # round is left over from an earlier loop, e.g., in another app
+    mock_player = Mock(round=10, repeat_templates={})
     mock_player.page_order = ["#{", "#RepeatStart", "A", "#RepeatEnd", "#}"]
     mock_player.show_page = 1
 
@@ -1032,7 +1033,7 @@ def test_repeat_continue_maybe_adds_pages_when_add_round_true():
 
     from uproot.smithereens import Repeat as SmithereensRepeat
 
-    mock_player = Mock()
+    mock_player = Mock(repeat_templates={})
     mock_player.page_order = [
         "Before",
         "#RepeatStart",
@@ -1069,7 +1070,7 @@ def test_repeat_continue_maybe_no_change_when_add_round_false():
 
     from uproot.smithereens import Repeat as SmithereensRepeat
 
-    mock_player = Mock()
+    mock_player = Mock(repeat_templates={})
 
     mock_player.get = lambda attr, default=None: getattr(mock_player, attr, default)
 
@@ -1098,7 +1099,7 @@ def test_repeat_continue_maybe_multiple_iterations():
 
     from uproot.smithereens import Repeat as SmithereensRepeat
 
-    mock_player = Mock()
+    mock_player = Mock(repeat_templates={})
     mock_player.page_order = [
         "#RepeatStart",
         "A",
@@ -1145,7 +1146,7 @@ def test_repeat_continue_maybe_repeats_outer_of_nested_repeat():
     from uproot.smithereens import Repeat as SmithereensRepeat
 
     iteration = ["#RepeatStart", "A", "#{", "#RepeatStart", "B", "#RepeatEnd", "#}"]
-    mock_player = Mock(add_round=True)
+    mock_player = Mock(add_round=True, repeat_templates={})
     mock_player.page_order = ["#{", *iteration, "#RepeatEnd", "#}"]
     mock_player.show_page = 8  # Outer #RepeatEnd
 
@@ -1171,7 +1172,7 @@ def test_repeat_copies_iteration_before_between_draws():
     from uproot.smithereens import Repeat as SmithereensRepeat
 
     ops = [SmithereensRepeat(SmithereensBetween(A, B))]
-    mock_player = Mock(add_round=True, between_showed=None)
+    mock_player = Mock(add_round=True, between_showed=None, repeat_templates={})
     mock_player.page_order = [page2path(p) for p in expand(ops)]
 
     for marker, hook in [
@@ -1194,7 +1195,7 @@ def test_repeat_copies_nested_repeat_with_one_iteration():
 
     from uproot.smithereens import Repeat as SmithereensRepeat
 
-    mock_player = Mock()
+    mock_player = Mock(repeat_templates={})
     mock_player.get = lambda attr, default=None: getattr(mock_player, attr, default)
     mock_player.page_order = [
         "#{",

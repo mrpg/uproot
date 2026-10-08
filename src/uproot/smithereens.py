@@ -342,7 +342,9 @@ def transition_to_page(
 
 @flexible
 def transition_to_end(player: Storage, reload_: bool = True) -> None:
-    player.show_page = len(player.page_order)
+    with player:
+        player.show_page = len(player.page_order)
+        c.reach_end(player)
 
     if reload_:
         reload(player)
@@ -743,34 +745,30 @@ class Repeat(t.SmoothOperator):
     @classmethod
     async def continue_maybe(page, player: Storage) -> None:
         end_ix = player.page_order.index("#RepeatEnd", player.show_page)
-        queued = player.page_order[end_ix + 1 : end_ix + 2] == ["#RepeatStart"]
-        do_continue = player.get("add_round", False)
+        depth = 0  # Skip nested Repeat sequences
 
-        if queued and not do_continue:
-            # Drop the copy that #RepeatStart queued for the next iteration
+        for start_ix in range(end_ix - 1, -1, -1):
+            if player.page_order[start_ix] == "#RepeatEnd":
+                depth += 1
+            elif player.page_order[start_ix] == "#RepeatStart":
+                if depth == 0:
+                    break
+
+                depth -= 1
+        else:
+            raise RuntimeError("Could not find #RepeatStart")
+
+        templates = getattr(player, "repeat_templates", {}).copy()
+        # If #RepeatStart was skipped, repeat the iteration as it is now.
+        iteration = templates.pop(
+            str(start_ix), player.page_order[start_ix : (end_ix + 1)]
+        )
+        player.repeat_templates = templates
+
+        if player.get("add_round", False):
             player.page_order = (
                 player.page_order[: (end_ix + 1)]
-                + player.page_order[(repeat_end(player.page_order, end_ix + 1) + 1) :]
-            )
-        elif do_continue and not queued:
-            # #RepeatStart was skipped (e.g., by move_to_page), so repeat this
-            # iteration as it is now
-            depth = 0  # Skip nested Repeat sequences
-
-            for start_ix in range(end_ix - 1, -1, -1):
-                if player.page_order[start_ix] == "#RepeatEnd":
-                    depth += 1
-                elif player.page_order[start_ix] == "#RepeatStart":
-                    if depth == 0:
-                        break
-
-                    depth -= 1
-            else:
-                raise RuntimeError("Could not find #RepeatStart")
-
-            player.page_order = (
-                player.page_order[: (end_ix + 1)]
-                + player.page_order[start_ix : (end_ix + 1)]
+                + iteration
                 + player.page_order[(end_ix + 1) :]
             )
 
@@ -778,14 +776,13 @@ class Repeat(t.SmoothOperator):
     async def next(page, player: Storage) -> None:
         enter_round(player)
 
-        # Queue a copy of this iteration for the next one before its pages
-        # (e.g., Between) change it. #RepeatEnd keeps or drops the copy.
+        # Save the iteration before its pages (e.g., Between) change it.
+        # Keep the copy out of page_order until #RepeatEnd approves it.
         end_ix = repeat_end(player.page_order, player.show_page)
-        player.page_order = (
-            player.page_order[: (end_ix + 1)]
-            + player.page_order[player.show_page : (end_ix + 1)]
-            + player.page_order[(end_ix + 1) :]
-        )
+        player.repeat_templates = {
+            **getattr(player, "repeat_templates", {}),
+            str(player.show_page): player.page_order[player.show_page : (end_ix + 1)],
+        }
 
 
 class Bracket(t.SmoothOperator):
