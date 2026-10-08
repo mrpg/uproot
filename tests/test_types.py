@@ -211,6 +211,36 @@ class TestOptionalCallOnce:
         assert second == "default"
         obj.test_method.assert_called_once_with()
 
+    def test_rerun_calls_every_time_and_marks_the_first_run(self):
+        """With rerun=True, a call is made even if it was made before."""
+        obj = Mock()
+        obj.test_method = Mock(return_value="executed")
+        storage = Mock()
+        storage._uproot_what_ran = frozenset()
+
+        for _ in range(2):
+            result = optional_call_once(
+                obj, "test_method", "default", storage=storage, show_page=1, rerun=True
+            )
+            assert result == "executed"
+
+        assert obj.test_method.call_count == 2
+        assert storage._uproot_what_ran == {"1:test_method"}
+
+    def test_failed_rerun_keeps_the_marker_of_the_earlier_run(self):
+        """A rerun that raises does not undo the earlier, successful run."""
+        obj = Mock()
+        obj.test_method = Mock(side_effect=ValueError("test error"))
+        storage = Mock()
+        storage._uproot_what_ran = {"1:test_method"}
+
+        with pytest.raises(ValueError, match="test error"):
+            optional_call_once(
+                obj, "test_method", "default", storage=storage, show_page=1, rerun=True
+            )
+
+        assert "1:test_method" in storage._uproot_what_ran
+
     def test_exception_removes_from_ran_list(self):
         """Test that exception removes item from ran list."""
         obj = Mock()

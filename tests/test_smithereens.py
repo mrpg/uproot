@@ -169,6 +169,138 @@ async def test_loading_the_end_page_runs_its_hook(monkeypatch):
         assert player.app is None
 
 
+async def test_arriving_players_enter_their_page_as_navigation_does(monkeypatch):
+    calls = []
+
+    class Arrival(t.Page):
+        @classmethod
+        def early(page, player, request):
+            calls.append("early")
+
+        @classmethod
+        def before_always_once(page, player):
+            calls.append("before_always_once")
+            player.ready = True
+
+        @classmethod
+        def show(page, player):
+            calls.append("show")
+            return player.get("ready", False)
+
+    monkeypatch.setitem(u.PAGES, page2path(Arrival), Arrival)
+    monkeypatch.setattr("uproot.server1.render", render_name)
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", page2path(Arrival)]
+        player.started = True
+        player.show_page = 0
+
+    move_to_page(s.Player(*pid), Arrival, reload_=False)
+
+    for _ in range(2):  # Arriving, then reloading
+        with s.Player(*pid) as player:
+            assert await show_page(GetRequest(), player) == "Arrival"
+
+    assert calls == ["early", "before_always_once", "show", "show"]
+
+
+async def test_arriving_players_skip_pages_that_are_not_shown(monkeypatch):
+    calls = []
+
+    class Hidden(t.Page):
+        @classmethod
+        def show(page, player):
+            return False
+
+        @classmethod
+        def may_proceed(page, player):
+            calls.append("may_proceed")
+            return True
+
+        @classmethod
+        def after_once(page, player):
+            calls.append("after_once")
+
+        @classmethod
+        def after_always_once(page, player):
+            calls.append("after_always_once")
+
+    for page in (Hidden, Target):
+        monkeypatch.setitem(u.PAGES, page2path(page), page)
+
+    monkeypatch.setattr("uproot.server1.render", render_name)
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", page2path(Hidden), page2path(Target)]
+        player.started = True
+        player.show_page = 0
+
+    move_to_page(s.Player(*pid), Hidden, reload_=False)
+
+    with s.Player(*pid) as player:
+        assert await show_page(GetRequest(), player) == "Target"
+        assert player.show_page == 2
+
+    assert calls == ["after_always_once"]
+
+
+async def test_pages_that_timed_out_count_as_submitted_when_reloaded(monkeypatch):
+    calls = []
+
+    class Timed(t.Page):
+        @classmethod
+        def show(page, player):
+            return False  # E.g., no longer shown once time is up
+
+        @classmethod
+        def after_once(page, player):
+            calls.append("after_once")
+
+        @classmethod
+        def after_always_once(page, player):
+            calls.append("after_always_once")
+
+    for page in (Timed, Target):
+        monkeypatch.setitem(u.PAGES, page2path(page), page)
+
+    monkeypatch.setattr("uproot.server1.render", render_name)
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", page2path(Timed), page2path(Target)]
+        player.started = True
+        player.show_page = 1
+        player._uproot_timeouts_until = {"1": 0.0}
+
+        assert await show_page(GetRequest(), player) == "Target"
+
+    assert calls == ["after_once", "after_always_once"]
+
+
+async def test_navigation_runs_early_whenever_it_passes_a_page(monkeypatch):
+    calls = []
+
+    class Early(t.Page):
+        @classmethod
+        def early(page, player, request):
+            calls.append(player.show_page)
+
+    monkeypatch.setitem(u.PAGES, page2path(Early), Early)
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", page2path(Early)]
+
+        for _ in range(2):  # E.g., after going back
+            player.show_page = 0
+            state = PageTransitionState(0, proceed=True)
+            assert await advance_to_next_visible_page(None, player, state) is Early
+
+    assert calls == [1, 1]
+
+
 async def test_repeat_does_not_intercept_move_to_page(monkeypatch):
     class Feedback(t.Page):
         @classmethod

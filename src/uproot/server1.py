@@ -114,11 +114,28 @@ def current_page(player: Storage) -> type[t.Page]:
     return path2page(show2path(player.page_order, player.show_page))
 
 
-async def call_before_always_once(
+async def enter_page(
+    request: Request,
     page: type[t.Page],
     player: Storage,
     show_page: int,
+    *,
+    rerun: bool,
 ) -> None:
+    """Run what precedes show() on a page: early(), then before_always_once.
+    Forward navigation runs early() whenever it passes the page (rerun=True).
+    Otherwise, e.g., when a player loads the page, it only runs if it has not
+    run there before."""
+    await ensure_awaitable(
+        optional_call_once,
+        page,
+        "early",
+        storage=player,
+        show_page=show_page,
+        rerun=rerun,
+        player=player,
+        request=request,
+    )
     await ensure_awaitable(
         optional_call_once,
         page,
@@ -141,15 +158,7 @@ async def advance_to_next_visible_page(
             page = path2page(show2path(player.page_order, candidate))
             player.show_page = candidate
 
-            await ensure_awaitable(
-                optional_call,
-                page,
-                "early",
-                player=player,
-                request=request,
-            )
-
-            await call_before_always_once(page, player, candidate)
+            await enter_page(request, page, player, candidate, rerun=True)
 
             if await ensure_awaitable(
                 optional_call, page, "show", default_return=True, player=player
@@ -369,22 +378,27 @@ async def show_page(
     if request.method == "GET":
         if player.show_page == -1:
             pass
-        elif player.started and len(player.page_order) > player.show_page > -1:
-            shows = await ensure_awaitable(
+        elif player.show_page == len(player.page_order) or (
+            player.started and len(player.page_order) > player.show_page > -1
+        ):
+            # Players who were moved here directly (e.g., by move_to_page() or by
+            # an admin) arrive by loading the page, so enter it as forward
+            # navigation does. What already ran here does not run again.
+            await enter_page(request, page, player, player.show_page, rerun=False)
+
+            if not state.timeout_fired and not await ensure_awaitable(
                 optional_call, page, "show", default_return=True, player=player
-            )
-            # Always run before_always_once (optional_call_once ensures it only
-            # executes once per page). This covers players moved here via
-            # move_to_page in a loop: they receive a reload() and arrive on GET
-            # without going through the POST navigation loop that normally runs
-            # before_always_once.
-            await call_before_always_once(page, player, player.show_page)
-            if not shows:
-                # Page wants to be skipped (e.g. InternalPage).
-                state.proceed = True
-        elif len(player.page_order) == player.show_page:
-            # The same holds for players moved to the end
-            await call_before_always_once(page, player, player.show_page)
+            ):
+                # Skip the page as forward navigation does
+                await ensure_awaitable(
+                    optional_call_once,
+                    page,
+                    "after_always_once",
+                    storage=player,
+                    show_page=player.show_page,
+                    player=player,
+                )
+                page = await advance_to_next_visible_page(request, player, state)
         else:
             raise HTTPException(status_code=501)
     elif request.method == "POST":
