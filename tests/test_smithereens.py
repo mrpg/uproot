@@ -149,6 +149,7 @@ async def test_players_put_at_the_end_leave_their_app(how):
         player.page_order = ["test/First", page2path(Target)]
         player.show_page = 1
         player.app = "test"
+        player.block, player.round_nested, player.round = "a", [2], 2
 
     if how == "move_to_end":
         move_to_end(s.Player(*pid), reload_=False)
@@ -160,6 +161,9 @@ async def test_players_put_at_the_end_leave_their_app(how):
     with s.Player(*pid) as player:
         assert player.show_page == len(player.page_order)
         assert player.app is None
+        assert not hasattr(player, "round")
+        assert not hasattr(player, "round_nested")
+        assert not hasattr(player, "block")
 
 
 async def test_advancing_players_within_their_page_order_keeps_their_app():
