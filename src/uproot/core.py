@@ -380,6 +380,10 @@ def make_start_app(appname: str) -> type[t.InternalPage]:
 
         @classmethod
         def after_always_once(page, player: s.Storage) -> None:
+            if hasattr(player, "block"):
+                # Rounds do not carry over from the previous app
+                del player.round, player.round_nested, player.block
+
             player.app = appname
 
     return StartApp
@@ -408,6 +412,7 @@ def resolve_page_order(
     config: str,
 ) -> list[str]:
     from uproot.pages import page2path
+    from uproot.smithereens import check_blocks
 
     result: list[str] = []
 
@@ -433,6 +438,7 @@ def resolve_page_order(
             else:
                 raise TypeError(f"{app}.page_order must be list or callable")
 
+        check_blocks(appname, full_pages)
         result.extend(page2path(page) for page in expand(full_pages))
 
     return result
