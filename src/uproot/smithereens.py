@@ -564,7 +564,12 @@ class Rounds(t.SmoothOperator):
         self.n = n
 
     def expand(self) -> list[t.PageLike]:
-        return [INTERNAL_PAGES["RoundsReset"]] + self.n * self.pages
+        return [
+            INTERNAL_PAGES["{"],
+            INTERNAL_PAGES["RoundsReset"],
+            *(self.n * self.pages),
+            INTERNAL_PAGES["}"],
+        ]
 
     @classmethod
     async def next(page, player: Storage) -> None:

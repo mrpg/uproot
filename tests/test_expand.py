@@ -808,22 +808,67 @@ def test_rounds_expand():
     rounds = SmithereensRounds(A, B, n=3)
     result = rounds.expand()
 
-    # Should have: #RoundsReset + 3 repetitions of #{, #RoundStart, A, B, #RoundEnd, #}
-    assert len(result) == 19  # 1 + 6 elements * 3 repetitions
+    # Should have: #{, #RoundsReset, 3 repetitions of #{, #RoundStart, A, B, #RoundEnd, #}, #}
+    assert len(result) == 21  # 2 + 6 elements * 3 repetitions + 1
 
     # Convert to paths for easier comparison
     paths = [getattr(p, "__name__", str(p)) for p in result]
 
-    # First element is RoundsReset
-    assert "RoundsReset" in paths[0]
+    # The whole block is one bracketed unit, starting with RoundsReset
+    assert paths[0] == "{"
+    assert "RoundsReset" in paths[1]
+    assert paths[-1] == "}"
 
     # Verify the structure repeats correctly after RoundsReset
     expected_unit = ["{", "RoundStart", "A", "B", "RoundEnd", "}"]
     for i in range(3):
         for j, expected in enumerate(expected_unit):
             assert (
-                expected in paths[1 + i * 6 + j]
-            ), f"Mismatch at position {1 + i * 6 + j}"
+                expected in paths[2 + i * 6 + j]
+            ), f"Mismatch at position {2 + i * 6 + j}"
+
+
+def test_between_selects_whole_rounds():
+    """Between treats each Rounds() as one option, not each of its rounds"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.pages import page2path
+    from uproot.smithereens import Between as SmithereensBetween
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    ops = [SmithereensBetween(SmithereensRounds(A, n=2), SmithereensRounds(B, n=2))]
+    mock_player = Mock(between_showed=None)
+    mock_player.page_order = [page2path(p) for p in expand(ops)]
+    mock_player.show_page = mock_player.page_order.index("#BetweenStart")
+
+    asyncio.run(SmithereensBetween.start(mock_player))
+
+    shown = [p for p in mock_player.page_order if not p.startswith("#")]
+    assert shown in ([page2path(A)] * 2, [page2path(B)] * 2)
+
+
+def test_random_keeps_rounds_together():
+    """Random shuffles whole Rounds() blocks instead of interleaving their rounds"""
+    import asyncio
+    from unittest.mock import Mock
+
+    from uproot.pages import page2path
+    from uproot.smithereens import Random as SmithereensRandom
+    from uproot.smithereens import Rounds as SmithereensRounds
+
+    ops = [SmithereensRandom(SmithereensRounds(A, n=2), SmithereensRounds(B, n=2))]
+    a, b = page2path(A), page2path(B)
+
+    for _ in range(20):
+        mock_player = Mock()
+        mock_player.page_order = [page2path(p) for p in expand(ops)]
+        mock_player.show_page = mock_player.page_order.index("#RandomStart")
+
+        asyncio.run(SmithereensRandom.start(mock_player))
+
+        shown = [p for p in mock_player.page_order if not p.startswith("#")]
+        assert shown in ([a, a, b, b], [b, b, a, a])
 
 
 def test_rounds_next_initializes_round():
