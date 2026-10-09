@@ -22,7 +22,7 @@
 }
 
 .bg-uproot {
-    background-color: var(--bs-uproot) !important;
+    background-color: rgba(var(--bs-uproot-rgb), var(--bs-bg-opacity, 1)) !important;
 }
 .bg-uproot-light {
     background-color: var(--bs-uproot-bg-light) !important;
