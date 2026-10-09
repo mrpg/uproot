@@ -398,6 +398,8 @@ async def show_page(
                     show_page=player.show_page,
                     player=player,
                 )
+                # Hooks may move this player through another Storage instance.
+                player.refresh("show_page")
                 page = await advance_to_next_visible_page(request, player, state)
         else:
             raise HTTPException(status_code=501)

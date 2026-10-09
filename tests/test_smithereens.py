@@ -246,6 +246,31 @@ async def test_arriving_players_skip_pages_that_are_not_shown(monkeypatch):
     assert calls == ["after_always_once"]
 
 
+async def test_skipped_get_page_honors_moves_through_session_players(monkeypatch):
+    class Intermediate(t.Page):
+        pass
+
+    class Hidden(t.NoshowPage):
+        @classmethod
+        def after_always_once(page, player):
+            for member in player.session.players:
+                move_to_page(member, Target, reload_=False)
+
+    for page in (Hidden, Intermediate, Target):
+        monkeypatch.setitem(u.PAGES, page2path(page), page)
+
+    monkeypatch.setattr("uproot.server1.render", render_name)
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = [page2path(page) for page in (Hidden, Intermediate, Target)]
+        player.started = True
+        player.show_page = 0
+
+        assert await show_page(GetRequest(), player) == "Target"
+        assert player.show_page == 2
+
+
 async def test_pages_that_timed_out_count_as_submitted_when_reloaded(monkeypatch):
     calls = []
 
