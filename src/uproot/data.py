@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import csv as pycsv
+import hashlib
 from collections.abc import AsyncGenerator, Iterable, Iterator, Mapping
-from io import BytesIO, StringIO
+from io import StringIO
 from typing import Any, cast
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -14,6 +15,9 @@ from uproot import cache
 from uproot.constraints import ensure
 from uproot.stable import encode_raw
 from uproot.types import Value, sha256
+from uproot.utils.sink import Sink
+
+STREAM_CHUNK_SIZE = 1024**2
 
 
 def value2json(data: Any, unavailable: bool = False) -> str:
@@ -290,7 +294,16 @@ def value_cell(key: str) -> bool:
     return key == "!data" or not key.startswith("!")
 
 
-def csv_out(rows: Iterable[dict[str, Any]]) -> str:
+def take(buffer: StringIO) -> str:
+    chunk = buffer.getvalue()
+    buffer.seek(0)
+    buffer.truncate()
+
+    return chunk
+
+
+def csv_chunks(rows: Iterable[dict[str, Any]]) -> Iterator[str]:
+    """Yield a CSV file piece by piece: first the header, then each row."""
     rows = list(rows)
 
     buffer = StringIO()
@@ -303,6 +316,7 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
 
     dw = pycsv.DictWriter(buffer, fieldnames=sorted_fields)
     dw.writeheader()
+    yield take(buffer)
 
     for row in rows:
         unavailable = row.get("!unavailable", False)
@@ -312,8 +326,11 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
                 for k, v in row.items()
             }
         )
+        yield take(buffer)
 
-    return buffer.getvalue()
+
+def csv_out(rows: Iterable[dict[str, Any]]) -> str:
+    return "".join(csv_chunks(rows))
 
 
 def split_by_storage_kind(
@@ -329,17 +346,24 @@ def split_by_storage_kind(
     return kinds
 
 
-def rows_to_bytes(rows: Iterable[dict[str, Any]], filetype: str) -> bytes:
-    """Serialize rows to a CSV or JSONL file body."""
+def rows_to_chunks(rows: Iterable[dict[str, Any]], filetype: str) -> Iterator[bytes]:
+    """Serialize rows to a CSV or JSONL file body, piece by piece."""
     ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
 
     if filetype == "csv":
-        return csv_out(rows).encode("utf-8")
+        for chunk in csv_chunks(rows):
+            yield chunk.encode("utf-8")
+    else:
+        for row in rows:
+            yield jsonl_line(row).encode("utf-8")
 
-    return "".join(jsonl_line(row) for row in rows).encode("utf-8")
+
+def rows_to_bytes(rows: Iterable[dict[str, Any]], filetype: str) -> bytes:
+    """Serialize rows to a CSV or JSONL file body."""
+    return b"".join(rows_to_chunks(rows, filetype))
 
 
-def briefcase_extras(zf: ZipFile, wrapper: str, contents: dict[str, bytes]) -> None:
+def briefcase_extras(zf: ZipFile, wrapper: str, digests: dict[str, str]) -> None:
     """Add general non-data files to a briefcase.
 
     For now, this writes a SHA256SUMS file that `sha256sum -c` can verify
@@ -347,7 +371,7 @@ def briefcase_extras(zf: ZipFile, wrapper: str, contents: dict[str, bytes]) -> N
     """
     zf.writestr(
         f"{wrapper}/SHA256SUMS",
-        "".join(f"{sha256(blob)}  {name}\n" for name, blob in contents.items()),
+        "".join(f"{digest}  {name}\n" for name, digest in digests.items()),
     )
 
 
@@ -357,7 +381,7 @@ def briefcase_out(
     filetype: str,
     readme: str,
     extras: Mapping[str, bytes] | None = None,
-) -> bytes:
+) -> Iterator[bytes]:
     """Create a ZIP "briefcase" wrapped in a single top-level directory.
 
     Each entry in `formats` becomes its own subdirectory holding one file per
@@ -366,30 +390,47 @@ def briefcase_out(
     README.txt, a DATA_DICTIONARY.json defining the uproot-internal (!)
     columns, any `extras` (path → file body), and a SHA256SUMS file covering
     every other file sit directly inside the wrapper directory.
-    """
-    buffer = BytesIO()
 
-    with ZipFile(buffer, "w", ZIP_DEFLATED, compresslevel=1) as zf:
-        contents = {
+    The ZIP is yielded piece by piece while it is written, so neither the
+    archive nor any data file in it is ever held in memory as a whole. Data
+    files get ZIP64 headers because their size is not known in advance.
+    """
+    sink = Sink()
+    digests: dict[str, str] = {}
+
+    with ZipFile(sink, "w", ZIP_DEFLATED, compresslevel=1) as zf:
+        blobs = {
             "README.txt": readme.encode("utf-8"),
             "DATA_DICTIONARY.json": json.dumps(
                 DATA_DICTIONARY, option=json.OPT_INDENT_2
             ),
+            **(extras or {}),
         }
 
-        if extras:
-            contents.update(extras)
+        for name, blob in blobs.items():
+            zf.writestr(f"{wrapper}/{name}", blob)
+            digests[name] = sha256(blob)
+
+        yield sink.drain()
 
         for fmt, rows in formats.items():
             for kind, kindrows in sorted(split_by_storage_kind(rows).items()):
-                contents[f"{fmt}/{kind}.{filetype}"] = rows_to_bytes(kindrows, filetype)
+                name = f"{fmt}/{kind}.{filetype}"
+                digest = hashlib.sha256()
 
-        for name, blob in contents.items():
-            zf.writestr(f"{wrapper}/{name}", blob)
+                with zf.open(f"{wrapper}/{name}", "w", force_zip64=True) as f:
+                    for chunk in rows_to_chunks(kindrows, filetype):
+                        digest.update(chunk)
+                        f.write(chunk)
 
-        briefcase_extras(zf, wrapper, contents)
+                        if len(sink.buffer) >= STREAM_CHUNK_SIZE:
+                            yield sink.drain()
 
-    return buffer.getvalue()
+                digests[name] = digest.hexdigest()
+
+        briefcase_extras(zf, wrapper, digests)
+
+    yield sink.drain()
 
 
 def json_ready_row(row: dict[str, Any]) -> dict[str, Any]:

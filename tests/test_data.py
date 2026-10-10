@@ -9,6 +9,7 @@ import orjson as json
 import pytest
 from fastapi import HTTPException
 from sortedcontainers import SortedList
+from starlette.concurrency import iterate_in_threadpool
 
 from uproot.data import (
     DATA_DICTIONARY,
@@ -334,11 +335,13 @@ def test_briefcase_out():
         ]
     )
 
-    briefcase = briefcase_out(
-        {"latest": latest(test_data)},
-        wrapper="session1",
-        filetype="csv",
-        readme="hello",
+    briefcase = b"".join(
+        briefcase_out(
+            {"latest": latest(test_data)},
+            wrapper="session1",
+            filetype="csv",
+            readme="hello",
+        )
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -386,11 +389,13 @@ def test_briefcase_out_jsonl():
         ]
     )
 
-    briefcase = briefcase_out(
-        {"ultralong": noop(test_data)},
-        wrapper="session1",
-        filetype="jsonl",
-        readme="hello",
+    briefcase = b"".join(
+        briefcase_out(
+            {"ultralong": noop(test_data)},
+            wrapper="session1",
+            filetype="jsonl",
+            readme="hello",
+        )
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -432,8 +437,8 @@ async def test_generate_briefcase(monkeypatch):
         ],
     )
 
-    briefcase = await data_service.generate_briefcase(
-        "session1", [], False, wrapper="session1"
+    briefcase = b"".join(
+        await data_service.generate_briefcase("session1", [], False, wrapper="session1")
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -476,8 +481,10 @@ async def test_generate_briefcase_grouped(monkeypatch):
     )
     monkeypatch.setattr(data_service, "page_times_rows", lambda sname: [])
 
-    briefcase = await data_service.generate_briefcase(
-        "session1", ["round"], False, "jsonl", wrapper="session1"
+    briefcase = b"".join(
+        await data_service.generate_briefcase(
+            "session1", ["round"], False, "jsonl", wrapper="session1"
+        )
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -508,20 +515,63 @@ async def test_generate_briefcase_reads_on_loop_and_builds_in_thread(monkeypatch
         threads["page_times"] = threading.get_ident()
         return []
 
-    def briefcase_from_rows(*args):
+    def briefcase_out(*args, **kwargs):
         threads["build"] = threading.get_ident()
-        return b""
+        yield b""
 
     monkeypatch.setattr(
         data_service, "everything_from_session", everything_from_session
     )
     monkeypatch.setattr(data_service, "page_times_rows", page_times_rows)
-    monkeypatch.setattr(data_service, "briefcase_from_rows", briefcase_from_rows)
+    monkeypatch.setattr(data_service.data, "briefcase_out", briefcase_out)
 
-    await data_service.generate_briefcase("session1", [], False, wrapper="session1")
+    briefcase = await data_service.generate_briefcase(
+        "session1", [], False, wrapper="session1"
+    )
+
+    assert "build" not in threads
+
+    # This is how StreamingResponse consumes the briefcase
+    async for _ in iterate_in_threadpool(briefcase):
+        pass
 
     assert threads["read"] == threads["page_times"] == threading.get_ident()
     assert threads["build"] != threading.get_ident()
+
+
+def test_briefcase_out_streams(monkeypatch):
+    monkeypatch.setattr(data_service.data, "STREAM_CHUNK_SIZE", 1)
+    test_data = sequenced(
+        [
+            {
+                "!storage": f"player/session1/p{i}",
+                "!field": "choice",
+                "!time": float(i),
+                "!context": "",
+                "!unavailable": False,
+                "!data": random.Random(i).randbytes(50_000).hex(),
+            }
+            for i in range(10)
+        ]
+    )
+
+    chunks = list(
+        briefcase_out(
+            {"ultralong": noop(test_data)},
+            wrapper="session1",
+            filetype="csv",
+            readme="hello",
+        )
+    )
+
+    assert len(chunks) > 10
+
+    with ZipFile(BytesIO(b"".join(chunks))) as zf:
+        assert zf.testzip() is None
+        player_csv = zf.read("session1/ultralong/player.csv")
+
+    for i in range(10):
+        assert random.Random(i).randbytes(50_000).hex().encode() in player_csv
 
 
 def test_data_dictionary_covers_internal_columns():

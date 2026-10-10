@@ -236,7 +236,7 @@ async def generate_briefcase(
     filetype: str = "csv",
     *,
     wrapper: str,
-) -> bytes:
+) -> Iterator[bytes]:
     """Generate a ZIP briefcase containing all key formats for a session.
 
     The briefcase always contains the ultralong, sparse, and latest formats
@@ -245,14 +245,14 @@ async def generate_briefcase(
 
     The session is read on the event loop, which is the only place where it
     can safely be read. Stored values are never modified in place, so the
-    rest runs in a thread and does not block the event loop.
+    archive itself is built lazily by the returned iterator, which a
+    StreamingResponse consumes in a worker thread without blocking the loop.
     """
     gvar = [gv for gv in gvar if gv]
     rows = list(data_rows_for_session(sname, filters))
     page_times = page_times_rows(sname)
 
-    return await asyncio.to_thread(
-        briefcase_from_rows,
+    return briefcase_from_rows(
         str(sname),
         rows,
         page_times,
@@ -271,7 +271,7 @@ def briefcase_from_rows(
     filters: bool,
     filetype: str,
     wrapper: str,
-) -> bytes:
+) -> Iterator[bytes]:
     formats: dict[str, DataRows] = {
         "ultralong": data.noop(rows),
         "sparse": data.long_to_wide(rows),
@@ -281,7 +281,7 @@ def briefcase_from_rows(
     if gvar:
         formats[grouped_format_name(gvar)] = data.latest(rows, group_by_fields=gvar)
 
-    return data.briefcase_out(
+    yield from data.briefcase_out(
         formats,
         wrapper=wrapper,
         filetype=filetype,

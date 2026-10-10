@@ -8,14 +8,13 @@ import os
 import tarfile
 from collections.abc import Iterator
 from pathlib import Path, PurePosixPath
-from tempfile import SpooledTemporaryFile
 from typing import IO
 
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pathspec import GitIgnoreSpec
-from starlette.background import BackgroundTask
-from starlette.concurrency import run_in_threadpool
+
+from uproot.utils.sink import Sink
 
 Rules = tuple[tuple[PurePosixPath, GitIgnoreSpec], ...]
 
@@ -96,14 +95,16 @@ def contains(root: Path, path: Path) -> bool:
     )
 
 
-def write(root: Path, fileobj: IO[bytes]) -> None:
-    """Write a reproducible .tar.gz archive of root to fileobj. Files keep their
-    modification times (in whole seconds), while ownership is zeroed and modes are
-    normalized, so unmodified project files always produce identical archives."""
+def chunks(root: Path) -> Iterator[bytes]:
+    """Yield a reproducible .tar.gz archive of root piece by piece, one file at a
+    time. Files keep their modification times (in whole seconds), while ownership
+    is zeroed and modes are normalized, so unmodified project files always produce
+    identical archives."""
     prefix = PurePosixPath(root.resolve().name)
+    sink = Sink()
 
     with (
-        gzip.GzipFile(filename="", mode="wb", fileobj=fileobj, mtime=0) as gz,
+        gzip.GzipFile(filename="", mode="wb", fileobj=sink, mtime=0) as gz,
         tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar,
     ):
         for rel in files(root):
@@ -117,13 +118,15 @@ def write(root: Path, fileobj: IO[bytes]) -> None:
             with path.open("rb") as f:
                 tar.addfile(info, f)
 
+            if chunk := sink.drain():
+                yield chunk
 
-def build(root: Path) -> IO[bytes]:
-    body = SpooledTemporaryFile(max_size=16 * 1024**2)  # noqa: SIM115
-    write(root, body)
-    body.seek(0)
+    yield sink.drain()
 
-    return body
+
+def write(root: Path, fileobj: IO[bytes]) -> None:
+    """Write a reproducible .tar.gz archive of root to fileobj."""
+    fileobj.writelines(chunks(root))
 
 
 async def download(root: Path) -> StreamingResponse:
@@ -133,14 +136,13 @@ async def download(root: Path) -> StreamingResponse:
             detail="Project code can only be archived if the project has a .gitignore",
         )
 
-    body = await run_in_threadpool(build, root)
-
+    # The archive is sent while it is written, so an error midway (e.g., a file
+    # deleted during the download) truncates the download rather than failing it
     return StreamingResponse(
-        iter(lambda: body.read(64 * 1024), b""),
+        chunks(root),
         media_type="application/gzip",
         headers={
             "Content-Disposition": "attachment; filename=project.tar.gz",
             "Content-Encoding": "identity",
         },
-        background=BackgroundTask(body.close),
     )

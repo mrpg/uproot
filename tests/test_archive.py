@@ -70,6 +70,17 @@ def test_archive_is_reproducible(tmp_path: Path) -> None:
         assert all(info.uid == 0 for info in tar.getmembers())
 
 
+def test_archive_streams_file_by_file(tmp_path: Path) -> None:
+    root = project(tmp_path)
+    written = io.BytesIO()
+    archive.write(root, written)
+
+    chunks = list(archive.chunks(root))
+
+    assert len(chunks) > 1
+    assert b"".join(chunks) == written.getvalue()
+
+
 def test_archive_requires_gitignore(tmp_path: Path) -> None:
     root = project(tmp_path)
     assert archive.available(root)
