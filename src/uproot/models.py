@@ -258,9 +258,7 @@ def get_entries(
     with get_storage(mid) as storage:
         for value in storage.history().get("entry", [])[subset]:
             if not value.unavailable:
-                retval.append(
-                    parse_stored_entry(value.data, cast(float, value.time), as_type)
-                )
+                retval.append(parse_stored_entry(value.data, value.time, as_type))
 
     return retval
 
@@ -334,7 +332,7 @@ def filter_entries(
                 entry = as_type(**entry_data)
 
                 if entry_matches(entry, predicate, field_filters):
-                    retval.append((entry_id, cast(float, value.time), entry))
+                    retval.append((entry_id, value.time, entry))
 
     return retval
 
@@ -363,7 +361,7 @@ def get_latest_entry(
         value = storage.history()["entry"][-1]
 
         if not value.unavailable:
-            return parse_stored_entry(value.data, cast(float, value.time), as_type)
+            return parse_stored_entry(value.data, value.time, as_type)
         else:
             raise ValueError(f"Model {mid} contains illegal tombstone entry")
 
