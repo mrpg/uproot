@@ -12,6 +12,7 @@ from uproot.types import InternalPage, Page, PlayerIdentifier, Sessionname, User
 
 if TYPE_CHECKING:
     from uproot.modules import ModuleManager
+    from uproot.storage import Storage
 
 
 __version_info__ = 0, 7, 0
@@ -33,6 +34,14 @@ CHAT_HOOKS: dict[tuple[str, str], list[tuple[str, str]]] = {}
 APPS: "ModuleManager"
 CONFIGS: dict[str, list[str]] = {}
 CONFIGS_EXTRA: dict[str, Any] = {}
+
+
+def leave_last_app(page: type[Page], player: "Storage") -> None:
+    from uproot.core import switch_app
+
+    switch_app(player, None)
+
+
 PAGES: dict[str, type[Page]] = {
     "Initialize.html": type(
         "Initialize",
@@ -72,9 +81,7 @@ PAGES: dict[str, type[Page]] = {
         {
             "show": True,
             "template": "End.html",
-            "before_always_once": classmethod(
-                lambda page, player: setattr(player, "app", None)
-            ),  # See Lundh's rules: https://docs.python.org/3/howto/functional.html …
+            "before_always_once": classmethod(leave_last_app),
         },
     ),
 }

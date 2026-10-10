@@ -91,6 +91,9 @@
 ? 'Any app'
 : 'Any app'
 
+? 'Any block'
+: 'Any block'
+
 ? 'Apps'
 : 'Apps'
 
@@ -165,6 +168,9 @@
 
 ? 'Filter by app'
 : 'Filter by app'
+
+? 'Filter by block'
+: 'Filter by block'
 
 ? 'Filter by round'
 : 'Filter by round'

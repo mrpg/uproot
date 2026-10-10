@@ -24,7 +24,7 @@ const IGNORED_FIELDS = ["session", "key"];
 // Fields that should appear first in the table (in order)
 const PRIORITY_FIELDS = [
     "id", "label", "_uproot_group", "member_id",
-    "page_order", "show_page", "started", "round"
+    "page_order", "show_page", "started", "block", "round"
 ];
 
 // Table configuration
@@ -366,7 +366,9 @@ function mergeDiffIntoDataset(diffData) {
 
 /**
  * Computes the latest state of all fields, optionally filtered by conditions.
- * Uses "WITHIN-ADJACENT" temporal logic.
+ * Uses "WITHIN-ADJACENT" temporal logic: for any conditions, the result should
+ * match the corresponding rows of latest() in data.py when grouping by the
+ * same fields.
  */
 function latest(obj, conditions = {}) {
     const result = {};
@@ -431,45 +433,53 @@ function latest(obj, conditions = {}) {
 }
 
 // ============================================================================
-// App Filter Dropdown
+// App and Block Filter Dropdowns
 // ============================================================================
 
 /**
- * Populates the app filter dropdown with all unique app names.
+ * Populates the app and block filter dropdowns.
  */
-function writeAllAppNames() {
-    const extractAppNames = (app) => {
-        if (!Array.isArray(app)) return [];
+function writeAllFilterNames() {
+    writeAllNames("app", _("Any app"));
+    writeAllNames("block", _("Any block"));
+}
 
-        if (app.some(Array.isArray)) {
-            return app
+/**
+ * Populates the filter dropdown of a field with all of its unique values.
+ */
+function writeAllNames(field, anyLabel) {
+    const extractNames = (payloads) => {
+        if (!Array.isArray(payloads)) return [];
+
+        if (payloads.some(Array.isArray)) {
+            return payloads
                 .filter(Array.isArray)
                 .map(arr => arr[PAYLOAD.VALUE])
                 .filter(value => value !== undefined);
         }
 
-        return app[PAYLOAD.VALUE] !== undefined ? [String(app[PAYLOAD.VALUE])] : [];
+        return payloads[PAYLOAD.VALUE] !== undefined ? [String(payloads[PAYLOAD.VALUE])] : [];
     };
 
-    const allAppNames = [...new Set(
+    const allNames = [...new Set(
         Object.values(viewdataState.fullDataset)
-            .flatMap(({ app }) => extractAppNames(app))
+            .flatMap(fields => extractNames(fields[field]))
     )];
 
-    const container = I("all-app-names");
+    const container = I(`all-${field}-names`);
     if (!container) return;
 
     container.innerHTML = "";
 
-    // Add "Any app" option
+    // Add "Any app" or "Any block" option
     const defaultItem = document.createElement("li");
     const defaultSpan = document.createElement("span");
     defaultSpan.className = "dropdown-item fst-italic";
     defaultSpan.setAttribute("role", "button");
-    defaultSpan.textContent = _("Any app");
+    defaultSpan.textContent = anyLabel;
     defaultSpan.onclick = () => {
-        filterThenRefreshData("app", "");
-        I("current-app-filter").textContent = "";
+        filterThenRefreshData(field, "");
+        I(`current-${field}-filter`).textContent = "";
     };
     defaultItem.appendChild(defaultSpan);
     container.appendChild(defaultItem);
@@ -481,8 +491,8 @@ function writeAllAppNames() {
     divider.appendChild(hr);
     container.appendChild(divider);
 
-    // Add app names
-    allAppNames
+    // Add names, but not None (e.g., outside of apps or of blocks)
+    allNames
         .filter(name => name !== "None")
         .forEach(name => {
             const li = document.createElement("li");
@@ -491,8 +501,8 @@ function writeAllAppNames() {
             span.setAttribute("role", "button");
             span.textContent = name;
             span.onclick = () => {
-                filterThenRefreshData("app", name);
-                I("current-app-filter").textContent = ` | ${name}`;
+                filterThenRefreshData(field, name);
+                I(`current-${field}-filter`).textContent = ` | ${name}`;
             };
             li.appendChild(span);
             container.appendChild(li);
@@ -512,9 +522,11 @@ function removeFilter() {
 
     const roundInput = I("filter-by-round-input");
     const appFilter = I("current-app-filter");
+    const blockFilter = I("current-block-filter");
 
     if (roundInput) roundInput.value = "";
     if (appFilter) appFilter.textContent = "";
+    if (blockFilter) blockFilter.textContent = "";
 }
 
 /**
@@ -588,7 +600,7 @@ async function updateData() {
         }
     }
 
-    writeAllAppNames();
+    writeAllFilterNames();
 }
 
 /**
