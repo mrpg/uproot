@@ -56,7 +56,7 @@ __all__ = [
     "PlayerContext",
     "PlayerIdentifier",
     "PlayerType",
-    "Random",
+    "RandomOrder",
     "Repeat",
     "Rounds",
     "Session",
@@ -468,15 +468,15 @@ def append_to_csv(outfile: str, data: dict[str, Any]) -> None:
             os.unlink(tmpname)
 
 
-class Random(t.SmoothOperator):
+class RandomOrder(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
         # Call parent __init__ before setting custom pages
         super().__init__()
         self.pages: list[t.PageLike] = [
             INTERNAL_PAGES["{"],
-            INTERNAL_PAGES["RandomStart"],
+            INTERNAL_PAGES["RandomOrderStart"],
             *pages,
-            INTERNAL_PAGES["RandomEnd"],
+            INTERNAL_PAGES["RandomOrderEnd"],
             INTERNAL_PAGES["}"],
         ]
 
@@ -485,30 +485,30 @@ class Random(t.SmoothOperator):
 
     @classmethod
     async def start(page, player: Storage) -> None:
-        # Find the nearest #RandomStart before our position
+        # Find the nearest #RandomOrderStart before our position
         start_ix = None
         for i in range(player.show_page, -1, -1):
-            if player.page_order[i] == "#RandomStart":
+            if player.page_order[i] == "#RandomOrderStart":
                 start_ix = i
                 break
 
         if start_ix is None:
-            raise RuntimeError("Could not find #RandomStart")
+            raise RuntimeError("Could not find #RandomOrderStart")
 
-        # Find the matching #RandomEnd for this #RandomStart
+        # Find the matching #RandomOrderEnd for this #RandomOrderStart
         random_depth = 1
         end_ix = None
         for i in range(start_ix + 1, len(player.page_order)):
-            if player.page_order[i] == "#RandomStart":
+            if player.page_order[i] == "#RandomOrderStart":
                 random_depth += 1
-            elif player.page_order[i] == "#RandomEnd":
+            elif player.page_order[i] == "#RandomOrderEnd":
                 random_depth -= 1
                 if random_depth == 0:
                     end_ix = i
                     break
 
         if end_ix is None:
-            raise RuntimeError("Could not find matching #RandomEnd")
+            raise RuntimeError("Could not find matching #RandomOrderEnd")
 
         pages = player.page_order[start_ix + 1 : end_ix]
 
@@ -844,13 +844,13 @@ class Between(t.SmoothOperator):
 
 
 INTERNAL_PAGES = {
-    "RandomStart": type(
-        "RandomStart",
+    "RandomOrderStart": type(
+        "RandomOrderStart",
         (t.InternalPage,),
-        {"after_always_once": Random.__dict__["start"]},
+        {"after_always_once": RandomOrder.__dict__["start"]},
     ),
-    "RandomEnd": type(
-        "RandomEnd",
+    "RandomOrderEnd": type(
+        "RandomOrderEnd",
         (t.InternalPage,),
         {},
     ),
