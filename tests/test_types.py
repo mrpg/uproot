@@ -38,18 +38,14 @@ from uproot.types import (
 class TestValue:
     """Test the Value dataclass."""
 
-    def test_default_values(self):
-        """Test Value with default values."""
-        value = Value()
-        assert value.time is None
-        assert value.unavailable is True
-        assert value.data is None
-        assert value.context == ""
-
     def test_custom_values(self):
         """Test Value with custom values."""
         value = Value(
-            time=123.456, unavailable=False, data="test", context="test context"
+            time=123.456,
+            unavailable=False,
+            data="test",
+            context="test context",
+            seq=1,
         )
         assert value.time == 123.456
         assert value.unavailable is False
@@ -58,7 +54,7 @@ class TestValue:
 
     def test_frozen_dataclass(self):
         """Test that Value is frozen (immutable)."""
-        value = Value(data="initial")
+        value = Value(time=0.0, unavailable=False, data="initial", context="", seq=1)
         with pytest.raises(AttributeError):
             value.data = "changed"
 

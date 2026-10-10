@@ -412,8 +412,8 @@ def test_grouped_format_name():
 
 async def test_generate_briefcase(monkeypatch):
     session_data = {
-        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
-        ("session", "session1", "players"): [Value(2.0, False, ["p1"], "")],
+        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "", seq=1)],
+        ("session", "session1", "players"): [Value(2.0, False, ["p1"], "", seq=2)],
     }
 
     monkeypatch.setattr(
@@ -470,8 +470,8 @@ async def test_generate_briefcase(monkeypatch):
 
 async def test_generate_briefcase_grouped(monkeypatch):
     session_data = {
-        ("player", "session1", "p1", "round"): [Value(1.0, False, 1, "")],
-        ("player", "session1", "p1", "choice"): [Value(2.0, False, "A", "")],
+        ("player", "session1", "p1", "round"): [Value(1.0, False, 1, "", seq=1)],
+        ("player", "session1", "p1", "choice"): [Value(2.0, False, "A", "", seq=2)],
     }
 
     monkeypatch.setattr(
@@ -509,7 +509,7 @@ async def test_generate_briefcase_reads_on_loop_and_builds_in_thread(monkeypatch
 
     def everything_from_session(sname):
         threads["read"] = threading.get_ident()
-        return {("player", "session1", "p1", "x"): [Value(1.0, False, 1, "")]}
+        return {("player", "session1", "p1", "x"): [Value(1.0, False, 1, "", seq=1)]}
 
     def page_times_rows(sname):
         threads["page_times"] = threading.get_ident()
@@ -576,7 +576,7 @@ def test_briefcase_out_streams(monkeypatch):
 
 def test_data_dictionary_covers_internal_columns():
     everything = {
-        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
+        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "", seq=1)],
     }
 
     rows = list(partial_matrix(everything))
@@ -947,23 +947,18 @@ def test_stable_encode_decode_datetime_edge_cases():
 
 def test_stable_type_ids_normative():
     # Test that the type IDs are exactly as specified
-    from uproot.stable import TYPES
-
-    assert TYPES[date] == 10
-    assert TYPES[time] == 11
-    assert TYPES[datetime] == 12
+    assert encode(date(2020, 1, 1))[0] == 10
+    assert encode(time(12, 0))[0] == 11
+    assert encode(datetime(2020, 1, 1, 12, 0, tzinfo=UTC))[0] == 12
 
 
 def test_stable_datetime_types_immutable():
     # Test that datetime types are classified as immutable
-    from uproot.stable import IMMUTABLE_TYPES, MUTABLE_TYPES
+    from uproot.stable import IMMUTABLE_TYPES
 
     assert date in IMMUTABLE_TYPES
     assert time in IMMUTABLE_TYPES
     assert datetime in IMMUTABLE_TYPES
-    assert date not in MUTABLE_TYPES
-    assert time not in MUTABLE_TYPES
-    assert datetime not in MUTABLE_TYPES
 
 
 def test_stable_encode_decode_iso_format_normative():
@@ -1120,16 +1115,13 @@ def test_stable_encode_decode_random_sample_deterministic():
 
 def test_stable_random_type_id():
     """Test that random.Random has correct type ID."""
-    from uproot.stable import TYPES
-
-    assert TYPES[random.Random] == 133
+    assert encode(random.Random(1))[0] == 133
 
 
 def test_stable_random_is_mutable():
     """Test that random.Random is classified as mutable type."""
-    from uproot.stable import IMMUTABLE_TYPES, MUTABLE_TYPES
+    from uproot.stable import IMMUTABLE_TYPES
 
-    assert random.Random in MUTABLE_TYPES
     assert random.Random not in IMMUTABLE_TYPES
 
 
