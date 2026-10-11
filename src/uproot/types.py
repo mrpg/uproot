@@ -187,8 +187,11 @@ def optional_call_once(
     *,
     storage: "Storage",
     show_page: int,
+    rerun: bool = False,
     **kwargs: Any,
 ) -> Any | None:
+    """Call attr as optional_call() does, but only once per show_page of
+    storage. With rerun=True, call it even if it ran there before."""
     if not hasattr(obj, attr):
         return default_return  # short circuit
 
@@ -201,14 +204,17 @@ def optional_call_once(
         return frozenset(getattr(storage, "_uproot_what_ran", ()))
 
     what_ran = current_markers()
+    first_run = hereruns not in what_ran
 
-    if hereruns in what_ran:
+    if not (first_run or rerun):
         return default_return
 
     def unmark_as_run() -> None:
-        storage._uproot_what_ran = current_markers() - {hereruns}
+        if first_run:  # A failed rerun does not undo the earlier run
+            storage._uproot_what_ran = current_markers() - {hereruns}
 
-    storage._uproot_what_ran = what_ran | {hereruns}
+    if first_run:
+        storage._uproot_what_ran = what_ran | {hereruns}
 
     try:
         retval = optional_call(obj, attr, default_return=default_return, **kwargs)

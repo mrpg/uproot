@@ -388,8 +388,8 @@
         uproot.ensureBuddy();
         {% endif %}
 
-        {% if player is not none and _uproot_simulate %}
-        {% include app_or_default(app, "simulate.js") ignore missing %}
+        {% if player is not none and _uproot_simulate and app is not none %}
+        {% include app.__name__ ~ "/simulate.js" ignore missing %}
         {% endif %}
     });
 </script>

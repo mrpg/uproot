@@ -62,6 +62,7 @@ def show_help() -> None:
     print("  reset               Reset database")
     print("  dump                Dump database to file")
     print("  restore             Restore database from file")
+    print("  archive             Archive project code to file")
     print("  new                 Create new app")
     print("  examples            Download examples")
     print("  deployment          View deployment")
@@ -182,6 +183,7 @@ def main() -> None:
 
     cmds = [
         "announcements",
+        "archive",
         "deployment",
         "dump",
         "examples",

@@ -837,7 +837,7 @@ def path2page(path: str) -> type[Page]:
     if path.startswith("#"):
         from uproot.smithereens import INTERNAL_PAGES
 
-        return INTERNAL_PAGES[path[1:]]
+        return INTERNAL_PAGES[path[1:].partition(":")[0]]
 
     # App pages (appname/PageName or appname/#InternalName)
     appname, pagename = path.split("/", 1)

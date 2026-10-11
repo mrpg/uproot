@@ -13,7 +13,7 @@ import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 from uproot import chat
-from uproot.core import resolve_page_order
+from uproot.core import reach_end, resolve_page_order
 from uproot.services.session_service import players_exist, session_exists
 
 
@@ -193,6 +193,9 @@ async def advance_by_one(
             if -1 < player.show_page < len(player.page_order):
                 player.show_page += 1
 
+                if player.show_page == len(player.page_order):
+                    reach_end(player)
+
                 q.enqueue(
                     tuple(pid),
                     {
@@ -219,6 +222,7 @@ async def put_to_end(
         with t.materialize(pid) as player:
             if player.show_page < len(player.page_order):
                 player.show_page = len(player.page_order)
+                reach_end(player)
 
                 q.enqueue(
                     tuple(pid),

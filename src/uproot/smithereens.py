@@ -342,7 +342,9 @@ def transition_to_page(
 
 @flexible
 def transition_to_end(player: Storage, reload_: bool = True) -> None:
-    player.show_page = len(player.page_order)
+    with player:
+        player.show_page = len(player.page_order)
+        c.reach_end(player)
 
     if reload_:
         reload(player)
@@ -550,8 +552,137 @@ class RandomOrder(t.SmoothOperator):
         player.page_order[start_ix + 1 : end_ix] = shuffled_pages
 
 
+def rounds_reset(block: str | None) -> type[t.Page]:
+    """Marker that begins Rounds/Repeat iterations of the given block"""
+    if block is None:
+        return INTERNAL_PAGES["RoundsReset"]
+
+    return type(f"RoundsReset:{block}", (INTERNAL_PAGES["RoundsReset"],), {})
+
+
+def round_position(page_order: list[str], ix: int) -> tuple[str | None, int, list[int]]:
+    """Block, round and round_nested of the Rounds/Repeat iteration at ix
+
+    Rounds count per block within each app, across all nesting levels. E.g.,
+    round_nested = [2, 3] means "outer round 2, inner round 3".
+    """
+    block: str | None = None
+    rounds: dict[str | None, int] = {}  # block -> iterations so far
+    outer: dict[str | None, int] = {}  # block -> outermost iterations so far
+    nested: list[int] = []
+    depth = 0
+
+    for page in page_order[: ix + 1]:
+        if page.endswith("/#StartApp"):
+            rounds.clear()
+            outer.clear()
+        elif page.startswith("#RoundsReset"):
+            if depth == 0:
+                block = page.partition(":")[2] or None
+
+            del nested[depth:]  # A new sequence starts counting at 1
+        elif page in ("#RoundStart", "#RepeatStart"):
+            if depth == 0:
+                outer[block] = outer.get(block, 0) + 1
+                nested = [outer[block]]
+            else:
+                previous = nested[depth] if len(nested) > depth else 0
+                nested = nested[:depth] + [previous + 1]
+
+            rounds[block] = rounds.get(block, 0) + 1
+            depth += 1
+        elif page in ("#RoundEnd", "#RepeatEnd"):
+            depth -= 1
+
+    return block, rounds[block], nested
+
+
+def enter_round(player: Storage) -> None:
+    block, number, nested = round_position(player.page_order, player.show_page)
+
+    if not hasattr(player, "block") or player.block != block:
+        # Retract the previous round first, such that the new block is never
+        # paired with a round of another block
+        if hasattr(player, "round"):
+            del player.round
+
+        player.block = block
+
+    player.round_nested = nested
+    player.round = number
+
+
+def loops(item: Any, nested: bool = False) -> Iterable[tuple[Any, bool]]:
+    """All loops that can run in item, and whether each is nested in another"""
+    if isinstance(item, list):
+        for page in item:
+            yield from loops(page, nested)
+    elif isinstance(item, t.SmoothOperator):
+        if isinstance(item, Rounds) and item.n <= 0:
+            return
+
+        is_loop = isinstance(item, (Rounds, Repeat))
+
+        if is_loop:
+            yield item, nested
+
+        for page in item.pages:
+            yield from loops(page, nested or is_loop)
+
+
+def max_loops(item: Any) -> int:
+    """Maximum number of outermost Rounds and Repeat a participant runs through"""
+    if isinstance(item, Rounds):
+        return int(item.n > 0)
+    elif isinstance(item, Repeat):
+        return 1
+    elif isinstance(item, list):
+        return sum(map(max_loops, item))
+    elif isinstance(item, Between):
+        return max(map(max_loops, item.pages), default=0)
+    elif isinstance(item, t.SmoothOperator):
+        return sum(map(max_loops, item.pages))
+
+    return 0
+
+
+def check_blocks(appname: str, page_order: list[t.PageLike]) -> None:
+    """Make (app, block, round) identify each round: if participants can run
+    through several Rounds or Repeat in an app, each of them needs a block"""
+    several = max_loops(page_order) > 1
+
+    for loop, nested in loops(page_order):
+        pages = ", ".join(
+            p.__name__
+            for p in loop.pages
+            if isinstance(p, type) and not issubclass(p, t.InternalPage)
+        )
+        name = f"{type(loop).__name__}({pages})"
+
+        ensure(
+            not nested or loop.block is None,
+            ValueError,
+            f"{name} in app '{appname}' is nested in another Rounds or Repeat, so "
+            "it belongs to the block of the outermost one and cannot have its own",
+        )
+        ensure(
+            nested or not several or loop.block is not None,
+            ValueError,
+            f"App '{appname}' can take participants through several Rounds or "
+            f'Repeat, so each of them needs a block, e.g., block="main". {name} '
+            "has none. Blocks with the same name continue counting "
+            "player.round, other blocks start at 1.",
+        )
+
+
 class Rounds(t.SmoothOperator):
-    def __init__(self, *pages: t.PageLike, n: int) -> None:
+    def __init__(self, *pages: t.PageLike, n: int, block: str | None = None) -> None:
+        ensure(
+            block is None or (isinstance(block, str) and block.isidentifier()),
+            ValueError,
+            "block must be a valid identifier",
+        )
+
         # Call parent __init__ before setting custom pages
         super().__init__()
         self.pages = [
@@ -562,78 +693,56 @@ class Rounds(t.SmoothOperator):
             INTERNAL_PAGES["}"],
         ]
         self.n = n
+        self.block = block
 
     def expand(self) -> list[t.PageLike]:
-        return [INTERNAL_PAGES["RoundsReset"]] + self.n * self.pages
+        return [
+            INTERNAL_PAGES["{"],
+            rounds_reset(self.block),
+            *(self.n * self.pages),
+            INTERNAL_PAGES["}"],
+        ]
 
     @classmethod
     async def next(page, player: Storage) -> None:
-        # Calculate round_nested by scanning page_order up to current position.
-        # This tracks the round number at each nesting level.
-        # E.g., round_nested = [2, 3] means "outer round 2, inner round 3"
-        depth = 0
-        completed_at_depth: dict[int, int] = {}  # depth -> completed rounds
-        current_at_depth: dict[int, int] = {}  # depth -> current round number
+        enter_round(player)
 
-        for i in range(player.show_page):
-            page_name = player.page_order[i]
-            if page_name == "#RoundsReset":
-                # A new Rounds() block begins at this depth — reset counters
-                for d in list(completed_at_depth.keys()):
-                    if d >= depth:
-                        del completed_at_depth[d]
-                for d in list(current_at_depth.keys()):
-                    if d >= depth:
-                        del current_at_depth[d]
-            elif page_name == "#RoundStart":
-                # Entering a round at this depth
-                current_at_depth[depth] = completed_at_depth.get(depth, 0) + 1
-                depth += 1
-            elif page_name == "#RoundEnd":
-                # Exiting a round - mark it as completed at that depth
-                depth -= 1
-                completed_at_depth[depth] = current_at_depth.get(depth, 0)
-                # Clear deeper levels - they reset when we start a new iteration
-                for d in list(completed_at_depth.keys()):
-                    if d > depth:
-                        del completed_at_depth[d]
-                for d in list(current_at_depth.keys()):
-                    if d > depth:
-                        del current_at_depth[d]
 
-        # We're now at a #RoundStart at the current depth
-        this_round = completed_at_depth.get(depth, 0) + 1
+def repeat_end(page_order: list[str], start_ix: int) -> int:
+    """Index of the #RepeatEnd that matches the #RepeatStart at start_ix"""
+    depth = 0
 
-        # Build round_nested: [round at depth 0, round at depth 1, ..., this_round]
-        round_nested = []
-        for d in range(depth):
-            round_nested.append(current_at_depth.get(d, 1))
-        round_nested.append(this_round)
+    for ix in range(start_ix, len(page_order)):
+        if page_order[ix] == "#RepeatStart":
+            depth += 1
+        elif page_order[ix] == "#RepeatEnd":
+            depth -= 1
 
-        player.round_nested = round_nested
+            if depth == 0:
+                return ix
 
-        # Reset player.round at the beginning of the Rounds sequence,
-        # otherwise increment it.
-        if round_nested == [1]:
-            player.round = 1
-        else:
-            if not hasattr(player, "round") or player.round is None:
-                player.round = 1
-            else:
-                player.round += 1
+    raise RuntimeError("Could not find #RepeatEnd")
 
 
 class Repeat(t.SmoothOperator):
-    def __init__(self, *pages: t.PageLike) -> None:
+    def __init__(self, *pages: t.PageLike, block: str | None = None) -> None:
+        ensure(
+            block is None or (isinstance(block, str) and block.isidentifier()),
+            ValueError,
+            "block must be a valid identifier",
+        )
+
         # Call parent __init__ before setting custom pages
         super().__init__()
         self.pages = [
             INTERNAL_PAGES["{"],
+            rounds_reset(block),
             INTERNAL_PAGES["RepeatStart"],
             *pages,
             INTERNAL_PAGES["RepeatEnd"],
             INTERNAL_PAGES["}"],
         ]
+        self.block = block
 
     def expand(self) -> list[t.PageLike]:
         return self.pages
@@ -641,28 +750,44 @@ class Repeat(t.SmoothOperator):
     @classmethod
     async def continue_maybe(page, player: Storage) -> None:
         end_ix = player.page_order.index("#RepeatEnd", player.show_page)
+        depth = 0  # Skip nested Repeat sequences
 
         for start_ix in range(end_ix - 1, -1, -1):
-            if player.page_order[start_ix] == "#RepeatStart":
-                break
+            if player.page_order[start_ix] == "#RepeatEnd":
+                depth += 1
+            elif player.page_order[start_ix] == "#RepeatStart":
+                if depth == 0:
+                    break
+
+                depth -= 1
         else:
             raise RuntimeError("Could not find #RepeatStart")
 
-        do_continue = player.get("add_round", False)
+        templates = getattr(player, "repeat_templates", {}).copy()
+        # If #RepeatStart was skipped, repeat the iteration as it is now.
+        iteration = templates.pop(
+            str(start_ix), player.page_order[start_ix : (end_ix + 1)]
+        )
+        player.repeat_templates = templates
 
-        if do_continue:
+        if player.get("add_round", False):
             player.page_order = (
                 player.page_order[: (end_ix + 1)]
-                + player.page_order[start_ix : (end_ix + 1)]
+                + iteration
                 + player.page_order[(end_ix + 1) :]
             )
 
     @classmethod
     async def next(page, player: Storage) -> None:
-        if not hasattr(player, "round") or player.round is None:
-            player.round = 1
-        else:
-            player.round += 1
+        enter_round(player)
+
+        # Save the iteration before its pages (e.g., Between) change it.
+        # Keep the copy out of page_order until #RepeatEnd approves it.
+        end_ix = repeat_end(player.page_order, player.show_page)
+        player.repeat_templates = {
+            **getattr(player, "repeat_templates", {}),
+            str(player.show_page): player.page_order[player.show_page : (end_ix + 1)],
+        }
 
 
 class Bracket(t.SmoothOperator):
@@ -770,8 +895,8 @@ class Between(t.SmoothOperator):
         # Randomly select exactly one group
         selected_group = rng().choice(grouped_pages)
 
-        # Record which page was selected (filter out bracket markers)
-        selected_page = next((p for p in selected_group if p not in ("#{", "#}")), None)
+        # Record which page was selected (filter out internal markers)
+        selected_page = next((p for p in selected_group if not p.startswith("#")), None)
         if selected_page is not None:
             if not hasattr(player, "between_showed") or player.between_showed is None:
                 player.between_showed = []

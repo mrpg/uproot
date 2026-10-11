@@ -91,6 +91,9 @@
 ? 'Any app'
 : 'Any app'
 
+? 'Any block'
+: 'Any block'
+
 ? 'Apps'
 : 'Apps'
 
@@ -154,6 +157,9 @@
 ? 'Download database dump'
 : 'Download database dump'
 
+? 'Download project code'
+: 'Download project code'
+
 ? 'Existing session'
 : 'Existing session'
 
@@ -162,6 +168,9 @@
 
 ? 'Filter by app'
 : 'Filter by app'
+
+? 'Filter by block'
+: 'Filter by block'
 
 ? 'Filter by round'
 : 'Filter by round'
@@ -334,8 +343,14 @@
 ? 'This creates a complete machine-readable record of all data.'
 : 'This creates a complete machine-readable record of all data.'
 
+? 'This creates an archive of all project files that are not excluded by <code>.gitignore</code>.'
+: 'This creates an archive of all project files that are not excluded by <code>.gitignore</code>.'
+
 ? 'This opens a new browser tab displaying the current pages of the selected players.'
 : 'This opens a new browser tab displaying the current pages of the selected players.'
+
+? 'This requires a <code>.gitignore</code> file in the project directory.'
+: 'This requires a <code>.gitignore</code> file in the project directory.'
 
 ? 'This room is associated with the following config'
 : 'This room is associated with the following config'

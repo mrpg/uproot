@@ -9,6 +9,7 @@ import orjson as json
 import pytest
 from fastapi import HTTPException
 from sortedcontainers import SortedList
+from starlette.concurrency import iterate_in_threadpool
 
 from uproot.data import (
     DATA_DICTIONARY,
@@ -312,6 +313,70 @@ def test_latest_with_group_by_does_not_emit_extra_row_after_group_unavailable():
     ]
 
 
+def changes_across_apps():
+    """Changes as uproot makes them: p1 runs through a survey, a game with two
+    rounds and an outro before reaching the end, p2 never starts"""
+
+    def change(uname, field, data, unavailable=False):
+        return {
+            "!storage": f"player/session1/{uname}",
+            "!field": field,
+            "!time": 1.0,
+            "!context": "",
+            "!unavailable": unavailable,
+            "!data": data,
+        }
+
+    return sequenced(
+        [
+            change("p1", "app", None),  # 1
+            change("p2", "app", None),  # 2
+            change("p1", "app", "survey"),  # 3
+            change("p1", "answer", "s"),  # 4
+            change("p1", "app", "game"),  # 5
+            change("p1", "block", None),  # 6
+            change("p1", "round", 1),  # 7
+            change("p1", "answer", "g1"),  # 8
+            change("p1", "round", 2),  # 9
+            change("p1", "answer", "g2"),  # 10
+            change("p1", "round", None, unavailable=True),  # 11
+            change("p1", "block", None, unavailable=True),  # 12
+            change("p1", "app", "outro"),  # 13
+            change("p1", "answer", "o"),  # 14
+            change("p1", "app", None),  # 15 (end)
+            change("p1", "answer", "after the end"),  # 16
+        ]
+    )
+
+
+def test_latest_grouped_by_app_gives_apps_without_combinations_one_row():
+    result = latest(changes_across_apps(), group_by_fields=["app", "block", "round"])
+
+    assert [
+        (row["!storage"], row["!seq"], row["app"], row.get("round"), row.get("answer"))
+        for row in result
+    ] == [
+        ("player/session1/p1", 4, "survey", None, "s"),
+        ("player/session1/p1", 8, "game", 1, "g1"),
+        ("player/session1/p1", 10, "game", 2, "g2"),
+        ("player/session1/p1", 14, "outro", None, "o"),
+        ("player/session1/p2", 2, None, None, None),
+    ]
+
+
+def test_latest_grouped_by_app_leaves_out_states_outside_of_apps():
+    result = latest(changes_across_apps(), group_by_fields=["app"])
+
+    assert [
+        (row["!storage"], row["!seq"], row["app"], row.get("answer")) for row in result
+    ] == [
+        ("player/session1/p1", 4, "survey", "s"),
+        ("player/session1/p1", 12, "game", "g2"),
+        ("player/session1/p1", 14, "outro", "o"),
+        ("player/session1/p2", 2, None, None),
+    ]
+
+
 def test_briefcase_out():
     test_data = sequenced(
         [
@@ -334,11 +399,13 @@ def test_briefcase_out():
         ]
     )
 
-    briefcase = briefcase_out(
-        {"latest": latest(test_data)},
-        wrapper="session1",
-        filetype="csv",
-        readme="hello",
+    briefcase = b"".join(
+        briefcase_out(
+            {"latest": latest(test_data)},
+            wrapper="session1",
+            filetype="csv",
+            readme="hello",
+        )
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -386,11 +453,13 @@ def test_briefcase_out_jsonl():
         ]
     )
 
-    briefcase = briefcase_out(
-        {"ultralong": noop(test_data)},
-        wrapper="session1",
-        filetype="jsonl",
-        readme="hello",
+    briefcase = b"".join(
+        briefcase_out(
+            {"ultralong": noop(test_data)},
+            wrapper="session1",
+            filetype="jsonl",
+            readme="hello",
+        )
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -407,8 +476,8 @@ def test_grouped_format_name():
 
 async def test_generate_briefcase(monkeypatch):
     session_data = {
-        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
-        ("session", "session1", "players"): [Value(2.0, False, ["p1"], "")],
+        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "", seq=1)],
+        ("session", "session1", "players"): [Value(2.0, False, ["p1"], "", seq=2)],
     }
 
     monkeypatch.setattr(
@@ -432,8 +501,8 @@ async def test_generate_briefcase(monkeypatch):
         ],
     )
 
-    briefcase = await data_service.generate_briefcase(
-        "session1", [], False, wrapper="session1"
+    briefcase = b"".join(
+        await data_service.generate_briefcase("session1", [], False, wrapper="session1")
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -465,8 +534,8 @@ async def test_generate_briefcase(monkeypatch):
 
 async def test_generate_briefcase_grouped(monkeypatch):
     session_data = {
-        ("player", "session1", "p1", "round"): [Value(1.0, False, 1, "")],
-        ("player", "session1", "p1", "choice"): [Value(2.0, False, "A", "")],
+        ("player", "session1", "p1", "round"): [Value(1.0, False, 1, "", seq=1)],
+        ("player", "session1", "p1", "choice"): [Value(2.0, False, "A", "", seq=2)],
     }
 
     monkeypatch.setattr(
@@ -476,8 +545,10 @@ async def test_generate_briefcase_grouped(monkeypatch):
     )
     monkeypatch.setattr(data_service, "page_times_rows", lambda sname: [])
 
-    briefcase = await data_service.generate_briefcase(
-        "session1", ["round"], False, "jsonl", wrapper="session1"
+    briefcase = b"".join(
+        await data_service.generate_briefcase(
+            "session1", ["round"], False, "jsonl", wrapper="session1"
+        )
     )
 
     with ZipFile(BytesIO(briefcase)) as zf:
@@ -502,31 +573,74 @@ async def test_generate_briefcase_reads_on_loop_and_builds_in_thread(monkeypatch
 
     def everything_from_session(sname):
         threads["read"] = threading.get_ident()
-        return {("player", "session1", "p1", "x"): [Value(1.0, False, 1, "")]}
+        return {("player", "session1", "p1", "x"): [Value(1.0, False, 1, "", seq=1)]}
 
     def page_times_rows(sname):
         threads["page_times"] = threading.get_ident()
         return []
 
-    def briefcase_from_rows(*args):
+    def briefcase_out(*args, **kwargs):
         threads["build"] = threading.get_ident()
-        return b""
+        yield b""
 
     monkeypatch.setattr(
         data_service, "everything_from_session", everything_from_session
     )
     monkeypatch.setattr(data_service, "page_times_rows", page_times_rows)
-    monkeypatch.setattr(data_service, "briefcase_from_rows", briefcase_from_rows)
+    monkeypatch.setattr(data_service.data, "briefcase_out", briefcase_out)
 
-    await data_service.generate_briefcase("session1", [], False, wrapper="session1")
+    briefcase = await data_service.generate_briefcase(
+        "session1", [], False, wrapper="session1"
+    )
+
+    assert "build" not in threads
+
+    # This is how StreamingResponse consumes the briefcase
+    async for _ in iterate_in_threadpool(briefcase):
+        pass
 
     assert threads["read"] == threads["page_times"] == threading.get_ident()
     assert threads["build"] != threading.get_ident()
 
 
+def test_briefcase_out_streams(monkeypatch):
+    monkeypatch.setattr(data_service.data, "STREAM_CHUNK_SIZE", 1)
+    test_data = sequenced(
+        [
+            {
+                "!storage": f"player/session1/p{i}",
+                "!field": "choice",
+                "!time": float(i),
+                "!context": "",
+                "!unavailable": False,
+                "!data": random.Random(i).randbytes(50_000).hex(),
+            }
+            for i in range(10)
+        ]
+    )
+
+    chunks = list(
+        briefcase_out(
+            {"ultralong": noop(test_data)},
+            wrapper="session1",
+            filetype="csv",
+            readme="hello",
+        )
+    )
+
+    assert len(chunks) > 10
+
+    with ZipFile(BytesIO(b"".join(chunks))) as zf:
+        assert zf.testzip() is None
+        player_csv = zf.read("session1/ultralong/player.csv")
+
+    for i in range(10):
+        assert random.Random(i).randbytes(50_000).hex().encode() in player_csv
+
+
 def test_data_dictionary_covers_internal_columns():
     everything = {
-        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "")],
+        ("player", "session1", "p1", "choice"): [Value(1.0, False, "A", "", seq=1)],
     }
 
     rows = list(partial_matrix(everything))
@@ -897,23 +1011,18 @@ def test_stable_encode_decode_datetime_edge_cases():
 
 def test_stable_type_ids_normative():
     # Test that the type IDs are exactly as specified
-    from uproot.stable import TYPES
-
-    assert TYPES[date] == 10
-    assert TYPES[time] == 11
-    assert TYPES[datetime] == 12
+    assert encode(date(2020, 1, 1))[0] == 10
+    assert encode(time(12, 0))[0] == 11
+    assert encode(datetime(2020, 1, 1, 12, 0, tzinfo=UTC))[0] == 12
 
 
 def test_stable_datetime_types_immutable():
     # Test that datetime types are classified as immutable
-    from uproot.stable import IMMUTABLE_TYPES, MUTABLE_TYPES
+    from uproot.stable import IMMUTABLE_TYPES
 
     assert date in IMMUTABLE_TYPES
     assert time in IMMUTABLE_TYPES
     assert datetime in IMMUTABLE_TYPES
-    assert date not in MUTABLE_TYPES
-    assert time not in MUTABLE_TYPES
-    assert datetime not in MUTABLE_TYPES
 
 
 def test_stable_encode_decode_iso_format_normative():
@@ -1070,16 +1179,13 @@ def test_stable_encode_decode_random_sample_deterministic():
 
 def test_stable_random_type_id():
     """Test that random.Random has correct type ID."""
-    from uproot.stable import TYPES
-
-    assert TYPES[random.Random] == 133
+    assert encode(random.Random(1))[0] == 133
 
 
 def test_stable_random_is_mutable():
     """Test that random.Random is classified as mutable type."""
-    from uproot.stable import IMMUTABLE_TYPES, MUTABLE_TYPES
+    from uproot.stable import IMMUTABLE_TYPES
 
-    assert random.Random in MUTABLE_TYPES
     assert random.Random not in IMMUTABLE_TYPES
 
 

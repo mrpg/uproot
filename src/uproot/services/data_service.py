@@ -5,6 +5,7 @@
 
 import asyncio
 import re
+import textwrap
 from bisect import bisect_right
 from collections.abc import AsyncGenerator, Callable, Iterator
 from datetime import UTC, datetime
@@ -179,12 +180,25 @@ def briefcase_readme(
 
     grouped = ""
     if gvar:
-        grouped = (
-            f"{grouped_format_name(gvar)}/\n"
-            f"    One row per storage and per combination of "
-            f"({', '.join(gvar)}): the\n"
-            f"    state as it was at the end of each combination.\n\n"
+        description = (
+            f"One row per storage and per combination of ({', '.join(gvar)}): "
+            "the state as it was at the end of each combination."
         )
+
+        if "app" in gvar:
+            description += (
+                " Apps in which these fields are never all set (e.g., apps without"
+                " rounds) get one row: the state at the end of the app. Changes"
+                " outside of apps get no rows of their own; those after the end"
+                " only appear in latest/."
+            )
+
+        description += (
+            " Storages without any such row (e.g., sessions) get one row: their"
+            " final state."
+        )
+        body = textwrap.indent(textwrap.fill(description, 68), "    ")
+        grouped = f"{grouped_format_name(gvar)}/\n{body}\n\n"
 
     if filters:
         filtered = (
@@ -236,7 +250,7 @@ async def generate_briefcase(
     filetype: str = "csv",
     *,
     wrapper: str,
-) -> bytes:
+) -> Iterator[bytes]:
     """Generate a ZIP briefcase containing all key formats for a session.
 
     The briefcase always contains the ultralong, sparse, and latest formats
@@ -245,14 +259,14 @@ async def generate_briefcase(
 
     The session is read on the event loop, which is the only place where it
     can safely be read. Stored values are never modified in place, so the
-    rest runs in a thread and does not block the event loop.
+    archive itself is built lazily by the returned iterator, which a
+    StreamingResponse consumes in a worker thread without blocking the loop.
     """
     gvar = [gv for gv in gvar if gv]
     rows = list(data_rows_for_session(sname, filters))
     page_times = page_times_rows(sname)
 
-    return await asyncio.to_thread(
-        briefcase_from_rows,
+    return briefcase_from_rows(
         str(sname),
         rows,
         page_times,
@@ -271,7 +285,7 @@ def briefcase_from_rows(
     filters: bool,
     filetype: str,
     wrapper: str,
-) -> bytes:
+) -> Iterator[bytes]:
     formats: dict[str, DataRows] = {
         "ultralong": data.noop(rows),
         "sparse": data.long_to_wide(rows),
@@ -281,7 +295,7 @@ def briefcase_from_rows(
     if gvar:
         formats[grouped_format_name(gvar)] = data.latest(rows, group_by_fields=gvar)
 
-    return data.briefcase_out(
+    yield from data.briefcase_out(
         formats,
         wrapper=wrapper,
         filetype=filetype,
