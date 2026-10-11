@@ -313,6 +313,70 @@ def test_latest_with_group_by_does_not_emit_extra_row_after_group_unavailable():
     ]
 
 
+def changes_across_apps():
+    """Changes as uproot makes them: p1 runs through a survey, a game with two
+    rounds and an outro before reaching the end, p2 never starts"""
+
+    def change(uname, field, data, unavailable=False):
+        return {
+            "!storage": f"player/session1/{uname}",
+            "!field": field,
+            "!time": 1.0,
+            "!context": "",
+            "!unavailable": unavailable,
+            "!data": data,
+        }
+
+    return sequenced(
+        [
+            change("p1", "app", None),  # 1
+            change("p2", "app", None),  # 2
+            change("p1", "app", "survey"),  # 3
+            change("p1", "answer", "s"),  # 4
+            change("p1", "app", "game"),  # 5
+            change("p1", "block", None),  # 6
+            change("p1", "round", 1),  # 7
+            change("p1", "answer", "g1"),  # 8
+            change("p1", "round", 2),  # 9
+            change("p1", "answer", "g2"),  # 10
+            change("p1", "round", None, unavailable=True),  # 11
+            change("p1", "block", None, unavailable=True),  # 12
+            change("p1", "app", "outro"),  # 13
+            change("p1", "answer", "o"),  # 14
+            change("p1", "app", None),  # 15 (end)
+            change("p1", "answer", "after the end"),  # 16
+        ]
+    )
+
+
+def test_latest_grouped_by_app_gives_apps_without_combinations_one_row():
+    result = latest(changes_across_apps(), group_by_fields=["app", "block", "round"])
+
+    assert [
+        (row["!storage"], row["!seq"], row["app"], row.get("round"), row.get("answer"))
+        for row in result
+    ] == [
+        ("player/session1/p1", 4, "survey", None, "s"),
+        ("player/session1/p1", 8, "game", 1, "g1"),
+        ("player/session1/p1", 10, "game", 2, "g2"),
+        ("player/session1/p1", 14, "outro", None, "o"),
+        ("player/session1/p2", 2, None, None, None),
+    ]
+
+
+def test_latest_grouped_by_app_leaves_out_states_outside_of_apps():
+    result = latest(changes_across_apps(), group_by_fields=["app"])
+
+    assert [
+        (row["!storage"], row["!seq"], row["app"], row.get("answer")) for row in result
+    ] == [
+        ("player/session1/p1", 4, "survey", "s"),
+        ("player/session1/p1", 12, "game", "g2"),
+        ("player/session1/p1", 14, "outro", "o"),
+        ("player/session1/p2", 2, None, None),
+    ]
+
+
 def test_briefcase_out():
     test_data = sequenced(
         [

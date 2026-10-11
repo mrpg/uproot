@@ -91,6 +91,9 @@
 ? 'Any app'
 : 'すべてのアプリ'
 
+? 'Any block'
+: 'すべてのブロック'
+
 ? 'Apps'
 : 'アプリ'
 
@@ -165,6 +168,9 @@
 
 ? 'Filter by app'
 : 'アプリで絞り込み'
+
+? 'Filter by block'
+: 'ブロックで絞り込み'
 
 ? 'Filter by round'
 : 'ラウンドで絞り込み'

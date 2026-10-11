@@ -315,6 +315,13 @@ def load_config(
         if appname not in u.APPS:
             u.APPS.import_module(appname)
 
+            page_order = getattr(u.APPS[appname], "page_order", None)
+
+            if isinstance(page_order, list):  # Callables are checked per player
+                from uproot.smithereens import check_blocks
+
+                check_blocks(appname, page_order)
+
         if f"~{appname}" not in u.CONFIGS:
             u.CONFIGS[f"~{appname}"] = [appname]
 

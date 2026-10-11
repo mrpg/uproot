@@ -948,16 +948,17 @@ def test_repeat_expand():
     repeat = SmithereensRepeat(A, B)
     result = repeat.expand()
 
-    # Should have: #{, #RepeatStart, A, B, #RepeatEnd, #}
-    assert len(result) == 6
+    # Should have: #{, #RoundsReset, #RepeatStart, A, B, #RepeatEnd, #}
+    assert len(result) == 7
 
     paths = [getattr(p, "__name__", str(p)) for p in result]
     assert "{" in paths[0]
-    assert "RepeatStart" in paths[1]
-    assert result[2] is A
-    assert result[3] is B
-    assert "RepeatEnd" in paths[4]
-    assert "}" in paths[5]
+    assert "RoundsReset" in paths[1]
+    assert "RepeatStart" in paths[2]
+    assert result[3] is A
+    assert result[4] is B
+    assert "RepeatEnd" in paths[5]
+    assert "}" in paths[6]
 
 
 def test_repeat_next_initializes_round():
@@ -995,11 +996,10 @@ def test_repeat_next_increments_round():
         "#}",
     ]
     mock_player.show_page = 4
-    mock_player.round = 5
 
     asyncio.run(SmithereensRepeat.next(mock_player))
 
-    assert mock_player.round == 6
+    assert mock_player.round == 2
 
 
 def test_repeat_next_resets_round_unless_nested():
@@ -1546,18 +1546,18 @@ def test_rounds_nested_single_level_still_works():
 
 
 def test_rounds_sequential_resets_player_round():
-    """Test that a second Rounds() block resets player.round (issue #180)"""
+    """Test that Rounds() of another block resets player.round (issue #180)"""
     import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
 
-    # Simulate: Rounds(A, n=3), Rounds(B, n=2)
-    # The #RoundsReset marker separates the two blocks.
+    # Simulate: Rounds(A, n=3, block="a"), Rounds(B, n=2, block="b")
+    # The #RoundsReset markers separate the two blocks.
     mock_player = Mock()
     mock_player.page_order = [
         # First Rounds block
-        "#RoundsReset",
+        "#RoundsReset:a",
         "#{",
         "#RoundStart",  # pos 2
         "A",
@@ -1574,7 +1574,7 @@ def test_rounds_sequential_resets_player_round():
         "#RoundEnd",
         "#}",
         # Second Rounds block
-        "#RoundsReset",
+        "#RoundsReset:b",
         "#{",
         "#RoundStart",  # pos 18
         "B",
@@ -1646,4 +1646,4 @@ def test_rounds_nested_in_repeat_keeps_counting():
     asyncio.run(SmithereensRounds.next(mock_player))
 
     assert mock_player.round == 2
-    assert mock_player.round_nested == [1]
+    assert mock_player.round_nested == [1, 1]
