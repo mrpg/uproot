@@ -10,6 +10,10 @@ resolution-markers = [
     "(python_full_version < '3.13' and sys_platform != 'emscripten') or (python_full_version < '3.12' and sys_platform == 'emscripten')",
 ]
 
+[options]
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer-span = "P1D"
+
 [[package]]
 name = "annotated-doc"
 version = "0.0.5"
