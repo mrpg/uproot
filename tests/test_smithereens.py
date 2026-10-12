@@ -155,10 +155,11 @@ def test_move_to_page_draws_betweens_on_the_way():
         pid = create_player()
 
         with s.Player(*pid) as player:
-            player.page_order = [
+            original_order = [
                 "test/First",
                 *map(page2path, c.expand([Between(Target, Other)])),
             ]
+            player.page_order = original_order
             player.show_page = 0
 
         try:
@@ -169,9 +170,64 @@ def test_move_to_page_draws_betweens_on_the_way():
             moved, kept = True, page2path(Target)
 
         with s.Player(*pid) as player:
-            shown = [page for page in player.page_order[1:] if not page.startswith("#")]
-            assert shown == [kept]
-            assert player.show_page == (player.page_order.index(kept) if moved else 0)
+            if moved:
+                shown = [
+                    page for page in player.page_order[1:] if not page.startswith("#")
+                ]
+                assert shown == [kept]
+                assert player.show_page == player.page_order.index(kept)
+            else:
+                assert player.page_order == original_order
+                assert player.show_page == 0
+                assert not hasattr(player, "between_showed")
+
+
+def test_rejected_move_to_page_restores_marker_state(monkeypatch):
+    class Other(t.Page):
+        pass
+
+    class DeterministicRng:
+        def shuffle(self, groups):
+            groups.reverse()
+
+        def choice(self, groups):
+            return groups[0]
+
+    monkeypatch.setattr("uproot.smithereens.rng", DeterministicRng)
+    pid = create_player()
+    page_order = [
+        "old/First",
+        "next/#StartApp",
+        *map(
+            page2path,
+            c.expand([RandomOrder(Other, Repeat(Between(Other, Target)))]),
+        ),
+    ]
+
+    with s.Player(*pid) as player:
+        player.page_order = page_order
+        player.show_page = 0
+        player.app = "old"
+        player.block = "old_block"
+        player.round = 3
+        player.round_nested = [3]
+        player.between_showed = [["previous"]]
+
+    with pytest.raises(ValueError, match="did not select"):
+        move_to_page(s.Player(*pid), Target, reload_=False)
+
+    with s.Player(*pid) as player:
+        assert player.show_page == 0
+        assert player.page_order == page_order
+        assert (player.app, player.block, player.round, player.round_nested) == (
+            "old",
+            "old_block",
+            3,
+            [3],
+        )
+        assert player.between_showed == [["previous"]]
+        assert not hasattr(player, "repeat_templates")
+        assert not hasattr(player, "_uproot_what_ran")
 
 
 def test_move_to_page_leaves_out_what_it_moves_past():

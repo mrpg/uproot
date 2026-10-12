@@ -7,6 +7,7 @@ import os
 import tempfile
 from collections import namedtuple
 from collections.abc import Awaitable, Callable, Iterable, Sequence
+from copy import deepcopy
 from decimal import Decimal as cu
 from types import EllipsisType
 from typing import (
@@ -355,38 +356,64 @@ def transition_to_page(
 
         origin = player.show_page
         target_index = player.page_order.index(target_path, origin)
-        ix = origin + 1
+        missing = object()
+        prior_state: dict[str, Any] = {}
 
-        # Run the markers on the way that set up what contains the target, e.g.,
-        # its round. This may move or drop the target.
-        while ix < target_index:
-            path = player.page_order[ix]
+        # Internal markers can change these fields before a Between rejects
+        # the target. Restore them if the move cannot complete.
+        for name in (
+            "show_page",
+            "page_order",
+            "app",
+            "block",
+            "round",
+            "round_nested",
+            "repeat_templates",
+            "between_showed",
+            "_uproot_what_ran",
+        ):
+            value = getattr(player, name, missing)
+            prior_state[name] = missing if value is missing else deepcopy(value)
 
-            if sets_up(player.page_order, ix, target_index):
-                player.show_page = ix
+        try:
+            ix = origin + 1
 
-                for hook in ("before_always_once", "after_always_once"):
-                    t.optional_call_once(
-                        path2page(path),
-                        hook,
-                        storage=player,
-                        show_page=ix,
-                        player=player,
-                    )
+            # Run the markers on the way that set up what contains the target,
+            # e.g., its round. This may move or drop the target.
+            while ix < target_index:
+                path = player.page_order[ix]
 
-                if target_path not in player.page_order[ix:]:
-                    player.show_page = origin
+                if sets_up(player.page_order, ix, target_index):
+                    player.show_page = ix
 
-                    raise ValueError(
-                        f"Cannot move to {target_path}, which a Between on the "
-                        "way did not select"
-                    )
+                    for hook in ("before_always_once", "after_always_once"):
+                        t.optional_call_once(
+                            path2page(path),
+                            hook,
+                            storage=player,
+                            show_page=ix,
+                            player=player,
+                        )
 
-                target_index = player.page_order.index(target_path, ix)
+                    if target_path not in player.page_order[ix:]:
+                        raise ValueError(
+                            f"Cannot move to {target_path}, which a Between on the "
+                            "way did not select"
+                        )
 
-            ix += 1
+                    target_index = player.page_order.index(target_path, ix)
 
-        player.show_page = target_index
+                ix += 1
+
+            player.show_page = target_index
+        except Exception:
+            for name, value in prior_state.items():
+                if value is missing:
+                    if hasattr(player, name):
+                        delattr(player, name)
+                else:
+                    setattr(player, name, value)
+            raise
 
     if reload_:
         reload(player)
