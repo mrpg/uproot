@@ -249,7 +249,13 @@ async def revert_by_one(
 
         with t.materialize(pid) as player:
             if -1 < player.show_page <= len(player.page_order):
-                player.show_page -= 1
+                show_page = player.show_page - 1
+
+                # Skip the markers of SmoothOperators, which are never shown
+                while show_page > -1 and player.page_order[show_page].startswith("#"):
+                    show_page -= 1
+
+                player.show_page = show_page
 
                 q.enqueue(
                     tuple(pid),

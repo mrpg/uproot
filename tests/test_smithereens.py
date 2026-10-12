@@ -586,3 +586,20 @@ def test_between_records_the_pages_of_each_selection():
 
             # The outer Between of the second pair shows no pages of its own
             assert player.between_showed == [shown[:2], [], *([p] for p in shown[2:])]
+
+
+async def test_reverting_players_skips_the_markers_of_operators():
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = list(map(page2path, c.expand([Rounds(Target, n=2)])))
+        first, second = [
+            ix for ix, page in enumerate(player.page_order) if page == page2path(Target)
+        ]
+        player.show_page = second
+
+    for expected in (first, -1):
+        await ps.revert_by_one(pid.sname, [pid.uname])
+
+        with s.Player(*pid) as player:
+            assert player.show_page == expected
