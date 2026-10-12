@@ -251,8 +251,11 @@ async def revert_by_one(
             if -1 < player.show_page <= len(player.page_order):
                 show_page = player.show_page - 1
 
-                # Skip the markers of SmoothOperators, which are never shown
-                while show_page > -1 and player.page_order[show_page].startswith("#"):
+                # Skip operator and app-start markers, which are never shown
+                while show_page > -1 and (
+                    player.page_order[show_page].startswith("#")
+                    or player.page_order[show_page].endswith("/#StartApp")
+                ):
                     show_page -= 1
 
                 player.show_page = show_page

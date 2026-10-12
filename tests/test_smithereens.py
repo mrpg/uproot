@@ -670,3 +670,22 @@ async def test_reverting_players_skips_the_markers_of_operators():
 
         with s.Player(*pid) as player:
             assert player.show_page == expected
+
+
+@pytest.mark.parametrize("origin, expected", [(1, -1), (3, 1)])
+async def test_reverting_players_skips_app_start_markers(origin, expected):
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = [
+            "first/#StartApp",
+            "first/First",
+            "second/#StartApp",
+            "second/First",
+        ]
+        player.show_page = origin
+
+    await ps.revert_by_one(pid.sname, [pid.uname])
+
+    with s.Player(*pid) as player:
+        assert player.show_page == expected
