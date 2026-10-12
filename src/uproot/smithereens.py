@@ -678,6 +678,11 @@ def check_blocks(appname: str, page_order: list[t.PageLike]) -> None:
 class Rounds(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike, n: int, block: str | None = None) -> None:
         ensure(
+            type(n) is int and n >= 0,
+            ValueError,
+            "n must be a non-negative integer",
+        )
+        ensure(
             block is None or (isinstance(block, str) and block.isidentifier()),
             ValueError,
             "block must be a valid identifier",

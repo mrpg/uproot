@@ -534,3 +534,9 @@ def test_check_blocks_ignores_empty_rounds():
 
     with pytest.raises(ValueError, match="needs a block"):
         check_blocks("app", [Rounds(Target, n=0), Rounds(Target, n=2), Repeat(Target)])
+
+
+@pytest.mark.parametrize("n", [-1, 2.0, "2", True, None])
+def test_rounds_demand_a_nonnegative_integer(n):
+    with pytest.raises(ValueError, match="non-negative integer"):
+        Rounds(Target, n=n)
