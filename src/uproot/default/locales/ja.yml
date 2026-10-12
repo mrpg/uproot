@@ -973,6 +973,9 @@
 ? 'Pipeline options'
 : 'パイプラインオプション'
 
+? 'Pipeline result'
+: 'パイプラインの結果'
+
 ? 'Pipelines'
 : 'パイプライン'
 

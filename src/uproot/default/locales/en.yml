@@ -973,6 +973,9 @@
 ? 'Pipeline options'
 : 'Pipeline options'
 
+? 'Pipeline result'
+: 'Pipeline result'
+
 ? 'Pipelines'
 : 'Pipelines'
 
