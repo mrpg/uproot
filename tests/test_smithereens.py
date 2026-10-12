@@ -152,6 +152,87 @@ def test_move_to_page_enters_apps_and_rounds_on_the_way():
             assert len(player.history()[field]) == len(history.get(field, ())) + 1
 
 
+@pytest.mark.parametrize(
+    "next_app, previous_block, previous_round, next_block",
+    [
+        ("old", "practice", 3, "main"),
+        ("next", "practice", 3, "main"),
+        ("next", "main", 3, "main"),
+        ("next", "practice", 1, "main"),
+        ("next", None, 3, None),
+        ("next", None, None, "main"),
+    ],
+)
+def test_move_to_page_preserves_app_block_and_round_history(
+    next_app, previous_block, previous_round, next_block
+):
+    class First(t.Page):
+        pass
+
+    pid = create_player()
+    previous_pages = (
+        [Rounds(First, n=previous_round, block=previous_block)]
+        if previous_round is not None
+        else [First]
+    )
+
+    with s.Player(*pid) as player:
+        player.page_order = [
+            "old/#StartApp",
+            *map(page2path, c.expand(previous_pages)),
+        ]
+        player.show_page = max(
+            ix for ix, path in enumerate(player.page_order) if path == page2path(First)
+        )
+        player.app = "old"
+
+        if previous_round is not None:
+            player.block = previous_block
+            player.round_nested = [previous_round]
+            player.round = previous_round
+
+        player.answer = "before"
+
+        if next_app != "old":
+            player.page_order.append(f"{next_app}/#StartApp")
+
+        player.page_order.extend(
+            map(page2path, c.expand([Rounds(Target, n=1, block=next_block)]))
+        )
+
+    move_to_page(s.Player(*pid), Target, reload_=False)
+
+    expected = [
+        ("old", previous_block, previous_round, "before"),
+        (next_app, next_block, 1, "after"),
+    ]
+
+    with s.Player(*pid) as player:
+        assert (player.app, player.block, player.round, player.round_nested) == (
+            next_app,
+            next_block,
+            1,
+            [1],
+        )
+        player.answer = "after"
+
+        assert [
+            (number, past.answer)
+            for number, past in player.within(app="old", block=next_block).along(
+                "round"
+            )
+        ] == [
+            (number, answer)
+            for app, block, number, answer in expected
+            if app == "old" and block == next_block and number is not None
+        ]
+
+    rows = grouped_player_rows(player, ["app", "block", "round"])
+    assert [
+        (row["app"], row.get("block"), row.get("round"), row["answer"]) for row in rows
+    ] == expected
+
+
 def test_move_to_page_draws_betweens_on_the_way():
     class Other(t.Page):
         pass

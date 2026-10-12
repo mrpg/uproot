@@ -7,14 +7,9 @@ import os
 import tempfile
 from collections import namedtuple
 from collections.abc import Awaitable, Callable, Iterable, Sequence
-from copy import deepcopy
 from decimal import Decimal as cu
 from types import EllipsisType
-from typing import (
-    Any,
-    Self,
-    cast,
-)
+from typing import Any, cast
 
 from markupsafe import Markup
 from pydantic import validate_call
@@ -24,6 +19,7 @@ import uproot.chat
 import uproot.core as c
 import uproot.jobs as j
 import uproot.types as t
+import uproot.utils.draft as drafts
 from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
 from uproot.pages import fmtnum_filter as fmtnum
@@ -344,56 +340,6 @@ def sets_up(page_order: list[str], ix: int, target_ix: int) -> bool:
     return True
 
 
-def draft(player: Storage) -> tuple[Any, Callable[[], None]]:
-    """A stand-in for player and a function that commits its changes to player.
-    Until then, they stay out of player's history, and the commit writes each
-    changed field once, with its final value."""
-    missing = object()
-    values: dict[str, Any] = {}  # Field -> value in the draft, or missing
-
-    class Draft:
-        def __getattr__(self, name: str) -> Any:
-            if name not in values:
-                value = getattr(player, name, missing)
-                values[name] = missing if value is missing else deepcopy(value)
-
-            if values[name] is missing:
-                raise AttributeError(f"{player} has no .{name}")
-
-            return values[name]
-
-        def __setattr__(self, name: str, value: Any) -> None:
-            values[name] = value
-
-        def __delattr__(self, name: str) -> None:
-            getattr(self, name)  # Raises AttributeError if there is none
-            values[name] = missing
-
-        def __enter__(self) -> Self:
-            return self
-
-        def __exit__(self, *exc_info: object) -> None:
-            pass
-
-        def get(self, name: str, default: Any = None) -> Any:
-            return getattr(self, name, default)
-
-        def refresh(self, *fields: str) -> None:
-            pass  # The draft is the only writer until it is committed
-
-    def commit() -> None:
-        for name, value in values.items():
-            original = getattr(player, name, missing)
-
-            if value is missing:
-                if original is not missing:
-                    delattr(player, name)
-            elif original is missing or original != value:
-                setattr(player, name, value)
-
-    return Draft(), commit
-
-
 @flexible
 def transition_to_page(
     player: Storage, target: type[t.Page], reload_: bool = True
@@ -407,7 +353,7 @@ def transition_to_page(
 
         # Internal markers change player before a Between may reject the
         # target, so they change a draft that only reaches player on success
-        moving, commit = draft(player)
+        moving, commit = drafts.draft(player)
         target_index = moving.page_order.index(target_path, moving.show_page)
         ix = moving.show_page + 1
 
