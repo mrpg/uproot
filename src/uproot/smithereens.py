@@ -890,22 +890,25 @@ class Between(t.SmoothOperator):
                 grouped_pages.append([pages[i]])
                 i += 1
 
-        if not grouped_pages:
-            # No pages to select from, leave empty
-            player.page_order = (
-                player.page_order[: start_ix + 1] + player.page_order[end_ix:]
-            )
-            return
+        # Randomly select exactly one group (if there is any)
+        selected_group = rng().choice(grouped_pages) if grouped_pages else []
 
-        # Randomly select exactly one group
-        selected_group = rng().choice(grouped_pages)
+        # Record the pages of the selected group, one entry per Between. Pages
+        # of a nested Between do not count, as it records its own selection.
+        selected_pages: list[str] = []
+        nested = 0
 
-        # Record which page was selected (filter out internal markers)
-        selected_page = next((p for p in selected_group if not p.startswith("#")), None)
-        if selected_page is not None:
-            if not hasattr(player, "between_showed") or player.between_showed is None:
-                player.between_showed = []
-            player.between_showed = player.between_showed + [selected_page]
+        for path in selected_group:
+            if path == "#BetweenStart":
+                nested += 1
+            elif path == "#BetweenEnd":
+                nested -= 1
+            elif nested == 0 and not path.startswith("#"):
+                selected_pages.append(path)
+
+        if not hasattr(player, "between_showed") or player.between_showed is None:
+            player.between_showed = []
+        player.between_showed = player.between_showed + [selected_pages]
 
         # Replace the content between markers with just the selected page(s)
         player.page_order = (

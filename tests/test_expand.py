@@ -621,7 +621,7 @@ def test_between_selects_exactly_one_page():
         selected_pages.add(between_pages[0])
 
         # Verify between_showed was recorded
-        assert mock_player.between_showed == [between_pages[0]]
+        assert mock_player.between_showed == [between_pages]
 
     # After 30 runs, we should have seen all three pages at least once
     assert selected_pages == {
@@ -702,7 +702,7 @@ def test_between_records_selection():
     # between_showed should be a list with the selected page
     assert isinstance(mock_player.between_showed, list)
     assert len(mock_player.between_showed) == 1
-    assert mock_player.between_showed[0] in ("A", "B")
+    assert mock_player.between_showed[0] in (["A"], ["B"])
 
 
 def test_between_multiple_blocks_accumulate():
@@ -713,7 +713,7 @@ def test_between_multiple_blocks_accumulate():
     from uproot.smithereens import Between as SmithereenssBetween
 
     mock_player = Mock()
-    mock_player.between_showed = ["PreviousPage"]
+    mock_player.between_showed = [["PreviousPage"]]
 
     mock_player.page_order = [
         "#BetweenStart",
@@ -727,8 +727,8 @@ def test_between_multiple_blocks_accumulate():
 
     # Should have previous page plus the new selection
     assert len(mock_player.between_showed) == 2
-    assert mock_player.between_showed[0] == "PreviousPage"
-    assert mock_player.between_showed[1] in ("X", "Y")
+    assert mock_player.between_showed[0] == ["PreviousPage"]
+    assert mock_player.between_showed[1] in (["X"], ["Y"])
 
 
 def test_between_empty_pages():
@@ -846,7 +846,7 @@ def test_between_selects_whole_rounds():
 
     shown = [p for p in mock_player.page_order if not p.startswith("#")]
     assert shown in ([page2path(A)] * 2, [page2path(B)] * 2)
-    assert mock_player.between_showed == [shown[0]]
+    assert mock_player.between_showed == [shown]
 
 
 def test_random_order_keeps_rounds_together():

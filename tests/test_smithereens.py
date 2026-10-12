@@ -553,3 +553,36 @@ def test_operators_take_only_pages_and_operators(operator):
     for wrong in ([Target], "Target", None):
         with pytest.raises(TypeError, match="Bracket"):
             operator(Target, wrong)
+
+
+def test_between_records_the_pages_of_each_selection():
+    class Intro(t.Page):
+        pass
+
+    class Treatment(t.Page):
+        pass
+
+    class Control(t.Page):
+        pass
+
+    ops = [
+        Between(Bracket(Intro, Treatment), Bracket(Intro, Control)),
+        Between(Between(Treatment, Control), Rounds(Intro, n=0)),
+    ]
+
+    with s.Player(*create_player()) as player:
+        for _ in range(20):
+            player.page_order = list(map(page2path, c.expand(ops)))
+            player.between_showed = []
+
+            ix = 0
+            while ix < len(player.page_order):  # Between shortens page_order
+                if player.page_order[ix] == "#BetweenStart":
+                    player.show_page = ix
+                    asyncio.run(Between.start(player))
+                ix += 1
+
+            shown = [page for page in player.page_order if not page.startswith("#")]
+
+            # The outer Between of the second pair shows no pages of its own
+            assert player.between_showed == [shown[:2], [], *([p] for p in shown[2:])]
