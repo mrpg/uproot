@@ -109,6 +109,9 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
                 row["!data"] = f"session/{data}"
             elif field == "_uproot_dropout" or field == "_uproot_settings":
                 pass
+            elif field == "_uproot_groups" or field == "_uproot_players":
+                if not storage.startswith("session/"):
+                    continue
             else:
                 continue
 
@@ -119,9 +122,11 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
             else:
                 continue
 
-            if field == "groups":
+            if field == "_uproot_groups":
+                row["!field"] = "groups"
                 row["!data"] = [f"group/{sname}/{gname}" for gname in data]
-            elif field == "players":
+            elif field == "_uproot_players":
+                row["!field"] = "players"
                 row["!data"] = [f"player/{sname}/{uname}" for _, uname in data]
 
         yield row
