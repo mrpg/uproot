@@ -28,7 +28,7 @@ class End(Page):
 
 
 # Test SmoothOperator implementations
-class Random(SmoothOperator):
+class RandomOrder(SmoothOperator):
     def __init__(self, *pages: PageLike) -> None:
         super().__init__(*pages)
 
@@ -137,13 +137,13 @@ def test_sequential_operator_expand():
 
 
 def test_random_operator_initialization():
-    rand = Random(A, B, C)
+    rand = RandomOrder(A, B, C)
     assert set(rand.pages) == {A, B, C}
     assert len(rand.pages) == 3
 
 
 def test_random_operator_expand_contains_same_elements():
-    rand = Random(A, B, C)
+    rand = RandomOrder(A, B, C)
     result = rand.expand()
     assert set(result) == {A, B, C}
     assert len(result) == 3
@@ -203,7 +203,7 @@ def test_page_classes_have_metaclass():
 # Integration tests
 def test_realistic_page_order_example():
     """Test the example from the docstring"""
-    page_order = [Hello, Random(A, B, C), End]
+    page_order = [Hello, RandomOrder(A, B, C), End]
     result = expand(page_order)
 
     # Should have Hello first, End last, and A, B, C in some order in between
@@ -216,7 +216,7 @@ def test_realistic_page_order_example():
 def test_complex_realistic_scenario():
     """Test a more complex realistic scenario"""
     intro_pages = Sequential(Hello, A)
-    random_middle = Random(B, C)
+    random_middle = RandomOrder(B, C)
     outro_pages = Sequential(End)
 
     page_order = [intro_pages, random_middle, outro_pages]
@@ -236,11 +236,11 @@ def test_empty_operators_are_handled():
     assert result == [Hello, End]
 
 
-# Property-based testing for Random operator
+# Property-based testing for RandomOrder operator
 def test_random_operator_always_returns_same_elements():
-    """Random should shuffle but not change the elements"""
+    """RandomOrder should shuffle but not change the elements"""
     original_pages = [A, B, C, Hello, End]
-    rand = Random(*original_pages)
+    rand = RandomOrder(*original_pages)
 
     for _ in range(10):  # Test multiple expansions
         result = rand.expand()
@@ -250,8 +250,8 @@ def test_random_operator_always_returns_same_elements():
 
 def test_nested_random_operators():
     """Test that nested random operators work correctly"""
-    inner_random = Random(B, C)
-    outer_random = Random(A, inner_random)
+    inner_random = RandomOrder(B, C)
+    outer_random = RandomOrder(A, inner_random)
 
     pages = [outer_random]
     result = expand(pages)
@@ -376,8 +376,8 @@ def test_expand_interleaved_sequences():
 
 
 def test_expand_nested_random_in_sequential():
-    """Test expand with Random nested inside Sequential"""
-    nested_random = Random(B, C)
+    """Test expand with RandomOrder nested inside Sequential"""
+    nested_random = RandomOrder(B, C)
     container = Sequential(A, nested_random, End)
 
     pages = [Hello, container]
@@ -391,9 +391,9 @@ def test_expand_nested_random_in_sequential():
 
 
 def test_expand_sequential_in_random():
-    """Test expand with Sequential nested inside Random"""
+    """Test expand with Sequential nested inside RandomOrder"""
     nested_seq = Sequential(B, C)
-    container = Random(A, nested_seq, End)
+    container = RandomOrder(A, nested_seq, End)
 
     pages = [container]
     result = expand(pages)
@@ -423,7 +423,7 @@ def test_expand_recursive_with_all_operator_types():
     """Test expand combining all operator types recursively"""
     repeat_section = Repeat(2, A)
     conditional_section = Conditional(True, B, C)
-    random_section = Random(conditional_section, End)
+    random_section = RandomOrder(conditional_section, End)
     main_sequence = Sequential(Hello, repeat_section, random_section)
 
     pages = [main_sequence]
@@ -454,14 +454,14 @@ def test_expand_mixed_nesting_patterns():
     # Create a complex structure:
     # Sequential(
     #   A,
-    #   Random(
+    #   RandomOrder(
     #     B,
     #     Sequential(C, Repeat(2, End))
     #   )
     # )
     deep_repeat = Repeat(2, End)
     deep_seq = Sequential(C, deep_repeat)
-    random_part = Random(B, deep_seq)
+    random_part = RandomOrder(B, deep_seq)
     main_seq = Sequential(A, random_part)
 
     pages = [Hello, main_seq]
@@ -513,15 +513,15 @@ def test_expand_handles_operator_returning_operators():
 
 
 def test_bracket_grouping_in_random():
-    """Test that Bracket groups pages together in Random shuffling"""
+    """Test that Bracket groups pages together in RandomOrder shuffling"""
     from unittest.mock import Mock
 
-    from uproot.smithereens import Random as SmithereensRandom
+    from uproot.smithereens import RandomOrder as SmithereensRandomOrder
 
     # Mock a player with page_order
     mock_player = Mock()
     mock_player.page_order = [
-        "#RandomStart",
+        "#RandomOrderStart",
         "Hello",
         "#{",  # Bracket start
         "A",
@@ -530,7 +530,7 @@ def test_bracket_grouping_in_random():
         "#}",  # Bracket end
         "X",
         "Y",
-        "#RandomEnd",
+        "#RandomOrderEnd",
     ]
     mock_player.show_page = 0
 
@@ -544,7 +544,7 @@ def test_bracket_grouping_in_random():
         # Call the start method
         import asyncio
 
-        asyncio.run(SmithereensRandom.start(mock_player))
+        asyncio.run(SmithereensRandomOrder.start(mock_player))
 
         # Find the positions of A, B, C
         a_pos = mock_player.page_order.index("A")
@@ -564,9 +564,9 @@ def test_bracket_grouping_in_random():
         x_pos = mock_player.page_order.index("X")  # noqa: F841
         y_pos = mock_player.page_order.index("Y")  # noqa: F841
 
-        # The randomized section should contain all elements between RandomStart and RandomEnd
-        start_pos = mock_player.page_order.index("#RandomStart")
-        end_pos = mock_player.page_order.index("#RandomEnd")
+        # The randomized section should contain all elements between RandomOrderStart and RandomOrderEnd
+        start_pos = mock_player.page_order.index("#RandomOrderStart")
+        end_pos = mock_player.page_order.index("#RandomOrderEnd")
         randomized_section = mock_player.page_order[start_pos + 1 : end_pos]
 
         # Should contain Hello, A, B, C (as group), X, Y
