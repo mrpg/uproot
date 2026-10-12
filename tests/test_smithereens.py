@@ -21,7 +21,7 @@ from uproot.services.data_service import data_rows_for_session
 from uproot.smithereens import (
     INTERNAL_PAGES,
     Between,
-    Random,
+    RandomOrder,
     Repeat,
     Rounds,
     check_blocks,
@@ -517,7 +517,9 @@ def test_check_blocks_demands_blocks_where_rounds_could_mix():
     check_blocks("app", [Rounds(Target, n=2, block="a"), Repeat(Target, block="a")])
 
     with pytest.raises(ValueError, match="needs a block"):
-        check_blocks("app", [Rounds(Target, n=2, block="a"), Random(Repeat(Target))])
+        check_blocks(
+            "app", [Rounds(Target, n=2, block="a"), RandomOrder(Repeat(Target))]
+        )
 
     with pytest.raises(ValueError, match="nested"):
         check_blocks("app", [Rounds(Rounds(Target, n=2, block="a"), n=2)])

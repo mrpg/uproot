@@ -849,24 +849,24 @@ def test_between_selects_whole_rounds():
     assert mock_player.between_showed == [shown[0]]
 
 
-def test_random_keeps_rounds_together():
-    """Random shuffles whole Rounds() blocks instead of interleaving their rounds"""
+def test_random_order_keeps_rounds_together():
+    """RandomOrder shuffles whole Rounds() blocks instead of interleaving their rounds"""
     import asyncio
     from unittest.mock import Mock
 
     from uproot.pages import page2path
-    from uproot.smithereens import Random as SmithereensRandom
+    from uproot.smithereens import RandomOrder as SmithereensRandomOrder
     from uproot.smithereens import Rounds as SmithereensRounds
 
-    ops = [SmithereensRandom(SmithereensRounds(A, n=2), SmithereensRounds(B, n=2))]
+    ops = [SmithereensRandomOrder(SmithereensRounds(A, n=2), SmithereensRounds(B, n=2))]
     a, b = page2path(A), page2path(B)
 
     for _ in range(20):
         mock_player = Mock()
         mock_player.page_order = [page2path(p) for p in expand(ops)]
-        mock_player.show_page = mock_player.page_order.index("#RandomStart")
+        mock_player.show_page = mock_player.page_order.index("#RandomOrderStart")
 
-        asyncio.run(SmithereensRandom.start(mock_player))
+        asyncio.run(SmithereensRandomOrder.start(mock_player))
 
         shown = [p for p in mock_player.page_order if not p.startswith("#")]
         assert shown in ([a, a, b, b], [b, b, a, a])

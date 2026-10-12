@@ -532,10 +532,12 @@ async def test_generate_briefcase(monkeypatch):
     assert "myapp/MyPage" in page_times_csv
 
 
-async def test_generate_briefcase_grouped(monkeypatch):
+@pytest.mark.parametrize("filters", [False, True])
+async def test_generate_briefcase_grouped(monkeypatch, filters):
     session_data = {
         ("player", "session1", "p1", "round"): [Value(1.0, False, 1, "", seq=1)],
         ("player", "session1", "p1", "choice"): [Value(2.0, False, "A", "", seq=2)],
+        ("player", "session1", "p1", "page_order"): [Value(3.0, False, [], "", seq=3)],
     }
 
     monkeypatch.setattr(
@@ -547,7 +549,7 @@ async def test_generate_briefcase_grouped(monkeypatch):
 
     briefcase = b"".join(
         await data_service.generate_briefcase(
-            "session1", ["round"], False, "jsonl", wrapper="session1"
+            "session1", ["round"], filters, "jsonl", wrapper="session1"
         )
     )
 
@@ -564,8 +566,13 @@ async def test_generate_briefcase_grouped(monkeypatch):
         ]
 
         readme = zf.read("session1/README.txt").decode("utf-8")
+        latest_jsonl = zf.read("session1/latest/player.jsonl")
+        grouped_jsonl = zf.read("session1/latest_by_round/player.jsonl")
 
     assert "latest_by_round/" in readme
+    # Filters leave page_order out of the grouped format only
+    assert b"page_order" in latest_jsonl
+    assert (b"page_order" in grouped_jsonl) is not filters
 
 
 async def test_generate_briefcase_reads_on_loop_and_builds_in_thread(monkeypatch):
