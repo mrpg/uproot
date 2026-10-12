@@ -1,4 +1,3 @@
-import asyncio
 import random
 
 import pytest
@@ -127,6 +126,74 @@ def test_move_to_page_moves_players_forward():
 
     with s.Player(*pid) as player:
         assert player.show_page == 1
+
+
+def test_move_to_page_enters_apps_and_rounds_on_the_way():
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = [
+            "test/First",
+            "next/#StartApp",
+            *map(page2path, c.expand([Rounds(Target, n=2)])),
+        ]
+        player.show_page = 0
+        player.app = "test"
+
+    move_to_page(s.Player(*pid), Target, reload_=False)
+
+    with s.Player(*pid) as player:
+        assert player.page_order[player.show_page] == page2path(Target)
+        assert (player.app, player.round, player.round_nested) == ("next", 1, [1])
+
+
+def test_move_to_page_draws_betweens_on_the_way():
+    class Other(t.Page):
+        pass
+
+    for _ in range(20):
+        pid = create_player()
+
+        with s.Player(*pid) as player:
+            player.page_order = [
+                "test/First",
+                *map(page2path, c.expand([Between(Target, Other)])),
+            ]
+            player.show_page = 0
+
+        try:
+            move_to_page(s.Player(*pid), Target, reload_=False)
+        except ValueError:
+            moved, kept = False, page2path(Other)
+        else:
+            moved, kept = True, page2path(Target)
+
+        with s.Player(*pid) as player:
+            shown = [page for page in player.page_order[1:] if not page.startswith("#")]
+            assert shown == [kept]
+            assert player.show_page == (player.page_order.index(kept) if moved else 0)
+
+
+def test_move_to_page_leaves_out_what_it_moves_past():
+    class Other(t.Page):
+        pass
+
+    pid = create_player()
+    ops = [Rounds(Other, n=3), Between(Other, Other), Target]
+
+    with s.Player(*pid) as player:
+        page_order = list(map(page2path, c.expand(ops)))
+        player.page_order = page_order
+        player.show_page = page_order.index(page2path(Other))
+        player.round = 1
+
+    move_to_page(s.Player(*pid), Target, reload_=False)
+
+    with s.Player(*pid) as player:
+        assert player.page_order == page_order
+        assert player.page_order[player.show_page] == page2path(Target)
+        assert player.round == 1
+        assert not hasattr(player, "between_showed")
 
 
 def test_move_to_end_moves_players_to_the_end():
@@ -421,7 +488,7 @@ def test_rounds_of_different_blocks_never_mix():
         for ix, page in enumerate(player.page_order):
             if page == "#RoundStart":
                 player.show_page = ix
-                asyncio.run(Rounds.next(player))
+                Rounds.next(player)
                 player.x = f"{player.block}{player.round}"
 
         assert [r for r, _ in player.within(block="b").along("round")] == [1, 2]
@@ -450,7 +517,7 @@ def test_grouped_export_preserves_apps_without_rounds(loop_position, grouping):
                 for ix, page in enumerate(player.page_order):
                     if page == "#RoundStart":
                         player.show_page = ix
-                        asyncio.run(Rounds.next(player))
+                        Rounds.next(player)
                         player.answer = f"{appname}{player.round}"
                         expected.append((appname, player.round, player.answer))
             else:
@@ -472,7 +539,7 @@ def test_grouped_export_ends_the_last_round_at_the_end():
         for ix, page in enumerate(player.page_order):
             if page == "#RoundStart":
                 player.show_page = ix
-                asyncio.run(Rounds.next(player))
+                Rounds.next(player)
                 player.answer = player.round
 
         u.PAGES["End.html"].before_always_once(player)
@@ -579,7 +646,7 @@ def test_between_records_the_pages_of_each_selection():
             while ix < len(player.page_order):  # Between shortens page_order
                 if player.page_order[ix] == "#BetweenStart":
                     player.show_page = ix
-                    asyncio.run(Between.start(player))
+                    Between.start(player)
                 ix += 1
 
             shown = [page for page in player.page_order if not page.startswith("#")]

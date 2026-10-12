@@ -542,9 +542,8 @@ def test_bracket_grouping_in_random():
         mock_player.page_order = original_order.copy()
 
         # Call the start method
-        import asyncio
 
-        asyncio.run(SmithereensRandomOrder.start(mock_player))
+        SmithereensRandomOrder.start(mock_player)
 
         # Find the positions of A, B, C
         a_pos = mock_player.page_order.index("A")
@@ -581,7 +580,6 @@ def test_bracket_grouping_in_random():
 # Tests for Between operator
 def test_between_selects_exactly_one_page():
     """Test that Between selects exactly one page from the options"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Between as SmithereenssBetween
@@ -609,7 +607,7 @@ def test_between_selects_exactly_one_page():
         ]
         mock_player.between_showed = None
 
-        asyncio.run(SmithereenssBetween.start(mock_player))
+        SmithereenssBetween.start(mock_player)
 
         # Check that exactly one page remains between markers
         start_ix = mock_player.page_order.index("#BetweenStart")
@@ -633,7 +631,6 @@ def test_between_selects_exactly_one_page():
 
 def test_between_with_bracket_groups():
     """Test that Between treats bracketed groups as single options"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Between as SmithereenssBetween
@@ -659,7 +656,7 @@ def test_between_with_bracket_groups():
         mock_player.page_order = original_order.copy()
         mock_player.between_showed = None
 
-        asyncio.run(SmithereenssBetween.start(mock_player))
+        SmithereenssBetween.start(mock_player)
 
         start_ix = mock_player.page_order.index("#BetweenStart")
         end_ix = mock_player.page_order.index("#BetweenEnd")
@@ -682,7 +679,6 @@ def test_between_with_bracket_groups():
 
 def test_between_records_selection():
     """Test that Between records the selected page in between_showed"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Between as SmithereenssBetween
@@ -697,7 +693,7 @@ def test_between_records_selection():
     mock_player.show_page = 0
     mock_player.between_showed = None
 
-    asyncio.run(SmithereenssBetween.start(mock_player))
+    SmithereenssBetween.start(mock_player)
 
     # between_showed should be a list with the selected page
     assert isinstance(mock_player.between_showed, list)
@@ -707,7 +703,6 @@ def test_between_records_selection():
 
 def test_between_multiple_blocks_accumulate():
     """Test that multiple Between blocks accumulate in between_showed"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Between as SmithereenssBetween
@@ -723,7 +718,7 @@ def test_between_multiple_blocks_accumulate():
     ]
     mock_player.show_page = 0
 
-    asyncio.run(SmithereenssBetween.start(mock_player))
+    SmithereenssBetween.start(mock_player)
 
     # Should have previous page plus the new selection
     assert len(mock_player.between_showed) == 2
@@ -733,7 +728,6 @@ def test_between_multiple_blocks_accumulate():
 
 def test_between_empty_pages():
     """Test Between with no pages"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Between as SmithereenssBetween
@@ -746,7 +740,7 @@ def test_between_empty_pages():
     mock_player.show_page = 0
     mock_player.between_showed = None
 
-    asyncio.run(SmithereenssBetween.start(mock_player))
+    SmithereenssBetween.start(mock_player)
 
     # Nothing should be between the markers
     start_ix = mock_player.page_order.index("#BetweenStart")
@@ -757,7 +751,6 @@ def test_between_empty_pages():
 
 def test_between_nested_depth():
     """Test that nested Between blocks are handled correctly (depth tracking)"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Between as SmithereenssBetween
@@ -779,7 +772,7 @@ def test_between_nested_depth():
     mock_player.show_page = 0
     mock_player.between_showed = None
 
-    asyncio.run(SmithereenssBetween.start(mock_player))
+    SmithereenssBetween.start(mock_player)
 
     # Should select one of: A, the bracketed group (with nested Between), or B
     start_ix = mock_player.page_order.index("#BetweenStart")
@@ -830,7 +823,6 @@ def test_rounds_expand():
 
 def test_between_selects_whole_rounds():
     """Between treats each Rounds() as one option, not each of its rounds"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.pages import page2path
@@ -842,7 +834,7 @@ def test_between_selects_whole_rounds():
     mock_player.page_order = [page2path(p) for p in expand(ops)]
     mock_player.show_page = mock_player.page_order.index("#BetweenStart")
 
-    asyncio.run(SmithereensBetween.start(mock_player))
+    SmithereensBetween.start(mock_player)
 
     shown = [p for p in mock_player.page_order if not p.startswith("#")]
     assert shown in ([page2path(A)] * 2, [page2path(B)] * 2)
@@ -851,7 +843,6 @@ def test_between_selects_whole_rounds():
 
 def test_random_order_keeps_rounds_together():
     """RandomOrder shuffles whole Rounds() blocks instead of interleaving their rounds"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.pages import page2path
@@ -866,7 +857,7 @@ def test_random_order_keeps_rounds_together():
         mock_player.page_order = [page2path(p) for p in expand(ops)]
         mock_player.show_page = mock_player.page_order.index("#RandomOrderStart")
 
-        asyncio.run(SmithereensRandomOrder.start(mock_player))
+        SmithereensRandomOrder.start(mock_player)
 
         shown = [p for p in mock_player.page_order if not p.startswith("#")]
         assert shown in ([a, a, b, b], [b, b, a, a])
@@ -874,7 +865,6 @@ def test_random_order_keeps_rounds_together():
 
 def test_rounds_next_initializes_round():
     """Test that Rounds.next() initializes player.round to 1 when not set"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -883,7 +873,7 @@ def test_rounds_next_initializes_round():
     mock_player.page_order = ["#RoundsReset", "#RoundStart", "A", "#RoundEnd"]
     mock_player.show_page = 1
 
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
 
     assert mock_player.round == 1
     assert mock_player.round_nested == [1]
@@ -891,7 +881,6 @@ def test_rounds_next_initializes_round():
 
 def test_rounds_next_increments_round():
     """Test that Rounds.next() increments player.round"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -912,19 +901,18 @@ def test_rounds_next_increments_round():
     mock_player.round = 1
 
     mock_player.show_page = 4  # Second #RoundStart
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 2
     assert mock_player.round_nested == [2]
 
     mock_player.show_page = 7  # Third #RoundStart
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 3
     assert mock_player.round_nested == [3]
 
 
 def test_rounds_next_handles_none_round():
     """Test that Rounds.next() handles player.round being None"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -934,7 +922,7 @@ def test_rounds_next_handles_none_round():
     mock_player.page_order = ["#RoundsReset", "#RoundStart", "A", "#RoundEnd"]
     mock_player.show_page = 1
 
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
 
     assert mock_player.round == 1
     assert mock_player.round_nested == [1]
@@ -963,7 +951,6 @@ def test_repeat_expand():
 
 def test_repeat_next_initializes_round():
     """Test that Repeat.next() initializes player.round to 1"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -972,14 +959,13 @@ def test_repeat_next_initializes_round():
     mock_player.page_order = ["#{", "#RepeatStart", "A", "#RepeatEnd", "#}"]
     mock_player.show_page = 1
 
-    asyncio.run(SmithereensRepeat.next(mock_player))
+    SmithereensRepeat.next(mock_player)
 
     assert mock_player.round == 1
 
 
 def test_repeat_next_increments_round():
     """Test that Repeat.next() increments player.round"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -997,14 +983,13 @@ def test_repeat_next_increments_round():
     ]
     mock_player.show_page = 4
 
-    asyncio.run(SmithereensRepeat.next(mock_player))
+    SmithereensRepeat.next(mock_player)
 
     assert mock_player.round == 2
 
 
 def test_repeat_next_resets_round_unless_nested():
     """An outermost Repeat() starts again at round 1, a nested one keeps counting"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -1014,21 +999,20 @@ def test_repeat_next_resets_round_unless_nested():
     mock_player.page_order = ["#{", "#RepeatStart", "A", "#RepeatEnd", "#}"]
     mock_player.show_page = 1
 
-    asyncio.run(SmithereensRepeat.next(mock_player))
+    SmithereensRepeat.next(mock_player)
 
     assert mock_player.round == 1
 
     mock_player.page_order = ["#{", "#RoundStart", *mock_player.page_order]
     mock_player.show_page = 3
 
-    asyncio.run(SmithereensRepeat.next(mock_player))
+    SmithereensRepeat.next(mock_player)
 
     assert mock_player.round == 2
 
 
 def test_repeat_continue_maybe_adds_pages_when_add_round_true():
     """Test that Repeat.continue_maybe() duplicates pages when add_round is True"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -1045,7 +1029,7 @@ def test_repeat_continue_maybe_adds_pages_when_add_round_true():
     mock_player.show_page = 3  # Somewhere in the repeat block
     mock_player.add_round = True
 
-    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+    SmithereensRepeat.continue_maybe(mock_player)
 
     # Should have duplicated the repeat block
     expected = [
@@ -1065,7 +1049,6 @@ def test_repeat_continue_maybe_adds_pages_when_add_round_true():
 
 def test_repeat_continue_maybe_no_change_when_add_round_false():
     """Test that Repeat.continue_maybe() does nothing when add_round is False"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -1086,7 +1069,7 @@ def test_repeat_continue_maybe_no_change_when_add_round_false():
     mock_player.show_page = 3
     mock_player.add_round = False
 
-    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+    SmithereensRepeat.continue_maybe(mock_player)
 
     # Should be unchanged
     assert mock_player.page_order == original_order
@@ -1094,7 +1077,6 @@ def test_repeat_continue_maybe_no_change_when_add_round_false():
 
 def test_repeat_continue_maybe_multiple_iterations():
     """Test that Repeat.continue_maybe() can add multiple iterations"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -1109,7 +1091,7 @@ def test_repeat_continue_maybe_multiple_iterations():
 
     # First continuation
     mock_player.add_round = True
-    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+    SmithereensRepeat.continue_maybe(mock_player)
 
     assert mock_player.page_order == [
         "#RepeatStart",
@@ -1123,7 +1105,7 @@ def test_repeat_continue_maybe_multiple_iterations():
     # Second continuation (at end of first repeat)
     mock_player.show_page = 4  # Position in the second repeat block
     mock_player.add_round = True
-    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+    SmithereensRepeat.continue_maybe(mock_player)
 
     assert mock_player.page_order == [
         "#RepeatStart",
@@ -1140,7 +1122,6 @@ def test_repeat_continue_maybe_multiple_iterations():
 
 def test_repeat_continue_maybe_repeats_outer_of_nested_repeat():
     """The outer #RepeatEnd of Repeat(A, Repeat(B)) repeats the outer iteration"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -1150,7 +1131,7 @@ def test_repeat_continue_maybe_repeats_outer_of_nested_repeat():
     mock_player.page_order = ["#{", *iteration, "#RepeatEnd", "#}"]
     mock_player.show_page = 8  # Outer #RepeatEnd
 
-    asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+    SmithereensRepeat.continue_maybe(mock_player)
 
     assert mock_player.page_order == [
         "#{",
@@ -1164,7 +1145,6 @@ def test_repeat_continue_maybe_repeats_outer_of_nested_repeat():
 
 def test_repeat_copies_iteration_before_between_draws():
     """Between() inside Repeat() offers all options again in the next iteration"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.pages import page2path
@@ -1181,7 +1161,7 @@ def test_repeat_copies_iteration_before_between_draws():
         ("#RepeatEnd", SmithereensRepeat.continue_maybe),
     ]:
         mock_player.show_page = mock_player.page_order.index(marker)
-        asyncio.run(hook(mock_player))
+        hook(mock_player)
 
     next_iteration = mock_player.page_order[mock_player.show_page + 1 :]
     assert page2path(A) in next_iteration
@@ -1190,7 +1170,6 @@ def test_repeat_copies_iteration_before_between_draws():
 
 def test_repeat_copies_nested_repeat_with_one_iteration():
     """Iterations added to an inner Repeat() are not copied by the outer one"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -1220,14 +1199,13 @@ def test_repeat_copies_nested_repeat_with_one_iteration():
         (11, SmithereensRepeat.continue_maybe, True),  # Outer end
     ]:
         mock_player.show_page, mock_player.add_round = show_page, add_round
-        asyncio.run(hook(mock_player))
+        hook(mock_player)
 
     assert mock_player.page_order[12:20] == pristine
 
 
 def test_repeat_continue_maybe_raises_without_start_marker():
     """Test that Repeat.continue_maybe() raises if #RepeatStart not found"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Repeat as SmithereensRepeat
@@ -1242,7 +1220,7 @@ def test_repeat_continue_maybe_raises_without_start_marker():
     mock_player.add_round = True
 
     with pytest.raises(RuntimeError, match="Could not find #RepeatStart"):
-        asyncio.run(SmithereensRepeat.continue_maybe(mock_player))
+        SmithereensRepeat.continue_maybe(mock_player)
 
 
 # Tests for smithereens.Bracket operator
@@ -1325,7 +1303,6 @@ def test_rounds_nested_expand():
 
 def test_rounds_nested_round_tracking():
     """Test that nested Rounds track round_nested correctly"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -1386,44 +1363,43 @@ def test_rounds_nested_round_tracking():
     # Test at position 2: first #RoundStart (outer round 1)
     mock_player.show_page = 2
     mock_player.round = None
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 1
     assert mock_player.round_nested == [1]
 
     # Test at position 6: first inner #RoundStart (inner round 1 of outer 1)
     mock_player.show_page = 6
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 2
     assert mock_player.round_nested == [1, 1]
 
     # Test at position 12: second inner #RoundStart (inner round 2 of outer 1)
     mock_player.show_page = 12
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 3
     assert mock_player.round_nested == [1, 2]
 
     # Test at position 21: second outer #RoundStart (outer round 2)
     mock_player.show_page = 21
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 4
     assert mock_player.round_nested == [2]
 
     # Test at position 25: inner #RoundStart (inner round 1 of outer 2)
     mock_player.show_page = 25
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 5
     assert mock_player.round_nested == [2, 1]
 
     # Test at position 31: inner #RoundStart (inner round 2 of outer 2)
     mock_player.show_page = 31
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 6
     assert mock_player.round_nested == [2, 2]
 
 
 def test_rounds_deeply_nested():
     """Test Rounds with three levels of nesting"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -1491,7 +1467,7 @@ def test_rounds_deeply_nested():
     mock_player.round = None
     for pos, expected_nested in test_cases:
         mock_player.show_page = pos
-        asyncio.run(SmithereensRounds.next(mock_player))
+        SmithereensRounds.next(mock_player)
         assert (
             mock_player.round_nested == expected_nested
         ), f"At position {pos}: expected {expected_nested}, got {mock_player.round_nested}"
@@ -1499,7 +1475,6 @@ def test_rounds_deeply_nested():
 
 def test_rounds_nested_single_level_still_works():
     """Test that single-level Rounds still works correctly with round_nested"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -1530,24 +1505,23 @@ def test_rounds_nested_single_level_still_works():
     mock_player.round = None
 
     mock_player.show_page = 2
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 1
     assert mock_player.round_nested == [1]
 
     mock_player.show_page = 8
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 2
     assert mock_player.round_nested == [2]
 
     mock_player.show_page = 14
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 3
     assert mock_player.round_nested == [3]
 
 
 def test_rounds_sequential_resets_player_round():
     """Test that Rounds() of another block resets player.round (issue #180)"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -1591,37 +1565,36 @@ def test_rounds_sequential_resets_player_round():
 
     # First block: rounds 1, 2, 3
     mock_player.show_page = 2
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 1
     assert mock_player.round_nested == [1]
 
     mock_player.show_page = 7
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 2
     assert mock_player.round_nested == [2]
 
     mock_player.show_page = 12
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 3
     assert mock_player.round_nested == [3]
 
     # Second block: player.round must reset to 1
     mock_player.show_page = 18
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert (
         mock_player.round == 1
     ), "player.round should reset at start of second Rounds()"
     assert mock_player.round_nested == [1]
 
     mock_player.show_page = 23
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
     assert mock_player.round == 2
     assert mock_player.round_nested == [2]
 
 
 def test_rounds_nested_in_repeat_keeps_counting():
     """Rounds() inside Repeat() does not reset player.round"""
-    import asyncio
     from unittest.mock import Mock
 
     from uproot.smithereens import Rounds as SmithereensRounds
@@ -1643,7 +1616,7 @@ def test_rounds_nested_in_repeat_keeps_counting():
     ]
     mock_player.show_page = 5
 
-    asyncio.run(SmithereensRounds.next(mock_player))
+    SmithereensRounds.next(mock_player)
 
     assert mock_player.round == 2
     assert mock_player.round_nested == [1, 1]

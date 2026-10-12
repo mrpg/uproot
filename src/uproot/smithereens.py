@@ -25,7 +25,7 @@ import uproot.types as t
 from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
 from uproot.pages import fmtnum_filter as fmtnum
-from uproot.pages import page2path
+from uproot.pages import page2path, path2page
 from uproot.pages import to_filter as to
 from uproot.queries import FieldReferent
 from uproot.queues import enqueue
@@ -321,6 +321,27 @@ def reload(player: Storage) -> None:
     )
 
 
+def sets_up(page_order: list[str], ix: int, target_ix: int) -> bool:
+    """Whether the marker at ix starts the app or sets up a SmoothOperator that
+    contains target_ix, unlike those that end before target_ix"""
+    path, on_the_way = page_order[ix], page_order[ix + 1 : target_ix]
+
+    if path.endswith("/#StartApp"):
+        return not any(p.endswith("/#StartApp") for p in on_the_way)
+    elif not path.startswith("#"):
+        return False
+
+    depth = 0
+
+    for p in on_the_way:
+        depth += (p == "#{") - (p == "#}")
+
+        if depth < 0:  # The bracket around ix closes before target_ix
+            return False
+
+    return True
+
+
 @flexible
 def transition_to_page(
     player: Storage, target: type[t.Page], reload_: bool = True
@@ -332,9 +353,40 @@ def transition_to_page(
             # Players who have not started yet have no page to move from
             return
 
-        target_index = player.page_order.index(target_path, player.show_page)
+        origin = player.show_page
+        target_index = player.page_order.index(target_path, origin)
+        ix = origin + 1
 
-    player.show_page = target_index
+        # Run the markers on the way that set up what contains the target, e.g.,
+        # its round. This may move or drop the target.
+        while ix < target_index:
+            path = player.page_order[ix]
+
+            if sets_up(player.page_order, ix, target_index):
+                player.show_page = ix
+
+                for hook in ("before_always_once", "after_always_once"):
+                    t.optional_call_once(
+                        path2page(path),
+                        hook,
+                        storage=player,
+                        show_page=ix,
+                        player=player,
+                    )
+
+                if target_path not in player.page_order[ix:]:
+                    player.show_page = origin
+
+                    raise ValueError(
+                        f"Cannot move to {target_path}, which a Between on the "
+                        "way did not select"
+                    )
+
+                target_index = player.page_order.index(target_path, ix)
+
+            ix += 1
+
+        player.show_page = target_index
 
     if reload_:
         reload(player)
@@ -484,7 +536,7 @@ class RandomOrder(t.SmoothOperator):
         return self.pages
 
     @classmethod
-    async def start(page, player: Storage) -> None:
+    def start(page, player: Storage) -> None:
         # Find the nearest #RandomOrderStart before our position
         start_ix = None
         for i in range(player.show_page, -1, -1):
@@ -709,7 +761,7 @@ class Rounds(t.SmoothOperator):
         ]
 
     @classmethod
-    async def next(page, player: Storage) -> None:
+    def next(page, player: Storage) -> None:
         enter_round(player)
 
 
@@ -753,7 +805,7 @@ class Repeat(t.SmoothOperator):
         return self.pages
 
     @classmethod
-    async def continue_maybe(page, player: Storage) -> None:
+    def continue_maybe(page, player: Storage) -> None:
         end_ix = player.page_order.index("#RepeatEnd", player.show_page)
         depth = 0  # Skip nested Repeat sequences
 
@@ -783,7 +835,7 @@ class Repeat(t.SmoothOperator):
             )
 
     @classmethod
-    async def next(page, player: Storage) -> None:
+    def next(page, player: Storage) -> None:
         enter_round(player)
 
         # Save the iteration before its pages (e.g., Between) change it.
@@ -833,7 +885,7 @@ class Between(t.SmoothOperator):
         return self.pages
 
     @classmethod
-    async def start(page, player: Storage) -> None:
+    def start(page, player: Storage) -> None:
         # Find the nearest #BetweenStart before our position
         start_ix = None
         for i in range(player.show_page, -1, -1):
