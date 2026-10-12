@@ -471,7 +471,7 @@ def append_to_csv(outfile: str, data: dict[str, Any]) -> None:
 class RandomOrder(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages: list[t.PageLike] = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RandomOrderStart"],
@@ -689,7 +689,7 @@ class Rounds(t.SmoothOperator):
         )
 
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RoundStart"],
@@ -738,7 +738,7 @@ class Repeat(t.SmoothOperator):
         )
 
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
             rounds_reset(block),
@@ -798,7 +798,7 @@ class Repeat(t.SmoothOperator):
 class Bracket(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
             *pages,
@@ -820,7 +820,7 @@ class Between(t.SmoothOperator):
 
     def __init__(self, *pages: t.PageLike) -> None:
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["BetweenStart"],

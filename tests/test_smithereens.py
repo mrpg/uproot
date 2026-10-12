@@ -21,6 +21,7 @@ from uproot.services.data_service import data_rows_for_session
 from uproot.smithereens import (
     INTERNAL_PAGES,
     Between,
+    Bracket,
     RandomOrder,
     Repeat,
     Rounds,
@@ -540,3 +541,15 @@ def test_check_blocks_ignores_empty_rounds():
 def test_rounds_demand_a_nonnegative_integer(n):
     with pytest.raises(ValueError, match="non-negative integer"):
         Rounds(Target, n=n)
+
+
+@pytest.mark.parametrize(
+    "operator",
+    [Between, Bracket, RandomOrder, Repeat, lambda *pages: Rounds(*pages, n=1)],
+)
+def test_operators_take_only_pages_and_operators(operator):
+    operator(Target, Bracket(Target))
+
+    for wrong in ([Target], "Target", None):
+        with pytest.raises(TypeError, match="Bracket"):
+            operator(Target, wrong)

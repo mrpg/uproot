@@ -935,9 +935,12 @@ class TestSmoothOperatorABC:
             def expand(self):
                 return self.pages
 
-        op = TestOperator("page1", "page2")
-        assert op.pages == ["page1", "page2"]
-        assert op.expand() == ["page1", "page2"]
+        op = TestOperator(Page, NoshowPage)
+        assert op.pages == [Page, NoshowPage]
+        assert op.expand() == [Page, NoshowPage]
+
+        with pytest.raises(TypeError, match="Bracket"):
+            TestOperator("page1")
 
 
 class TestPulseClass:
