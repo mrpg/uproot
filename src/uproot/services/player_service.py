@@ -13,6 +13,7 @@ import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 from uproot import chat
+from uproot.constraints import ensure
 from uproot.core import reach_end, resolve_page_order
 from uproot.services.session_service import players_exist, session_exists
 
@@ -238,38 +239,65 @@ async def put_to_end(
     return await info_online(sname)
 
 
+def previous_page(uname: str, page_order: list[str], show_page: int) -> int:
+    """The page that reverting from show_page leads to, skipping operator and
+    app-start markers, which are never shown. Reverting must not cross the
+    start of a round, of an app, or the end, as their markers do not run in
+    reverse: player.app and player.round would stay ahead of the page."""
+    ensure(
+        show_page < len(page_order),
+        ValueError,
+        f"Cannot revert {uname}, who has reached the end",
+    )
+    previous = show_page - 1
+
+    while previous > -1 and (
+        page_order[previous].startswith("#")
+        or page_order[previous].endswith("/#StartApp")
+    ):
+        ensure(
+            page_order[previous] not in ("#RoundStart", "#RepeatStart")
+            and not page_order[previous].endswith("/#StartApp"),
+            ValueError,
+            f"Cannot revert {uname} past {page_order[previous]}, the start of a "
+            "round or an app",
+        )
+        previous -= 1
+
+    return previous
+
+
 async def revert_by_one(
     sname: t.Sessionname, unames: list[str]
 ) -> dict[str, dict[str, Any]]:
-    """Revert players by one page."""
+    """Revert players by one page. Reverts no one if any player cannot be
+    reverted."""
     players_exist(sname, unames, False)
+    reverted: dict[str, int] = {}
 
     for uname in unames:
+        with t.materialize(t.PlayerIdentifier(sname, uname)) as player:
+            if -1 < player.show_page <= len(player.page_order):
+                reverted[uname] = previous_page(
+                    uname, player.page_order, player.show_page
+                )
+
+    for uname, show_page in reverted.items():
         pid = t.PlayerIdentifier(sname, uname)
 
         with t.materialize(pid) as player:
-            if -1 < player.show_page <= len(player.page_order):
-                show_page = player.show_page - 1
+            player.show_page = show_page
 
-                # Skip operator and app-start markers, which are never shown
-                while show_page > -1 and (
-                    player.page_order[show_page].startswith("#")
-                    or player.page_order[show_page].endswith("/#StartApp")
-                ):
-                    show_page -= 1
-
-                player.show_page = show_page
-
-                q.enqueue(
-                    tuple(pid),
-                    {
-                        "source": "admin",
-                        "kind": "action",
-                        "payload": {
-                            "action": "reload",
-                        },
+            q.enqueue(
+                tuple(pid),
+                {
+                    "source": "admin",
+                    "kind": "action",
+                    "payload": {
+                        "action": "reload",
                     },
-                )
+                },
+            )
 
     return await info_online(sname)
 

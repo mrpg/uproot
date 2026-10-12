@@ -756,7 +756,9 @@ async def revert_players(
 ) -> dict[str, Any]:
     """Revert specified players by one page."""
     a.players_exist(sname, body.unames)
-    return await a.revert_by_one(sname, body.unames)
+
+    with bad_request():
+        return await a.revert_by_one(sname, body.unames)
 
 
 @router.post("/sessions/{sname}/players/end/")

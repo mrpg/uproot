@@ -682,6 +682,9 @@
 ? 'Target URL'
 : 'Target URL'
 
+? 'The action failed. See the server log for details.'
+: 'The action failed. See the server log for details.'
+
 ? 'The action has completed.'
 : 'The action has completed.'
 

@@ -12,6 +12,7 @@ from decimal import Decimal as cu
 from types import EllipsisType
 from typing import (
     Any,
+    Self,
     cast,
 )
 
@@ -343,6 +344,56 @@ def sets_up(page_order: list[str], ix: int, target_ix: int) -> bool:
     return True
 
 
+def draft(player: Storage) -> tuple[Any, Callable[[], None]]:
+    """A stand-in for player and a function that commits its changes to player.
+    Until then, they stay out of player's history, and the commit writes each
+    changed field once, with its final value."""
+    missing = object()
+    values: dict[str, Any] = {}  # Field -> value in the draft, or missing
+
+    class Draft:
+        def __getattr__(self, name: str) -> Any:
+            if name not in values:
+                value = getattr(player, name, missing)
+                values[name] = missing if value is missing else deepcopy(value)
+
+            if values[name] is missing:
+                raise AttributeError(f"{player} has no .{name}")
+
+            return values[name]
+
+        def __setattr__(self, name: str, value: Any) -> None:
+            values[name] = value
+
+        def __delattr__(self, name: str) -> None:
+            getattr(self, name)  # Raises AttributeError if there is none
+            values[name] = missing
+
+        def __enter__(self) -> Self:
+            return self
+
+        def __exit__(self, *exc_info: object) -> None:
+            pass
+
+        def get(self, name: str, default: Any = None) -> Any:
+            return getattr(self, name, default)
+
+        def refresh(self, *fields: str) -> None:
+            pass  # The draft is the only writer until it is committed
+
+    def commit() -> None:
+        for name, value in values.items():
+            original = getattr(player, name, missing)
+
+            if value is missing:
+                if original is not missing:
+                    delattr(player, name)
+            elif original is missing or original != value:
+                setattr(player, name, value)
+
+    return Draft(), commit
+
+
 @flexible
 def transition_to_page(
     player: Storage, target: type[t.Page], reload_: bool = True
@@ -354,66 +405,41 @@ def transition_to_page(
             # Players who have not started yet have no page to move from
             return
 
-        origin = player.show_page
-        target_index = player.page_order.index(target_path, origin)
-        missing = object()
-        prior_state: dict[str, Any] = {}
+        # Internal markers change player before a Between may reject the
+        # target, so they change a draft that only reaches player on success
+        moving, commit = draft(player)
+        target_index = moving.page_order.index(target_path, moving.show_page)
+        ix = moving.show_page + 1
 
-        # Internal markers can change these fields before a Between rejects
-        # the target. Restore them if the move cannot complete.
-        for name in (
-            "show_page",
-            "page_order",
-            "app",
-            "block",
-            "round",
-            "round_nested",
-            "repeat_templates",
-            "between_showed",
-            "_uproot_what_ran",
-        ):
-            value = getattr(player, name, missing)
-            prior_state[name] = missing if value is missing else deepcopy(value)
+        # Run the markers on the way that set up what contains the target,
+        # e.g., its round. This may move or drop the target.
+        while ix < target_index:
+            path = moving.page_order[ix]
 
-        try:
-            ix = origin + 1
+            if sets_up(moving.page_order, ix, target_index):
+                moving.show_page = ix
 
-            # Run the markers on the way that set up what contains the target,
-            # e.g., its round. This may move or drop the target.
-            while ix < target_index:
-                path = player.page_order[ix]
+                for hook in ("before_always_once", "after_always_once"):
+                    t.optional_call_once(
+                        path2page(path),
+                        hook,
+                        storage=moving,
+                        show_page=ix,
+                        player=moving,
+                    )
 
-                if sets_up(player.page_order, ix, target_index):
-                    player.show_page = ix
+                if target_path not in moving.page_order[ix:]:
+                    raise ValueError(
+                        f"Cannot move to {target_path}, which a Between on the "
+                        "way did not select"
+                    )
 
-                    for hook in ("before_always_once", "after_always_once"):
-                        t.optional_call_once(
-                            path2page(path),
-                            hook,
-                            storage=player,
-                            show_page=ix,
-                            player=player,
-                        )
+                target_index = moving.page_order.index(target_path, ix)
 
-                    if target_path not in player.page_order[ix:]:
-                        raise ValueError(
-                            f"Cannot move to {target_path}, which a Between on the "
-                            "way did not select"
-                        )
+            ix += 1
 
-                    target_index = player.page_order.index(target_path, ix)
-
-                ix += 1
-
-            player.show_page = target_index
-        except Exception:
-            for name, value in prior_state.items():
-                if value is missing:
-                    if hasattr(player, name):
-                        delattr(player, name)
-                else:
-                    setattr(player, name, value)
-            raise
+        moving.show_page = target_index
+        commit()
 
     if reload_:
         reload(player)

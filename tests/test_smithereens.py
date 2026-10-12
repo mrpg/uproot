@@ -139,12 +139,17 @@ def test_move_to_page_enters_apps_and_rounds_on_the_way():
         ]
         player.show_page = 0
         player.app = "test"
+        history = dict(player.history())
 
     move_to_page(s.Player(*pid), Target, reload_=False)
 
     with s.Player(*pid) as player:
         assert player.page_order[player.show_page] == page2path(Target)
         assert (player.app, player.round, player.round_nested) == ("next", 1, [1])
+
+        # Each changed field is written once, with its final value
+        for field in ("show_page", "app", "round"):
+            assert len(player.history()[field]) == len(history.get(field, ())) + 1
 
 
 def test_move_to_page_draws_betweens_on_the_way():
@@ -182,7 +187,7 @@ def test_move_to_page_draws_betweens_on_the_way():
                 assert not hasattr(player, "between_showed")
 
 
-def test_rejected_move_to_page_restores_marker_state(monkeypatch):
+def test_rejected_move_to_page_leaves_no_trace(monkeypatch):
     class Other(t.Page):
         pass
 
@@ -212,11 +217,13 @@ def test_rejected_move_to_page_restores_marker_state(monkeypatch):
         player.round = 3
         player.round_nested = [3]
         player.between_showed = [["previous"]]
+        history = dict(player.history())
 
     with pytest.raises(ValueError, match="did not select"):
         move_to_page(s.Player(*pid), Target, reload_=False)
 
     with s.Player(*pid) as player:
+        assert dict(player.history()) == history
         assert player.show_page == 0
         assert player.page_order == page_order
         assert (player.app, player.block, player.round, player.round_nested) == (
@@ -712,36 +719,75 @@ def test_between_records_the_pages_of_each_selection():
 
 
 async def test_reverting_players_skips_the_markers_of_operators():
+    class Other(t.Page):
+        pass
+
     pid = create_player()
 
     with s.Player(*pid) as player:
-        player.page_order = list(map(page2path, c.expand([Rounds(Target, n=2)])))
-        first, second = [
-            ix for ix, page in enumerate(player.page_order) if page == page2path(Target)
-        ]
-        player.show_page = second
-
-    for expected in (first, -1):
-        await ps.revert_by_one(pid.sname, [pid.uname])
-
-        with s.Player(*pid) as player:
-            assert player.show_page == expected
-
-
-@pytest.mark.parametrize("origin, expected", [(1, -1), (3, 1)])
-async def test_reverting_players_skips_app_start_markers(origin, expected):
-    pid = create_player()
-
-    with s.Player(*pid) as player:
-        player.page_order = [
-            "first/#StartApp",
-            "first/First",
-            "second/#StartApp",
-            "second/First",
-        ]
-        player.show_page = origin
+        player.page_order = list(
+            map(page2path, c.expand([Rounds(Target, n=1), Bracket(Other)]))
+        )
+        player.show_page = player.page_order.index(page2path(Other))
 
     await ps.revert_by_one(pid.sname, [pid.uname])
 
     with s.Player(*pid) as player:
-        assert player.show_page == expected
+        assert player.page_order[player.show_page] == page2path(Target)
+
+
+@pytest.mark.parametrize(
+    "page_order, boundary",
+    [
+        (list(map(page2path, c.expand([Rounds(Target, n=2)]))), "#RoundStart"),
+        (list(map(page2path, c.expand([Repeat(Target)]))), "#RepeatStart"),
+        (["first/#StartApp", "first/First"], "first/#StartApp"),
+        (["first/First", "second/#StartApp", "second/First"], "second/#StartApp"),
+    ],
+)
+async def test_reverting_players_stops_at_the_start_of_rounds_and_apps(
+    page_order, boundary
+):
+    # Their markers do not run in reverse, so player.round and player.app would
+    # stay ahead of the page
+    pid = create_player()
+
+    with s.Session(pid.sname) as session:
+        other = c.create_player(session)
+
+    # The first page after the boundary
+    page_order = ["test/First", *page_order]
+    blocked = page_order.index(boundary) + 1
+
+    while page_order[blocked].startswith("#"):
+        blocked += 1
+
+    with s.Player(*pid) as player:
+        player.page_order = page_order
+        player.show_page = 0
+
+    with s.Player(*other) as player:
+        player.page_order = page_order
+        player.show_page = blocked
+
+    # Reverts no one if any player cannot be reverted
+    with pytest.raises(ValueError, match=f"past {boundary}"):
+        await ps.revert_by_one(pid.sname, [pid.uname, other.uname])
+
+    for each, expected in ((pid, 0), (other, blocked)):
+        with s.Player(*each) as player:
+            assert player.show_page == expected
+
+
+async def test_reverting_players_stops_at_the_end():
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = ["test/First", "test/Second"]
+        player.show_page = 2
+
+    with pytest.raises(ValueError, match="reached the end"):
+        await ps.revert_by_one(pid.sname, [pid.uname])
+
+    with s.Player(*pid) as player:
+        assert player.show_page == 2

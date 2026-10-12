@@ -682,6 +682,9 @@
 ? 'Target URL'
 : 'ターゲットURL'
 
+? 'The action failed. See the server log for details.'
+: 'アクションに失敗しました。詳細はサーバーログを確認してください。'
+
 ? 'The action has completed.'
 : 'アクションが完了しました。'
 
