@@ -148,11 +148,12 @@ def generate_data(
         case "sparse":
             return data_rows_for_session(sname, filters), data.long_to_wide, {}
         case "latest":
-            return (
-                data_rows_for_session(sname, filters),
-                data.latest,
-                {"group_by_fields": gvar},
-            )
+            rows = data_rows_for_session(sname, filters)
+
+            if filters and gvar:
+                rows = data.grouped_filters(rows)
+
+            return rows, data.latest, {"group_by_fields": gvar}
         case _:
             raise NotImplementedError
 
@@ -197,6 +198,14 @@ def briefcase_readme(
             " Storages without any such row (e.g., sessions) get one row: their"
             " final state."
         )
+
+        if filters:
+            description += (
+                " page_order is left out here, as it would repeat every page in"
+                " every row; it is in the other formats, and page_times resolves"
+                " every page visit."
+            )
+
         body = textwrap.indent(textwrap.fill(description, 68), "    ")
         grouped = f"{grouped_format_name(gvar)}/\n{body}\n\n"
 
@@ -293,7 +302,8 @@ def briefcase_from_rows(
     }
 
     if gvar:
-        formats[grouped_format_name(gvar)] = data.latest(rows, group_by_fields=gvar)
+        grouped = data.grouped_filters(rows) if filters else rows
+        formats[grouped_format_name(gvar)] = data.latest(grouped, group_by_fields=gvar)
 
     yield from data.briefcase_out(
         formats,

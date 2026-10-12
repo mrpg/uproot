@@ -127,6 +127,15 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
         yield row
 
 
+def grouped_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
+    # Reasonable filters for grouped formats, on top of reasonable_filters.
+    # page_order would repeat every page in every row. Leaving out its changes
+    # (instead of its column) keeps !time and !seq to changes that rows show.
+    for row in pm:
+        if row["!field"] != "page_order":
+            yield row
+
+
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: list[str] | None = None
 ) -> Iterator[dict[str, Any]]:
