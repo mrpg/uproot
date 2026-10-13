@@ -715,6 +715,9 @@ window.actuallyManage = function() {
             if (data) window.newInfoOnline(data);
             loadExtraData();
             uproot.alert(_("The action has completed."));
+        }).catch(() => {
+            // E.g., players who cannot be reverted past the start of a round
+            uproot.error(_("The action failed. See the server log for details."));
         });
     } else {
         uproot.error(_("No action selected."));

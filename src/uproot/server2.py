@@ -1350,7 +1350,7 @@ async def session_data_download(
         now() - t0,
     )
 
-    return Response(
+    return StreamingResponse(
         briefcase,
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename={briefcase_name}.zip"},

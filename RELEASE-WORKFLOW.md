@@ -4,8 +4,7 @@
 1. Add new version below.
 1. Update `__version_info__` in `src/uproot/__init__.py`.
 1. Update `version` in `pyproject.toml`.
-1. Update `recommendedVersion` in `announcements.json`, and add or update the matching version-specific announcement if needed.
-1. Copy or move (after 2027-01-01) `announcements.json` to [uproot-docs](https://github.com/mrpg/uproot-docs). Deploy docs.
+1. Update `recommendedVersion` in `announcements.json` in [uproot-docs](https://github.com/mrpg/uproot-docs), and add or update the matching version-specific announcement if needed. Deploy docs.
 1. Run `./release.sh vX.Y.Z`. Ensure CI passes.
 1. Upload to PyPI: `uv run twine upload dist/uproot*.whl`.
 1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable. Signatures use GnuPG and [botan-slhdsa-signing](https://github.com/mrpg/botan-slhdsa-signing).
@@ -20,6 +19,8 @@
 
 # Versions
 
+- `0.9.0` (2026-10-12)
+- `0.8.0` (2026-10-11)
 - `0.7.0` (2026-10-05)
 - `0.6.0` (2026-09-26)
 - `0.5.4` (2026-09-21)

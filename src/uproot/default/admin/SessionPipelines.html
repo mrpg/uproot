@@ -67,8 +67,25 @@
 {{ json_input(_, "pipeline-data-input", _("Pipeline data"), rows=8, help_text=_("Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.")) }}
 {% endcall %}
 
+{% call modal(_, "pipeline-result", title=_("Pipeline result"), dialog_class="modal-lg") %}
+<textarea class="form-control font-monospace" id="pipeline-result-output" rows="16" style="resize: none;" readonly></textarea>
+{% endcall %}
+
 <script>
 let uprootPipelineDataAppname = null;
+let uprootPipelineDataShown = Promise.resolve();
+let uprootPipelineDataHidden = Promise.resolve();
+
+I("pipeline-data-modal").addEventListener("show.bs.modal", event => {
+    const modal = event.currentTarget;
+
+    uprootPipelineDataShown = new Promise(resolve => {
+        modal.addEventListener("shown.bs.modal", resolve, {once: true});
+    });
+    uprootPipelineDataHidden = new Promise(resolve => {
+        modal.addEventListener("hidden.bs.modal", resolve, {once: true});
+    });
+});
 
 function uprootOpenPipelineData(appname) {
     uprootPipelineDataAppname = appname;
@@ -116,8 +133,7 @@ async function uprootRunPipeline(appname, filetype, options = {}) {
     }
 
     if (!disposition.includes("attachment")) {
-        alert(await uprootPipelineResponseText(response));
-        return;
+        return uprootShowPipelineResult(await response.text());
     }
 
     const blob = await response.blob();
@@ -132,10 +148,28 @@ async function uprootRunPipeline(appname, filetype, options = {}) {
     URL.revokeObjectURL(link.href);
     link.remove();
 
+    await uprootHidePipelineDataModal();
+}
+
+async function uprootHidePipelineDataModal() {
+    await uprootPipelineDataShown;
+
     const modal = bootstrap.Modal.getInstance(I("pipeline-data-modal"));
     if (modal) {
         modal.hide();
     }
+
+    await uprootPipelineDataHidden;
+}
+
+async function uprootShowPipelineResult(text) {
+    const output = I("pipeline-result-output");
+
+    output.value = text;
+    output.scrollTop = 0;
+
+    await uprootHidePipelineDataModal();
+    bootstrap.Modal.getOrCreateInstance(I("pipeline-result-modal")).show();
 }
 
 async function uprootPipelineResponseText(response) {

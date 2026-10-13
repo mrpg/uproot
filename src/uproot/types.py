@@ -865,6 +865,15 @@ class SynchronizingWait(InternalPage):
 class SmoothOperator(ABC):
     @abstractmethod
     def __init__(self, *pages: "PageLike") -> None:
+        for page in pages:
+            ensure(
+                isinstance(page, SmoothOperator)
+                or (isinstance(page, type) and issubclass(page, Page)),
+                TypeError,
+                f"{type(self).__name__}() takes pages and SmoothOperators, not "
+                f"{page!r}. Use Bracket() to keep several pages together.",
+            )
+
         self.pages: list[PageLike] = list(pages)
 
     @abstractmethod

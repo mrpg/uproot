@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import csv as pycsv
+import hashlib
 from collections.abc import AsyncGenerator, Iterable, Iterator, Mapping
-from io import BytesIO, StringIO
+from io import StringIO
 from typing import Any, cast
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -14,6 +15,9 @@ from uproot import cache
 from uproot.constraints import ensure
 from uproot.stable import encode_raw
 from uproot.types import Value, sha256
+from uproot.utils.sink import Sink
+
+STREAM_CHUNK_SIZE = 1024**2
 
 
 def value2json(data: Any, unavailable: bool = False) -> str:
@@ -105,6 +109,9 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
                 row["!data"] = f"session/{data}"
             elif field == "_uproot_dropout" or field == "_uproot_settings":
                 pass
+            elif field == "_uproot_groups" or field == "_uproot_players":
+                if not storage.startswith("session/"):
+                    continue
             else:
                 continue
 
@@ -115,19 +122,36 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
             else:
                 continue
 
-            if field == "groups":
+            if field == "_uproot_groups":
+                row["!field"] = "groups"
                 row["!data"] = [f"group/{sname}/{gname}" for gname in data]
-            elif field == "players":
+            elif field == "_uproot_players":
+                row["!field"] = "players"
                 row["!data"] = [f"player/{sname}/{uname}" for _, uname in data]
 
         yield row
 
 
+def grouped_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
+    # Reasonable filters for grouped formats, on top of reasonable_filters.
+    # page_order would repeat every page in every row. Leaving out its changes
+    # (instead of its column) keeps !time and !seq to changes that rows show.
+    for row in pm:
+        if row["!field"] != "page_order":
+            yield row
+
+
 def latest(
     pm: Iterable[dict[str, Any]], group_by_fields: list[str] | None = None
 ) -> Iterator[dict[str, Any]]:
+    # WITHIN-ADJACENT
+    # Each row should be the state that latest() in viewdata.js shows when
+    # filtering by the row's values of group_by_fields (or only by its app).
+
     if group_by_fields is None:
         group_by_fields = []
+
+    by_app = "app" in group_by_fields
 
     # Collect changes by storage
     storage_changes: dict[str, list[dict[str, Any]]] = {}
@@ -144,9 +168,11 @@ def latest(
     for storage, changes in storage_changes.items():
         changes.sort(key=lambda x: x["!seq"])
 
-        # Build state evolution and track all seen combinations
+        # Build state evolution and track the latest state of each row in order
+        # of first appearance, keyed by (True, combination) or (False, app)
         current_state: dict[str, dict[str, Any]] = {}
-        seen_combinations: dict[str, dict[str, Any]] = {}
+        rows: dict[tuple[bool, str], dict[str, Any]] = {}
+        grouped_apps: set[str] = set()
         latest_state: dict[str, Any] | None = None
 
         for change in changes:
@@ -172,6 +198,12 @@ def latest(
             latest_state = state_snapshot
 
             if group_by_fields:
+                app = state_snapshot.get("app")
+
+                if by_app and app is None:
+                    # Outside of apps, i.e., before the first app or after the end
+                    continue
+
                 # Check if all group_by_fields exist and are available
                 all_fields_valid = True
                 combination_values = []
@@ -184,17 +216,30 @@ def latest(
                     combination_values.append(current_state[gf]["data"])
 
                 if all_fields_valid:
-                    combination_key = repr(tuple(combination_values))
-                    seen_combinations[combination_key] = state_snapshot
+                    rows[True, repr(tuple(combination_values))] = state_snapshot
+
+                    if by_app:
+                        grouped_apps.add(repr(app))
+                elif by_app:
+                    # Apps that never complete a combination (e.g., apps without
+                    # rounds) get one row. Other apps need none: changes before
+                    # their first combination carry over into it, and they only
+                    # leave combinations to switch blocks or apps.
+                    rows[False, repr(app)] = state_snapshot
             else:
                 # No grouping - track single latest state
-                seen_combinations[""] = state_snapshot
+                rows[True, ""] = state_snapshot
 
-        # Yield all tracked combinations
-        if group_by_fields and latest_state is not None and not seen_combinations:
+        if not rows and latest_state is not None:
+            # No state forms a row, e.g., in sessions or for players who have not
+            # started yet when grouping by app
             yield latest_state
 
-        yield from seen_combinations.values()
+        yield from (
+            snapshot
+            for (complete, key), snapshot in rows.items()
+            if complete or key not in grouped_apps
+        )
 
 
 DATA_DICTIONARY: dict[str, Any] = {
@@ -290,7 +335,16 @@ def value_cell(key: str) -> bool:
     return key == "!data" or not key.startswith("!")
 
 
-def csv_out(rows: Iterable[dict[str, Any]]) -> str:
+def take(buffer: StringIO) -> str:
+    chunk = buffer.getvalue()
+    buffer.seek(0)
+    buffer.truncate()
+
+    return chunk
+
+
+def csv_chunks(rows: Iterable[dict[str, Any]]) -> Iterator[str]:
+    """Yield a CSV file piece by piece: first the header, then each row."""
     rows = list(rows)
 
     buffer = StringIO()
@@ -303,6 +357,7 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
 
     dw = pycsv.DictWriter(buffer, fieldnames=sorted_fields)
     dw.writeheader()
+    yield take(buffer)
 
     for row in rows:
         unavailable = row.get("!unavailable", False)
@@ -312,8 +367,11 @@ def csv_out(rows: Iterable[dict[str, Any]]) -> str:
                 for k, v in row.items()
             }
         )
+        yield take(buffer)
 
-    return buffer.getvalue()
+
+def csv_out(rows: Iterable[dict[str, Any]]) -> str:
+    return "".join(csv_chunks(rows))
 
 
 def split_by_storage_kind(
@@ -329,17 +387,24 @@ def split_by_storage_kind(
     return kinds
 
 
-def rows_to_bytes(rows: Iterable[dict[str, Any]], filetype: str) -> bytes:
-    """Serialize rows to a CSV or JSONL file body."""
+def rows_to_chunks(rows: Iterable[dict[str, Any]], filetype: str) -> Iterator[bytes]:
+    """Serialize rows to a CSV or JSONL file body, piece by piece."""
     ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
 
     if filetype == "csv":
-        return csv_out(rows).encode("utf-8")
+        for chunk in csv_chunks(rows):
+            yield chunk.encode("utf-8")
+    else:
+        for row in rows:
+            yield jsonl_line(row).encode("utf-8")
 
-    return "".join(jsonl_line(row) for row in rows).encode("utf-8")
+
+def rows_to_bytes(rows: Iterable[dict[str, Any]], filetype: str) -> bytes:
+    """Serialize rows to a CSV or JSONL file body."""
+    return b"".join(rows_to_chunks(rows, filetype))
 
 
-def briefcase_extras(zf: ZipFile, wrapper: str, contents: dict[str, bytes]) -> None:
+def briefcase_extras(zf: ZipFile, wrapper: str, digests: dict[str, str]) -> None:
     """Add general non-data files to a briefcase.
 
     For now, this writes a SHA256SUMS file that `sha256sum -c` can verify
@@ -347,7 +412,7 @@ def briefcase_extras(zf: ZipFile, wrapper: str, contents: dict[str, bytes]) -> N
     """
     zf.writestr(
         f"{wrapper}/SHA256SUMS",
-        "".join(f"{sha256(blob)}  {name}\n" for name, blob in contents.items()),
+        "".join(f"{digest}  {name}\n" for name, digest in digests.items()),
     )
 
 
@@ -357,7 +422,7 @@ def briefcase_out(
     filetype: str,
     readme: str,
     extras: Mapping[str, bytes] | None = None,
-) -> bytes:
+) -> Iterator[bytes]:
     """Create a ZIP "briefcase" wrapped in a single top-level directory.
 
     Each entry in `formats` becomes its own subdirectory holding one file per
@@ -366,30 +431,47 @@ def briefcase_out(
     README.txt, a DATA_DICTIONARY.json defining the uproot-internal (!)
     columns, any `extras` (path → file body), and a SHA256SUMS file covering
     every other file sit directly inside the wrapper directory.
-    """
-    buffer = BytesIO()
 
-    with ZipFile(buffer, "w", ZIP_DEFLATED, compresslevel=1) as zf:
-        contents = {
+    The ZIP is yielded piece by piece while it is written, so neither the
+    archive nor any data file in it is ever held in memory as a whole. Data
+    files get ZIP64 headers because their size is not known in advance.
+    """
+    sink = Sink()
+    digests: dict[str, str] = {}
+
+    with ZipFile(sink, "w", ZIP_DEFLATED, compresslevel=1) as zf:
+        blobs = {
             "README.txt": readme.encode("utf-8"),
             "DATA_DICTIONARY.json": json.dumps(
                 DATA_DICTIONARY, option=json.OPT_INDENT_2
             ),
+            **(extras or {}),
         }
 
-        if extras:
-            contents.update(extras)
+        for name, blob in blobs.items():
+            zf.writestr(f"{wrapper}/{name}", blob)
+            digests[name] = sha256(blob)
+
+        yield sink.drain()
 
         for fmt, rows in formats.items():
             for kind, kindrows in sorted(split_by_storage_kind(rows).items()):
-                contents[f"{fmt}/{kind}.{filetype}"] = rows_to_bytes(kindrows, filetype)
+                name = f"{fmt}/{kind}.{filetype}"
+                digest = hashlib.sha256()
 
-        for name, blob in contents.items():
-            zf.writestr(f"{wrapper}/{name}", blob)
+                with zf.open(f"{wrapper}/{name}", "w", force_zip64=True) as f:
+                    for chunk in rows_to_chunks(kindrows, filetype):
+                        digest.update(chunk)
+                        f.write(chunk)
 
-        briefcase_extras(zf, wrapper, contents)
+                        if len(sink.buffer) >= STREAM_CHUNK_SIZE:
+                            yield sink.drain()
 
-    return buffer.getvalue()
+                digests[name] = digest.hexdigest()
+
+        briefcase_extras(zf, wrapper, digests)
+
+    yield sink.drain()
 
 
 def json_ready_row(row: dict[str, Any]) -> dict[str, Any]:

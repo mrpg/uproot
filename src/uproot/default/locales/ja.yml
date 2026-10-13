@@ -91,6 +91,9 @@
 ? 'Any app'
 : 'すべてのアプリ'
 
+? 'Any block'
+: 'すべてのブロック'
+
 ? 'Apps'
 : 'アプリ'
 
@@ -165,6 +168,9 @@
 
 ? 'Filter by app'
 : 'アプリで絞り込み'
+
+? 'Filter by block'
+: 'ブロックで絞り込み'
 
 ? 'Filter by round'
 : 'ラウンドで絞り込み'
@@ -676,6 +682,9 @@
 ? 'Target URL'
 : 'ターゲットURL'
 
+? 'The action failed. See the server log for details.'
+: 'アクションに失敗しました。詳細はサーバーログを確認してください。'
+
 ? 'The action has completed.'
 : 'アクションが完了しました。'
 
@@ -963,6 +972,9 @@
 
 ? 'Pipeline options'
 : 'パイプラインオプション'
+
+? 'Pipeline result'
+: 'パイプラインの結果'
 
 ? 'Pipelines'
 : 'パイプライン'

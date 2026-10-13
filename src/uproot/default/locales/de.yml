@@ -91,6 +91,9 @@
 ? 'Any app'
 : 'Jede App'
 
+? 'Any block'
+: 'Jeder Block'
+
 ? 'Apps'
 : 'Apps'
 
@@ -165,6 +168,9 @@
 
 ? 'Filter by app'
 : 'Nach App filtern'
+
+? 'Filter by block'
+: 'Nach Block filtern'
 
 ? 'Filter by round'
 : 'Nach Runde filtern'
@@ -676,6 +682,9 @@
 ? 'Target URL'
 : 'Ziel-URL'
 
+? 'The action failed. See the server log for details.'
+: 'Die Aktion ist fehlgeschlagen. Details finden Sie im Server-Log.'
+
 ? 'The action has completed.'
 : 'Die Aktion ist abgeschlossen.'
 
@@ -963,6 +972,9 @@
 
 ? 'Pipeline options'
 : 'Pipeline-Optionen'
+
+? 'Pipeline result'
+: 'Pipeline-Ergebnis'
 
 ? 'Pipelines'
 : 'Pipelines'

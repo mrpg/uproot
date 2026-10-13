@@ -13,7 +13,6 @@ uv run ruff check --fix src/uproot/
 uv run black src/uproot/
 uv run isort src/uproot/
 
-
 # Run release checks
 uv run pytest
 uv run mypy

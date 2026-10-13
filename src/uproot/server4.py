@@ -438,7 +438,7 @@ async def briefcase_export_response(
     gvar: list[str],
     filters: bool,
     filetype: str,
-) -> Response:
+) -> StreamingResponse:
     if filetype not in ("csv", "jsonl"):
         raise HTTPException(
             status_code=400, detail="Invalid filetype. Use: csv or jsonl"
@@ -446,7 +446,7 @@ async def briefcase_export_response(
 
     briefcase_name = str(sname)
 
-    return Response(
+    return StreamingResponse(
         await a.generate_briefcase(
             sname,
             gvar,
@@ -756,7 +756,9 @@ async def revert_players(
 ) -> dict[str, Any]:
     """Revert specified players by one page."""
     a.players_exist(sname, body.unames)
-    return await a.revert_by_one(sname, body.unames)
+
+    with bad_request():
+        return await a.revert_by_one(sname, body.unames)
 
 
 @router.post("/sessions/{sname}/players/end/")

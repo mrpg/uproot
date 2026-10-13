@@ -429,8 +429,8 @@ PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
 PYTHON_VERSION = "3.13\n"
 
-REQUIREMENTS_TXT = """\
-uproot-science<1
+REQUIREMENTS_TXT = f"""\
+uproot-science=={u.__version__}
 """
 
 PRE_COMMIT_CONFIG = """\
@@ -462,7 +462,7 @@ repos:
         types: [python]
 """
 
-PYPROJECT_TOML = """\
+PYPROJECT_TOML = f"""\
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
@@ -475,7 +475,7 @@ readme = "README.md"
 license = "0BSD"
 requires-python = ">=3.12"
 dependencies = [
-    "uproot-science<1",
+    "uproot-science=={u.__version__}",
     "black",
     "isort",
     "mypy",

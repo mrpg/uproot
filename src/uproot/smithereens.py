@@ -9,10 +9,7 @@ from collections import namedtuple
 from collections.abc import Awaitable, Callable, Iterable, Sequence
 from decimal import Decimal as cu
 from types import EllipsisType
-from typing import (
-    Any,
-    cast,
-)
+from typing import Any, cast
 
 from markupsafe import Markup
 from pydantic import validate_call
@@ -22,10 +19,11 @@ import uproot.chat
 import uproot.core as c
 import uproot.jobs as j
 import uproot.types as t
+import uproot.utils.draft as drafts
 from uproot.constraints import ensure
 from uproot.flexibility import PlayerLike, flexible, is_player_like
 from uproot.pages import fmtnum_filter as fmtnum
-from uproot.pages import page2path
+from uproot.pages import page2path, path2page
 from uproot.pages import to_filter as to
 from uproot.queries import FieldReferent
 from uproot.queues import enqueue
@@ -56,7 +54,7 @@ __all__ = [
     "PlayerContext",
     "PlayerIdentifier",
     "PlayerType",
-    "Random",
+    "RandomOrder",
     "Repeat",
     "Rounds",
     "Session",
@@ -321,6 +319,27 @@ def reload(player: Storage) -> None:
     )
 
 
+def sets_up(page_order: list[str], ix: int, target_ix: int) -> bool:
+    """Whether the marker at ix starts the app or sets up a SmoothOperator that
+    contains target_ix, unlike those that end before target_ix"""
+    path, on_the_way = page_order[ix], page_order[ix + 1 : target_ix]
+
+    if path.endswith("/#StartApp"):
+        return not any(p.endswith("/#StartApp") for p in on_the_way)
+    elif not path.startswith("#"):
+        return False
+
+    depth = 0
+
+    for p in on_the_way:
+        depth += (p == "#{") - (p == "#}")
+
+        if depth < 0:  # The bracket around ix closes before target_ix
+            return False
+
+    return True
+
+
 @flexible
 def transition_to_page(
     player: Storage, target: type[t.Page], reload_: bool = True
@@ -332,9 +351,41 @@ def transition_to_page(
             # Players who have not started yet have no page to move from
             return
 
-        target_index = player.page_order.index(target_path, player.show_page)
+        # Internal markers change player before a Between may reject the
+        # target, so they change a draft that only reaches player on success
+        moving, commit = drafts.draft(player)
+        target_index = moving.page_order.index(target_path, moving.show_page)
+        ix = moving.show_page + 1
 
-    player.show_page = target_index
+        # Run the markers on the way that set up what contains the target,
+        # e.g., its round. This may move or drop the target.
+        while ix < target_index:
+            path = moving.page_order[ix]
+
+            if sets_up(moving.page_order, ix, target_index):
+                moving.show_page = ix
+
+                for hook in ("before_always_once", "after_always_once"):
+                    t.optional_call_once(
+                        path2page(path),
+                        hook,
+                        storage=moving,
+                        show_page=ix,
+                        player=moving,
+                    )
+
+                if target_path not in moving.page_order[ix:]:
+                    raise ValueError(
+                        f"Cannot move to {target_path}, which a Between on the "
+                        "way did not select"
+                    )
+
+                target_index = moving.page_order.index(target_path, ix)
+
+            ix += 1
+
+        moving.show_page = target_index
+        commit()
 
     if reload_:
         reload(player)
@@ -468,15 +519,15 @@ def append_to_csv(outfile: str, data: dict[str, Any]) -> None:
             os.unlink(tmpname)
 
 
-class Random(t.SmoothOperator):
+class RandomOrder(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages: list[t.PageLike] = [
             INTERNAL_PAGES["{"],
-            INTERNAL_PAGES["RandomStart"],
+            INTERNAL_PAGES["RandomOrderStart"],
             *pages,
-            INTERNAL_PAGES["RandomEnd"],
+            INTERNAL_PAGES["RandomOrderEnd"],
             INTERNAL_PAGES["}"],
         ]
 
@@ -484,31 +535,31 @@ class Random(t.SmoothOperator):
         return self.pages
 
     @classmethod
-    async def start(page, player: Storage) -> None:
-        # Find the nearest #RandomStart before our position
+    def start(page, player: Storage) -> None:
+        # Find the nearest #RandomOrderStart before our position
         start_ix = None
         for i in range(player.show_page, -1, -1):
-            if player.page_order[i] == "#RandomStart":
+            if player.page_order[i] == "#RandomOrderStart":
                 start_ix = i
                 break
 
         if start_ix is None:
-            raise RuntimeError("Could not find #RandomStart")
+            raise RuntimeError("Could not find #RandomOrderStart")
 
-        # Find the matching #RandomEnd for this #RandomStart
+        # Find the matching #RandomOrderEnd for this #RandomOrderStart
         random_depth = 1
         end_ix = None
         for i in range(start_ix + 1, len(player.page_order)):
-            if player.page_order[i] == "#RandomStart":
+            if player.page_order[i] == "#RandomOrderStart":
                 random_depth += 1
-            elif player.page_order[i] == "#RandomEnd":
+            elif player.page_order[i] == "#RandomOrderEnd":
                 random_depth -= 1
                 if random_depth == 0:
                     end_ix = i
                     break
 
         if end_ix is None:
-            raise RuntimeError("Could not find matching #RandomEnd")
+            raise RuntimeError("Could not find matching #RandomOrderEnd")
 
         pages = player.page_order[start_ix + 1 : end_ix]
 
@@ -552,19 +603,144 @@ class Random(t.SmoothOperator):
         player.page_order[start_ix + 1 : end_ix] = shuffled_pages
 
 
-def loop_depth(page_order: list[str], ix: int) -> int:
-    """Number of Rounds/Repeat iterations that enclose position ix"""
-    before = page_order[:ix]
+def rounds_reset(block: str | None) -> type[t.Page]:
+    """Marker that begins Rounds/Repeat iterations of the given block"""
+    if block is None:
+        return INTERNAL_PAGES["RoundsReset"]
 
-    return sum(p in ("#RoundStart", "#RepeatStart") for p in before) - sum(
-        p in ("#RoundEnd", "#RepeatEnd") for p in before
-    )
+    return type(f"RoundsReset:{block}", (INTERNAL_PAGES["RoundsReset"],), {})
+
+
+def round_position(page_order: list[str], ix: int) -> tuple[str | None, int, list[int]]:
+    """Block, round and round_nested of the Rounds/Repeat iteration at ix
+
+    Rounds count per block within each app, across all nesting levels. E.g.,
+    round_nested = [2, 3] means "outer round 2, inner round 3".
+    """
+    block: str | None = None
+    rounds: dict[str | None, int] = {}  # block -> iterations so far
+    outer: dict[str | None, int] = {}  # block -> outermost iterations so far
+    nested: list[int] = []
+    depth = 0
+
+    for page in page_order[: ix + 1]:
+        if page.endswith("/#StartApp"):
+            rounds.clear()
+            outer.clear()
+        elif page.startswith("#RoundsReset"):
+            if depth == 0:
+                block = page.partition(":")[2] or None
+
+            del nested[depth:]  # A new sequence starts counting at 1
+        elif page in ("#RoundStart", "#RepeatStart"):
+            if depth == 0:
+                outer[block] = outer.get(block, 0) + 1
+                nested = [outer[block]]
+            else:
+                previous = nested[depth] if len(nested) > depth else 0
+                nested = nested[:depth] + [previous + 1]
+
+            rounds[block] = rounds.get(block, 0) + 1
+            depth += 1
+        elif page in ("#RoundEnd", "#RepeatEnd"):
+            depth -= 1
+
+    return block, rounds[block], nested
+
+
+def enter_round(player: Storage) -> None:
+    block, number, nested = round_position(player.page_order, player.show_page)
+
+    if not hasattr(player, "block") or player.block != block:
+        # Retract the previous round first, such that the new block is never
+        # paired with a round of another block
+        if hasattr(player, "round"):
+            del player.round
+
+        player.block = block
+
+    player.round_nested = nested
+    player.round = number
+
+
+def loops(item: Any, nested: bool = False) -> Iterable[tuple[Any, bool]]:
+    """All loops that can run in item, and whether each is nested in another"""
+    if isinstance(item, list):
+        for page in item:
+            yield from loops(page, nested)
+    elif isinstance(item, t.SmoothOperator):
+        if isinstance(item, Rounds) and item.n <= 0:
+            return
+
+        is_loop = isinstance(item, (Rounds, Repeat))
+
+        if is_loop:
+            yield item, nested
+
+        for page in item.pages:
+            yield from loops(page, nested or is_loop)
+
+
+def max_loops(item: Any) -> int:
+    """Maximum number of outermost Rounds and Repeat a participant runs through"""
+    if isinstance(item, Rounds):
+        return int(item.n > 0)
+    elif isinstance(item, Repeat):
+        return 1
+    elif isinstance(item, list):
+        return sum(map(max_loops, item))
+    elif isinstance(item, Between):
+        return max(map(max_loops, item.pages), default=0)
+    elif isinstance(item, t.SmoothOperator):
+        return sum(map(max_loops, item.pages))
+
+    return 0
+
+
+def check_blocks(appname: str, page_order: list[t.PageLike]) -> None:
+    """Make (app, block, round) identify each round: if participants can run
+    through several Rounds or Repeat in an app, each of them needs a block"""
+    several = max_loops(page_order) > 1
+
+    for loop, nested in loops(page_order):
+        pages = ", ".join(
+            p.__name__
+            for p in loop.pages
+            if isinstance(p, type) and not issubclass(p, t.InternalPage)
+        )
+        name = f"{type(loop).__name__}({pages})"
+
+        ensure(
+            not nested or loop.block is None,
+            ValueError,
+            f"{name} in app '{appname}' is nested in another Rounds or Repeat, so "
+            "it belongs to the block of the outermost one and cannot have its own",
+        )
+        ensure(
+            nested or not several or loop.block is not None,
+            ValueError,
+            f"App '{appname}' can take participants through several Rounds or "
+            f'Repeat, so each of them needs a block, e.g., block="main". {name} '
+            "has none. Blocks with the same name continue counting "
+            "player.round, other blocks start at 1.",
+        )
 
 
 class Rounds(t.SmoothOperator):
-    def __init__(self, *pages: t.PageLike, n: int) -> None:
+    def __init__(self, *pages: t.PageLike, n: int, block: str | None = None) -> None:
+        ensure(
+            type(n) is int and n >= 0,
+            ValueError,
+            "n must be a non-negative integer",
+        )
+        ensure(
+            block is None or (isinstance(block, str) and block.isidentifier()),
+            ValueError,
+            "block must be a valid identifier",
+        )
+
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["RoundStart"],
@@ -573,70 +749,19 @@ class Rounds(t.SmoothOperator):
             INTERNAL_PAGES["}"],
         ]
         self.n = n
+        self.block = block
 
     def expand(self) -> list[t.PageLike]:
         return [
             INTERNAL_PAGES["{"],
-            INTERNAL_PAGES["RoundsReset"],
+            rounds_reset(self.block),
             *(self.n * self.pages),
             INTERNAL_PAGES["}"],
         ]
 
     @classmethod
-    async def next(page, player: Storage) -> None:
-        # Calculate round_nested by scanning page_order up to current position.
-        # This tracks the round number at each nesting level.
-        # E.g., round_nested = [2, 3] means "outer round 2, inner round 3"
-        depth = 0
-        completed_at_depth: dict[int, int] = {}  # depth -> completed rounds
-        current_at_depth: dict[int, int] = {}  # depth -> current round number
-
-        for i in range(player.show_page):
-            page_name = player.page_order[i]
-            if page_name == "#RoundsReset":
-                # A new Rounds() block begins at this depth — reset counters
-                for d in list(completed_at_depth.keys()):
-                    if d >= depth:
-                        del completed_at_depth[d]
-                for d in list(current_at_depth.keys()):
-                    if d >= depth:
-                        del current_at_depth[d]
-            elif page_name == "#RoundStart":
-                # Entering a round at this depth
-                current_at_depth[depth] = completed_at_depth.get(depth, 0) + 1
-                depth += 1
-            elif page_name == "#RoundEnd":
-                # Exiting a round - mark it as completed at that depth
-                depth -= 1
-                completed_at_depth[depth] = current_at_depth.get(depth, 0)
-                # Clear deeper levels - they reset when we start a new iteration
-                for d in list(completed_at_depth.keys()):
-                    if d > depth:
-                        del completed_at_depth[d]
-                for d in list(current_at_depth.keys()):
-                    if d > depth:
-                        del current_at_depth[d]
-
-        # We're now at a #RoundStart at the current depth
-        this_round = completed_at_depth.get(depth, 0) + 1
-
-        # Build round_nested: [round at depth 0, round at depth 1, ..., this_round]
-        round_nested = []
-        for d in range(depth):
-            round_nested.append(current_at_depth.get(d, 1))
-        round_nested.append(this_round)
-
-        player.round_nested = round_nested
-
-        # Reset player.round at the beginning of an outermost Rounds sequence,
-        # otherwise increment it.
-        if round_nested == [1] and loop_depth(player.page_order, player.show_page) == 0:
-            player.round = 1
-        else:
-            if not hasattr(player, "round") or player.round is None:
-                player.round = 1
-            else:
-                player.round += 1
+    def next(page, player: Storage) -> None:
+        enter_round(player)
 
 
 def repeat_end(page_order: list[str], start_ix: int) -> int:
@@ -656,22 +781,30 @@ def repeat_end(page_order: list[str], start_ix: int) -> int:
 
 
 class Repeat(t.SmoothOperator):
-    def __init__(self, *pages: t.PageLike) -> None:
+    def __init__(self, *pages: t.PageLike, block: str | None = None) -> None:
+        ensure(
+            block is None or (isinstance(block, str) and block.isidentifier()),
+            ValueError,
+            "block must be a valid identifier",
+        )
+
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
+            rounds_reset(block),
             INTERNAL_PAGES["RepeatStart"],
             *pages,
             INTERNAL_PAGES["RepeatEnd"],
             INTERNAL_PAGES["}"],
         ]
+        self.block = block
 
     def expand(self) -> list[t.PageLike]:
         return self.pages
 
     @classmethod
-    async def continue_maybe(page, player: Storage) -> None:
+    def continue_maybe(page, player: Storage) -> None:
         end_ix = player.page_order.index("#RepeatEnd", player.show_page)
         depth = 0  # Skip nested Repeat sequences
 
@@ -701,18 +834,8 @@ class Repeat(t.SmoothOperator):
             )
 
     @classmethod
-    async def next(page, player: Storage) -> None:
-        # Reset player.round at the beginning of an outermost Repeat sequence,
-        # otherwise increment it.
-        outermost_start = (
-            player.page_order[player.show_page - 1] == "#{"
-            and loop_depth(player.page_order, player.show_page) == 0
-        )
-
-        if outermost_start or not hasattr(player, "round") or player.round is None:
-            player.round = 1
-        else:
-            player.round += 1
+    def next(page, player: Storage) -> None:
+        enter_round(player)
 
         # Save the iteration before its pages (e.g., Between) change it.
         # Keep the copy out of page_order until #RepeatEnd approves it.
@@ -726,7 +849,7 @@ class Repeat(t.SmoothOperator):
 class Bracket(t.SmoothOperator):
     def __init__(self, *pages: t.PageLike) -> None:
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
             *pages,
@@ -748,7 +871,7 @@ class Between(t.SmoothOperator):
 
     def __init__(self, *pages: t.PageLike) -> None:
         # Call parent __init__ before setting custom pages
-        super().__init__()
+        super().__init__(*pages)
         self.pages = [
             INTERNAL_PAGES["{"],
             INTERNAL_PAGES["BetweenStart"],
@@ -761,7 +884,7 @@ class Between(t.SmoothOperator):
         return self.pages
 
     @classmethod
-    async def start(page, player: Storage) -> None:
+    def start(page, player: Storage) -> None:
         # Find the nearest #BetweenStart before our position
         start_ix = None
         for i in range(player.show_page, -1, -1):
@@ -818,22 +941,25 @@ class Between(t.SmoothOperator):
                 grouped_pages.append([pages[i]])
                 i += 1
 
-        if not grouped_pages:
-            # No pages to select from, leave empty
-            player.page_order = (
-                player.page_order[: start_ix + 1] + player.page_order[end_ix:]
-            )
-            return
+        # Randomly select exactly one group (if there is any)
+        selected_group = rng().choice(grouped_pages) if grouped_pages else []
 
-        # Randomly select exactly one group
-        selected_group = rng().choice(grouped_pages)
+        # Record the pages of the selected group, one entry per Between. Pages
+        # of a nested Between do not count, as it records its own selection.
+        selected_pages: list[str] = []
+        nested = 0
 
-        # Record which page was selected (filter out internal markers)
-        selected_page = next((p for p in selected_group if not p.startswith("#")), None)
-        if selected_page is not None:
-            if not hasattr(player, "between_showed") or player.between_showed is None:
-                player.between_showed = []
-            player.between_showed = player.between_showed + [selected_page]
+        for path in selected_group:
+            if path == "#BetweenStart":
+                nested += 1
+            elif path == "#BetweenEnd":
+                nested -= 1
+            elif nested == 0 and not path.startswith("#"):
+                selected_pages.append(path)
+
+        if not hasattr(player, "between_showed") or player.between_showed is None:
+            player.between_showed = []
+        player.between_showed = player.between_showed + [selected_pages]
 
         # Replace the content between markers with just the selected page(s)
         player.page_order = (
@@ -844,13 +970,13 @@ class Between(t.SmoothOperator):
 
 
 INTERNAL_PAGES = {
-    "RandomStart": type(
-        "RandomStart",
+    "RandomOrderStart": type(
+        "RandomOrderStart",
         (t.InternalPage,),
-        {"after_always_once": Random.__dict__["start"]},
+        {"after_always_once": RandomOrder.__dict__["start"]},
     ),
-    "RandomEnd": type(
-        "RandomEnd",
+    "RandomOrderEnd": type(
+        "RandomOrderEnd",
         (t.InternalPage,),
         {},
     ),

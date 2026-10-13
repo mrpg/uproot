@@ -75,13 +75,7 @@ CODEC.register(
 )
 
 
-def get_types() -> dict[type, int]:
-    return CODEC.type_map()
-
-
-TYPES: dict[type, int] = get_types()
 IMMUTABLE_TYPES: tuple[type, ...] = CODEC.immutable_types()
-MUTABLE_TYPES: tuple[type, ...] = CODEC.mutable_types()
 
 
 def encode(data: Any) -> bytes:
