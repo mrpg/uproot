@@ -1,5 +1,6 @@
 import hashlib
 import os
+import sys
 
 import httpx2
 import pytest
@@ -8,6 +9,7 @@ from fastapi import FastAPI
 import uproot.deployment as d
 from uproot import i18n, pages
 from uproot.pages import static_context, static_exists, static_search
+from uproot.server import uproot_server
 from uproot.server1 import router
 
 EMPTY = hashlib.sha256(b"").hexdigest()[:16]  # version of an empty file
@@ -62,6 +64,25 @@ async def test_static_url_serves_filename_with_special_characters(project, realm
     assert response.status_code == 200
     assert response.text == "correct asset"
     assert "immutable" in response.headers["cache-control"]
+
+
+async def test_server_compresses_large_static_response(project):
+    content = "repeated text " * 100
+    (project / "_static" / "large.txt").write_text(content, encoding="utf-8")
+
+    async with httpx2.AsyncClient(
+        transport=httpx2.ASGITransport(app=uproot_server), base_url="http://test"
+    ) as client:
+        response = await client.get(
+            f"{d.ROOT}/static/_project/large.txt",
+            headers={"Accept-Encoding": "br,gzip"},
+        )
+
+    assert response.status_code == 200
+    assert response.headers["content-encoding"] == (
+        "gzip" if sys.platform == "win32" else "br"
+    )
+    assert response.text == content
 
 
 def test_missing_file_links_to_first_realm(project):
