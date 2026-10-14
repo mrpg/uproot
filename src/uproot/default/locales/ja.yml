@@ -895,6 +895,30 @@
 ? 'seconds'
 : '秒'
 
+? '#x# day'
+: '#x#日'
+
+? '#x# days'
+: '#x#日'
+
+? '#x# hour'
+: '#x#時間'
+
+? '#x# hours'
+: '#x#時間'
+
+? '#x# minute'
+: '#x#分'
+
+? '#x# minutes'
+: '#x#分'
+
+? '#x# second'
+: '#x#秒'
+
+? '#x# seconds'
+: '#x#秒'
+
 ? 'Actions'
 : 'アクション'
 

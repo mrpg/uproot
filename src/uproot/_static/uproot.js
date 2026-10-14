@@ -234,10 +234,10 @@ window.uproot = {
         const minutes = Math.floor((s % 3600) / 60);
         const seconds = s % 60;
         const parts = [];
-        if (days > 0) parts.push(_(days === 1 ? "#x# day" : "#x# days").replace("#x#", days));
-        if (hours > 0) parts.push(_(hours === 1 ? "#x# hour" : "#x# hours").replace("#x#", hours));
-        if (minutes > 0) parts.push(_(minutes === 1 ? "#x# minute" : "#x# minutes").replace("#x#", minutes));
-        if (seconds > 0 || parts.length === 0) parts.push(_(seconds === 1 ? "#x# second" : "#x# seconds").replace("#x#", seconds));
+        if (days > 0) parts.push((days === 1 ? _("#x# day") : _("#x# days")).replace("#x#", days));
+        if (hours > 0) parts.push((hours === 1 ? _("#x# hour") : _("#x# hours")).replace("#x#", hours));
+        if (minutes > 0) parts.push((minutes === 1 ? _("#x# minute") : _("#x# minutes")).replace("#x#", minutes));
+        if (seconds > 0 || parts.length === 0) parts.push((seconds === 1 ? _("#x# second") : _("#x# seconds")).replace("#x#", seconds));
         return parts.length > 1
             ? parts.slice(0, -1).join(_(", ")) + _(" and ") + parts[parts.length - 1]
             : parts[0];

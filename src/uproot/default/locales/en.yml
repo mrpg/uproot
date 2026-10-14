@@ -895,6 +895,30 @@
 ? 'seconds'
 : 'seconds'
 
+? '#x# day'
+: '#x# day'
+
+? '#x# days'
+: '#x# days'
+
+? '#x# hour'
+: '#x# hour'
+
+? '#x# hours'
+: '#x# hours'
+
+? '#x# minute'
+: '#x# minute'
+
+? '#x# minutes'
+: '#x# minutes'
+
+? '#x# second'
+: '#x# second'
+
+? '#x# seconds'
+: '#x# seconds'
+
 ? 'Actions'
 : 'Actions'
 
