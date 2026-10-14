@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from uproot.storage import Storage
 
 
-__version_info__ = 0, 9, 0
+__version_info__ = 0, 9, 1
 __version__ = ".".join(map(str, __version_info__))
 __author__ = "Max R. P. Grossmann, Holger Gerhardt, et al."
 __email__ = "info@uproot.science"
