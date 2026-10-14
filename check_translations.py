@@ -12,15 +12,14 @@ Usage:
 """
 
 import os
+import re
 import sys
 
 import strictyaml
 
 from uproot.i18ncheck import (
-    collect_files,
-    find_python_translate_calls,
-    find_translate_blocks,
-    find_underscore_calls,
+    find_used_keys,
+    resolve_key,
 )
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -31,6 +30,9 @@ EN_YML = os.path.join(LOCALES_DIR, "en.yml")
 # Keys that are intentionally in en.yml without appearing in source files
 EXEMPT_KEYS = {"The Use of Knowledge in Society"}
 
+# Characters that YAML folds or rejects in quoted strings unless escaped
+YAML_ESCAPED = re.compile(r"[\x00-\x08\x0a-\x1f\x7f-\x9f\ufffe\uffff]")
+
 
 def load_en_keys() -> set[str]:
     with open(EN_YML, "r", encoding="utf-8") as f:
@@ -40,9 +42,17 @@ def load_en_keys() -> set[str]:
 
 
 def yaml_quote(s: str) -> str:
-    """Quote a string for use in YAML, matching the existing file style."""
-    if "'" in s:
-        return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    """Quote a string for use in YAML, matching the existing file style.
+    Escape line breaks and control characters so the string reads back exactly."""
+    if "'" in s or YAML_ESCAPED.search(s):
+        escaped = s.replace("\\", "\\\\").replace('"', '\\"')
+        escaped = YAML_ESCAPED.sub(
+            lambda m: {"\n": "\\n", "\r": "\\r"}.get(
+                m.group(), f"\\u{ord(m.group()):04x}"
+            ),
+            escaped,
+        )
+        return '"' + escaped + '"'
     return "'" + s + "'"
 
 
@@ -101,30 +111,12 @@ def main() -> int:
     used_keys: set[str] = set()
     missing: list[tuple[str, str, int]] = []  # (file, key, line)
 
-    html_files = collect_files(SRC_DIR, (".html",))
-    js_files = collect_files(SRC_DIR, (".js",))
-    python_files = collect_files(SRC_DIR, (".py",))
-
-    # Check {% translate %} blocks in HTML files
-    for filepath in html_files:
-        for key, line in find_translate_blocks(filepath):
-            used_keys.add(key)
-            if key not in en_keys:
-                missing.append((filepath, key, line))
-
-    # Check _('...') / _("...") calls in HTML and JS files
-    for filepath in html_files + js_files:
-        for key, line in find_underscore_calls(filepath):
-            used_keys.add(key)
-            if key not in en_keys:
-                missing.append((filepath, key, line))
-
-    # Check translate("...") calls in Python files
-    for filepath in python_files:
-        for key, line in find_python_translate_calls(filepath):
-            used_keys.add(key)
-            if key not in en_keys:
-                missing.append((filepath, key, line))
+    for filepath, key, line in find_used_keys(SRC_DIR):
+        resolved = resolve_key(key, en_keys)
+        if resolved is None:
+            missing.append((filepath, key, line))
+        else:
+            used_keys.add(resolved)
 
     rc = 0
 

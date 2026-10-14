@@ -13,7 +13,7 @@ import re
 
 import strictyaml
 
-from uproot.i18n import LOCALES_DIR
+from uproot.i18n import LOCALES_DIR, normalize
 
 TRANSLATE_BLOCK = re.compile(
     r"{%\s*translate\s*%}(.*?){%\s*endtranslate\s*%}", re.DOTALL
@@ -34,8 +34,12 @@ LANGUAGE_FILE = re.compile(r"^[a-z]{2,3}([_-][A-Za-z0-9]+)?$")
 QUOTES = str.maketrans({"“": '"', "”": '"', "„": '"', "‘": "'", "’": "'"})
 
 
-def normalize(s: str) -> str:
-    return re.sub(r"\s+", " ", s).strip()
+def resolve_key(key: str, known: set[str]) -> str | None:
+    """Find the exact catalog key first, then try normalized whitespace."""
+    if key in known:
+        return key
+    normalized = normalize(key)
+    return normalized if normalized in known else None
 
 
 def loosely(key: str) -> str:
@@ -76,15 +80,14 @@ def find_translate_blocks(filepath: str) -> list[tuple[str, int]]:
 
 def find_underscore_calls(filepath: str) -> list[tuple[str, int]]:
     """Return list of (key, line_number) from _('...'), _("..."), and _(`...`)
-    calls. Keys in template literals are whitespace-normalized, like uproot.js
-    does when looking them up."""
+    calls. Preserve whitespace so exact catalog matches take precedence."""
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
     results = []
     for m in UNDERSCORE_CALL.finditer(content):
         single, double, template = m.groups()
-        key = normalize(template) if template is not None else single or double or ""
+        key = template if template is not None else single or double or ""
         line = content[: m.start()].count("\n") + 1
         results.append((key, line))
     return results
@@ -269,7 +272,13 @@ def check_project(top: str, list_untranslated: bool = False) -> int:
         for key, line in find_field_texts(filepath)
     ]
     anywhere = set().union(*project.values(), *builtin.values())
-    untranslated = sorted({k for _, k, _ in field_texts if k not in anywhere})
+    untranslated = sorted(
+        {
+            key
+            for filepath, key, line in field_texts
+            if resolve_key(key, anywhere) is None
+        }
+    )
     rc = 0
 
     if not project:
@@ -279,8 +288,14 @@ def check_project(top: str, list_untranslated: bool = False) -> int:
     for language in sorted(project):
         known = project[language] | builtin.get(language, set())
         by_loose_key = {loosely(k): k for k in project[language]}
-        checked = used + [(f, k, line) for f, k, line in field_texts if k in anywhere]
-        missing = [(f, k, line) for f, k, line in checked if k not in known]
+        checked = used + [
+            (f, k, line)
+            for f, k, line in field_texts
+            if resolve_key(k, anywhere) is not None
+        ]
+        missing = [
+            (f, k, line) for f, k, line in checked if resolve_key(k, known) is None
+        ]
 
         if not missing:
             print(f"{language}: all {len(checked)} translation key uses found.")

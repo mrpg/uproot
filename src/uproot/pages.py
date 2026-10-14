@@ -485,16 +485,18 @@ class FormTranslations:
         )
 
     def gettext(self, string: str) -> str:
-        if self.language in i18n.TERMS.get(string, {}):
-            return i18n.TERMS[string][self.language]
+        for key in (string, i18n.normalize(string)):
+            if self.language in i18n.TERMS.get(key, {}):
+                return i18n.TERMS[key][self.language]
 
         return self.wtforms.gettext(string)
 
     def ngettext(self, singular: str, plural: str, n: int) -> str:
         chosen = singular if n == 1 else plural
 
-        if self.language in i18n.TERMS.get(chosen, {}):
-            return i18n.TERMS[chosen][self.language]
+        for key in (chosen, i18n.normalize(chosen)):
+            if self.language in i18n.TERMS.get(key, {}):
+                return i18n.TERMS[key][self.language]
 
         return self.wtforms.ngettext(singular, plural, n)
 

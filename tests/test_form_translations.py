@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import wtforms
 
 import uproot as u
+from uproot import i18n
 from uproot.fields import BoundedChoiceField, EmailField, IntegerField
 from uproot.pages import FormTranslations, form_factory
 from uproot.types import Page
@@ -59,6 +60,27 @@ def test_unknown_language_falls_back_to_english():
 
     assert form.validate() is False
     assert form.email.errors == ["This field is required."]
+
+
+def test_form_translations_preserve_exact_keys_and_normalize_fallbacks(monkeypatch):
+    monkeypatch.setattr(
+        i18n,
+        "TERMS",
+        {
+            " one ": {"de": " genau "},
+            "one": {"de": "einzeln"},
+            "many items": {"de": " mehrere\u00a0Elemente "},
+        },
+    )
+    translations = FormTranslations("de")
+
+    assert translations.gettext(" one ") == " genau "
+    assert translations.gettext(" many\u00a0items ") == " mehrere\u00a0Elemente "
+    assert translations.ngettext(" one ", " many\u00a0items ", 1) == " genau "
+    assert (
+        translations.ngettext(" one ", " many\u00a0items ", 2)
+        == " mehrere\u00a0Elemente "
+    )
 
 
 async def test_form_factory_uses_app_language(monkeypatch):

@@ -47,17 +47,32 @@ def test_find_python_translate_calls_finds_gettext_keys(tmp_path: Path):
     ]
 
 
-def test_find_underscore_calls_normalizes_template_literals(tmp_path: Path):
+def test_find_underscore_calls_preserves_literal_whitespace(tmp_path: Path):
     source = tmp_path / "example.js"
     source.write_text(
-        'a = _("Plain key");\nb = _(`Multi\n    line key`);\nc = _(`Hi ${name}`);\n',
+        'a = _(" Plain\u00a0key ");\nb = _(`Multi\n    line key`);\nc = _(`Hi ${name}`);\n',
         encoding="utf-8",
     )
 
     assert i18ncheck.find_underscore_calls(str(source)) == [
-        ("Plain key", 1),
-        ("Multi line key", 2),
+        (" Plain\u00a0key ", 1),
+        ("Multi\n    line key", 2),
     ]
+
+
+@pytest.mark.parametrize(
+    ("key", "known", "expected"),
+    [
+        (" and ", {" and ", "and"}, " and "),
+        ("Many\n  spaces", {"Many\n  spaces", "Many spaces"}, "Many\n  spaces"),
+        (" \tMany\u00a0spaces\n", {"Many spaces"}, "Many spaces"),
+        ("Many spaces", {" Many spaces "}, None),
+        (" \t", {""}, ""),
+        ("Missing key", {"Other key"}, None),
+    ],
+)
+def test_resolve_key_preserves_exact_matches(key, known, expected):
+    assert i18ncheck.resolve_key(key, known) == expected
 
 
 def write_project(tmp_path: Path, page: str) -> Path:
@@ -83,6 +98,47 @@ def test_check_project_accepts_project_and_builtin_keys(tmp_path: Path, capsys):
 
     assert i18ncheck.check_project(str(project)) == 0
     assert "fr: all 2 translation key uses found." in capsys.readouterr().out
+
+
+def test_check_project_accepts_whitespace_fallbacks(tmp_path: Path, capsys):
+    project = write_project(tmp_path, '{{ _(" Please\u00a0wait ") }}')
+    (project / "myapp" / "page.js").write_text(
+        'a = _(" Please\u00a0wait ");\nb = _(`Please\n  wait`);\n', encoding="utf-8"
+    )
+    (project / "myapp" / "page.py").write_text(
+        'translate(" Please\\n\\twait ")\n', encoding="utf-8"
+    )
+
+    assert i18ncheck.check_project(str(project)) == 0
+    assert "fr: all 4 translation key uses found." in capsys.readouterr().out
+
+
+def test_check_project_preserves_exact_template_literal_keys(tmp_path: Path):
+    project = write_project(tmp_path, "")
+    (project / "myapp" / "fr.yml").write_text(
+        "? ' exact  key '\n: ' traduction '\n", encoding="utf-8"
+    )
+    (project / "myapp" / "page.js").write_text(
+        '_(" exact  key "); _(` exact  key `);', encoding="utf-8"
+    )
+
+    assert i18ncheck.check_project(str(project)) == 0
+
+
+def test_check_project_checks_normalized_field_texts(tmp_path: Path, capsys):
+    project = write_project(tmp_path, "")
+    (project / "myapp" / "de.yml").write_text(
+        "? 'Rain question'\n: 'Regenfrage'\n", encoding="utf-8"
+    )
+    (project / "myapp" / "page.py").write_text(
+        'rain = StringField(label=" Rain\u00a0question ")\n', encoding="utf-8"
+    )
+
+    assert i18ncheck.check_project(str(project)) == 1
+    out = capsys.readouterr().out
+    assert "de: all 1 translation key uses found." in out
+    assert "fr: 1 translation key use(s) not found" in out
+    assert "have no translation in any language" not in out
 
 
 def test_check_project_reports_near_misses(tmp_path: Path, capsys):

@@ -39,6 +39,16 @@ VERSIONS: dict[ISO639, str] = {}
 VERSION: int = 0
 
 
+def normalize(s: str) -> str:
+    """Collapse and trim the same whitespace as the JavaScript lookup."""
+    # Python's whitespace class includes extra controls and does not include BOM.
+    return re.sub(
+        r"[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+",
+        " ",
+        s,
+    ).strip(" ")
+
+
 class TranslateLoader(BaseLoader):
     def __init__(self, base_loader: BaseLoader) -> None:
         self.base_loader = base_loader
@@ -50,8 +60,7 @@ class TranslateLoader(BaseLoader):
         source, filename, uptodate = self.base_loader.get_source(environment, template)
 
         def replace_translate_block(mtch: re.Match[str]) -> str:
-            # Collapse all whitespace into single spaces, then strip
-            content = re.sub(r"\s+", " ", mtch.group(1)).strip()
+            content = normalize(mtch.group(1))
 
             return compile_translate_block(content)
 
@@ -75,10 +84,9 @@ def lookup(s: str, target: ISO639) -> str:
     try:
         return TERMS[s][target]
     except KeyError:
-        # Try fallback with line endings normalized
-        normalized = s.replace("\r", "").replace("\n", " ")
+        # Try fallback with whitespace normalized, as in uproot.js.
         try:
-            return TERMS[normalized][target]
+            return TERMS[normalize(s)][target]
         except KeyError:
             return missing(s, target)
 
