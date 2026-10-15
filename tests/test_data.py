@@ -1,7 +1,8 @@
+import csv
 import random
 import threading
 from datetime import UTC, date, datetime, time
-from io import BytesIO
+from io import BytesIO, StringIO
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -27,7 +28,7 @@ from uproot.data import (
 )
 from uproot.services import data_service, session_service
 from uproot.stable import decode, encode
-from uproot.types import Value, sha256
+from uproot.types import GroupIdentifier, Value, sha256
 
 
 def sequenced(rows):
@@ -530,6 +531,46 @@ async def test_generate_briefcase(monkeypatch):
     assert "page_times.csv" in readme
     assert "!seq" in dictionary["columns"]
     assert "myapp/MyPage" in page_times_csv
+
+
+@pytest.mark.parametrize("filetype", ["csv", "jsonl"])
+async def test_generate_briefcase_preserves_cleared_groups(monkeypatch, filetype):
+    session_data = {
+        ("player", "session1", "p1", "_uproot_group"): [
+            Value(1.0, False, None, "", seq=1),
+            Value(2.0, False, GroupIdentifier("session1", "g1"), "", seq=2),
+            Value(3.0, False, None, "", seq=3),
+        ],
+    }
+    monkeypatch.setattr(
+        data_service, "everything_from_session", lambda sname: session_data
+    )
+    monkeypatch.setattr(data_service, "page_times_rows", lambda sname: [])
+
+    briefcase = b"".join(
+        await data_service.generate_briefcase(
+            "session1", [], True, filetype, wrapper="session1"
+        )
+    )
+
+    with ZipFile(BytesIO(briefcase)) as zf:
+
+        def read_rows(format):
+            content = zf.read(f"session1/{format}/player.{filetype}").decode()
+            if filetype == "csv":
+                return list(csv.DictReader(StringIO(content)))
+            return [json.loads(line) for line in content.splitlines()]
+
+        empty = "" if filetype == "csv" else None
+        for format, field in (("ultralong", "!data"), ("sparse", "group")):
+            rows = read_rows(format)
+            assert [row["!field"] for row in rows] == ["group"] * 3
+            assert [row[field] for row in rows] == [empty, "group/session1/g1", empty]
+
+        rows = read_rows("latest")
+        assert len(rows) == 1
+        assert rows[0]["group"] == empty
+        assert str(rows[0]["!seq"]) == "3"
 
 
 @pytest.mark.parametrize("filters", [False, True])

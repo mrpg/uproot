@@ -101,9 +101,11 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
         data = row["!data"]
 
         if field.startswith("_uproot_"):
-            if field == "_uproot_group" and data is not None:
+            if field == "_uproot_group":
                 row["!field"] = "group"
-                row["!data"] = f"group/{data.sname}/{data.gname}"
+                row["!data"] = (
+                    f"group/{data.sname}/{data.gname}" if data is not None else None
+                )
             elif field == "_uproot_session":
                 row["!field"] = "session"
                 row["!data"] = f"session/{data}"
