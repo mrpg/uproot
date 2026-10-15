@@ -710,12 +710,12 @@ class GroupCreatingWait(InternalPage):
             return "submit", 1
 
         from uproot import cache
-        from uproot.jobs import on_same_page, try_group
+        from uproot.jobs import entered_grouping_page, try_group
 
         # One pass over the session serves grouping and the progress display
-        same_page = on_same_page(player, player.show_page)
+        entered = entered_grouping_page(player, player.show_page)
 
-        try_group(player, player.show_page, page.group_size, same_page)
+        try_group(player, player.show_page, page.group_size, entered)
         player.refresh("_uproot_group")
 
         # Re-check group status after grouping attempt
@@ -724,7 +724,7 @@ class GroupCreatingWait(InternalPage):
 
         # Get fresh count for progress display
         ungrouped_count = sum(
-            cache.peek(("player", *pid), "_uproot_group") is None for pid in same_page
+            cache.peek(("player", *pid), "_uproot_group") is None for pid in entered
         )
 
         return "wait", ungrouped_count / page.group_size

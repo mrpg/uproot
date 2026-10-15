@@ -111,3 +111,5 @@ def test_peek_reads_current_value_without_copying():
     for field in ("gone", "missing"):
         with pytest.raises(AttributeError):
             peek(namespace, field)
+
+        assert peek(namespace, field, None) is None

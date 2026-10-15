@@ -39,14 +39,21 @@ def get_namespace(
     return None  # unreachable
 
 
-def peek(namespace: tuple[str, ...], field: str) -> Any:
+MISSING = object()
+
+
+def peek(namespace: tuple[str, ...], field: str, default: Any = MISSING) -> Any:
     """Return the current value of a field like Storage, but without copying
-    it. Callers must not mutate the value."""
+    it. Callers must not mutate the value. Without a current value, return
+    default if given."""
     if ensure_not_none(STORE):
         history = STORE.field_history(namespace, field)
 
         if history and not history[-1].unavailable:
             return history[-1].data
+
+    if default is not MISSING:
+        return default
 
     raise AttributeError(f"{namespace!r} has no current value for {field!r}")
 

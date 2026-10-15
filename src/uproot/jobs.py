@@ -232,17 +232,18 @@ def here(
         }
 
 
-def on_same_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
+def entered_grouping_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
     """
     Find players who have entered the caller's grouping page.
     A player's own show() clears its group after its entry hooks finish.
 
     Page orders can differ between players (e.g., Between), so the same
     show_page must also be the same page. This runs on every poll of every
-    waiting player, so it peeks instead of copying page orders.
+    waiting player, so it peeks instead of materializing players.
     """
     here_path = player.page_order[show_page : show_page + 1]
-    same_page = []
+    cleared = f"{show_page}:clear_group"
+    entered = []
 
     for pid in cache.peek(("session", *player._uproot_session), "_uproot_players"):
         namespace = ("player", *pid)
@@ -251,19 +252,18 @@ def on_same_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
         if (
             cache.peek(namespace, "show_page") == show_page
             and page_order[show_page : show_page + 1] == here_path
-            and f"{show_page}:clear_group"
-            in materialize(pid).get("_uproot_what_ran", ())
+            and cleared in cache.peek(namespace, "_uproot_what_ran", ())
         ):
-            same_page.append(pid)
+            entered.append(pid)
 
-    return same_page
+    return entered
 
 
 def try_group(
     player: s.Storage,
     show_page: int,
     group_size: int,
-    same_page: list[PlayerIdentifier] | None = None,
+    entered: list[PlayerIdentifier] | None = None,
 ) -> str | None:
     """
     Try to create exactly one group from available players.
@@ -272,7 +272,7 @@ def try_group(
         player: Caller
         show_page: Page number where grouping should occur
         group_size: Required number of players per group
-        same_page: on_same_page(player, show_page), if the caller has it
+        entered: entered_grouping_page(player, show_page), if the caller has it
 
     Returns:
         Group name if a group was created, None otherwise
@@ -280,16 +280,16 @@ def try_group(
     sname = player._uproot_session
     ensure(group_size > 0, ValueError, "Group size must be positive")
 
-    if same_page is None:
-        same_page = on_same_page(player, show_page)
+    if entered is None:
+        entered = entered_grouping_page(player, show_page)
 
-    if len(same_page) < group_size:
+    if len(entered) < group_size:
         return None
 
     with s.Session(sname) as session:
         valid_members = [
             pid
-            for pid in same_page
+            for pid in entered
             if cache.peek(("player", *pid), "_uproot_group") is None
         ]
 
