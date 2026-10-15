@@ -6,3 +6,5 @@
 - When asked to review code, output "OK" on a separate line at the end if the code is acceptable.
 - Use `uv run` to run tests, linters, or other dev tools, but always with a strict reasonable timeout.
 - Tools like `ruff` and `black` must NOT be run in read-only mode. Allow them to directly fix files.
+- Do not preserve or introduce backwards compatibility unless specifically instructed to do so. Work with RECKLESS abandon.
+- Prefer deleting code (on net) if at all possible, excluding tests/.
