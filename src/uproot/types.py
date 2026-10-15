@@ -198,10 +198,8 @@ def optional_call_once(
     hereruns = f"{show_page}:{attr}"
 
     def current_markers() -> frozenset[str]:
-        refresh = getattr(storage, "refresh", None)
-        if callable(refresh):
-            refresh("_uproot_what_ran")
-        return frozenset(getattr(storage, "_uproot_what_ran", ()))
+        storage.refresh("_uproot_what_ran")
+        return cast(frozenset[str], storage.get("_uproot_what_ran", frozenset()))
 
     what_ran = current_markers()
     first_run = hereruns not in what_ran
@@ -698,7 +696,7 @@ class GroupCreatingWait(InternalPage):
         # Try to create a group immediately
         from uproot.jobs import try_group
 
-        try_group(player, player.show_page, page)
+        try_group(player, player.show_page, page.group_size)
         player.refresh("_uproot_group")
 
         # If grouping succeeded, player now has a group - don't show page
@@ -717,13 +715,7 @@ class GroupCreatingWait(InternalPage):
         # One pass over the session serves grouping and the progress display
         same_page = on_same_page(player, player.show_page)
 
-        # internal_live binds page as the class, like @classmethod.
-        try_group(
-            player,
-            player.show_page,
-            cast(type["GroupCreatingWait"], page),
-            same_page,
-        )
+        try_group(player, player.show_page, page.group_size, same_page)
         player.refresh("_uproot_group")
 
         # Re-check group status after grouping attempt

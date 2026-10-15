@@ -18,14 +18,12 @@ import uproot.storage as s
 from uproot import cache
 from uproot.constraints import ensure
 from uproot.types import (
-    GroupCreatingWait,
     PlayerIdentifier,
     Sessionname,
     Value,
     ensure_awaitable,
     materialize,
     optional_call,
-    optional_call_once,
     rng,
 )
 
@@ -236,7 +234,8 @@ def here(
 
 def on_same_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
     """
-    Find the players whose page at show_page is the caller's.
+    Find players who have entered the caller's grouping page.
+    A player's own show() clears its group after its entry hooks finish.
 
     Page orders can differ between players (e.g., Between), so the same
     show_page must also be the same page. This runs on every poll of every
@@ -252,6 +251,8 @@ def on_same_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
         if (
             cache.peek(namespace, "show_page") == show_page
             and page_order[show_page : show_page + 1] == here_path
+            and f"{show_page}:clear_group"
+            in materialize(pid).get("_uproot_what_ran", ())
         ):
             same_page.append(pid)
 
@@ -261,7 +262,7 @@ def on_same_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
 def try_group(
     player: s.Storage,
     show_page: int,
-    page: type[GroupCreatingWait],
+    group_size: int,
     same_page: list[PlayerIdentifier] | None = None,
 ) -> str | None:
     """
@@ -270,14 +271,13 @@ def try_group(
     Args:
         player: Caller
         show_page: Page number where grouping should occur
-        page: Grouping page, including its group size and clear_group hook
+        group_size: Required number of players per group
         same_page: on_same_page(player, show_page), if the caller has it
 
     Returns:
         Group name if a group was created, None otherwise
     """
     sname = player._uproot_session
-    group_size = page.group_size
     ensure(group_size > 0, ValueError, "Group size must be positive")
 
     if same_page is None:
@@ -287,21 +287,11 @@ def try_group(
         return None
 
     with s.Session(sname) as session:
-        valid_members = []
-        for pid in same_page:
-            with materialize(pid) as candidate:
-                # Admin moves can put candidates here before their first show().
-                # Mark the clear now so a later show() keeps their new group.
-                optional_call_once(
-                    page,
-                    "clear_group",
-                    storage=candidate,
-                    show_page=show_page,
-                    player=candidate,
-                )
-
-                if candidate._uproot_group is None:
-                    valid_members.append(pid)
+        valid_members = [
+            pid
+            for pid in same_page
+            if cache.peek(("player", *pid), "_uproot_group") is None
+        ]
 
         if len(valid_members) >= group_size:
             group_members = rng().sample(valid_members, k=group_size)

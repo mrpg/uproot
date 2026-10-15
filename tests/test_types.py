@@ -105,23 +105,23 @@ class TestIdentifierClasses:
 class TestOptionalCallOnce:
     """Test the optional_call_once function."""
 
-    def test_missing_attribute_returns_default(self):
+    @pytest.fixture
+    def storage(self):
+        return Store(Memory()).storage("player", "one")
+
+    def test_missing_attribute_returns_default(self, storage):
         """Test optional_call_once with missing attribute."""
         obj = Mock(spec=[])  # Empty spec means no attributes
-        storage = Mock()
-        storage._uproot_what_ran = set()
 
         result = optional_call_once(
             obj, "missing", "default", storage=storage, show_page=1
         )
         assert result == "default"
 
-    def test_first_call_executes(self):
+    def test_first_call_executes(self, storage):
         """Test that first call executes the attribute."""
         obj = Mock()
         obj.test_method = Mock(return_value="executed")
-        storage = Mock()
-        storage._uproot_what_ran = set()
 
         result = optional_call_once(
             obj, "test_method", "default", storage=storage, show_page=1, param="value"
@@ -130,12 +130,11 @@ class TestOptionalCallOnce:
         obj.test_method.assert_called_once_with(param="value")
         assert "1:test_method" in storage._uproot_what_ran
 
-    def test_second_call_returns_default(self):
+    def test_second_call_returns_default(self, storage):
         """Test that second call returns default."""
         obj = Mock()
         obj.test_method = Mock(return_value="executed")
-        storage = Mock()
-        storage._uproot_what_ran = {"1:test_method"}
+        storage._uproot_what_ran = frozenset({"1:test_method"})
 
         result = optional_call_once(
             obj, "test_method", "default", storage=storage, show_page=1
@@ -143,11 +142,10 @@ class TestOptionalCallOnce:
         assert result == "default"
         obj.test_method.assert_not_called()
 
-    def test_storage_without_what_ran_attribute(self):
+    def test_storage_without_what_ran_attribute(self, storage):
         """Test with storage that doesn't have _uproot_what_ran."""
         obj = Mock()
         obj.test_method = Mock(return_value="executed")
-        storage = Mock(spec=[])  # Empty spec means no attributes
 
         result = optional_call_once(
             obj, "test_method", "default", storage=storage, show_page=1
@@ -155,36 +153,6 @@ class TestOptionalCallOnce:
         assert result == "executed"
         assert hasattr(storage, "_uproot_what_ran")
         assert "1:test_method" in storage._uproot_what_ran
-
-    def test_marker_is_written_instead_of_only_mutating_a_read_copy(self):
-        """The once marker must survive storage backends that return copies."""
-
-        class CopyOnReadStorage:
-            def __init__(self):
-                self.ran = set()
-
-            @property
-            def _uproot_what_ran(self):
-                return set(self.ran)
-
-            @_uproot_what_ran.setter
-            def _uproot_what_ran(self, value):
-                self.ran = set(value)
-
-        obj = Mock()
-        obj.test_method = Mock(return_value="executed")
-        storage = CopyOnReadStorage()
-
-        first = optional_call_once(
-            obj, "test_method", "default", storage=storage, show_page=1
-        )
-        second = optional_call_once(
-            obj, "test_method", "default", storage=storage, show_page=1
-        )
-
-        assert first == "executed"
-        assert second == "default"
-        obj.test_method.assert_called_once_with()
 
     def test_stale_storage_cache_cannot_repeat_hook(self):
         """Each check must see markers written through another Storage object."""
@@ -207,12 +175,10 @@ class TestOptionalCallOnce:
         assert second == "default"
         obj.test_method.assert_called_once_with()
 
-    def test_rerun_calls_every_time_and_marks_the_first_run(self):
+    def test_rerun_calls_every_time_and_marks_the_first_run(self, storage):
         """With rerun=True, a call is made even if it was made before."""
         obj = Mock()
         obj.test_method = Mock(return_value="executed")
-        storage = Mock()
-        storage._uproot_what_ran = frozenset()
 
         for _ in range(2):
             result = optional_call_once(
@@ -223,12 +189,11 @@ class TestOptionalCallOnce:
         assert obj.test_method.call_count == 2
         assert storage._uproot_what_ran == {"1:test_method"}
 
-    def test_failed_rerun_keeps_the_marker_of_the_earlier_run(self):
+    def test_failed_rerun_keeps_the_marker_of_the_earlier_run(self, storage):
         """A rerun that raises does not undo the earlier, successful run."""
         obj = Mock()
         obj.test_method = Mock(side_effect=ValueError("test error"))
-        storage = Mock()
-        storage._uproot_what_ran = {"1:test_method"}
+        storage._uproot_what_ran = frozenset({"1:test_method"})
 
         with pytest.raises(ValueError, match="test error"):
             optional_call_once(
@@ -237,12 +202,10 @@ class TestOptionalCallOnce:
 
         assert "1:test_method" in storage._uproot_what_ran
 
-    def test_exception_removes_from_ran_list(self):
+    def test_exception_removes_from_ran_list(self, storage):
         """Test that exception removes item from ran list."""
         obj = Mock()
         obj.test_method = Mock(side_effect=ValueError("test error"))
-        storage = Mock()
-        storage._uproot_what_ran = set()
 
         with pytest.raises(ValueError, match="test error"):
             optional_call_once(
@@ -252,15 +215,12 @@ class TestOptionalCallOnce:
         # Should not be in the ran list after exception
         assert "1:test_method" not in storage._uproot_what_ran
 
-    async def test_async_exception_does_not_mark_as_ran(self):
+    async def test_async_exception_does_not_mark_as_ran(self, storage):
         """Test that failing async callbacks are not marked as run."""
 
         class Obj:
             async def test_method(self):
                 raise ValueError("test error")
-
-        storage = Mock()
-        storage._uproot_what_ran = set()
 
         with pytest.raises(ValueError, match="test error"):
             await optional_call_once(
@@ -269,15 +229,12 @@ class TestOptionalCallOnce:
 
         assert "1:test_method" not in storage._uproot_what_ran
 
-    async def test_async_success_stays_marked_after_await(self):
+    async def test_async_success_stays_marked_after_await(self, storage):
         """A successful async callback keeps its once marker."""
 
         class Obj:
             async def test_method(self):
                 return "executed"
-
-        storage = Mock()
-        storage._uproot_what_ran = set()
 
         result = await optional_call_once(
             Obj(), "test_method", "default", storage=storage, show_page=1
@@ -286,15 +243,13 @@ class TestOptionalCallOnce:
         assert result == "executed"
         assert "1:test_method" in storage._uproot_what_ran
 
-    async def test_async_hook_is_claimed_before_it_is_awaited(self):
+    async def test_async_hook_is_claimed_before_it_is_awaited(self, storage):
         """A concurrent request must not start the same hook again."""
 
         class Obj:
             async def test_method(self):
                 return "executed"
 
-        storage = Mock()
-        storage._uproot_what_ran = set()
         obj = Obj()
 
         first = optional_call_once(
@@ -307,14 +262,12 @@ class TestOptionalCallOnce:
         assert second == "default"
         assert await first == "executed"
 
-    async def test_failed_future_removes_once_marker(self):
+    async def test_failed_future_removes_once_marker(self, storage):
         """All awaitables, not only coroutine objects, get failure rollback."""
         future = asyncio.get_running_loop().create_future()
         future.set_exception(ValueError("test error"))
         obj = Mock()
         obj.test_method = Mock(return_value=future)
-        storage = Mock()
-        storage._uproot_what_ran = set()
 
         with pytest.raises(ValueError, match="test error"):
             await optional_call_once(

@@ -1,8 +1,10 @@
+import asyncio
 import random
 import sys
 from pathlib import Path
 
 import pytest
+from starlette.requests import Request
 
 uproot_src = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(uproot_src))
@@ -14,6 +16,7 @@ import uproot.jobs as j
 import uproot.queues as q
 import uproot.storage as s
 from uproot.jobs import try_group
+from uproot.server1 import enter_page
 from uproot.types import GroupCreatingWait, SynchronizingWait
 
 
@@ -33,6 +36,7 @@ def session_with_two_players():
     for pid in pids:
         q.register(tuple(pid))
         with s.Player(*pid) as player:
+            player.page_order = ["test/Wait"]
             player.show_page = 0
 
     return sid, pids
@@ -49,6 +53,9 @@ async def test_group_creating_wait_refreshes_player_and_runs_after_grouping(
         @classmethod
         def after_grouping(page, group):
             group.after_grouping_ran = True
+
+    with s.Player(*pids[1]) as player:
+        assert await Wait.show(player) is True
 
     with s.Player(*pids[0]) as player:
         assert await Wait.show(player) is False
@@ -69,46 +76,114 @@ async def test_group_creating_wait_refreshes_player_and_runs_after_grouping(
         assert queued["data"] == gid
 
 
-@pytest.mark.parametrize("group_on_poll", [False, True])
-async def test_group_creating_wait_keeps_group_assigned_before_first_show(
-    session_with_two_players, group_on_poll
+@pytest.mark.parametrize("previous_group", [False, True])
+@pytest.mark.parametrize("entry_hook", ["early", "before_always_once"])
+async def test_group_creating_wait_waits_for_each_players_entry_hooks(
+    session_with_two_players, previous_group, entry_hook
+):
+    sid, pids = session_with_two_players
+    request = Request({"type": "http", "method": "GET"})
+    entry_started = asyncio.Event()
+    finish_entry = asyncio.Event()
+
+    async def initialize(player):
+        if player.pid == pids[1]:
+            entry_started.set()
+            await finish_entry.wait()
+        player.prepared = True
+
+    class Wait(GroupCreatingWait):
+        group_size = 2
+
+        @classmethod
+        async def early(page, player, request):
+            if entry_hook == "early":
+                await initialize(player)
+
+        @classmethod
+        async def before_always_once(page, player):
+            if entry_hook == "before_always_once":
+                await initialize(player)
+
+        @classmethod
+        def after_grouping(page, group):
+            for member in group.players:
+                with member:
+                    assert member.prepared is True
+            group.calls = group.get("calls", 0) + 1
+
+    old_gid = None
+    if previous_group:
+        with s.Session(sid) as session:
+            old_gid = c.create_group(session, pids)
+
+    with s.Player(*pids[0]) as player:
+        await enter_page(request, Wait, player, 0, rerun=False)
+        assert await Wait.show(player) is True
+        assert await Wait.please_group(player) == ("wait", 0.5)
+
+    async def show_second_player():
+        with s.Player(*pids[1]) as player:
+            await enter_page(request, Wait, player, 0, rerun=False)
+            return await Wait.show(player)
+
+    entering = asyncio.create_task(show_second_player())
+    try:
+        await asyncio.wait_for(entry_started.wait(), timeout=1)
+        with s.Player(*pids[0]) as player:
+            assert await Wait.please_group(player) == ("wait", 0.5)
+        with s.Player(*pids[1]) as player:
+            assert player.get("_uproot_group") == old_gid
+            assert "0:clear_group" not in player.get("_uproot_what_ran", ())
+    finally:
+        finish_entry.set()
+        second_visible = await asyncio.wait_for(entering, timeout=1)
+    assert second_visible is False
+
+    with s.Player(*pids[1]) as player:
+        gid = player.get("_uproot_group")
+        assert gid is not None
+        assert gid != old_gid
+
+    for pid in pids + pids:
+        with s.Player(*pid) as player:
+            assert await Wait.show(player) is False
+            assert await Wait.please_group(player) == ("submit", 1)
+            assert player.get("_uproot_group") == gid
+
+    with s.Session(sid) as session:
+        expected = [old_gid.gname, gid.gname] if old_gid else [gid.gname]
+        assert session.get("_uproot_groups") == expected
+
+    with s.Group(*gid) as group:
+        assert group.calls == 1
+        assert set(group.get("_uproot_players")) == set(pids)
+
+
+async def test_group_creating_wait_does_not_mix_entered_grouping_pages(
+    session_with_two_players,
 ):
     sid, pids = session_with_two_players
 
     class Wait(GroupCreatingWait):
         group_size = 2
 
-        @classmethod
-        def after_grouping(page, group):
-            group.calls = group.get("calls", 0) + 1
+    class OtherWait(Wait):
+        pass
 
-    if group_on_poll:
-        with s.Player(*pids[1]) as player:
-            player.show_page = -1
-        with s.Player(*pids[0]) as player:
-            assert await Wait.show(player) is True
-        with s.Player(*pids[1]) as player:
-            player.show_page = 0
-
-    with s.Player(*pids[0]) as player:
-        if group_on_poll:
-            assert await Wait.please_group(player) == ("submit", 1)
-        else:
-            assert await Wait.show(player) is False
-        gid = player._uproot_group
-
-    for pid in pids[1:] + pids:
+    for pid, page, path in zip(
+        pids, (Wait, OtherWait), ("test/Wait", "test/OtherWait")
+    ):
         with s.Player(*pid) as player:
-            assert await Wait.show(player) is False
-            assert await Wait.please_group(player) == ("submit", 1)
-            assert player._uproot_group == gid
+            player.page_order = [path]
+            assert await page.show(player) is True
+
+    for pid, page in zip(pids, (Wait, OtherWait)):
+        with s.Player(*pid) as player:
+            assert await page.please_group(player) == ("wait", 0.5)
 
     with s.Session(sid) as session:
-        assert session._uproot_groups == [gid.gname]
-
-    with s.Group(*gid) as group:
-        assert group.calls == 1
-        assert set(group._uproot_players) == set(pids)
+        assert session.get("_uproot_groups") == []
 
 
 @pytest.mark.parametrize("bulk_advance", [False, True])
@@ -123,6 +198,19 @@ async def test_group_creating_wait_groups_players_once_per_page(
     for pid in extra_pids:
         q.register(tuple(pid))
     pids += extra_pids
+
+    for pid in pids:
+        with s.Player(*pid) as player:
+            player.page_order = [
+                "test/A",
+                "test/B",
+                "test/Wait",
+                "test/C",
+                "test/D",
+                "test/E",
+                "test/F",
+                "test/Wait",
+            ]
 
     generator = random.Random(0)
     monkeypatch.setattr(j, "rng", lambda: generator)
@@ -202,7 +290,8 @@ async def test_try_group_ignores_players_on_other_page_at_same_show_page(
         gid = c.create_group(session, pids[1:3])
 
     with s.Player(*pids[0]) as player:
-        assert try_group(player, 2, Wait) is None
+        assert await Wait.show(player) is True
+        assert try_group(player, 2, Wait.group_size) is None
         assert await Wait.please_group(player) == ("wait", 0.5)
 
     for pid in pids[1:3]:
@@ -228,6 +317,9 @@ async def test_group_creating_wait_refreshes_player_fields_set_through_group_pla
                 with member:
                     member.role = f"role{member.member_id}"
 
+    with s.Player(*pids[1]) as player:
+        assert await Wait.show(player) is True
+
     with s.Player(*pids[0]) as player:
         assert await Wait.show(player) is False
         assert player.role == f"role{player.member_id}"
@@ -244,6 +336,9 @@ async def test_group_creating_wait_does_not_overwrite_app_set_by_after_grouping(
         @classmethod
         def after_grouping(page, group):
             group.app = "custom_app"
+
+    with s.Player(*pids[1]) as player:
+        assert await Wait.show(player) is True
 
     with s.Player(*pids[0]) as player:
         assert await Wait.show(player) is False
@@ -370,21 +465,20 @@ def test_create_group_duplicate_member_fails_before_append(session_with_two_play
 def test_try_group_rejects_nonpositive_group_size(session_with_two_players):
     _, pids = session_with_two_players
 
-    class Wait(GroupCreatingWait):
-        group_size = 0
-
     with (
         s.Player(*pids[0]) as player,
         pytest.raises(ValueError, match="Group size must be positive"),
     ):
-        try_group(player, player.show_page, Wait)
+        try_group(player, player.show_page, 0)
 
 
-def test_try_group_randomizes_members_and_order(session_with_two_players, monkeypatch):
+async def test_try_group_randomizes_members_and_order(
+    session_with_two_players, monkeypatch
+):
     sid, pids = session_with_two_players
 
     class Wait(GroupCreatingWait):
-        group_size = 2
+        group_size = 5
 
     with s.Session(sid) as session:
         extra_pids = [c.create_player(session), c.create_player(session)]
@@ -395,6 +489,11 @@ def test_try_group_randomizes_members_and_order(session_with_two_players, monkey
             player.show_page = 0
 
     all_pids = pids + extra_pids
+    for pid in all_pids:
+        with s.Player(*pid) as player:
+            player.page_order = ["test/Wait"]
+            assert await Wait.show(player) is True
+
     sampled_pids = [all_pids[2], all_pids[0]]
 
     class StubRandom:
@@ -406,7 +505,7 @@ def test_try_group_randomizes_members_and_order(session_with_two_players, monkey
     monkeypatch.setattr(j, "rng", StubRandom)
 
     with s.Player(*pids[0]) as player:
-        gname = try_group(player, player.show_page, Wait)
+        gname = try_group(player, player.show_page, 2)
 
     assert gname is not None
     with s.Group(sid, gname) as group:
