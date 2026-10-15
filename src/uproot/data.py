@@ -111,13 +111,16 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
                 row["!data"] = f"session/{data}"
             elif field == "_uproot_dropout" or field == "_uproot_settings":
                 pass
-            elif field == "_uproot_groups" or field == "_uproot_players":
+            elif field == "_uproot_players":
+                if not storage.startswith(("session/", "group/")):
+                    continue
+            elif field == "_uproot_groups":
                 if not storage.startswith("session/"):
                     continue
             else:
                 continue
 
-        if storage.startswith("session/"):
+        if storage.startswith(("session/", "group/")):
             namespace = cache.dbns2tuple(storage)
             if len(namespace) >= 2:
                 _, sname = namespace[0], namespace[1]

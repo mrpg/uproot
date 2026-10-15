@@ -28,7 +28,7 @@ from uproot.data import (
 )
 from uproot.services import data_service, session_service
 from uproot.stable import decode, encode
-from uproot.types import GroupIdentifier, Value, sha256
+from uproot.types import GroupIdentifier, PlayerIdentifier, Value, sha256
 
 
 def sequenced(rows):
@@ -531,6 +531,33 @@ async def test_generate_briefcase(monkeypatch):
     assert "page_times.csv" in readme
     assert "!seq" in dictionary["columns"]
     assert "myapp/MyPage" in page_times_csv
+
+
+@pytest.mark.parametrize("format", ["ultralong", "sparse", "latest"])
+def test_filtered_exports_include_group_members(monkeypatch, format):
+    members = [PlayerIdentifier("session1", "p1"), PlayerIdentifier("session1", "p2")]
+    session_data = {
+        ("session", "session1", "_uproot_players"): [
+            Value(1.0, False, members, "", seq=1)
+        ],
+        ("group", "session1", "g1", "_uproot_players"): [
+            Value(2.0, False, members, "", seq=2)
+        ],
+    }
+    monkeypatch.setattr(
+        data_service, "everything_from_session", lambda sname: session_data
+    )
+
+    rows, transformer, kwargs = data_service.generate_data("session1", format, [], True)
+    rows = list(transformer(rows, **kwargs))
+    field = "!data" if format == "ultralong" else "players"
+
+    assert {row["!storage"]: row[field] for row in rows} == {
+        "session/session1": ["player/session1/p1", "player/session1/p2"],
+        "group/session1/g1": ["player/session1/p1", "player/session1/p2"],
+    }
+    if format != "latest":
+        assert all(row["!field"] == "players" for row in rows)
 
 
 @pytest.mark.parametrize("filetype", ["csv", "jsonl"])
