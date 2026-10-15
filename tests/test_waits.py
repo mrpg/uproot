@@ -172,6 +172,48 @@ async def test_group_creating_wait_groups_players_once_per_page(
         previous_groups.update(current_groups)
 
 
+async def test_try_group_ignores_players_on_other_page_at_same_show_page(
+    session_with_two_players,
+):
+    sid, pids = session_with_two_players
+
+    class Wait(GroupCreatingWait):
+        group_size = 2
+
+    with s.Session(sid) as session:
+        pids += [c.create_player(session), c.create_player(session)]
+
+    for pid in pids[2:]:
+        q.register(tuple(pid))
+
+    # pids[1] and pids[2] took a shorter Between branch: they were grouped
+    # at index 1, and index 2 is already their next page. pids[3] has not
+    # been grouped there yet.
+    for pid in pids:
+        with s.Player(*pid) as player:
+            player.show_page = 2
+
+            if pid in (pids[0],):
+                player.page_order = ["app/A", "app/B", "app/Wait"]
+            else:
+                player.page_order = ["app/A", "app/Wait", "app/Game"]
+
+    with s.Session(sid) as session:
+        gid = c.create_group(session, pids[1:3])
+
+    with s.Player(*pids[0]) as player:
+        assert try_group(player, 2, Wait) is None
+        assert await Wait.please_group(player) == ("wait", 0.5)
+
+    for pid in pids[1:3]:
+        with s.Player(*pid) as player:
+            assert player._uproot_group == gid
+
+    with s.Player(*pids[3]) as player:
+        assert player._uproot_group is None
+        assert "2:clear_group" not in player.get("_uproot_what_ran", ())
+
+
 async def test_group_creating_wait_refreshes_player_fields_set_through_group_players(
     session_with_two_players,
 ):

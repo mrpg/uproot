@@ -252,11 +252,18 @@ def try_group(
     ensure(group_size > 0, ValueError, "Group size must be positive")
 
     with s.Session(sname) as session:
-        same_page = [
-            pid
-            for pid in session._uproot_players
-            if materialize(pid).show_page == show_page
-        ]
+        # Page orders can differ between players (e.g., Between), so the same
+        # show_page must also be the same page
+        here_path = player.page_order[show_page : show_page + 1]
+        same_page = []
+
+        for pid in session._uproot_players:
+            with materialize(pid) as other:
+                if (
+                    other.show_page == show_page
+                    and other.page_order[show_page : show_page + 1] == here_path
+                ):
+                    same_page.append(pid)
 
         if len(same_page) < group_size:
             return None

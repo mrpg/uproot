@@ -722,7 +722,9 @@ class GroupCreatingWait(InternalPage):
             return "submit", 1
 
         # Get fresh count for progress display
-        all_here = here(player._uproot_session, player.show_page)
+        show_page = player.show_page
+        here_path = player.page_order[show_page : show_page + 1]
+        all_here = here(player._uproot_session, show_page)
         ungrouped_count = 0
 
         for pid in all_here:
@@ -732,6 +734,8 @@ class GroupCreatingWait(InternalPage):
                 cgroup = player._uproot_group
             else:
                 with materialize(pid) as player_:
+                    if player_.page_order[show_page : show_page + 1] != here_path:
+                        continue
                     cgroup = player_._uproot_group
 
             if cgroup is None:
