@@ -39,6 +39,18 @@ def get_namespace(
     return None  # unreachable
 
 
+def peek(namespace: tuple[str, ...], field: str) -> Any:
+    """Return the current value of a field like Storage, but without copying
+    it. Callers must not mutate the value."""
+    if ensure_not_none(STORE):
+        history = STORE.field_history(namespace, field)
+
+        if history and not history[-1].unavailable:
+            return history[-1].data
+
+    raise AttributeError(f"{namespace!r} has no current value for {field!r}")
+
+
 def load_database_into_memory() -> None:
     if ensure_not_none(STORE):
         STORE.load()

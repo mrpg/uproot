@@ -711,10 +711,19 @@ class GroupCreatingWait(InternalPage):
         if player._uproot_group is not None:
             return "submit", 1
 
-        from uproot.jobs import here, try_group
+        from uproot import cache
+        from uproot.jobs import on_same_page, try_group
+
+        # One pass over the session serves grouping and the progress display
+        same_page = on_same_page(player, player.show_page)
 
         # internal_live binds page as the class, like @classmethod.
-        try_group(player, player.show_page, cast(type["GroupCreatingWait"], page))
+        try_group(
+            player,
+            player.show_page,
+            cast(type["GroupCreatingWait"], page),
+            same_page,
+        )
         player.refresh("_uproot_group")
 
         # Re-check group status after grouping attempt
@@ -722,24 +731,9 @@ class GroupCreatingWait(InternalPage):
             return "submit", 1
 
         # Get fresh count for progress display
-        show_page = player.show_page
-        here_path = player.page_order[show_page : show_page + 1]
-        all_here = here(player._uproot_session, show_page)
-        ungrouped_count = 0
-
-        for pid in all_here:
-            cgroup = None
-
-            if pid == identify(player):
-                cgroup = player._uproot_group
-            else:
-                with materialize(pid) as player_:
-                    if player_.page_order[show_page : show_page + 1] != here_path:
-                        continue
-                    cgroup = player_._uproot_group
-
-            if cgroup is None:
-                ungrouped_count += 1
+        ungrouped_count = sum(
+            cache.peek(("player", *pid), "_uproot_group") is None for pid in same_page
+        )
 
         return "wait", ungrouped_count / page.group_size
 

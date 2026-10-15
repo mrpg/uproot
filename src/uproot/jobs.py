@@ -15,6 +15,7 @@ import uproot.deployment as d
 import uproot.events as e
 import uproot.queues as q
 import uproot.storage as s
+from uproot import cache
 from uproot.constraints import ensure
 from uproot.types import (
     GroupCreatingWait,
@@ -233,8 +234,35 @@ def here(
         }
 
 
+def on_same_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
+    """
+    Find the players whose page at show_page is the caller's.
+
+    Page orders can differ between players (e.g., Between), so the same
+    show_page must also be the same page. This runs on every poll of every
+    waiting player, so it peeks instead of copying page orders.
+    """
+    here_path = player.page_order[show_page : show_page + 1]
+    same_page = []
+
+    for pid in cache.peek(("session", *player._uproot_session), "_uproot_players"):
+        namespace = ("player", *pid)
+        page_order = cache.peek(namespace, "page_order")
+
+        if (
+            cache.peek(namespace, "show_page") == show_page
+            and page_order[show_page : show_page + 1] == here_path
+        ):
+            same_page.append(pid)
+
+    return same_page
+
+
 def try_group(
-    player: s.Storage, show_page: int, page: type[GroupCreatingWait]
+    player: s.Storage,
+    show_page: int,
+    page: type[GroupCreatingWait],
+    same_page: list[PlayerIdentifier] | None = None,
 ) -> str | None:
     """
     Try to create exactly one group from available players.
@@ -243,6 +271,7 @@ def try_group(
         player: Caller
         show_page: Page number where grouping should occur
         page: Grouping page, including its group size and clear_group hook
+        same_page: on_same_page(player, show_page), if the caller has it
 
     Returns:
         Group name if a group was created, None otherwise
@@ -251,23 +280,13 @@ def try_group(
     group_size = page.group_size
     ensure(group_size > 0, ValueError, "Group size must be positive")
 
+    if same_page is None:
+        same_page = on_same_page(player, show_page)
+
+    if len(same_page) < group_size:
+        return None
+
     with s.Session(sname) as session:
-        # Page orders can differ between players (e.g., Between), so the same
-        # show_page must also be the same page
-        here_path = player.page_order[show_page : show_page + 1]
-        same_page = []
-
-        for pid in session._uproot_players:
-            with materialize(pid) as other:
-                if (
-                    other.show_page == show_page
-                    and other.page_order[show_page : show_page + 1] == here_path
-                ):
-                    same_page.append(pid)
-
-        if len(same_page) < group_size:
-            return None
-
         valid_members = []
         for pid in same_page:
             with materialize(pid) as candidate:
