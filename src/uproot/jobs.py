@@ -17,12 +17,14 @@ import uproot.queues as q
 import uproot.storage as s
 from uproot.constraints import ensure
 from uproot.types import (
+    GroupCreatingWait,
     PlayerIdentifier,
     Sessionname,
     Value,
     ensure_awaitable,
     materialize,
     optional_call,
+    optional_call_once,
     rng,
 )
 
@@ -231,19 +233,22 @@ def here(
         }
 
 
-def try_group(player: s.Storage, show_page: int, group_size: int) -> str | None:
+def try_group(
+    player: s.Storage, show_page: int, page: type[GroupCreatingWait]
+) -> str | None:
     """
     Try to create exactly one group from available players.
 
     Args:
         player: Caller
         show_page: Page number where grouping should occur
-        group_size: Required number of players per group
+        page: Grouping page, including its group size and clear_group hook
 
     Returns:
         Group name if a group was created, None otherwise
     """
     sname = player._uproot_session
+    group_size = page.group_size
     ensure(group_size > 0, ValueError, "Group size must be positive")
 
     with s.Session(sname) as session:
@@ -258,8 +263,19 @@ def try_group(player: s.Storage, show_page: int, group_size: int) -> str | None:
 
         valid_members = []
         for pid in same_page:
-            if materialize(pid)._uproot_group is None:
-                valid_members.append(pid)
+            with materialize(pid) as candidate:
+                # Admin moves can put candidates here before their first show().
+                # Mark the clear now so a later show() keeps their new group.
+                optional_call_once(
+                    page,
+                    "clear_group",
+                    storage=candidate,
+                    show_page=show_page,
+                    player=candidate,
+                )
+
+                if candidate._uproot_group is None:
+                    valid_members.append(pid)
 
         if len(valid_members) >= group_size:
             group_members = rng().sample(valid_members, k=group_size)

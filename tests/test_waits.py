@@ -1,3 +1,4 @@
+import random
 import sys
 from pathlib import Path
 
@@ -66,6 +67,109 @@ async def test_group_creating_wait_refreshes_player_and_runs_after_grouping(
         assert queued["event"] == "Grouped"
         assert queued["constraint"] == 0
         assert queued["data"] == gid
+
+
+@pytest.mark.parametrize("group_on_poll", [False, True])
+async def test_group_creating_wait_keeps_group_assigned_before_first_show(
+    session_with_two_players, group_on_poll
+):
+    sid, pids = session_with_two_players
+
+    class Wait(GroupCreatingWait):
+        group_size = 2
+
+        @classmethod
+        def after_grouping(page, group):
+            group.calls = group.get("calls", 0) + 1
+
+    if group_on_poll:
+        with s.Player(*pids[1]) as player:
+            player.show_page = -1
+        with s.Player(*pids[0]) as player:
+            assert await Wait.show(player) is True
+        with s.Player(*pids[1]) as player:
+            player.show_page = 0
+
+    with s.Player(*pids[0]) as player:
+        if group_on_poll:
+            assert await Wait.please_group(player) == ("submit", 1)
+        else:
+            assert await Wait.show(player) is False
+        gid = player._uproot_group
+
+    for pid in pids[1:] + pids:
+        with s.Player(*pid) as player:
+            assert await Wait.show(player) is False
+            assert await Wait.please_group(player) == ("submit", 1)
+            assert player._uproot_group == gid
+
+    with s.Session(sid) as session:
+        assert session._uproot_groups == [gid.gname]
+
+    with s.Group(*gid) as group:
+        assert group.calls == 1
+        assert set(group._uproot_players) == set(pids)
+
+
+@pytest.mark.parametrize("bulk_advance", [False, True])
+async def test_group_creating_wait_groups_players_once_per_page(
+    session_with_two_players, monkeypatch, bulk_advance
+):
+    sid, pids = session_with_two_players
+
+    with s.Session(sid) as session:
+        extra_pids = [c.create_player(session) for unused in range(10)]
+
+    for pid in extra_pids:
+        q.register(tuple(pid))
+    pids += extra_pids
+
+    generator = random.Random(0)
+    monkeypatch.setattr(j, "rng", lambda: generator)
+
+    class Wait(GroupCreatingWait):
+        group_size = 2
+
+        @classmethod
+        def after_grouping(page, group):
+            group.calls = group.get("calls", 0) + 1
+
+    previous_groups = set()
+
+    for show_page in (2, 7):
+        if bulk_advance:
+            for pid in pids:
+                with s.Player(*pid) as player:
+                    player.show_page = show_page
+
+        for pid in pids:
+            with s.Player(*pid) as player:
+                player.show_page = show_page
+                await Wait.show(player)
+
+        for pid in pids:
+            with s.Player(*pid) as player:
+                assert await Wait.please_group(player) == ("submit", 1)
+                assert await Wait.show(player) is False
+
+        with s.Session(sid) as session:
+            current_groups = set(session._uproot_groups) - previous_groups
+
+        assert len(current_groups) == len(pids) // Wait.group_size
+        members = []
+
+        for gname in current_groups:
+            with s.Group(sid, gname) as group:
+                assert len(group._uproot_players) == Wait.group_size
+                assert group.calls == 1
+                members.extend(group._uproot_players)
+
+                for member in group.players:
+                    assert member._uproot_group == group.gid
+
+        assert len(members) == len(set(members)) == len(pids)
+        assert set(members) == set(pids)
+        previous_groups.update(current_groups)
 
 
 async def test_group_creating_wait_refreshes_player_fields_set_through_group_players(
@@ -224,15 +328,21 @@ def test_create_group_duplicate_member_fails_before_append(session_with_two_play
 def test_try_group_rejects_nonpositive_group_size(session_with_two_players):
     _, pids = session_with_two_players
 
+    class Wait(GroupCreatingWait):
+        group_size = 0
+
     with (
         s.Player(*pids[0]) as player,
         pytest.raises(ValueError, match="Group size must be positive"),
     ):
-        try_group(player, player.show_page, 0)
+        try_group(player, player.show_page, Wait)
 
 
 def test_try_group_randomizes_members_and_order(session_with_two_players, monkeypatch):
     sid, pids = session_with_two_players
+
+    class Wait(GroupCreatingWait):
+        group_size = 2
 
     with s.Session(sid) as session:
         extra_pids = [c.create_player(session), c.create_player(session)]
@@ -254,7 +364,7 @@ def test_try_group_randomizes_members_and_order(session_with_two_players, monkey
     monkeypatch.setattr(j, "rng", StubRandom)
 
     with s.Player(*pids[0]) as player:
-        gname = try_group(player, player.show_page, 2)
+        gname = try_group(player, player.show_page, Wait)
 
     assert gname is not None
     with s.Group(sid, gname) as group:

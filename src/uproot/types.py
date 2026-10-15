@@ -698,7 +698,7 @@ class GroupCreatingWait(InternalPage):
         # Try to create a group immediately
         from uproot.jobs import try_group
 
-        try_group(player, player.show_page, page.group_size)
+        try_group(player, player.show_page, page)
         player.refresh("_uproot_group")
 
         # If grouping succeeded, player now has a group - don't show page
@@ -713,8 +713,8 @@ class GroupCreatingWait(InternalPage):
 
         from uproot.jobs import here, try_group
 
-        # Always try to create a group
-        try_group(player, player.show_page, page.group_size)
+        # internal_live binds page as the class, like @classmethod.
+        try_group(player, player.show_page, cast(type["GroupCreatingWait"], page))
         player.refresh("_uproot_group")
 
         # Re-check group status after grouping attempt
