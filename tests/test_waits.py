@@ -186,14 +186,14 @@ async def test_try_group_ignores_players_on_other_page_at_same_show_page(
     for pid in pids[2:]:
         q.register(tuple(pid))
 
-    # pids[1] and pids[2] took a shorter Between branch: they were grouped
-    # at index 1, and index 2 is already their next page. pids[3] has not
-    # been grouped there yet.
+    # pids[1:] took a shorter Between branch, so their index 2 is Game, not
+    # Wait. pids[1] and pids[2] were grouped at index 1. pids[3] has no group,
+    # so only its page rules it out as a member for pids[0].
     for pid in pids:
         with s.Player(*pid) as player:
             player.show_page = 2
 
-            if pid in (pids[0],):
+            if pid == pids[0]:
                 player.page_order = ["app/A", "app/B", "app/Wait"]
             else:
                 player.page_order = ["app/A", "app/Wait", "app/Game"]
