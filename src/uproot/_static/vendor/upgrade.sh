@@ -40,8 +40,6 @@ mv tabulator-tables/ _temp/
 mkdir tabulator-tables/
 cd tabulator-tables/
 curl -L \
-    -O "https://unpkg.com/tabulator-tables@6/dist/css/tabulator.min.css" \
-    -O "https://unpkg.com/tabulator-tables@6/dist/css/tabulator.min.css.map" \
     -O "https://unpkg.com/tabulator-tables@6/dist/css/tabulator_bootstrap5.min.css" \
     -O "https://unpkg.com/tabulator-tables@6/dist/css/tabulator_bootstrap5.min.css.map" \
     -O "https://unpkg.com/tabulator-tables@6/dist/js/tabulator.min.js" \
