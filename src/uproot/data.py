@@ -8,10 +8,10 @@ from io import StringIO
 from typing import Any, cast
 from zipfile import ZIP_DEFLATED, ZipFile
 
+import appendmuch
 import orjson as json
 
 import uproot.deployment as d
-from uproot import cache
 from uproot.constraints import ensure
 from uproot.stable import encode_raw
 from uproot.types import Value, sha256
@@ -65,7 +65,7 @@ def partial_matrix(
             )  # guaranteed by contract
 
             yield {
-                "!storage": cache.tuple2dbns(namespace),
+                "!storage": appendmuch.tuple2dbns(namespace),
                 "!field": field,
                 "!time": v.time,
                 "!seq": v.seq,
@@ -121,7 +121,7 @@ def reasonable_filters(pm: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]
                 continue
 
         if storage.startswith(("session/", "group/")):
-            namespace = cache.dbns2tuple(storage)
+            namespace = appendmuch.dbns2tuple(storage)
             if len(namespace) >= 2:
                 _, sname = namespace[0], namespace[1]
             else:

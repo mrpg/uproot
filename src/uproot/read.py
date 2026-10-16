@@ -222,7 +222,6 @@ class Database:
 
         if self.prev_cache_store is None:
             cache.STORE = None
-            cache.MEMORY_HISTORY = {}
         else:
             cache.set_store(self.prev_cache_store)
 

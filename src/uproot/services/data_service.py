@@ -16,10 +16,13 @@ from typing import (
     cast,
 )
 
+import appendmuch
+
 import uproot
 import uproot.storage as s
 import uproot.types as t
 from uproot import cache, data
+from uproot.constraints import ensure_not_none
 
 DisplayValue: TypeAlias = tuple[
     Annotated[float | None, "time"],
@@ -41,15 +44,16 @@ def everything_from_session(
     matches: dict[tuple[str, ...], Any] = {}
     sname = str(sname)
 
-    for lvl1_k, lvl1_v in cache.MEMORY_HISTORY.items():
-        if isinstance(lvl1_v, dict) and sname in lvl1_v:
-            k = (
-                lvl1_k,
-                sname,
-            )
-            namespace = cache.get_namespace(k)
-            if namespace is not None:
-                matches |= cache.flatten(namespace, k)
+    if ensure_not_none(cache.STORE):
+        for lvl1_k, lvl1_v in cache.STORE.cache.items():
+            if isinstance(lvl1_v, dict) and sname in lvl1_v:
+                k = (
+                    lvl1_k,
+                    sname,
+                )
+                namespace = cache.get_namespace(k)
+                if namespace is not None:
+                    matches |= appendmuch.flatten(namespace, k)
 
     return matches
 
@@ -83,8 +87,9 @@ async def everything_from_session_display(
     sname = str(sname)
     retval: dict[str, dict[str, list[DisplayValue]]] = {}
     last_update: float = since_epoch
+    history = cache.STORE.cache if ensure_not_none(cache.STORE) else {}
 
-    for uname, fields in cache.MEMORY_HISTORY.get("player", {}).get(sname, {}).items():
+    for uname, fields in history.get("player", {}).get(sname, {}).items():
         retval[uname] = {}
 
         for field, values in fields.items():

@@ -3,6 +3,7 @@ import random
 import threading
 from datetime import UTC, date, datetime, time
 from io import BytesIO, StringIO
+from types import SimpleNamespace
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -830,8 +831,10 @@ async def test_everything_from_session_display_filters_by_time_with_sequence_ord
 
     with patch.object(
         data_service.cache,
-        "MEMORY_HISTORY",
-        {"player": {"session1": {"player1": {"choice": values}}}},
+        "STORE",
+        SimpleNamespace(
+            cache={"player": {"session1": {"player1": {"choice": values}}}}
+        ),
     ):
         result, last_update = await data_service.everything_from_session_display(
             "session1",

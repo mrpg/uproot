@@ -48,7 +48,6 @@ def build_read_database(path: Path) -> None:
             vars(d).pop("STORE", None)
         if previous_cache_store is None:
             cache.STORE = None
-            cache.MEMORY_HISTORY = {}
         else:
             cache.set_store(previous_cache_store)
 

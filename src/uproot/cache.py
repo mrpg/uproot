@@ -2,12 +2,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 """
-Compatibility layer that delegates to appendmuch Store.
+The global appendmuch Store, set by uproot.deployment.
 """
 
 from typing import TYPE_CHECKING, Any
-
-import appendmuch
 
 from uproot.constraints import ensure_not_none
 
@@ -16,17 +14,11 @@ if TYPE_CHECKING:
 
 
 STORE: "Store | None" = None
-MEMORY_HISTORY: dict[str, Any] = {}
-
-dbns2tuple = appendmuch.dbns2tuple
-flatten = appendmuch.flatten
-tuple2dbns = appendmuch.tuple2dbns
 
 
 def set_store(store: "Store") -> None:
-    global STORE, MEMORY_HISTORY
+    global STORE
     STORE = store
-    MEMORY_HISTORY = store.cache
 
 
 def get_namespace(
