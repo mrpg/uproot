@@ -22,7 +22,6 @@ from uproot.types import PlayerIdentifier, SessionIdentifier
 Player: TypeAlias = Storage
 PlayerLike: TypeAlias = Player | PlayerIdentifier
 Session: TypeAlias = Storage
-SessionLike: TypeAlias = Session | SessionIdentifier
 
 P1 = ParamSpec("P1")
 P2 = ParamSpec("P2")
@@ -178,10 +177,4 @@ def flexible(func: Callable[P1, T]) -> Callable[P2, T]:
 def is_player_like(obj: Any) -> bool:
     return isinstance(obj, PlayerIdentifier) or (
         isinstance(obj, Storage) and obj.__namespace__[0] == "player"
-    )
-
-
-def is_session_like(obj: Any) -> bool:
-    return isinstance(obj, SessionIdentifier) or (
-        isinstance(obj, Storage) and obj.__namespace__[0] == "session"
     )
