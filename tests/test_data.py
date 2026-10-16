@@ -1096,11 +1096,12 @@ def test_stable_type_ids_normative():
 
 def test_stable_datetime_types_immutable():
     # Test that datetime types are classified as immutable
-    from uproot.stable import IMMUTABLE_TYPES
+    from uproot.stable import CODEC
 
-    assert date in IMMUTABLE_TYPES
-    assert time in IMMUTABLE_TYPES
-    assert datetime in IMMUTABLE_TYPES
+    immutable = CODEC.immutable_types()
+    assert date in immutable
+    assert time in immutable
+    assert datetime in immutable
 
 
 def test_stable_encode_decode_iso_format_normative():
@@ -1262,9 +1263,9 @@ def test_stable_random_type_id():
 
 def test_stable_random_is_mutable():
     """Test that random.Random is classified as mutable type."""
-    from uproot.stable import IMMUTABLE_TYPES
+    from uproot.stable import CODEC
 
-    assert random.Random not in IMMUTABLE_TYPES
+    assert random.Random not in CODEC.immutable_types()
 
 
 def test_stable_encode_decode_random_type_id_in_bytes():

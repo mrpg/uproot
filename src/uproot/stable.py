@@ -75,9 +75,6 @@ CODEC.register(
 )
 
 
-IMMUTABLE_TYPES: tuple[type, ...] = CODEC.immutable_types()
-
-
 def encode(data: Any) -> bytes:
     return CODEC.encode(data)
 
