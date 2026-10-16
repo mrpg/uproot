@@ -34,7 +34,6 @@ else:
     DBENV = os.getenv("UPROOT_DATABASE", "sqlite3")
 
 DEFAULT_ROOMS: list["RoomType"] = []
-HERE_TOLERANCE: float = 5.0
 HOST: str = "127.0.0.1"
 # Seconds between the browser's keepalive messages. A lost connection shows
 # within this interval plus three seconds. Longer intervals save bandwidth but
