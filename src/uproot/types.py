@@ -458,19 +458,6 @@ def rng() -> random.Random:
     return random.Random(secrets.randbits(256))  # nosec B311
 
 
-def longest_common_prefix(strings: list[str]) -> str:
-    if not strings:
-        return ""
-
-    for i in range(len(strings[0])):
-        char = strings[0][i]
-        for string in strings[1:]:
-            if i >= len(string) or string[i] != char:
-                return strings[0][:i]
-
-    return strings[0]
-
-
 class FrozenPage(type):
     def __new__(
         cls: type["FrozenPage"],
