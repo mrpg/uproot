@@ -1493,16 +1493,6 @@ window.uproot = {
         messageStore: {},
         ignoreChatted: true,
 
-        normalizeOptions(options = true) {
-            if (typeof options === "boolean") {
-                return { canReply: options };
-            }
-
-            return {
-                canReply: options.canReply ?? true,
-            };
-        },
-
         composerHtml(chatId) {
             return `
                 <div class="d-flex gap-2 uproot-chat-composer">
@@ -1553,9 +1543,8 @@ window.uproot = {
             }
         },
 
-        create(el, chatId, options = true) {
+        create(el, chatId, { canReply = true } = {}) {
             chatId = uproot.escape(chatId); // This utterly eviscerates everything suspicious
-            const { canReply } = this.normalizeOptions(options);
             const composer = canReply ? this.composerHtml(chatId) : "";
 
             el.innerHTML = /* SAFE */ `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
