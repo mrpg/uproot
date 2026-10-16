@@ -21,10 +21,6 @@ from uproot.types import (
 VALID_TRAIL0: tuple[str, ...] = ("admin", "session", "player", "group", "model")
 
 
-def all_good(key: tuple[str, str]) -> bool:
-    return True
-
-
 class Storage(appendmuch.Storage):
     def __init__(
         self,
