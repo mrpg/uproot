@@ -9,7 +9,6 @@ from pydantic import validate_call
 
 from uproot.types import uuid
 
-CredentialType = str
 EntryType = dict[str, Any]
 PathType = tuple[str, ...]
 QueueType = asyncio.Queue[tuple[UUID, EntryType]]
