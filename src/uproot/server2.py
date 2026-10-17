@@ -1523,16 +1523,6 @@ async def project_archive(
     return await archive.download(Path(d.PATH))
 
 
-# Dummy route (for benchmarking)
-
-
-@router.get("/dummy/")
-async def dummy(
-    request: Request,
-) -> PlainTextResponse:
-    return PlainTextResponse("Ecce, præceptor œconomiae!")
-
-
 # Functions
 
 
