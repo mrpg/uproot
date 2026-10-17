@@ -40,8 +40,8 @@ from wtforms.i18n import messages_path
 from wtforms.widgets.core import clean_key, html_params
 
 import uproot as u
-import uproot.admin as a
 import uproot.deployment as d
+import uproot.services.auth as auth_service
 from uproot import i18n
 from uproot.constraints import ensure
 from uproot.storage import Storage
@@ -586,10 +586,11 @@ async def render(
         if player._uproot_group is not None:
             group = player.group
 
-    data = a.from_cookie(uauth)
+    data = auth_service.from_cookie(uauth)
     is_admin = (
         d.UNSAFE
-        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        or auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
+        is not None
     )
 
     try:
@@ -720,10 +721,11 @@ async def render_error(
         materialize(player._uproot_session),
     )
 
-    data = a.from_cookie(uauth)
+    data = auth_service.from_cookie(uauth)
     is_admin = (
         d.UNSAFE
-        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        or auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
+        is not None
     )
 
     internal = {

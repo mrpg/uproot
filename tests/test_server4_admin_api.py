@@ -258,7 +258,7 @@ async def test_rest_auth_rate_limits_before_rechecking_credentials(monkeypatch):
     ip = "10.20.30.40"
     request = SimpleNamespace(client=SimpleNamespace(host=ip))
     authenticate = AsyncMock(return_value=None)
-    monkeypatch.setattr(api.a, "create_auth_token_async", authenticate)
+    monkeypatch.setattr(auth, "create_auth_token_async", authenticate)
     monkeypatch.setattr(auth, "MAX_FAILED_ATTEMPTS", 1)
 
     with pytest.raises(HTTPException) as excinfo:
@@ -443,7 +443,7 @@ async def test_dashboard_reports_version_and_announcements_nudge(
 ) -> None:
     reset_admin_state()
     monkeypatch.setattr(d, "UPSTREAM", False)
-    monkeypatch.setattr(api.a, "sessions", dict)
+    monkeypatch.setattr(api.session_ops, "sessions", dict)
 
     dashboard = await api.get_dashboard(None)
 

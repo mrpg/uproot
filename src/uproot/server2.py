@@ -45,12 +45,17 @@ from pydantic import validate_call
 from sortedcontainers import SortedDict
 
 import uproot as u
-import uproot.admin as a
 import uproot.core as c
 import uproot.deployment as d
 import uproot.events as e
 import uproot.jobs as j
 import uproot.rooms as r
+import uproot.services.auth as auth_service
+import uproot.services.config_service as config_ops
+import uproot.services.data_service as data_ops
+import uproot.services.player_service as player_ops
+import uproot.services.room_service as room_ops
+import uproot.services.session_service as session_ops
 import uproot.types as t
 from uproot import archive, i18n, pages
 from uproot.constraints import ensure
@@ -245,9 +250,12 @@ async def auth_required(request: Request) -> dict[str, Any]:
     if not uauth:
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
 
-    data = a.from_cookie(uauth)
+    data = auth_service.from_cookie(uauth)
 
-    if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
+    if (
+        auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
+        is None
+    ):
         raise HTTPException(status_code=303, headers={"Location": LOGIN_URL})
 
     return data
@@ -265,11 +273,14 @@ def admin_websocket_logged_in(uauth: str | None) -> bool:
         return False
 
     try:
-        data = a.from_cookie(uauth)
+        data = auth_service.from_cookie(uauth)
     except Exception:  # noqa: BLE001
         return False
 
-    return a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+    return (
+        auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
+        is not None
+    )
 
 
 # Root directory
@@ -294,8 +305,11 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
         if uauth is None:
             raise HTTPException(status_code=403, detail="No authentication token")
 
-        data = a.from_cookie(uauth)
-        if a.verify_auth_token(data.get("user", ""), data.get("token", "")) is None:
+        data = auth_service.from_cookie(uauth)
+        if (
+            auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
+            is None
+        ):
             raise HTTPException(status_code=403, detail="Invalid authentication token")
 
     await websocket.accept()
@@ -630,12 +644,12 @@ async def login_post(
     token: str = Form(""),
     x_forwarded_proto: str = Header(""),
 ) -> Response:
-    client_ip = a.get_client_ip(request)
+    client_ip = auth_service.get_client_ip(request)
 
-    if a.is_ip_banned(client_ip):
+    if auth_service.is_ip_banned(client_ip):
         raise HTTPException(status_code=429, detail="Too many failed login attempts")
 
-    a.record_failed_login(client_ip)
+    auth_service.record_failed_login(client_ip)
     secure = auth_cookie_secure(request, x_forwarded_proto)
 
     # Login-token path: the token is a strong shared secret issued by `uproot`
@@ -646,20 +660,20 @@ async def login_post(
         and d.LOGIN_TOKEN is not None
         and hmac.compare_digest(token, d.LOGIN_TOKEN)
     ):
-        a.ensure_globals()
-        auth_token = a.create_auth_token_for_user(user)
+        auth_service.ensure_globals()
+        auth_token = auth_service.create_auth_token_for_user(user)
 
         if auth_token is not None:
             d.LOGGER.info("Admin authenticated using auto login")
 
-            a.clear_failed_logins(client_ip)
+            auth_service.clear_failed_logins(client_ip)
             response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
             set_auth_cookie(response, auth_token, secure)
             return response
 
-    auth_token = await a.create_auth_token_async(user, pw)
+    auth_token = await auth_service.create_auth_token_async(user, pw)
     if auth_token is not None:
-        a.clear_failed_logins(client_ip)
+        auth_service.clear_failed_logins(client_ip)
         response = RedirectResponse(f"{d.ROOT}/admin/dashboard/", status_code=303)
         set_auth_cookie(response, auth_token, secure)
         return response
@@ -679,7 +693,7 @@ def logout(
     uauth = request.cookies.get("uauth")
     if uauth:
         # Revoke the specific token
-        a.revoke_auth_token(uauth)
+        auth_service.revoke_auth_token(uauth)
 
     response = RedirectResponse(f"{d.ROOT}/admin/login/", status_code=303)
     response.delete_cookie("uauth", path=f"{d.ROOT}/")
@@ -725,14 +739,14 @@ async def dashboard(
         await render(
             "Dashboard.html",
             {
-                "configs": a.configs(),
-                "rooms": a.rooms(),
+                "configs": config_ops.configs(),
+                "rooms": room_ops.rooms(),
                 "sessions": {
                     sname: sinfo
-                    for sname, sinfo in a.sessions().items()
+                    for sname, sinfo in session_ops.sessions().items()
                     if sinfo["active"]
                 },
-                "nudge_announcements": a.nudge_announcements(),
+                "nudge_announcements": config_ops.nudge_announcements(),
                 "uproot_version": u.__version__,
             },
         )
@@ -753,8 +767,8 @@ async def rooms(
         await render(
             "Rooms.html",
             {
-                "rooms": a.rooms(),
-                "sessions": a.sessions(),
+                "rooms": room_ops.rooms(),
+                "sessions": session_ops.sessions(),
             },
         )
     )
@@ -773,7 +787,7 @@ async def new_room(
             await render(
                 "RoomsNew.html",
                 {
-                    "configs": a.configs(),
+                    "configs": config_ops.configs(),
                     "rooms_available": (
                         None if d.PUBLIC_DEMO else [*admin.rooms.keys()]
                     ),
@@ -806,7 +820,7 @@ async def new_room2(
         labels_list = []
 
     if sname_:
-        a.ensure_session_available_for_room(sname_, name)
+        room_ops.ensure_session_available_for_room(sname_, name)
 
     with Admin() as admin:
         if name in admin.rooms:
@@ -862,7 +876,7 @@ async def roommain(
                 {
                     "roomname": roomname,
                     "room": room,
-                    "configs": a.configs(),
+                    "configs": config_ops.configs(),
                     "configs_extra": u.CONFIGS_EXTRA,
                     "settings_forms": settings_forms,
                     "settings_errors": settings_errors,
@@ -871,7 +885,7 @@ async def roommain(
                     ),
                 }
                 | extra
-                | await a.info_online(f"^{roomname}"),
+                | await player_ops.info_online(f"^{roomname}"),
             )
         )
 
@@ -890,7 +904,7 @@ async def new_session_in_room(
     simulate: bool | None = Form(False),
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.room_exists(roomname)
+    room_ops.room_exists(roomname)
 
     sname_ = sname.strip() or None
     unames_list = [a.strip() for a in unames.split("\n") if a.strip()] or None
@@ -970,7 +984,7 @@ async def update_room_settings(
     open: bool | None = Form(False),
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.room_exists(roomname)
+    room_ops.room_exists(roomname)
 
     config_ = config.strip() or None
     sname_ = room_sname.strip() or None
@@ -981,7 +995,7 @@ async def update_room_settings(
         labels_list = []
 
     if sname_:
-        a.ensure_session_available_for_room(sname_, roomname)
+        room_ops.ensure_session_available_for_room(sname_, roomname)
 
     with Admin() as admin:
         ensure(
@@ -1028,7 +1042,7 @@ async def sessions(
         await render(
             "Sessions.html",
             {
-                "sessions": a.sessions(),
+                "sessions": session_ops.sessions(),
             },
         )
     )
@@ -1048,7 +1062,7 @@ async def new_session(
         await render(
             "SessionsNew.html",
             {
-                "configs": a.configs(),
+                "configs": config_ops.configs(),
                 "configs_extra": u.CONFIGS_EXTRA,
                 "settings_forms": settings_forms,
                 "settings_errors": settings_errors,
@@ -1105,17 +1119,18 @@ async def sessionmain(
     sname: t.Sessionname,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
 
     with Session(sname) as session:
         return HTMLResponse(
             await render(
                 "Session.html",
-                {"sname": sname, "room": session.room} | await a.info_online(sname),
+                {"sname": sname, "room": session.room}
+                | await player_ops.info_online(sname),
                 {
                     "session": session,
-                    "has_digest": bool(a.get_digest(sname)),
-                    "has_pipelines": bool(a.get_pipelines(sname)),
+                    "has_digest": bool(session_ops.get_digest(sname)),
+                    "has_pipelines": bool(session_ops.get_pipelines(sname)),
                 },
             )
         )
@@ -1128,13 +1143,14 @@ async def session_chat(
     sname: t.Sessionname,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
 
     with Session(sname) as session:
         return HTMLResponse(
             await render(
                 "SessionChat.html",
-                {"sname": sname, "room": session.room} | await a.info_online(sname),
+                {"sname": sname, "room": session.room}
+                | await player_ops.info_online(sname),
                 {"session": session},
             )
         )
@@ -1147,11 +1163,14 @@ async def session_data(
     sname: t.Sessionname,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
     return HTMLResponse(
         await render(
             "SessionData.html",
-            {"sname": sname, "has_pipelines": bool(a.get_pipelines(sname))},
+            {
+                "sname": sname,
+                "has_pipelines": bool(session_ops.get_pipelines(sname)),
+            },
         )
     )
 
@@ -1163,9 +1182,9 @@ async def session_digest(
     sname: t.Sessionname,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
 
-    available = a.get_digest(sname)
+    available = session_ops.get_digest(sname)
     ensure(bool(available), ValueError, "No digest available")
 
     html = {}
@@ -1235,9 +1254,9 @@ async def session_pipeline(
     sname: t.Sessionname,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
 
-    available = a.get_pipelines(sname)
+    available = session_ops.get_pipelines(sname)
     ensure(bool(available), ValueError, "No pipeline available")
 
     html = {}
@@ -1279,14 +1298,20 @@ async def session_pipeline_run(
     filetype: str = Query(default="csv"),
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
 
-    ensure(appname in a.get_pipelines(sname), ValueError, "No pipeline available")
+    ensure(
+        appname in session_ops.get_pipelines(sname),
+        ValueError,
+        "No pipeline available",
+    )
     pipeline_data, data_was_provided = await pipeline_data_from_request(request)
-    rval = await a.run_pipeline(sname, appname, pipeline_data, data_was_provided)
+    rval = await session_ops.run_pipeline(
+        sname, appname, pipeline_data, data_was_provided
+    )
 
-    if not a.is_custom_data_export(rval):
-        return PlainTextResponse(a.pipeline_result_display(rval))
+    if not data_ops.is_custom_data_export(rval):
+        return PlainTextResponse(data_ops.pipeline_result_display(rval))
 
     rows = cast(list[dict[str, Any]], rval)
     filename = f"{sname}-{appname}"
@@ -1303,13 +1328,13 @@ async def session_pipeline_run(
 
     if filetype == "csv":
         return Response(
-            a.generate_custom_csv(rows),
+            data_ops.generate_custom_csv(rows),
             media_type="text/csv",
             headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
         )
     else:
         return StreamingResponse(
-            a.generate_custom_jsonl(rows),
+            data_ops.generate_custom_jsonl(rows),
             media_type="application/jsonl",
             headers={"Content-Disposition": f"attachment; filename={filename}.jsonl"},
         )
@@ -1325,14 +1350,14 @@ async def session_data_download(
     filters: bool = Query(default=False),
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
     ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
 
     stamp = datetime.now(UTC).strftime("%Y-%m-%d_%H%M")
     briefcase_name = f"{sname}_{stamp}"
 
     t0 = now()
-    briefcase = await a.generate_briefcase(
+    briefcase = await data_ops.generate_briefcase(
         sname,
         gvar,
         filters,
@@ -1359,11 +1384,14 @@ async def session_viewdata(
     sname: t.Sessionname,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
     return HTMLResponse(
         await render(
             "SessionViewdata.html",
-            {"sname": sname, "has_pipelines": bool(a.get_pipelines(sname))},
+            {
+                "sname": sname,
+                "has_pipelines": bool(session_ops.get_pipelines(sname)),
+            },
         )
     )
 
@@ -1375,7 +1403,7 @@ async def session_multiview(
     sname: t.Sessionname,
     auth: dict[str, Any] = AuthRequired,
 ) -> Response:
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
 
     with Session(sname) as session:
         labels = []
@@ -1422,7 +1450,7 @@ async def status(
             missing[term] = []
         missing[term].append(lang)
 
-    sessions = a.get_active_auth_sessions()
+    sessions = auth_service.get_active_auth_sessions()
 
     if not d.PUBLIC_DEMO:
         return HTMLResponse(
@@ -1433,7 +1461,7 @@ async def status(
                     "dbsize": dbsize,
                     "missing": missing,
                     "sessions": sessions,
-                    "nudge_announcements": a.nudge_announcements(),
+                    "nudge_announcements": config_ops.nudge_announcements(),
                     "python_version": sys.version,
                     "uproot_version": u.__version__,
                 },
@@ -1463,10 +1491,10 @@ async def logout_all(
     """Logout from all sessions by revoking all tokens for the current user."""
     uauth = request.cookies.get("uauth")
     if uauth:
-        data = a.from_cookie(uauth)
+        data = auth_service.from_cookie(uauth)
         user = data.get("user", "")
         if user:
-            revoked_count = a.revoke_all_user_tokens(user)
+            revoked_count = auth_service.revoke_all_user_tokens(user)
             d.LOGGER.info("Revoked %d tokens for current user", revoked_count)
 
     response = RedirectResponse(f"{d.ROOT}/admin/login/", status_code=303)
@@ -1547,37 +1575,37 @@ async def dummy(
 
 
 FUNS = {
-    "adminchat_overview": a.adminchat_overview,
-    "adminchat_thread": a.adminchat_thread,
-    "adjust_timeout": a.adjust_timeout,
-    "adminmessage": a.adminmessage,
-    "advance_by_one": a.advance_by_one,
-    "announcements": a.announcements,
-    "close_room": a.close_room,
-    "delete_room": a.delete_room,
-    "disassociate": a.disassociate,
-    "dismiss_announcements": a.dismiss_announcements,
-    "everything_from_session_display": a.everything_from_session_display,
-    "fields_from_all": a.fields_from_all,
-    "flip_active": a.flip_active,
-    "flip_testing": a.flip_testing,
-    "group_players": a.group_players,
-    "info_online": a.info_online,
-    "insert_fields": a.insert_fields,
-    "mark_dropout": a.mark_dropout,
-    "praise": a.praise,
-    "put_to_end": a.put_to_end,
-    "redirect": a.redirect,
-    "reload": a.reload,
-    "revert_by_one": a.revert_by_one,
-    "run_new_player": a.run_new_player,
-    "run_new_session": a.run_new_session,
-    "send_adminchat": a.send_adminchat,
-    "send_adminchat_to_players": a.send_adminchat_to_players,
-    "set_adminchat_replies": a.set_adminchat_replies,
-    "set_adminchat_replies_for_players": a.set_adminchat_replies_for_players,
-    "set_room_capacity": a.set_room_capacity,
-    "set_room_open": a.set_room_open,
-    "update_description": a.update_description,
-    "update_settings": a.update_settings,
+    "adminchat_overview": player_ops.adminchat_overview,
+    "adminchat_thread": player_ops.adminchat_thread,
+    "adjust_timeout": player_ops.adjust_timeout,
+    "adminmessage": player_ops.adminmessage,
+    "advance_by_one": player_ops.advance_by_one,
+    "announcements": config_ops.announcements,
+    "close_room": room_ops.close_room,
+    "delete_room": room_ops.delete_room,
+    "disassociate": room_ops.disassociate,
+    "dismiss_announcements": config_ops.dismiss_announcements,
+    "everything_from_session_display": data_ops.everything_from_session_display,
+    "fields_from_all": player_ops.fields_from_all,
+    "flip_active": session_ops.flip_active,
+    "flip_testing": session_ops.flip_testing,
+    "group_players": player_ops.group_players,
+    "info_online": player_ops.info_online,
+    "insert_fields": player_ops.insert_fields,
+    "mark_dropout": player_ops.mark_dropout,
+    "praise": config_ops.praise,
+    "put_to_end": player_ops.put_to_end,
+    "redirect": player_ops.redirect,
+    "reload": player_ops.reload,
+    "revert_by_one": player_ops.revert_by_one,
+    "run_new_player": player_ops.run_new_player,
+    "run_new_session": session_ops.run_new_session,
+    "send_adminchat": player_ops.send_adminchat,
+    "send_adminchat_to_players": player_ops.send_adminchat_to_players,
+    "set_adminchat_replies": player_ops.set_adminchat_replies,
+    "set_adminchat_replies_for_players": player_ops.set_adminchat_replies_for_players,
+    "set_room_capacity": room_ops.set_room_capacity,
+    "set_room_open": room_ops.set_room_open,
+    "update_description": session_ops.update_description,
+    "update_settings": session_ops.update_settings,
 }

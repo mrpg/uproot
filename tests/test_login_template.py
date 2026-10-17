@@ -80,12 +80,12 @@ def test_logout_routes_are_post_only():
 def test_admin_websocket_logged_in_rechecks_token(monkeypatch):
     monkeypatch.setattr(server2.d, "UNSAFE", False)
     monkeypatch.setattr(
-        server2.a,
+        server2.auth_service,
         "from_cookie",
         lambda token: {"user": "admin", "token": token},
     )
     monkeypatch.setattr(
-        server2.a,
+        server2.auth_service,
         "verify_auth_token",
         lambda user, token: {"user": user} if token == "valid" else None,
     )

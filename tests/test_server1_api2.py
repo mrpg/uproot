@@ -101,7 +101,7 @@ async def test_app_queries2_passes_player_only_for_authenticated_calls(
         "api2_test_app",
         SimpleNamespace(api2=api2),
     )
-    monkeypatch.setattr(server1.a, "session_exists", lambda sname: None)
+    monkeypatch.setattr(server1.session_ops, "session_exists", lambda sname: None)
     monkeypatch.setattr(server1, "api2_player", lambda incoming, sname: player)
     monkeypatch.setattr(server1, "Session", lambda sname: nullcontext(session))
 

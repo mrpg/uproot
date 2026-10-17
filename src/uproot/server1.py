@@ -39,10 +39,12 @@ from fastapi.responses import (
 from starlette.datastructures import UploadFile
 
 import uproot as u
-import uproot.admin as a
 import uproot.deployment as d
 import uproot.jobs as j
 import uproot.queues as q
+import uproot.services.auth as auth_service
+import uproot.services.room_service as room_ops
+import uproot.services.session_service as session_ops
 import uproot.types as t
 from uproot import chat, i18n
 from uproot.constraints import ensure, valid_token
@@ -254,7 +256,7 @@ async def index(request: Request) -> RedirectResponse:
 async def enqueue(
     request: Request,
     queue: str,
-    bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(auth_service.require_bearer_token),
 ) -> dict[str, Any]:
     path = tuple(queue.strip("/").split("/"))
 
@@ -593,9 +595,9 @@ async def avoid_side_effects_when_previewing(
     request: Request,
 ) -> HTMLResponse:
     if "sname" in request.path_params:
-        a.session_exists(request.path_params["sname"])
+        session_ops.session_exists(request.path_params["sname"])
     elif "roomname" in request.path_params:
-        a.room_exists(request.path_params["roomname"])
+        room_ops.room_exists(request.path_params["roomname"])
 
     return HTMLResponse(
         await render(
@@ -614,7 +616,7 @@ async def sessionwide(
     secret: str,
 ) -> Response:
     # Verify sname and secret
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
     session = Session(sname)
 
     with session:
@@ -688,10 +690,11 @@ async def ws(
 
     pid = cast(t.PlayerIdentifier, t.identify(player))
     queue = q.register(tuple(pid))  # convention: queue path = (sname, uname)
-    data = a.from_cookie(uauth)
+    data = auth_service.from_cookie(uauth)
     is_admin = (
         d.UNSAFE
-        or a.verify_auth_token(data.get("user", ""), data.get("token", "")) is not None
+        or auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
+        is not None
     )
 
     processed_futures: deque[int | str] = deque(maxlen=8 * 1024)
@@ -1019,7 +1022,7 @@ async def app_queries(
     request: Request,
     appname: str,
     sname: t.Sessionname,
-    bauth: None = Depends(a.require_bearer_token),
+    bauth: None = Depends(auth_service.require_bearer_token),
 ) -> Response:
     if appname not in u.APPS:
         raise HTTPException(status_code=400, detail="Invalid app")
@@ -1027,7 +1030,7 @@ async def app_queries(
     if not hasattr(u.APPS[appname], "api"):
         raise HTTPException(status_code=400, detail="App has no api()")
 
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
 
     with Session(sname) as session:
         result = await ensure_awaitable(
@@ -1055,7 +1058,7 @@ async def app_queries2(
     if not hasattr(u.APPS[appname], "api2"):
         raise HTTPException(status_code=400, detail="App has no api2()")
 
-    a.session_exists(sname)
+    session_ops.session_exists(sname)
     player = api2_player(request, sname)
     request.state.uproot_player = player
 
