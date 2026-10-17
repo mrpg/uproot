@@ -230,25 +230,6 @@ def admin_credentials_valid(user: str, pw: str) -> bool:
     return True
 
 
-def create_auth_token(user: str, pw: str) -> str | None:
-    """Create a new authentication token for a user.
-
-    Args:
-        user: Username
-        pw: Password
-
-    Returns:
-        Signed token string if credentials are valid, None otherwise
-    """
-    ensure_globals()
-
-    # Verify credentials first
-    if not admin_credentials_valid(user, pw):
-        return None
-
-    return create_token_internal(user)
-
-
 async def create_auth_token_async(user: str, pw: str) -> str | None:
     ensure_globals()
 
