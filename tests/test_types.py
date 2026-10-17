@@ -22,6 +22,7 @@ from uproot.types import (
     SmoothOperator,
     StorageBunch,
     Value,
+    as_identifier,
     context,
     ensure_awaitable,
     internal_live,
@@ -100,6 +101,24 @@ class TestIdentifierClasses:
         assert mid.mname == "model"
         assert list(mid) == ["session", "model"]
         assert str(mid) == "model"
+
+    def test_as_identifier(self):
+        """Test that as_identifier passes identifiers through and identifies Storage."""
+        from uproot.storage import Storage
+
+        pid = PlayerIdentifier(sname="session", uname="user")
+        player = Storage("player", "session", "user")
+        session = Storage("session", "session")
+
+        assert as_identifier(PlayerIdentifier, pid) is pid
+        assert as_identifier(PlayerIdentifier, player) == pid
+        assert as_identifier(SessionIdentifier, session) == SessionIdentifier("session")
+
+        with pytest.raises(TypeError, match="Expected SessionIdentifier"):
+            as_identifier(SessionIdentifier, player)
+
+        with pytest.raises(TypeError, match="Expected PlayerIdentifier"):
+            as_identifier(PlayerIdentifier, SessionIdentifier("session"))
 
 
 class TestOptionalCallOnce:

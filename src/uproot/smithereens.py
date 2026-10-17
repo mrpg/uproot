@@ -9,7 +9,7 @@ from collections import namedtuple
 from collections.abc import Awaitable, Callable, Iterable, Sequence
 from decimal import Decimal as cu
 from types import EllipsisType
-from typing import Any, cast
+from typing import Any, TypeAlias, cast
 
 from markupsafe import Markup
 from pydantic import validate_call
@@ -21,13 +21,14 @@ import uproot.jobs as j
 import uproot.types as t
 import uproot.utils.draft as drafts
 from uproot.constraints import ensure
-from uproot.flexibility import PlayerLike, flexible, is_player_like
 from uproot.pages import fmtnum_filter as fmtnum
 from uproot.pages import page2path, path2page
 from uproot.pages import to_filter as to
 from uproot.queries import FieldReferent
 from uproot.queues import enqueue
 from uproot.storage import Admin, Group, Model, Player, Session, Storage
+
+PlayerLike: TypeAlias = Storage | t.PlayerIdentifier
 
 
 class PlayerContext:
@@ -121,20 +122,9 @@ uuid = t.uuid
 
 def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
     """Convert an iterable of PlayerLike objects to PlayerIdentifiers."""
-    result: list[t.PlayerIdentifier] = []
-    for m in members:
-        if isinstance(m, t.PlayerIdentifier):
-            result.append(m)
-        elif isinstance(m, Storage):
-            result.append(cast(t.PlayerIdentifier, t.identify(m)))
-        else:
-            raise TypeError(
-                f"Member must be Storage or PlayerIdentifier, got {type(m).__name__}"
-            )
-    return result
+    return [t.as_identifier(t.PlayerIdentifier, m) for m in members]
 
 
-@flexible
 def create_group(
     session: Storage,
     members: Iterable[PlayerLike],
@@ -170,7 +160,6 @@ def create_group(
         return c.create_group(session, member_pids, gname=gname, overwrite=overwrite)
 
 
-@flexible
 def create_groups(
     session: Storage,
     groups: Iterable[Iterable[PlayerLike]],
@@ -249,15 +238,17 @@ def live(method: Callable[..., Any]) -> Callable[..., Any]:
     return newmethod  # type: ignore[return-value]
 
 
-@flexible
 def send_to_one(
-    recipient: Storage,
+    recipient: PlayerLike,
     data: Any,
     event: str = "_uproot_Received",
     *,
     where: int | EllipsisType = ...,
 ) -> None:
     ensure(where is ... or isinstance(where, int), ValueError)
+
+    if isinstance(recipient, t.PlayerIdentifier):
+        recipient = t.materialize(recipient)
 
     if where is ... or recipient.show_page == where:
         enqueue(
@@ -278,7 +269,9 @@ def send_to(
     *,
     where: int | EllipsisType = ...,
 ) -> None:
-    if is_player_like(recipient):
+    if isinstance(recipient, t.PlayerIdentifier) or (
+        isinstance(recipient, Storage) and recipient.__namespace__[0] == "player"
+    ):
         send_to_one(recipient, data, event, where=where)
     elif isinstance(recipient, Iterable):
         for one_recipient in recipient:  # type: ignore[union-attr]
@@ -290,7 +283,6 @@ def send_to(
 
 
 @t.timed
-@flexible
 def notify(
     sender: Storage,
     to: PlayerLike | Iterable[PlayerLike],
@@ -305,7 +297,6 @@ def notify(
     return send_to(recipient=to, data=data, event=event, where=where)
 
 
-@flexible
 def reload(player: Storage) -> None:
     enqueue(
         (player._uproot_session, player.name),
@@ -340,7 +331,6 @@ def sets_up(page_order: list[str], ix: int, target_ix: int) -> bool:
     return True
 
 
-@flexible
 def transition_to_page(
     player: Storage, target: type[t.Page], reload_: bool = True
 ) -> None:
@@ -391,7 +381,6 @@ def transition_to_page(
         reload(player)
 
 
-@flexible
 def transition_to_end(player: Storage, reload_: bool = True) -> None:
     with player:
         player.show_page = len(player.page_order)
@@ -401,22 +390,18 @@ def transition_to_end(player: Storage, reload_: bool = True) -> None:
         reload(player)
 
 
-@flexible
 def move_to_page(player: Storage, target: type[t.Page], reload_: bool = True) -> None:
     transition_to_page(player, target, reload_=reload_)
 
 
-@flexible
 def move_to_end(player: Storage, reload_: bool = True) -> None:
     transition_to_end(player, reload_=reload_)
 
 
-@flexible
-def mark_dropout(pid: t.PlayerIdentifier) -> None:
-    u.MANUAL_DROPOUTS.add(pid)
+def mark_dropout(pid: PlayerLike) -> None:
+    u.MANUAL_DROPOUTS.add(t.as_identifier(t.PlayerIdentifier, pid))
 
 
-@flexible
 def watch_for_dropout(
     player: Storage,
     fun: Callable[[Storage], Awaitable[None]],
@@ -434,7 +419,7 @@ def watch_for_dropout(
 
     player._uproot_watch.append(list(triplet))
 
-    u.WATCH.add((cast(t.PlayerIdentifier, t.identify(player)), *triplet))
+    u.WATCH.add((t.as_identifier(t.PlayerIdentifier, player), *triplet))
 
 
 def data_uri(data: bytes) -> str:

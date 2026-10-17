@@ -17,14 +17,13 @@ from pydantic.dataclasses import dataclass as validated_dataclass
 
 import uproot.core as c
 import uproot.storage as s
-from uproot.flexibility import flexible
 from uproot.types import (
     GroupIdentifier,
     Identifier,
     ModelIdentifier,
     PlayerIdentifier,
     SessionIdentifier,
-    identify,
+    as_identifier,
     materialize,
     uuid,
 )
@@ -65,9 +64,9 @@ class Entry(type):
         )
 
 
-@flexible
-@validate_call
-def create_model(sid: SessionIdentifier, *, tag: str | None = None) -> ModelIdentifier:
+def create_model(
+    sid: s.Storage | SessionIdentifier, *, tag: str | None = None
+) -> ModelIdentifier:
     """
     Create a new model in the given session.
 
@@ -78,8 +77,8 @@ def create_model(sid: SessionIdentifier, *, tag: str | None = None) -> ModelIden
     Returns:
         The identifier of the newly created model
     """
-    with materialize(sid) as s:
-        mid = c.create_model(s, data={"tag": tag})
+    with materialize(as_identifier(SessionIdentifier, sid)) as session:
+        mid = c.create_model(session, data={"tag": tag})
 
     return mid
 
@@ -104,7 +103,7 @@ def get_storage(mid: ModelIdentifier) -> s.Storage:
 
 def add_entry(
     mid: ModelIdentifier,
-    pid: PlayerIdentifier | s.Storage,
+    pid: s.Storage | PlayerIdentifier,
     entry_type: Any,
     **other_fields: Any,
 ) -> UUID:
@@ -126,8 +125,7 @@ def add_entry(
     Example:
         entry_id = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
     """
-    if isinstance(pid, s.Storage):
-        pid = cast(PlayerIdentifier, identify(pid))
+    pid = as_identifier(PlayerIdentifier, pid)
 
     auto_fields: dict[str, Any] = {}
 

@@ -13,13 +13,13 @@ import uproot.deployment as d
 import uproot.events as e
 import uproot.models as um
 import uproot.queues as q
-from uproot.flexibility import flexible
 from uproot.storage import Storage
 from uproot.types import (
     Bunch,
     ModelIdentifier,
     PlayerIdentifier,
     SessionIdentifier,
+    as_identifier,
     materialize,
     token_unchecked,
 )
@@ -85,9 +85,7 @@ def anonymize(s: str) -> str:
     return COLLISIONS[0][s]
 
 
-@flexible
-@validate_call
-def create(session: SessionIdentifier) -> ModelIdentifier:
+def create(session: Storage | SessionIdentifier) -> ModelIdentifier:
     chat = um.create_model(session, tag="chat")
 
     with um.get_storage(chat) as m:
@@ -107,10 +105,13 @@ def players(chat: ModelIdentifier) -> Bunch:
     return cast(Bunch, um.get_field(chat, "players"))
 
 
-@flexible
 def add_player(
-    chat: ModelIdentifier, pid: PlayerIdentifier, pseudonym: str | None = None
+    chat: ModelIdentifier,
+    pid: Storage | PlayerIdentifier,
+    pseudonym: str | None = None,
 ) -> None:
+    pid = as_identifier(PlayerIdentifier, pid)
+
     with model(chat) as m:
         m.players.append(pid)
 
@@ -123,7 +124,6 @@ def messages(chat: ModelIdentifier) -> list[tuple[UUID, float, Message]]:
     return um.get_entries(chat, Message)
 
 
-@flexible
 @validate_call
 def add_message(
     chat: ModelIdentifier,
@@ -166,7 +166,6 @@ def adminchat_reply_state(pid: PlayerIdentifier) -> bool:
         return bool(player.get("_uproot_adminchat_replies", False))
 
 
-@flexible
 @validate_call
 def create_adminchat(pid: PlayerIdentifier) -> ModelIdentifier:
     session = SessionIdentifier(pid.sname)
@@ -179,7 +178,6 @@ def create_adminchat(pid: PlayerIdentifier) -> ModelIdentifier:
     return chat
 
 
-@flexible
 @validate_call
 def ensure_adminchat(pid: PlayerIdentifier) -> ModelIdentifier:
     existing = adminchat_for_player(pid)

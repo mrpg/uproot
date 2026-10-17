@@ -47,6 +47,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
+I = TypeVar("I", bound="Identifier")
 
 Value = appendmuch.Value
 
@@ -142,6 +143,18 @@ def materialize(identifier: Identifier, **kwargs: Any) -> "Storage":
             return Model(*identifier, **kwargs)
         case _:
             raise NotImplementedError
+
+
+def as_identifier(kind: type[I], obj: "Storage | Identifier") -> I:
+    """Return obj as an identifier of the given kind, identifying Storage objects."""
+    from uproot.storage import Storage
+
+    ident = identify(obj) if isinstance(obj, Storage) else obj
+
+    if not isinstance(ident, kind):
+        raise TypeError(f"Expected {kind.__name__} or matching Storage, got {obj!r}")
+
+    return ident
 
 
 def ensure_local_logger() -> Any:
