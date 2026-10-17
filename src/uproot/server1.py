@@ -43,12 +43,13 @@ import uproot.deployment as d
 import uproot.jobs as j
 import uproot.queues as q
 import uproot.services.auth as auth_service
+import uproot.services.player_service as player_ops
 import uproot.services.room_service as room_ops
 import uproot.services.session_service as session_ops
 import uproot.types as t
 from uproot import chat, i18n
 from uproot.constraints import ensure, valid_token
-from uproot.core import find_free_slot, resolve_page_order
+from uproot.core import find_free_slot
 from uproot.pages import (
     path2page,
     render,
@@ -312,27 +313,10 @@ ValidPlayer = Depends(valid_player)
 
 
 def initialize(player: Storage) -> None:
-
     with player.session as session:
-        if not session._uproot_initialized:
-            for appname in session.apps:
-                app = u.APPS[appname]
+        session_ops.run_new_session_callbacks(session)
 
-                if hasattr(app, "new_session"):
-                    app.new_session(session)
-
-            session._uproot_initialized = True
-
-    if not player._uproot_initialized:
-        for appname in u.CONFIGS[player.config]:
-            app = u.APPS[appname]
-
-            if hasattr(app, "new_player"):
-                app.new_player(player=player)
-
-        player._uproot_initialized = True
-
-    player.page_order = resolve_page_order(player, player.config)
+    player_ops.prepare_player_callbacks(player)
 
 
 async def timeout_fires(page: type[t.Page], player: Storage) -> bool:

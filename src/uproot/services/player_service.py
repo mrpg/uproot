@@ -15,7 +15,11 @@ import uproot.types as t
 from uproot import chat
 from uproot.constraints import ensure
 from uproot.core import reach_end, resolve_page_order
-from uproot.services.session_service import players_exist, session_exists
+from uproot.services.session_service import (
+    players_exist,
+    run_new_session_callbacks,
+    session_exists,
+)
 
 
 async def info_online(sname: t.Sessionname) -> dict[t.Username, Any]:
@@ -101,19 +105,6 @@ async def run_new_player(sname: t.Sessionname, unames: list[str]) -> None:
 
         with t.materialize(pid) as player:
             prepare_player_callbacks(player)
-
-
-def run_new_session_callbacks(session: s.Storage) -> None:
-    if session._uproot_initialized:
-        return
-
-    for appname in session.apps:
-        app = u.APPS[appname]
-
-        if hasattr(app, "new_session"):
-            app.new_session(session)
-
-    session._uproot_initialized = True
 
 
 def run_new_player_callbacks(player: s.Storage) -> None:

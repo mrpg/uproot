@@ -13,7 +13,7 @@ import uproot.core as c
 import uproot.deployment as d
 import uproot.server4 as api
 import uproot.storage as s
-from uproot import server2
+from uproot import server1, server2
 from uproot.services import auth
 
 
@@ -284,6 +284,95 @@ async def create_api_session(n_players: int = 0) -> tuple[str, list[str]]:
     )
 
     return sname, (await api.get_session(sname, None))["players"]
+
+
+@pytest.mark.parametrize("entrypoint", ["browser", "session", "player"])
+async def test_initialization_callbacks_run_once_across_entrypoints(
+    monkeypatch: pytest.MonkeyPatch, entrypoint: str
+) -> None:
+    reset_admin_state()
+    calls: list[str] = []
+
+    def new_session(session: s.Storage) -> None:
+        calls.append("session")
+        session.ready = True
+
+    def new_player(player: s.Storage) -> None:
+        assert player.session.ready
+        calls.append(player.name)
+        player.ready = True
+
+    def page_order(player: s.Storage) -> list[Any]:
+        assert player.ready
+        return []
+
+    app = SimpleNamespace(
+        new_session=new_session, new_player=new_player, page_order=page_order
+    )
+    monkeypatch.setattr(u, "APPS", {"init_app": app}, raising=False)
+    monkeypatch.setitem(u.CONFIGS, "test-api", ["init_app"])
+    sname, unames = await create_api_session(n_players=2)
+
+    if entrypoint == "browser":
+        with s.Player(sname, unames[0]) as player:
+            server1.initialize(player)
+    elif entrypoint == "session":
+        await api.initialize_session(sname, None)
+    else:
+        await api.initialize_players(sname, api.PlayersAction(unames=unames[:1]), None)
+
+    for uname in unames:
+        with s.Player(sname, uname) as player:
+            server1.initialize(player)
+            player.page_order = ["stale"]
+            server1.initialize(player)
+            assert player.page_order == ["init_app/#StartApp"]
+
+    await api.initialize_players(sname, api.PlayersAction(unames=unames), None)
+    assert calls == ["session", *unames]
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.initialize_session(sname, None)
+    assert excinfo.value.status_code == 400
+
+
+@pytest.mark.parametrize("callback", ["new_session", "new_player"])
+async def test_failed_initialization_can_be_retried_through_another_entrypoint(
+    monkeypatch: pytest.MonkeyPatch, callback: str
+) -> None:
+    reset_admin_state()
+    attempts = 0
+
+    def initialize(player: s.Storage) -> None:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise RuntimeError("Callback failed")
+
+    monkeypatch.setattr(
+        u,
+        "APPS",
+        {"init_app": SimpleNamespace(**{callback: initialize})},
+        raising=False,
+    )
+    monkeypatch.setitem(u.CONFIGS, "test-api", ["init_app"])
+    sname, unames = await create_api_session(n_players=1)
+
+    with (
+        s.Player(sname, unames[0]) as player,
+        pytest.raises(RuntimeError, match="Callback failed"),
+    ):
+        server1.initialize(player)
+
+    with s.Session(sname) as session, s.Player(sname, unames[0]) as player:
+        assert session._uproot_initialized is (callback == "new_player")
+        assert not player._uproot_initialized
+
+    await api.initialize_players(sname, api.PlayersAction(unames=unames), None)
+    assert attempts == 2
+    with s.Session(sname) as session, s.Player(sname, unames[0]) as player:
+        assert session._uproot_initialized
+        assert player._uproot_initialized
 
 
 async def test_session_settings_may_contain_any_key() -> None:

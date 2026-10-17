@@ -115,6 +115,19 @@ async def set_testing(sname: t.Sessionname, testing: bool) -> None:
         session._uproot_testing = testing
 
 
+def run_new_session_callbacks(session: s.Storage) -> None:
+    if session._uproot_initialized:
+        return
+
+    for appname in session.apps:
+        app = u.APPS[appname]
+
+        if hasattr(app, "new_session"):
+            app.new_session(session)
+
+    session._uproot_initialized = True
+
+
 async def run_new_session(sname: t.Sessionname) -> None:
     """Manually run new_session callbacks for a session that hasn't been initialized."""
     session_exists(sname, False)
@@ -123,13 +136,7 @@ async def run_new_session(sname: t.Sessionname) -> None:
         if session._uproot_initialized:
             raise HTTPException(status_code=400, detail="Session already initialized")
 
-        for appname in session.apps:
-            app = u.APPS[appname]
-
-            if hasattr(app, "new_session"):
-                app.new_session(session)
-
-        session._uproot_initialized = True
+        run_new_session_callbacks(session)
 
 
 async def update_description(sname: t.Sessionname, newdesc: str) -> None:
