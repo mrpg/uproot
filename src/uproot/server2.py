@@ -1286,12 +1286,8 @@ async def session_pipeline_run(
         ValueError,
         "No pipeline available",
     )
-    pipeline_data, data_was_provided = await session_ops.pipeline_data_from_request(
-        request
-    )
-    rval = await session_ops.run_pipeline(
-        sname, appname, pipeline_data, data_was_provided
-    )
+    pipeline_data = await session_ops.pipeline_data_from_request(request)
+    rval = await session_ops.run_pipeline(sname, appname, pipeline_data)
 
     if not data_ops.is_custom_data_export(rval):
         return PlainTextResponse(data_ops.pipeline_result_display(rval))

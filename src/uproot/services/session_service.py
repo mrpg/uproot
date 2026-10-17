@@ -3,7 +3,6 @@
 
 """Session management service."""
 
-import inspect
 from collections.abc import Iterable
 from typing import Any
 
@@ -172,79 +171,28 @@ def get_pipelines(sname: t.Sessionname) -> list[str]:
     return [appname for appname in apps if hasattr(u.APPS[appname], "pipeline")]
 
 
-async def pipeline_data_from_request(request: Request) -> tuple[Any, bool]:
+async def pipeline_data_from_request(request: Request) -> Any:
     if request.method != "POST":
-        return None, False
+        return None
 
     body = await request.body()
     if not body.strip():
-        return None, False
+        return None
 
     try:
-        return orjson.loads(body), True
+        return orjson.loads(body)
     except orjson.JSONDecodeError as exc:
         raise HTTPException(
             status_code=400, detail="Pipeline data must be valid JSON"
         ) from exc
 
 
-def pipeline_call_kwargs(
-    pipeline: Any, data: Any, data_was_provided: bool
-) -> dict[str, Any]:
-    """Return validated optional keyword arguments for a pipeline callable."""
-    try:
-        params = inspect.signature(pipeline).parameters
-    except (TypeError, ValueError):
-        if data_was_provided:
-            raise HTTPException(
-                status_code=400,
-                detail="Cannot pass pipeline data to a callable with no signature",
-            ) from None
-        return {}
-
-    accepts_arbitrary_kwargs = any(
-        param.kind is inspect.Parameter.VAR_KEYWORD for param in params.values()
-    )
-    data_param = params.get("data")
-    accepts_data = data_param is not None or accepts_arbitrary_kwargs
-
-    if data_was_provided and not accepts_data:
-        raise HTTPException(
-            status_code=400,
-            detail="Pipeline data was provided, but pipeline() does not accept data",
-        )
-
-    if data_param is not None:
-        data_required = (
-            data_param.default is inspect.Parameter.empty
-            and data_param.kind
-            in (
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                inspect.Parameter.KEYWORD_ONLY,
-            )
-        )
-
-        if data_required and not data_was_provided:
-            raise HTTPException(
-                status_code=400,
-                detail="pipeline() requires data, but no pipeline data was provided",
-            )
-
-        return {"data": data}
-
-    if data_was_provided and accepts_arbitrary_kwargs:
-        return {"data": data}
-
-    return {}
-
-
 async def run_pipeline(
     sname: t.Sessionname,
     appname: str,
     data: Any = None,
-    data_was_provided: bool = False,
 ) -> Any:
-    """Run an app pipeline for a session, optionally passing JSON-compatible data."""
+    """Call pipeline(session=session, data=data), awaiting an async result."""
     session_exists(sname, False)
 
     if appname not in get_pipelines(sname):
@@ -256,5 +204,5 @@ async def run_pipeline(
         return await ensure_awaitable(
             app.pipeline,
             session=session,
-            **pipeline_call_kwargs(app.pipeline, data, data_was_provided),
+            data=data,
         )

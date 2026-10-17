@@ -1,6 +1,7 @@
 import csv
 import random
 import threading
+from contextlib import nullcontext
 from datetime import UTC, date, datetime, time
 from io import BytesIO, StringIO
 from types import SimpleNamespace
@@ -848,12 +849,12 @@ async def test_everything_from_session_display_filters_by_time_with_sequence_ord
 @pytest.mark.parametrize(
     "method, body, expected",
     [
-        ("GET", b"ignored", (None, False)),
-        ("POST", b"", (None, False)),
-        ("POST", b" \n", (None, False)),
-        ("POST", b"null", (None, True)),
-        ("POST", b"false", (False, True)),
-        ("POST", b'{"limit":3}', ({"limit": 3}, True)),
+        ("GET", b"ignored", None),
+        ("POST", b"", None),
+        ("POST", b" \n", None),
+        ("POST", b"null", None),
+        ("POST", b"false", False),
+        ("POST", b'{"limit":3}', {"limit": 3}),
     ],
 )
 async def test_pipeline_request_data(method, body, expected):
@@ -877,47 +878,39 @@ async def test_pipeline_request_rejects_invalid_json():
     assert error.value.status_code == 400
 
 
-def test_pipeline_call_kwargs_preserves_legacy_pipeline_signature():
-    def pipeline(session):
-        return session
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize(
+    "kwargs", [{}, {"data": None}, {"data": False}, {"data": {"limit": 3}}]
+)
+async def test_run_pipeline_passes_session_and_data(monkeypatch, asynchronous, kwargs):
+    expected_session = SimpleNamespace(name="test-session")
 
-    assert session_service.pipeline_call_kwargs(pipeline, None, False) == {}
-
-
-def test_pipeline_call_kwargs_rejects_data_for_legacy_pipeline_signature():
-    def pipeline(session):
-        return session
-
-    with pytest.raises(HTTPException, match="does not accept data"):
-        session_service.pipeline_call_kwargs(pipeline, {"limit": 3}, True)
-
-
-def test_pipeline_call_kwargs_passes_declared_data():
-    def pipeline(session, data=None):
-        return session, data
-
-    assert session_service.pipeline_call_kwargs(pipeline, {"limit": 3}, True) == {
-        "data": {"limit": 3}
-    }
-    assert session_service.pipeline_call_kwargs(pipeline, None, False) == {"data": None}
-
-
-def test_pipeline_call_kwargs_rejects_missing_required_data():
     def pipeline(session, data):
+        assert session is expected_session
         return session, data
 
-    with pytest.raises(HTTPException, match="requires data"):
-        session_service.pipeline_call_kwargs(pipeline, None, False)
+    async def async_pipeline(session, data):
+        return pipeline(session, data)
 
+    monkeypatch.setattr(session_service, "session_exists", lambda *args: None)
+    monkeypatch.setattr(session_service, "get_pipelines", lambda sname: ["study"])
+    monkeypatch.setattr(
+        session_service.s, "Session", lambda sname: nullcontext(expected_session)
+    )
+    monkeypatch.setattr(
+        session_service.u,
+        "APPS",
+        {
+            "study": SimpleNamespace(
+                pipeline=async_pipeline if asynchronous else pipeline
+            )
+        },
+        raising=False,
+    )
 
-def test_pipeline_call_kwargs_passes_provided_data_to_kwargs_pipeline():
-    def pipeline(session, **kwargs):
-        return session, kwargs
+    result = await session_service.run_pipeline("test-session", "study", **kwargs)
 
-    assert session_service.pipeline_call_kwargs(pipeline, {"limit": 3}, True) == {
-        "data": {"limit": 3}
-    }
-    assert session_service.pipeline_call_kwargs(pipeline, None, False) == {}
+    assert result == (expected_session, kwargs.get("data"))
 
 
 def test_stable_encode_decode_date():

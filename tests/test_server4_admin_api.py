@@ -3,8 +3,9 @@ from typing import Any
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
+import orjson
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from starlette.routing import Match
 
 import uproot as u
@@ -12,6 +13,7 @@ import uproot.core as c
 import uproot.deployment as d
 import uproot.server4 as api
 import uproot.storage as s
+from uproot import server2
 from uproot.services import auth
 
 
@@ -400,13 +402,46 @@ async def test_room_session_defaults_to_room_config() -> None:
     assert excinfo.value.status_code == 400
 
 
+@pytest.mark.parametrize(
+    "handler", [api.run_session_pipeline_response, server2.session_pipeline_run]
+)
+@pytest.mark.parametrize(
+    "method, body, expected",
+    [
+        ("GET", b"", None),
+        ("POST", b"false", False),
+        ("POST", b'{"limit":3}', {"limit": 3}),
+    ],
+)
+async def test_pipeline_routes_pass_data(monkeypatch, handler, method, body, expected):
+    reset_admin_state()
+
+    def pipeline(session, data):
+        return {"session": session.name, "data": data}
+
+    monkeypatch.setattr(
+        u, "APPS", {"pipeline_app": SimpleNamespace(pipeline=pipeline)}, raising=False
+    )
+    monkeypatch.setitem(u.CONFIGS, "test-api", ["pipeline_app"])
+    sname = (await create_api_session())[0]
+
+    async def receive():
+        return {"type": "http.request", "body": body}
+
+    request = Request({"type": "http", "method": method}, receive)
+    response = await handler(request, sname, "pipeline_app", "csv")
+
+    assert response.status_code == 200
+    assert orjson.loads(response.body) == {"session": sname, "data": expected}
+
+
 async def test_pipeline_filetype_is_checked_before_running(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     reset_admin_state()
     calls = []
 
-    def pipeline(session: s.Storage) -> list[dict[str, Any]]:
+    def pipeline(session: s.Storage, data: Any = None) -> list[dict[str, Any]]:
         calls.append(session.name)
         return [{"a": 1}]
 

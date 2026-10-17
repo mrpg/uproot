@@ -1118,13 +1118,9 @@ async def run_session_pipeline_response(
             status_code=400, detail="Invalid filetype. Use: csv or jsonl"
         )
 
-    pipeline_data, data_was_provided = await session_ops.pipeline_data_from_request(
-        request
-    )
+    pipeline_data = await session_ops.pipeline_data_from_request(request)
 
-    result = await session_ops.run_pipeline(
-        sname, appname, pipeline_data, data_was_provided
-    )
+    result = await session_ops.run_pipeline(sname, appname, pipeline_data)
 
     if not data_ops.is_custom_data_export(result):
         return PlainTextResponse(data_ops.pipeline_result_display(result))

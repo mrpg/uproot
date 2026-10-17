@@ -233,7 +233,7 @@ class Results(Page):
     pass
 
 
-def pipeline(session: SessionType) -> list[dict[str, Any]]:
+def pipeline(session: SessionType, data: Any = None) -> list[dict[str, Any]]:
     rows = []
 
     for group in session.groups(app=__name__):
