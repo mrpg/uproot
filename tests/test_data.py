@@ -9,7 +9,7 @@ from zipfile import ZipFile
 
 import orjson as json
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from sortedcontainers import SortedList
 from starlette.concurrency import iterate_in_threadpool
 
@@ -843,6 +843,38 @@ async def test_everything_from_session_display_filters_by_time_with_sequence_ord
 
     assert result == {"player1": {"choice": [(20.0, False, "str", "new", "refresh")]}}
     assert last_update == 20.0
+
+
+@pytest.mark.parametrize(
+    "method, body, expected",
+    [
+        ("GET", b"ignored", (None, False)),
+        ("POST", b"", (None, False)),
+        ("POST", b" \n", (None, False)),
+        ("POST", b"null", (None, True)),
+        ("POST", b"false", (False, True)),
+        ("POST", b'{"limit":3}', ({"limit": 3}, True)),
+    ],
+)
+async def test_pipeline_request_data(method, body, expected):
+    async def receive():
+        return {"type": "http.request", "body": body}
+
+    request = Request({"type": "http", "method": method}, receive)
+
+    assert await session_service.pipeline_data_from_request(request) == expected
+
+
+async def test_pipeline_request_rejects_invalid_json():
+    async def receive():
+        return {"type": "http.request", "body": b"invalid"}
+
+    request = Request({"type": "http", "method": "POST"}, receive)
+
+    with pytest.raises(HTTPException) as error:
+        await session_service.pipeline_data_from_request(request)
+
+    assert error.value.status_code == 400
 
 
 def test_pipeline_call_kwargs_preserves_legacy_pipeline_signature():

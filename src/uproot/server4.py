@@ -402,22 +402,6 @@ def session_detail(sname: str) -> dict[str, Any]:
         }
 
 
-async def pipeline_data_from_request(request: Request) -> tuple[Any, bool]:
-    if request.method != "POST":
-        return None, False
-
-    body = await request.body()
-    if not body.strip():
-        return None, False
-
-    try:
-        return orjson.loads(body), True
-    except orjson.JSONDecodeError as exc:
-        raise HTTPException(
-            status_code=400, detail="Pipeline data must be valid JSON"
-        ) from exc
-
-
 def missing_i18n_terms() -> dict[str, list[str]]:
     missing: dict[str, list[str]] = {}
 
@@ -1136,7 +1120,9 @@ async def run_session_pipeline_response(
             status_code=400, detail="Invalid filetype. Use: csv or jsonl"
         )
 
-    pipeline_data, data_was_provided = await pipeline_data_from_request(request)
+    pipeline_data, data_was_provided = await session_ops.pipeline_data_from_request(
+        request
+    )
 
     result = await session_ops.run_pipeline(
         sname, appname, pipeline_data, data_was_provided

@@ -1232,22 +1232,6 @@ async def session_digest(
 
 
 # Particular session: pipeline
-async def pipeline_data_from_request(request: Request) -> tuple[Any, bool]:
-    if request.method != "POST":
-        return None, False
-
-    body = await request.body()
-    if not body.strip():
-        return None, False
-
-    try:
-        return orjson.loads(body), True
-    except orjson.JSONDecodeError as exc:
-        raise HTTPException(
-            status_code=400, detail="Pipeline data must be valid JSON"
-        ) from exc
-
-
 @router.get("/session/{sname}/pipelines/")
 async def session_pipeline(
     request: Request,
@@ -1305,7 +1289,9 @@ async def session_pipeline_run(
         ValueError,
         "No pipeline available",
     )
-    pipeline_data, data_was_provided = await pipeline_data_from_request(request)
+    pipeline_data, data_was_provided = await session_ops.pipeline_data_from_request(
+        request
+    )
     rval = await session_ops.run_pipeline(
         sname, appname, pipeline_data, data_was_provided
     )

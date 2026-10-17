@@ -7,7 +7,8 @@ import inspect
 from collections.abc import Iterable
 from typing import Any
 
-from fastapi import HTTPException
+import orjson
+from fastapi import HTTPException, Request
 
 import uproot as u
 import uproot.core as c
@@ -169,6 +170,22 @@ def get_pipelines(sname: t.Sessionname) -> list[str]:
         apps = session.apps
 
     return [appname for appname in apps if hasattr(u.APPS[appname], "pipeline")]
+
+
+async def pipeline_data_from_request(request: Request) -> tuple[Any, bool]:
+    if request.method != "POST":
+        return None, False
+
+    body = await request.body()
+    if not body.strip():
+        return None, False
+
+    try:
+        return orjson.loads(body), True
+    except orjson.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=400, detail="Pipeline data must be valid JSON"
+        ) from exc
 
 
 def pipeline_call_kwargs(
