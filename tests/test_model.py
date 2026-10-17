@@ -167,26 +167,6 @@ def test_add_raw_entry_with_dict(model_and_player):
     assert edata["y"] == "hello"
 
 
-def test_auto_add_entry(model_and_player):
-    """Test auto-adding entry with identifier filling."""
-    mid, pid = model_and_player
-
-    from uuid import UUID
-
-    entry_id = mod.auto_add_entry(mid, pid, PlayerEntry, score=95.5, level="hard")
-
-    # auto_add_entry now returns UUID
-    assert isinstance(entry_id, UUID)
-
-    # Verify via get_entries
-    entries = list(mod.get_entries(mid, PlayerEntry))
-    assert len(entries) == 1
-    _, _, entry = entries[0]
-    assert entry.pid == pid
-    assert entry.score == 95.5
-    assert entry.level == "hard"
-
-
 def test_smart_add_entry_auto_mode(model_and_player):
     """Test smart add_entry in auto-filling mode."""
     mid, pid = model_and_player

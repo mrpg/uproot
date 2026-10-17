@@ -102,16 +102,17 @@ def get_storage(mid: ModelIdentifier) -> s.Storage:
     return storage
 
 
-@flexible
-@validate_call
-def auto_add_entry(
+def add_entry(
     mid: ModelIdentifier,
-    pid: PlayerIdentifier,
+    pid: PlayerIdentifier | s.Storage,
     entry_type: Any,
     **other_fields: Any,
 ) -> UUID:
     """
-    Automatically create and add an entry with auto-filled identifier fields.
+    Add an entry to the model with auto-filling of identifier fields.
+
+    Automatically fills identifier fields (PlayerIdentifier, SessionIdentifier,
+    GroupIdentifier, ModelIdentifier) based on type annotations in the entry class.
 
     Args:
         mid: The model identifier to add the entry to
@@ -121,7 +122,13 @@ def auto_add_entry(
 
     Returns:
         The UUID assigned to the stored entry
+
+    Example:
+        entry_id = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
     """
+    if isinstance(pid, s.Storage):
+        pid = cast(PlayerIdentifier, identify(pid))
+
     auto_fields: dict[str, Any] = {}
 
     # Auto-fill identifier fields based on type annotations
@@ -148,36 +155,6 @@ def auto_add_entry(
 
     # Add it to the model and return the UUID
     return add_raw_entry(mid, new_entry)
-
-
-def add_entry(
-    mid: ModelIdentifier,
-    pid: PlayerIdentifier,
-    entry_type: Any,
-    **other_fields: Any,
-) -> UUID:
-    """
-    Add an entry to the model with auto-filling of identifier fields.
-
-    Automatically fills identifier fields (PlayerIdentifier, SessionIdentifier,
-    GroupIdentifier, ModelIdentifier) based on type annotations in the entry class.
-
-    Args:
-        mid: The model identifier to add the entry to
-        pid: The player identifier for auto-filling
-        entry_type: The entry class to create
-        **other_fields: Additional fields to set on the entry
-
-    Returns:
-        The UUID assigned to the stored entry
-
-    Example:
-        entry_id = add_entry(model_id, player_id, Offer, price=100.0, quantity=5)
-    """
-    if isinstance(pid, s.Storage):
-        pid = identify(pid)  # type: ignore[assignment]
-
-    return auto_add_entry(mid, pid, entry_type, **other_fields)
 
 
 @validate_call
