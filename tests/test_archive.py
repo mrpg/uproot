@@ -1,12 +1,25 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2026.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+import gzip
 import io
 import os
 import tarfile
 from pathlib import Path
 
+import pytest
+
 from uproot import archive
+
+
+@pytest.mark.parametrize(
+    "chunks",
+    [[], [b""], [b"first", b"", b"second"], [bytes(range(256)) * 4096]],
+)
+def test_gzip_stream_roundtrip(chunks):
+    compressed = b"".join(archive.gzip_iter(iter(chunks)))
+
+    assert gzip.decompress(compressed) == b"".join(chunks)
 
 
 def touch(path: Path, content: str = "") -> None:

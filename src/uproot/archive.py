@@ -1,12 +1,12 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2026.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-"""Reproducible .tar.gz archives of project code that respect .gitignore files."""
+"""Streaming gzip compression and reproducible project code archives."""
 
 import gzip
 import os
 import tarfile
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path, PurePosixPath
 from typing import IO
 
@@ -17,6 +17,18 @@ from pathspec import GitIgnoreSpec
 from uproot.utils.sink import Sink
 
 Rules = tuple[tuple[PurePosixPath, GitIgnoreSpec], ...]
+
+
+def gzip_iter(chunks: Iterable[bytes]) -> Iterator[bytes]:
+    sink = Sink()
+
+    with gzip.GzipFile(fileobj=sink, mode="wb") as gz:
+        for chunk in chunks:
+            gz.write(chunk)
+            if data := sink.drain():
+                yield data
+
+    yield sink.drain()
 
 
 def available(root: Path) -> bool:

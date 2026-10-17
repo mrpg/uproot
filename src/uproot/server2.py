@@ -6,13 +6,10 @@ This file implements admin routes.
 """
 
 import asyncio
-import gzip
 import hmac
 import importlib.metadata
-import io
 import os
 import sys
-from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter as now
@@ -1489,23 +1486,6 @@ async def logout_all(
     return response
 
 
-def gzip_iter(chunks: Iterable[bytes]) -> Iterator[bytes]:
-    buf = io.BytesIO()
-    with gzip.GzipFile(fileobj=buf, mode="wb") as gz:
-        for chunk in chunks:
-            gz.write(chunk)
-            buf.seek(0)
-            data = buf.read()
-            if data:
-                yield data
-                buf.seek(0)
-                buf.truncate()
-    buf.seek(0)
-    trailing = buf.read()
-    if trailing:
-        yield trailing
-
-
 # Database dump
 
 
@@ -1521,7 +1501,7 @@ async def dump(
         )
 
     return StreamingResponse(
-        gzip_iter(d.DATABASE.dump()),
+        archive.gzip_iter(d.DATABASE.dump()),
         media_type="application/gzip",
         headers={
             "Content-Disposition": "attachment; filename=uproot.msgpack.gz",
