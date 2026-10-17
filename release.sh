@@ -38,7 +38,7 @@ SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
 rm -rf ./dist/
 export SOURCE_DATE_EPOCH
 umask 022
-uv run pip wheel . -w dist/
+uv build --wheel --out-dir dist/
 
 # Verify release artifacts
 uv run twine check dist/uproot*.whl
