@@ -706,9 +706,6 @@ async def ws(
         "from_websocket": {
             "websocket": websocket,
         },
-        "timer": {
-            "interval": 30.0,
-        },
     }
 
     async def send_websocket_message(payload: dict[str, Any]) -> None:
@@ -947,8 +944,6 @@ async def ws(
                         bg_task = asyncio.create_task(run_process(result))
                         background_tasks.add(bg_task)
                         bg_task.add_done_callback(background_tasks.discard)
-                    elif fname == "timer":
-                        pass  # placeholder for the future
                     else:
                         raise NotImplementedError(fname)
                 except WebSocketDisconnect:

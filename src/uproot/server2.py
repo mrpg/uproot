@@ -305,15 +305,12 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
         "from_websocket": {
             "websocket": websocket,
         },
-        "timer": {
-            "interval": 30.0,
-        },
     }
 
     for jj in j.ADMIN_JOBS:
         fun = cast(Any, jj)
 
-        tasks[asyncio.create_task(fun(**args[jj.__name__]))] = jj.__name__, jj
+        tasks[asyncio.create_task(fun(**args[jj.__name__]))] = jj.__name__, fun
 
     subscriptions: dict[str, tuple[t.BoundedPulse, asyncio.Queue[Any]]] = {}
 
@@ -570,8 +567,6 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             }
                         )
                     )
-                elif fname == "timer":
-                    pass  # placeholder for the future
                 else:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:

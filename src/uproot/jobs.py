@@ -64,10 +64,6 @@ async def subscribe_to_room(roomname: str) -> bool:
     return True
 
 
-async def timer(interval: float) -> None:
-    await asyncio.sleep(interval)
-
-
 BACKGROUND_TASKS: set[asyncio.Task[Any]] = set()
 
 
@@ -310,17 +306,14 @@ GLOBAL_JOBS = [
 
 ADMIN_JOBS = [
     from_websocket,
-    timer,
 ]
 
 PLAYER_JOBS = [
     from_queue,
     from_websocket,
-    timer,
 ]
 
 ROOM_JOBS = [
     subscribe_to_room,
     from_websocket,
-    timer,
 ]

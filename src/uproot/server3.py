@@ -228,9 +228,6 @@ async def ws(
         "subscribe_to_room": {
             "roomname": roomname,
         },
-        "timer": {
-            "interval": 30.0,
-        },
     }
 
     for jj in j.ROOM_JOBS:
@@ -301,8 +298,6 @@ async def ws(
                             }
                         )
                     )
-                elif fname == "timer":
-                    pass  # Placeholder for the future
                 else:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:
