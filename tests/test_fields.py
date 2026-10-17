@@ -1,5 +1,10 @@
+from datetime import date
+from decimal import Decimal
+
+import pytest
 import wtforms
 
+from uproot import fields
 from uproot.fields import EmailField, FloatField, FloatRangeField, SelectField
 from uproot.pages import ENV
 
@@ -9,6 +14,51 @@ class FormData(dict):
         if key not in self:
             return []
         return [self[key]]
+
+
+@pytest.mark.parametrize(
+    "field_type, submitted, expected, widget",
+    [
+        (fields.DateField, "2026-10-17", date(2026, 10, 17), 'type="date"'),
+        (fields.FileField, "upload.csv", "upload.csv", 'type="file"'),
+        (fields.DecimalField, "3.14", Decimal("3.14"), 'type="number"'),
+        (fields.FloatField, "3.14", 3.14, 'type="number"'),
+        (fields.DecimalRangeField, "3.14", Decimal("3.14"), 'type="range"'),
+        (fields.FloatRangeField, "3.14", 3.14, 'type="range"'),
+        (fields.StringField, "hello", "hello", 'type="text"'),
+        (fields.TextAreaField, "hello\nworld", "hello\nworld", "<textarea"),
+    ],
+)
+def test_shared_field_initializers_preserve_behavior(
+    field_type, submitted, expected, widget
+):
+    class Form(wtforms.Form):
+        value = field_type(
+            label="Value",
+            description="Description",
+            class_wrapper="wrapper",
+            render_kw={"title": "hint"},
+        )
+
+    form = Form(formdata=FormData({"value": submitted}))
+
+    assert form.validate()
+    assert type(form.value.data) is type(expected)
+    assert form.value.data == expected
+    assert form.value.label.text == "Value"
+    assert form.value.description == "Description"
+    assert form.value.class_wrapper == "wrapper"
+    html = form.value()
+    assert widget in html
+    assert 'autocomplete="off"' in html
+    assert 'title="hint"' in html
+
+    assert not Form(formdata=FormData({"value": ""})).validate()
+
+    class OptionalForm(wtforms.Form):
+        value = field_type(optional=True)
+
+    assert OptionalForm(formdata=FormData({"value": ""})).validate()
 
 
 def test_email_field_rejects_invalid_email():
