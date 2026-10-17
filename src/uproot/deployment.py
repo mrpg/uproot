@@ -97,6 +97,13 @@ UVICORN_KWARGS: dict[str, Any] = {
 }
 
 
+def project_metadata(*args: Any, **kwargs: Any) -> None:
+    raise RuntimeError(
+        "Please remove upd.project_metadata(...) from "
+        "`main.py`; it is no longer supported."
+    )
+
+
 def uproot_replace_predicate(namespace: str, field: str) -> bool:
     return field == "_uproot_players" and namespace.startswith("session/")
 
