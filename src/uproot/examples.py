@@ -7,7 +7,6 @@ import os
 import shutil
 import stat
 import subprocess  # nosec B404
-from datetime import UTC, datetime
 from pathlib import Path
 
 import uproot as u
@@ -104,8 +103,6 @@ import uproot.deployment as upd
 from uproot.cli import cli
 from uproot.rooms import room
 from uproot.server import load_config, uproot_server
-
-upd.project_metadata(created="#TODAY#", uproot="#VERSION#")
 
 # Load your app configs here
 # Examples are available at https://github.com/mrpg/uproot-examples
@@ -511,10 +508,8 @@ def setup_empty_project(path: Path, minimal: bool) -> None:
     staticdir = path / "_static"
 
     with open(mainpath, "w", encoding="utf-8") as mf:
-        template = (
-            PROJECT_TEMPLATE.replace("#VERSION#", u.__version__)
-            .replace("#TODAY#", datetime.now(UTC).date().strftime("%Y-%m-%d"))
-            .replace("#EXAMPLE#", "my_app" if minimal else "prisoners_dilemma")
+        template = PROJECT_TEMPLATE.replace(
+            "#EXAMPLE#", "my_app" if minimal else "prisoners_dilemma"
         )
         mf.write(template)
 

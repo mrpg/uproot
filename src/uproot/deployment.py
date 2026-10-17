@@ -66,7 +66,6 @@ ROBOTS_TXT: bool = os.getenv("UPROOT_ROBOTS_TXT", "1").lower() not in (
 PATH: str = os.getcwd()
 PORT: int = 8000
 PROCESS_START: float = perf_counter()
-PROJECT_METADATA: dict[str, Any] = {}
 PUBLIC_DEMO: bool = False
 QUICK_ROOM: str | None = None
 TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
@@ -182,14 +181,6 @@ if os.getenv("UPROOT_SUBDIRECTORY", None) is None:
     ROOT = ""
 else:
     ROOT = "/" + os.getenv("UPROOT_SUBDIRECTORY", "").strip("/")
-
-
-def project_metadata(uproot: str, *args: Any, **kwargs: Any) -> None:
-    """This function intends to check for incompatibilities in the future."""
-    global PROJECT_METADATA
-
-    PROJECT_METADATA |= {"uproot": uproot}
-    PROJECT_METADATA |= kwargs
 
 
 def auto_login() -> EllipsisType | str:
