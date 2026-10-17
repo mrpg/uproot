@@ -2,6 +2,8 @@
 
 set -euxo pipefail
 
+# Keep source maps alongside minified vendor files for debugging.
+
 # Create a temporary backup directory
 mkdir _temp/
 
