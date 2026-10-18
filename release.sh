@@ -35,7 +35,7 @@ git push --tags
 
 SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
 
-rm -rf ./dist/
+rm -rf ./build/ ./dist/
 export SOURCE_DATE_EPOCH
 umask 022
 uv build --wheel --out-dir dist/
