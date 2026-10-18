@@ -8,3 +8,4 @@
 - Tools like `ruff` and `black` must NOT be run in read-only mode. Allow them to directly fix files.
 - Do not preserve or introduce backwards compatibility unless specifically instructed to do so. Work with RECKLESS abandon.
 - Prefer deleting code (on net) if at all possible, excluding tests/.
+- This branch uses Bootstrap 6; always use the most recent release (may be alpha or beta). See here: <https://getbootstrap.com/docs/6.0/>
