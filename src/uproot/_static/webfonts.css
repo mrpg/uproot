@@ -1,9 +1,9 @@
 /* Sans-serif font: Inter, https://github.com/rsms/inter/ */
 @import url("vendor/Inter-4.1/web/inter.css");
 /* Serif font: IBM Plex Serif, https://github.com/ibm/plex/ */
-@import url("vendor/ibm-plex-serif/css/ibm-plex-serif-all.min.css");
+@import url("vendor/ibm-plex-serif@2.0.0/css/ibm-plex-serif-all.min.css");
 /* Math font: IBM Plex Math, https://github.com/ibm/plex/ */
-@import url("vendor/ibm-plex-math/css/ibm-plex-math-all.min.css");
+@import url("vendor/ibm-plex-math@1.1.0/css/ibm-plex-math-all.min.css");
 
 /* Monospaced font: Cascadia Mono, https://github.com/microsoft/cascadia-code/ */
 @font-face {
