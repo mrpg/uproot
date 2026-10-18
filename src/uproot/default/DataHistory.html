@@ -1,10 +1,10 @@
 {% if player is defined %}
-<footer class="alert border-uproot uproot-testing-only mt-5 p-0">
-    <div class="alert bg-uproot m-0 rounded-bottom-0 rounded-top-1 text-white">
-        <h4 class="fw-semibold px-2 mb-0">{% translate %}Data{% endtranslate %}</h4>
+<footer class="alert flex-column align-items-stretch border-uproot uproot-testing-only mt-12 p-0">
+    <div class="alert bg-uproot m-0 rounded-bottom-0 rounded-top-3 fg-white">
+        <h4 class="fw-semibold px-3 mb-0">{% translate %}Data{% endtranslate %}</h4>
     </div>
-    <div class="px-4 mb-2 table-responsive">
-        <table class="table mt-3">
+    <div class="px-7 mb-3 table-responsive">
+        <table class="table mt-5">
             <thead>
                 <tr>
                     <th scope="col" class="ps-0">{% translate %}Field{% endtranslate %}</th>
@@ -25,7 +25,7 @@
                         <span class="fw-bold"
                             title="{{ values[0].time | unixtime2datetime(True) }} @ {{ values[0].context }}">
                             {% else %}
-                            <span class="text-secondary"
+                            <span class="fg-secondary"
                                 title="{{ values[0].time | unixtime2datetime(True) }} @ {{ values[0].context }}">
                                 {% endif %}
                                 {{ values[0].time | unixtime2datetime() }}
@@ -35,7 +35,7 @@
                         {% if values | length == 1 %}
                         <span class="fw-bold" title="{{ values[0].data | type }}">
                             {% else %}
-                            <span class="text-secondary" title="{{ values[0].data | type }}">
+                            <span class="fg-secondary" title="{{ values[0].data | type }}">
                                 {% endif %}
                                 {{ values[0].data | repr }}
                             </span>
@@ -48,7 +48,7 @@
                         {% if loop.last %}
                         <span class="fw-bold" title="{{ entry.time | unixtime2datetime(True) }} @ {{ entry.context }}">
                             {% else %}
-                            <span class="text-secondary"
+                            <span class="fg-secondary"
                                 title="{{ entry.time | unixtime2datetime(True) }} @ {{ entry.context }}">
                                 {% endif %}
                                 {{ entry.time | unixtime2datetime() }}
@@ -58,7 +58,7 @@
                         {% if loop.last %}
                         <span class="fw-bold" title="{{ entry.data | type }}">
                             {% else %}
-                            <span class="text-secondary" title="{{ entry.data | type }}">
+                            <span class="fg-secondary" title="{{ entry.data | type }}">
                                 {% endif %}
                                 {{ entry.data | repr }}
                             </span>

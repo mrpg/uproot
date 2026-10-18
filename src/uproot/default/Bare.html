@@ -1,9 +1,11 @@
 {% if __panic__ is defined %}
 
-<div class="alert alert-danger" role="alert">
+<div class="alert theme-danger" role="alert">
+    <div>
     {% translate %}
     <i>AdminDigest.html</i> must not extend <i>Base.html</i> or <i>Bare.html</i>. It must <i>only</i> have a <i>main</i> block.
     {% endtranslate %}
+    </div>
 </div>
 
 {% else %}
@@ -17,7 +19,8 @@
 
 {% if not disable_bootstrap %}
 <link rel="stylesheet" href="{{ internalstatic('vendor/bootstrap/bootstrap.min.css') }}">
-<script src="{{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script type="importmap">{"imports": {"bootstrap": {{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') | tojson }} } }</script>
+<script type="module">import "bootstrap";</script>
 {% endif %}
 
 <link rel="stylesheet" href="{{ internalstatic('style.css') }}">
@@ -74,104 +77,88 @@
     {% translate %}Skip to main content{% endtranslate %}
 </a>
 
-<div class="modal fade" id="error-modal" tabindex="-1" aria-hidden="true" aria-modal="true" role="alertdialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    {% translate %}
-                    Error
-                    {% endtranslate %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="error-modal-body"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
+<dialog class="dialog" id="error-modal" role="alertdialog" aria-labelledby="error-modal-title">
+    <div class="dialog-header">
+        <h5 class="dialog-title" id="error-modal-title">
+            {% translate %}
+            Error
+            {% endtranslate %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Close"></button>
     </div>
-</div>
+    <div class="dialog-body">
+        <div id="error-modal-body"></div>
+    </div>
+    <div class="dialog-footer">
+        <button type="button" class="btn-outline theme-danger" data-bs-dismiss="dialog">
+            {% translate %}
+            Close
+            {% endtranslate %}
+        </button>
+    </div>
+</dialog>
 
-<div class="modal fade" id="alert-modal" tabindex="-1" aria-hidden="true" aria-modal="true" role="alertdialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-                <div id="alert-modal-body"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
+<dialog class="dialog" id="alert-modal" role="alertdialog" aria-describedby="alert-modal-body">
+    <div class="dialog-body">
+        <div id="alert-modal-body"></div>
     </div>
-</div>
+    <div class="dialog-footer">
+        <button type="button" class="btn-outline theme-uproot" data-bs-dismiss="dialog">
+            {% translate %}
+            Close
+            {% endtranslate %}
+        </button>
+    </div>
+</dialog>
 
-<div class="modal fade" id="adminmessage-modal" tabindex="-1" aria-hidden="true" aria-modal="true" role="alertdialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    {% if buddy_label %}{{ buddy_label }}{% else %}{% translate %}Chat with Research Coordinator{% endtranslate %}{% endif %}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="adminmessage-modal-body"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
-                    {% translate %}
-                    Close
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
+<dialog class="dialog" id="adminmessage-modal" role="alertdialog" aria-labelledby="adminmessage-modal-title">
+    <div class="dialog-header">
+        <h5 class="dialog-title" id="adminmessage-modal-title">
+            {% if buddy_label %}{{ buddy_label }}{% else %}{% translate %}Chat with Research Coordinator{% endtranslate %}{% endif %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Close"></button>
     </div>
-</div>
+    <div class="dialog-body">
+        <div id="adminmessage-modal-body"></div>
+    </div>
+    <div class="dialog-footer">
+        <button type="button" class="btn-outline theme-danger" data-bs-dismiss="dialog">
+            {% translate %}
+            Close
+            {% endtranslate %}
+        </button>
+    </div>
+</dialog>
 
 {% if not disable_connection_lost_modal %}
-<div class="modal fade" id="connection-timeout-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" aria-modal="true" role="alertdialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    {% translate %}
-                    Connection lost
-                    {% endtranslate %}
-                </h5>
-            </div>
-            <div class="modal-body">
-                <p>
-                {% translate %}
-                Connection with server lost. Please check your internet connection.
-                {% endtranslate %}
-                </p>
-                <p class="mb-0">
-                {% translate %}
-                If you are using a VPN, consider disabling it.
-                {% endtranslate %}
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="connection-modal-reload-btn" class="btn btn-outline-danger" onclick="uproot.reload()">
-                    {% translate %}
-                    Reload
-                    {% endtranslate %}
-                </button>
-            </div>
-        </div>
+<dialog class="dialog" id="connection-timeout-modal" role="alertdialog" aria-labelledby="connection-timeout-modal-title" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="dialog-header">
+        <h5 class="dialog-title" id="connection-timeout-modal-title">
+            {% translate %}
+            Connection lost
+            {% endtranslate %}
+        </h5>
     </div>
-</div>
+    <div class="dialog-body">
+        <p>
+        {% translate %}
+        Connection with server lost. Please check your internet connection.
+        {% endtranslate %}
+        </p>
+        <p class="mb-0">
+        {% translate %}
+        If you are using a VPN, consider disabling it.
+        {% endtranslate %}
+        </p>
+    </div>
+    <div class="dialog-footer">
+        <button type="button" id="connection-modal-reload-btn" class="btn-outline theme-danger" onclick="uproot.reload()">
+            {% translate %}
+            Reload
+            {% endtranslate %}
+        </button>
+    </div>
+</dialog>
 {% endif %}
 
 <div id="uproot-buddy" hidden>
@@ -245,7 +232,7 @@
                 {% if _uproot_errors %}
                 <div class="container" id="uproot-errors-container">
                     {% for error in _uproot_errors %}
-                    <div class="alert alert-danger border-danger callout uproot-main-error" role="alert">
+                    <div class="alert theme-danger border-danger callout uproot-main-error" role="alert">
                         {{ error }}
                     </div>
                     {% endfor %}

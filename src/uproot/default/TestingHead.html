@@ -1,19 +1,19 @@
 {% set _uproot_path = show2path(player.page_order, player.show_page) %}
 
 <div id="uproot-testing-button-wrapper" class="fw-light text-end">
-    <p class="small mb-1"><span class="badge bg-uproot-light text-uproot">{{ _uproot_path }}</span></p>
-    <button type="button" class="badge bg-hover-uproot bg-white btn btn-outline-uproot btn-sm fw-light text-hover-white text-uproot text-wrap" onclick="uproot.testingButton(this)">
+    <p class="small mb-1"><span class="badge bg-muted-uproot fg-uproot">{{ _uproot_path }}</span></p>
+    <button type="button" class="badge bg-hover-uproot bg-white btn-outline theme-uproot btn-sm fw-light text-hover-white fg-uproot text-wrap" onclick="uproot.testingButton(this)">
         {% translate %}
         Show testing elements
         {% endtranslate %}
     </button>
 </div>
 
-<div class="alert mb-4 mt-3 bg-uproot uproot-testing-only text-white" role="alert">
-    <p class="mb-2">
+<div class="alert flex-column mb-7 mt-5 bg-uproot uproot-testing-only fg-white" role="alert">
+    <p class="mb-3">
         Go straight to
         <span class="d-inline-block">
-            <select name="uproot-skip" onchange="uproot.skipFromTesting()" class="form-select form-select-sm bg-light">
+            <select name="uproot-skip" onchange="uproot.skipFromTesting()" class="form-control form-control-sm bg-1">
             {% for i, page in enumerate(player.page_order) %}
                 <option value="{{ i }}" {% if i == player.show_page %}selected{% endif %}>{{ page }}</option>
             {% endfor %}

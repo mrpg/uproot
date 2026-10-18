@@ -2,41 +2,38 @@
 
 {% block titlearea %}
 
-<div class="align-center d-flex flex-wrap justify-content-between my-4" id="title-container">
-    <h2 id="uproot-title" class="flex-grow-1 fw-semibold me-3">
+<div class="align-center d-flex flex-wrap justify-content-between my-7" id="title-container">
+    <h2 id="uproot-title" class="flex-grow-1 fw-semibold me-5">
         {% translate %}Session{% endtranslate %}
         <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
-        <span class="fw-light text-secondary">&rsaquo; {% translate %}Data{% endtranslate %}</span>
+        <span class="fw-light fg-secondary">&rsaquo; {% translate %}Data{% endtranslate %}</span>
     </h2>
     <div class="d-flex flex-wrap flex-grow-1 justify-content-between">
-        <div class="btn-group my-1 me-2" id="buttongroup-normal-table">
-            <button type="button" class="btn btn-outline-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
-            <button type="button" class="btn btn-outline-uproot" onclick="fullScreenTable()">{% translate %}Full-screen table{% endtranslate %}</button>
-            <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-            <ul class="dropdown-menu">
-                <li>
-                    <span class="dropdown-item" onclick="fullScreenTable()" role="button">
-                        {% translate %}Full-screen table{% endtranslate %}
-                    </span>
-                </li>
-                <li>
-                    <span class="dropdown-item" onclick="toggleTableWidth()" role="button">
-                        <span class="d-inline-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
-                        <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
-                    </span>
-                </li>
-            </ul>
+        <div class="btn-group my-1 me-3" id="buttongroup-normal-table">
+            <button type="button" class="btn-outline theme-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
+            <button type="button" class="btn-outline theme-uproot" onclick="fullScreenTable()">{% translate %}Full-screen table{% endtranslate %}</button>
+            <button type="button" class="btn-outline theme-uproot" data-bs-toggle="menu" aria-expanded="false">
+                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                <span class="visually-hidden">{% translate %}Table options{% endtranslate %}</span>
+            </button>
+            <div class="menu">
+                <button type="button" class="menu-item" onclick="fullScreenTable()">{% translate %}Full-screen table{% endtranslate %}</button>
+                <button type="button" class="menu-item" onclick="toggleTableWidth()">
+                    <span class="d-inline-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
+                    <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
+                </button>
+            </div>
         </div>
-        <div class="d-flex flex-wrap gap-2" id="buttons-normal-table">
+        <div class="d-flex flex-wrap gap-3" id="buttons-normal-table">
             {% if has_pipelines %}
-            <a class="btn btn-outline-uproot my-1" href="../pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
+            <a class="btn-outline theme-uproot my-1" href="../pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
             {% endif %}
-            <a class="btn btn-uproot my-1" href="../data/">{% translate %}Download data{% endtranslate %}</a>
+            <a class="btn-solid theme-uproot my-1" href="../data/">{% translate %}Download data{% endtranslate %}</a>
         </div>
     </div>
-    <div class="btn-group btn-group-sm d-none my-1 me-2" id="buttons-fullscreen-table">
-        <button type="button" class="btn btn-outline-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
-        <button type="button" class="btn btn-outline-uproot" onclick="normalTable()">{% translate %}Normal table{% endtranslate %}</button>
+    <div class="btn-group btn-group-sm d-none my-1 me-3" id="buttons-fullscreen-table">
+        <button type="button" class="btn-outline theme-uproot" onclick="refreshData()">{% translate %}Refresh{% endtranslate %}</button>
+        <button type="button" class="btn-outline theme-uproot" onclick="normalTable()">{% translate %}Normal table{% endtranslate %}</button>
     </div>
 </div>
 
@@ -55,19 +52,8 @@
     }
 
     /* Styling for Tabulator */
-    .tabulator-col[aria-sort="ascending"] .tabulator-col-content, .tabulator-col[aria-sort="descending"] .tabulator-col-content {
-        background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
-    }
-    .tabulator-cell[tabulator-field="id"], .tabulator-col[tabulator-field="id"] {
-        color: var(--bs-uproot);
-    }
-    .tabulator-cell[tabulator-field="id"], .tabulator-cell[tabulator-field="label"], .tabulator-cell[tabulator-field="player"] {
+    .tabulator-cell[tabulator-field="label"] {
         font-weight: bolder;
-    }
-    .tabulator-col-content {
-        background-color: var(--bs-uproot-bg-light);
-        border-bottom: 1px solid var(--bs-uproot-border-subtle);
-        border-right: 1px dashed var(--bs-uproot-border-subtle);
     }
     .tabulator-col-content, .tabulator-cell {
         padding: 10px !important;
@@ -91,8 +77,8 @@
     .w-fullscreen {
         width: 98.7vw;
     }
-    .modal .modal-body textarea {
-        font-family: var(--bs-font-monospace);
+    .dialog-body textarea {
+        font-family: var(--bs-font-mono);
     }
     .btn-sm-alike, .btn-group-sm-alike {
         padding-bottom: 0.25rem;
@@ -100,7 +86,7 @@
         padding-right: 0.5rem;
         padding-top: 0.25rem;
         font-size: 0.875rem;
-        border-radius: var(--bs-border-radius-sm) !important;
+        border-radius: var(--bs-radius-3) !important;
     }
     .fs-like-btn-sm {
         font-size: 0.875rem;
@@ -115,8 +101,8 @@
 <div class="mt-0 table-sticky-outer" id="tableContainer">
     <div class="container p-0" id="tableMain">
         <div class="border-bottom border-top border-uproot-subtle table-sticky-inner" id="tableOuter">
-            <div class="table-loading text-secondary" role="status">
-                <div class="spinner-border text-uproot" aria-hidden="true"></div>
+            <div class="table-loading fg-secondary" role="status">
+                <div class="spinner-border fg-uproot" aria-hidden="true"></div>
                 <span>{% translate %}Loading data…{% endtranslate %}</span>
             </div>
         </div>
@@ -124,28 +110,32 @@
 </div>
 
 <div id="filter-data-to-display">
-    <div class="d-flex flex-wrap justify-content-between mt-3">
-        <div class="mb-3 me-3">
-            <div class="btn-group dropup p-0">
-                <span class="border border-uproot px-3 py-2 rounded-start text-uproot">
+    <div class="d-flex flex-wrap justify-content-between mt-5">
+        <div class="mb-5 me-5">
+            <div class="btn-group p-0">
+                <span class="border border-uproot px-5 py-3 rounded-start fg-uproot">
                     {% translate %}Filter by app{% endtranslate %}<span class="font-monospace" id="current-app-filter"></span>
                 </span>
-                <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                <ul class="dropdown-menu" id="all-app-names"></ul>
+                <button type="button" class="btn-outline theme-uproot" data-bs-toggle="menu" data-bs-placement="top" aria-expanded="false">
+                    <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+                <div class="menu" id="all-app-names"></div>
             </div>
         </div>
-        <div class="mb-3 me-3">
-            <div class="btn-group dropup p-0">
-                <span class="border border-uproot px-3 py-2 rounded-start text-uproot">
+        <div class="mb-5 me-5">
+            <div class="btn-group p-0">
+                <span class="border border-uproot px-5 py-3 rounded-start fg-uproot">
                     {% translate %}Filter by block{% endtranslate %}<span class="font-monospace" id="current-block-filter"></span>
                 </span>
-                <button type="button" class="btn btn-outline-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                <ul class="dropdown-menu" id="all-block-names"></ul>
+                <button type="button" class="btn-outline theme-uproot" data-bs-toggle="menu" data-bs-placement="top" aria-expanded="false">
+                    <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+                <div class="menu" id="all-block-names"></div>
             </div>
         </div>
-        <div class="mb-3 me-3">
+        <div class="mb-5 me-5">
             <div class="border border-uproot input-group rounded" style="width: 15rem;">
-                <span class="text-uproot px-3 py-2">{% translate %}Filter by round{% endtranslate %}</span>
+                <span class="fg-uproot px-5 py-3">{% translate %}Filter by round{% endtranslate %}</span>
                 <input
                     class="form-control border-0 border-start border-uproot rounded-end text-center" id="filter-by-round-input"
                     min="0"
@@ -155,8 +145,8 @@
                 >
             </div>
         </div>
-        <div class="mb-3 me-3">
-            <button class="btn btn-outline-uproot py-2" onclick="removeFilter()" type="button">
+        <div class="mb-5 me-5">
+            <button class="btn-outline theme-uproot py-3" onclick="removeFilter()" type="button">
                 {% translate %}Show current state{% endtranslate %}
             </button>
         </div>
@@ -164,28 +154,32 @@
 </div>
 
 <div id="filter-data-to-display-sm" hidden>
-    <div class="container d-flex flex-wrap justify-content-between mt-3 pb-3">
-        <div class="mb-2 me-3">
-            <div class="btn-group btn-group-sm-alike dropup p-0">
-                <span class="border border-uproot px-2 py-2 rounded-start-1 text-uproot">
+    <div class="container d-flex flex-wrap justify-content-between mt-5 pb-5">
+        <div class="mb-3 me-5">
+            <div class="btn-group btn-group-sm-alike p-0">
+                <span class="border border-uproot px-3 py-3 rounded-start-3 fg-uproot">
                     {% translate %}Filter by app{% endtranslate %}<span class="font-monospace" id="current-app-filter"></span>
                 </span>
-                <button type="button" class="btn btn-outline-uproot btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                <ul class="dropdown-menu" id="all-app-names"></ul>
+                <button type="button" class="btn-outline theme-uproot btn-sm" data-bs-toggle="menu" data-bs-placement="top" aria-expanded="false">
+                    <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+                <div class="menu" id="all-app-names"></div>
             </div>
         </div>
-        <div class="mb-2 me-3">
-            <div class="btn-group btn-group-sm-alike dropup p-0">
-                <span class="border border-uproot px-2 py-2 rounded-start-1 text-uproot">
+        <div class="mb-3 me-5">
+            <div class="btn-group btn-group-sm-alike p-0">
+                <span class="border border-uproot px-3 py-3 rounded-start-3 fg-uproot">
                     {% translate %}Filter by block{% endtranslate %}<span class="font-monospace" id="current-block-filter"></span>
                 </span>
-                <button type="button" class="btn btn-outline-uproot btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                <ul class="dropdown-menu" id="all-block-names"></ul>
+                <button type="button" class="btn-outline theme-uproot btn-sm" data-bs-toggle="menu" data-bs-placement="top" aria-expanded="false">
+                    <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+                <div class="menu" id="all-block-names"></div>
             </div>
         </div>
-        <div class="mb-2 me-3">
-            <div class="border border-uproot fs-like-btn-sm input-group input-group-sm rounded-1" id="filter-by-round" style="width: 14rem;">
-                <span class="text-uproot px-2 py-2">{% translate %}Filter by round{% endtranslate %}</span>
+        <div class="mb-3 me-5">
+            <div class="border border-uproot fs-like-btn-sm input-group input-group-sm rounded-3" id="filter-by-round" style="width: 14rem;">
+                <span class="fg-uproot px-3 py-3">{% translate %}Filter by round{% endtranslate %}</span>
                 <input
                     class="form-control form-control-sm border-0 border-start border-uproot rounded-end text-center" id="filter-by-round-input"
                     min="0"
@@ -195,8 +189,8 @@
                 >
             </div>
         </div>
-        <div class="mb-2 me-3">
-            <button class="btn btn-outline-uproot btn-sm py-2" onclick="removeFilter()" type="button">
+        <div class="mb-3 me-5">
+            <button class="btn-outline theme-uproot btn-sm py-3" onclick="removeFilter()" type="button">
                 {% translate %}Show current state{% endtranslate %}
             </button>
         </div>
@@ -237,8 +231,8 @@
         I("filter-data-to-display").classList.add("fixed-bottom");
         I("tableContainer").setAttribute("class", "position-absolute h-fullscreen-table start-fullscreen w-fullscreen");
         I("title-container").classList.add("mb-1");
-        I("title-container").classList.add("mt-3");
-        I("title-container").classList.remove("my-4");
+        I("title-container").classList.add("mt-5");
+        I("title-container").classList.remove("my-7");
         I("uproot-footer").classList.add("d-none");
         I("uproot-navbar").classList.add("d-none");
         I("uproot-title").classList.add("h4");
@@ -256,8 +250,8 @@
         I("tableContainer").setAttribute("class", "mt-0 table-sticky-outer");
         I("tableContainer").style.removeProperty("height");
         I("title-container").classList.remove("mb-1");
-        I("title-container").classList.remove("mt-3");
-        I("title-container").classList.add("my-4");
+        I("title-container").classList.remove("mt-5");
+        I("title-container").classList.add("my-7");
         I("uproot-footer").classList.remove("d-none");
         I("uproot-navbar").classList.remove("d-none");
         I("uproot-title").classList.remove("h4");

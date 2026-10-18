@@ -93,7 +93,7 @@ function shouldIncludeField(field) {
  */
 function formatCellValue(value, metadata) {
     if (!metadata || metadata.unavailable) {
-        return `<small class="text-secondary">(${_("unset")})</small>`;
+        return `<small class="fg-secondary">(${_("unset")})</small>`;
     }
 
     const str = String(value);
@@ -232,9 +232,9 @@ function createCellFormatter(field) {
         if (isUpdated) {
             onRendered(() => {
                 const element = cell.getElement();
-                element.classList.add("bg-success-subtle");
+                element.classList.add("bg-subtle-success");
                 setTimeout(() => {
-                    element.classList.remove("bg-success-subtle");
+                    element.classList.remove("bg-subtle-success");
                 }, HIGHLIGHT_DURATION_MS);
             });
         }
@@ -437,7 +437,7 @@ function latest(obj, conditions = {}) {
 // ============================================================================
 
 /**
- * Populates the app and block filter dropdowns.
+ * Populates the app and block filter menus.
  */
 function writeAllFilterNames() {
     writeAllNames("app", _("Any app"));
@@ -445,7 +445,7 @@ function writeAllFilterNames() {
 }
 
 /**
- * Populates the filter dropdown of a field with all of its unique values.
+ * Populates the filter menu of a field with all of its unique values.
  */
 function writeAllNames(field, anyLabel) {
     const extractNames = (payloads) => {
@@ -472,40 +472,34 @@ function writeAllNames(field, anyLabel) {
     container.innerHTML = "";
 
     // Add "Any app" or "Any block" option
-    const defaultItem = document.createElement("li");
-    const defaultSpan = document.createElement("span");
-    defaultSpan.className = "dropdown-item fst-italic";
-    defaultSpan.setAttribute("role", "button");
-    defaultSpan.textContent = anyLabel;
-    defaultSpan.onclick = () => {
+    const defaultItem = document.createElement("button");
+    defaultItem.type = "button";
+    defaultItem.className = "menu-item fst-italic";
+    defaultItem.textContent = anyLabel;
+    defaultItem.onclick = () => {
         filterThenRefreshData(field, "");
         I(`current-${field}-filter`).textContent = "";
     };
-    defaultItem.appendChild(defaultSpan);
     container.appendChild(defaultItem);
 
     // Add divider
-    const divider = document.createElement("li");
-    const hr = document.createElement("hr");
-    hr.className = "dropdown-divider";
-    divider.appendChild(hr);
+    const divider = document.createElement("hr");
+    divider.className = "menu-divider";
     container.appendChild(divider);
 
     // Add names, but not None (e.g., outside of apps or of blocks)
     allNames
         .filter(name => name !== "None")
         .forEach(name => {
-            const li = document.createElement("li");
-            const span = document.createElement("span");
-            span.className = "dropdown-item font-monospace";
-            span.setAttribute("role", "button");
-            span.textContent = name;
-            span.onclick = () => {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "menu-item font-monospace";
+            item.textContent = name;
+            item.onclick = () => {
                 filterThenRefreshData(field, name);
                 I(`current-${field}-filter`).textContent = ` | ${name}`;
             };
-            li.appendChild(span);
-            container.appendChild(li);
+            container.appendChild(item);
         });
 }
 

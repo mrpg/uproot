@@ -1,29 +1,32 @@
 {% extends "Admin.html" %}
-{% from "Macros.html" import json_input, modal, player_count %}
+{% from "Macros.html" import dialog, json_input, player_count %}
 
 
 {% block titlearea %}
 
-<div class="d-flex flex-wrap justify-content-between my-4">
+<div class="d-flex flex-wrap justify-content-between my-7">
     <h2 id="uproot-title" class="fw-semibold">
         {% translate %}Session{% endtranslate %}
         <span class="font-monospace">{{ sname }}</span>
     </h2>
-    <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-uproot my-1" href="chat/">{% translate %}Admin chat{% endtranslate %}</a>
+    <div class="d-flex flex-wrap gap-3">
+        <a class="btn-outline theme-uproot my-1" href="chat/">{% translate %}Admin chat{% endtranslate %}</a>
         {% if has_digest %}
-        <a class="btn btn-outline-uproot my-1" href="digest/">{% translate %}Digest{% endtranslate %}</a>
+        <a class="btn-outline theme-uproot my-1" href="digest/">{% translate %}Digest{% endtranslate %}</a>
         {% endif %}
         {% if has_pipelines %}
-        <a class="btn btn-outline-uproot my-1" href="pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
+        <a class="btn-outline theme-uproot my-1" href="pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
         {% endif %}
         <div class="btn-group my-1">
-            <a class="btn btn-uproot" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
-            <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="viewdata/">{% translate %}View data{% endtranslate %}</a></li>
-                <li><a class="dropdown-item" href="data/">{% translate %}Download data{% endtranslate %}</a></li>
-            </ul>
+            <a class="btn-solid theme-uproot" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
+            <button type="button" class="btn-solid theme-uproot" data-bs-toggle="menu" aria-expanded="false">
+                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                <span class="visually-hidden">{% translate %}Data options{% endtranslate %}</span>
+            </button>
+            <div class="menu">
+                <a class="menu-item" href="viewdata/">{% translate %}View data{% endtranslate %}</a>
+                <a class="menu-item" href="data/">{% translate %}Download data{% endtranslate %}</a>
+            </div>
         </div>
     </div>
 </div>
@@ -44,72 +47,72 @@
 
 {% block main %}
 
-<div class="gx-lg-4-5 row">
-    <div class="col-12 col-xl-3 col-lg-6 mb-4-5">
+<div class="lg:gx-10 row">
+    <div class="col-12 xl:col-3 lg:col-6 mb-10">
         <div class="card h-100">
-            <div class="card-body pb-2">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Associated room{% endtranslate %}</h5>
+            <div class="card-body pb-3">
+                <h5 class="border-bottom fw-semibold mb-5 mt-0 pb-5">{% translate %}Associated room{% endtranslate %}</h5>
                 {% if session.room is none %}
-                <p class="mb-2 pt-1 text-body-tertiary">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
+                <p class="mb-3 pt-1 fg-3">{% translate %}This session is not associated with a room.{% endtranslate %}</p>
                 {% else %}
-                <p class="mb-2 pt-1">{% translate %}This session is associated with a room.{% endtranslate %}</p>
-                <p><a class="fs-4 font-monospace link-subtle mb-3" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
+                <p class="mb-3 pt-1">{% translate %}This session is associated with a room.{% endtranslate %}</p>
+                <p><a class="fs-xl font-monospace link-subtle mb-5" href="../../room/{{ session.room }}/">{{ session.room }}</a></p>
                 <p class="mb-0">
-                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsRoom" role="button" aria-expanded="false" aria-controls="advancedActionsRoom">
+                    <a class="link-uproot small" data-bs-toggle="collapse" href="#advancedActionsRoom" role="button" aria-expanded="false" aria-controls="advancedActionsRoom">
                         {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
                     </a>
                 </p>
                 <div class="collapse" id="advancedActionsRoom">
-                    <p class="my-2">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
+                    <p class="my-3">
+                        <button type="button" class="btn-solid theme-danger btn-sm" onclick="disassociate()">{% translate %}Disassociate room and session{% endtranslate %}</button>
                     </p>
-                    <p class="mb-2">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="closeRoom()">{% translate %}Disassociate &amp; close room{% endtranslate %}</button>
+                    <p class="mb-3">
+                        <button type="button" class="btn-solid theme-danger btn-sm" onclick="closeRoom()">{% translate %}Disassociate &amp; close room{% endtranslate %}</button>
                     </p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
-    <div class="col-12 col-xl-3 col-lg-6 mb-4-5">
+    <div class="col-12 xl:col-3 lg:col-6 mb-10">
         <div class="card h-100">
-            <div class="card-body pb-2">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Session properties{% endtranslate %}</h5>
+            <div class="card-body pb-3">
+                <h5 class="border-bottom fw-semibold mb-5 mt-0 pb-5">{% translate %}Session properties{% endtranslate %}</h5>
                 {% if not deployment.PUBLIC_DEMO %}
-                <div class="mb-3">
+                <div class="mb-5">
                     <h6 class="fw-semibold">{% translate %}Description{% endtranslate %}</h6>
                     {% if session.description %}
                     <p>{{ session.description }}</p>
                     {% else %}
-                    <p class="text-body-tertiary">{% translate %}None{% endtranslate %}</p>
+                    <p class="fg-3">{% translate %}None{% endtranslate %}</p>
                     {% endif %}
                 </div>
                 {% endif %}
                 {% if session.config %}
-                <div class="mb-3">
+                <div class="mb-5">
                     <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-1">
                         <h6 class="fw-semibold">{% translate %}Config{% endtranslate %}</h6>
                     </div>
-                    <p class="font-monospace mb-2">{{ session.config }}</p>
+                    <p class="font-monospace mb-3">{{ session.config }}</p>
                 </div>
                 {% endif %}
                 <div>
-                    <h6 class="fw-semibold mb-2 pb-0 pt-1">{% translate %}Apps{% endtranslate %}</h6>
+                    <h6 class="fw-semibold mb-3 pb-0 pt-1">{% translate %}Apps{% endtranslate %}</h6>
                     <p class="font-monospace">{{ " → ".join(session.apps) }}</p>
                 </div>
                 <p class="mb-0">
-                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActionsSession" role="button" aria-expanded="false" aria-controls="advancedActionsSession">
+                    <a class="link-uproot small" data-bs-toggle="collapse" href="#advancedActionsSession" role="button" aria-expanded="false" aria-controls="advancedActionsSession">
                         {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
                     </a>
                 </p>
                 <div class="collapse" id="advancedActionsSession">
                     {% if not deployment.PUBLIC_DEMO %}
-                    <p class="my-2">
-                        <button type="button" class="btn btn-sm btn-outline-uproot" onclick="setDescription()">{% translate %}Change description{% endtranslate %}</button>
+                    <p class="my-3">
+                        <button type="button" class="btn-sm btn-outline theme-uproot" onclick="setDescription()">{% translate %}Change description{% endtranslate %}</button>
                     </p>
                     {% endif %}
-                    <p class="mb-2">
-                        <a type="button" class="btn btn-sm btn-uproot"
+                    <p class="mb-3">
+                        <a type="button" class="btn-sm btn-solid theme-uproot"
                             data-bs-toggle="popover"
                             data-bs-trigger="hover"
                             data-bs-content="{% translate %}This creates a new session, with the current configuration preselected.{% endtranslate %}"
@@ -121,95 +124,95 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-xl-3 col-lg-6 mb-4-5">
+    <div class="col-12 xl:col-3 lg:col-6 mb-10">
         <div class="card h-100">
-            <div class="card-body pb-2">
-                <h5 class="border-bottom fw-semibold mt-0 pb-3">{% translate %}Players{% endtranslate %}</h5>
-                <div class="mb-4 mt-3 pt-1">
+            <div class="card-body pb-3">
+                <h5 class="border-bottom fw-semibold mt-0 pb-5">{% translate %}Players{% endtranslate %}</h5>
+                <div class="mb-7 mt-5 pt-1">
                     <p class="d-table-row">
-                        <span class="d-table-cell pe-4 text-nowrap">{% translate %}Total{% endtranslate %}</span>
+                        <span class="d-table-cell pe-7 text-nowrap">{% translate %}Total{% endtranslate %}</span>
                         <span class="d-table-cell text-end" x-text="$store.session.totalPlayers"></span>
                     </p>
                     <p class="d-table-row">
-                        <span class="d-table-cell pe-4 pt-1 text-nowrap">{% translate %}Started{% endtranslate %}</span>
+                        <span class="d-table-cell pe-7 pt-1 text-nowrap">{% translate %}Started{% endtranslate %}</span>
                         <span class="d-table-cell pt-1 text-end" x-text="$store.session.startedCount"></span>
                     </p>
                     <p class="d-table-row">
-                        <span class="d-table-cell pe-4 pt-1 text-nowrap">{% translate %}Dropouts{% endtranslate %}</span>
+                        <span class="d-table-cell pe-7 pt-1 text-nowrap">{% translate %}Dropouts{% endtranslate %}</span>
                         <span class="d-table-cell pt-1 text-end"
-                            :class="$store.session.dropoutCount > 0 ? 'fw-semibold text-danger' : ''"
+                            :class="$store.session.dropoutCount > 0 ? 'fw-semibold fg-danger' : ''"
                             x-text="$store.session.dropoutCount"></span>
                     </p>
                 </div>
-                <p class="mb-2">
-                    <button class="btn btn-sm btn-outline-uproot" data-bs-target="#urlModal"
-                        data-bs-toggle="modal" type="button">
+                <p class="mb-3">
+                    <button class="btn-sm btn-outline theme-uproot" data-bs-target="#urlModal"
+                        data-bs-toggle="dialog" type="button">
                         {% translate %}Show Player URLs{% endtranslate %}
                     </button>
                 </p>
             </div>
         </div>
     </div>
-    <div class="col-12 col-xl-3 col-lg-6 mb-4-5">
+    <div class="col-12 xl:col-3 lg:col-6 mb-10">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="border-bottom fw-semibold mb-3 mt-0 pb-3">{% translate %}Session status{% endtranslate %}</h5>
-                <p class="mb-2">
+                <h5 class="border-bottom fw-semibold mb-5 mt-0 pb-5">{% translate %}Session status{% endtranslate %}</h5>
+                <p class="mb-3">
                     {% if session.active %}
                     {% translate %}Session is marked as active.{% endtranslate %}
                     {% else %}
-                    <span class="text-body-tertiary">{% translate %}Session is marked as inactive.{% endtranslate %}</span>
+                    <span class="fg-3">{% translate %}Session is marked as inactive.{% endtranslate %}</span>
                     {% endif %}
                 </p>
-                <p class="mb-2">
+                <p class="mb-3">
                     {% if session._uproot_initialized %}
                     {% translate %}Session is initialized.{% endtranslate %}
                     {% else %}
-                    <span class="text-body-tertiary">{% translate %}Session is not initialized.{% endtranslate %}</span>
+                    <span class="fg-3">{% translate %}Session is not initialized.{% endtranslate %}</span>
                     {% endif %}
                 </p>
-                <p class="mb-2">
+                <p class="mb-3">
                     {% if session._uproot_testing %}
-                    <b class="text-danger"><i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                    <b class="fg-danger"><i class="bi bi-exclamation-triangle-fill fg-danger"></i>
                         {% translate %}Testing elements are displayed for all participants.{% endtranslate %}
                     </b>
                     {% else %}
-                    <span class="text-body-tertiary">{% translate %}
+                    <span class="fg-3">{% translate %}
                         Testing elements are disabled except for admins.{% endtranslate %}
                     </span>
                     {% endif %}
                 </p>
                 {% if session._uproot_simulate %}
-                <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-2">
-                    <p class="mb-1 fw-bold text-danger">
+                <div class="align-items-baseline d-flex flex-wrap justify-content-between mb-3">
+                    <p class="mb-1 fw-bold fg-danger">
                         {% translate %}Simulating responses.{% endtranslate %}
                     </p>
-                    <button class="border-0 btn btn-sm btn-outline-danger flex-grow-0 text-nowrap"
+                    <button class="border-0 btn-sm btn-outline theme-danger flex-grow-0 text-nowrap"
                         data-bs-toggle="popover"
                         data-bs-trigger="hover"
                         data-bs-content="{% translate %}You must create a new session to disable simulating responses.{% endtranslate %}"
                         onclick="alert(_('You must create a new session to disable simulating responses.'))"
                         type="button">
-                        <i class="bi bi-fast-forward text-danger"></i>
+                        <i class="bi bi-fast-forward fg-danger"></i>
                     </button>
                 </div>
                 {% endif %}
-                <div class="my-3">
+                <div class="my-5">
                     <h6 class="fw-semibold">{% translate %}Settings{% endtranslate %}</h6>
                     {% if session.settings %}
                     <p>{% translate %}Settings available via <span class="font-monospace">session.settings</span>.{% endtranslate %}</p>
                     {% else %}
-                    <p class="text-body-tertiary">{% translate %}No settings{% endtranslate %}</p>
+                    <p class="fg-3">{% translate %}No settings{% endtranslate %}</p>
                     {% endif %}
                 </div>
                 <p class="mb-0">
-                    <a class="link-offset-2 link-underline-opacity-0 link-uproot small" data-bs-toggle="collapse" href="#advancedActions" role="button" aria-expanded="false" aria-controls="advancedActions">
+                    <a class="link-uproot small" data-bs-toggle="collapse" href="#advancedActions" role="button" aria-expanded="false" aria-controls="advancedActions">
                         {% translate %}Actions{% endtranslate %} <i class="bi bi-chevron-down"></i>
                     </a>
                 </p>
                 <div class="collapse" id="advancedActions">
-                    <p class="my-2">
-                        <button class="btn btn-sm btn-outline-uproot flex-grow-0 text-nowrap"
+                    <p class="my-3">
+                        <button class="btn-sm btn-outline theme-uproot flex-grow-0 text-nowrap"
                             data-bs-toggle="popover"
                             data-bs-trigger="hover"
                             data-bs-content="{% translate %}Toggling this has purely cosmetic consequences:{% endtranslate %} {% if session.active %}{% translate %}It moves this session to the “Inactive sessions” section on the “Sessions” page and hides it from the “Dashboard.”{% endtranslate %}{% else %}{% translate %}It moves this session to the “Active sessions” section on the “Sessions” page and displays it on the “Dashboard.”{% endtranslate %}{% endif %}"
@@ -222,8 +225,8 @@
                             {% endif %}
                         </button>
                     </p>
-                    <p class="mb-2">
-                        <button class="btn btn-sm btn-danger"
+                    <p class="mb-3">
+                        <button class="btn-sm btn-solid theme-danger"
                             data-bs-toggle="popover"
                             data-bs-trigger="hover"
                             data-bs-content="{% if session._uproot_testing %}{% translate %}Toggling this will hide this session’s testing elements for everyone except admins.{% endtranslate %}{% else %}{% translate %}Toggling this will show this session’s testing elements for everyone.{% endtranslate %}{% endif %}"
@@ -237,8 +240,8 @@
                         </button>
                     </p>
                     {% if not session._uproot_initialized %}
-                    <p class="mb-2">
-                        <button class="btn btn-sm btn-uproot flex-grow-0 text-nowrap"
+                    <p class="mb-3">
+                        <button class="btn-sm btn-solid theme-uproot flex-grow-0 text-nowrap"
                             data-bs-toggle="popover"
                             data-bs-trigger="hover"
                             data-bs-content="{% translate %}Run new_session callbacks for all apps. This happens automatically when the first player joins, but can be triggered manually here. This cannot be undone.{% endtranslate %}"
@@ -249,7 +252,7 @@
                     </p>
                     {% endif %}
                     <p class="mb-0">
-                        <button type="button" class="btn btn-sm btn-uproot" data-bs-toggle="modal" data-bs-target="#settings-modal">{% translate %}Change settings{% endtranslate %}</button>
+                        <button type="button" class="btn-sm btn-solid theme-uproot" data-bs-toggle="dialog" data-bs-target="#settings-modal">{% translate %}Change settings{% endtranslate %}</button>
                     </p>
                 </div>
             </div>
@@ -259,15 +262,15 @@
 
 <!-- Player monitor -->
 
-<div class="align-items-center d-flex flex-wrap justify-content-between mb-2 pb-2">
-    <h3 class="flex-grow-1 fw-semibold me-3 mb-3 mt-2">{% translate %}Player monitor{% endtranslate %}</h3>
+<div class="align-items-center d-flex flex-wrap justify-content-between mb-3 pb-3">
+    <h3 class="flex-grow-1 fw-semibold me-5 mb-5 mt-3">{% translate %}Player monitor{% endtranslate %}</h3>
     <div class="d-flex flex-grow-1 flex-wrap justify-content-between">
-        <button type="button" class="btn btn-outline-uproot mb-1 me-3" onclick="toggleTableWidth()">
+        <button type="button" class="btn-outline theme-uproot mb-1 me-5" onclick="toggleTableWidth()">
             <span class="d-block" id="full-width-text">{% translate %}Full-width table{% endtranslate %}</span>
             <span class="d-none" id="normal-width-text">{% translate %}Normal-width table{% endtranslate %}</span>
         </button>
         <div class="align-items-baseline d-flex flex-wrap justify-content-between">
-            <button class="btn btn-outline-uproot mb-1 me-2" onclick="openMultiview()" type="button">
+            <button class="btn-outline theme-uproot mb-1 me-3" onclick="openMultiview()" type="button">
                 {% translate %}Multiview{% endtranslate %}
                 <i class="bi bi-question-circle"
                     data-bs-toggle="popover"
@@ -276,57 +279,24 @@
                     onclick="event.stopPropagation()"></i>
             </button>
             <div class="btn-group mb-1">
-                <button type="button" class="btn btn-uproot" onclick="mmodal('manage')">
+                <button type="button" class="btn-solid theme-uproot" onclick="mmodal('manage')">
                     {% translate %}Manage players{% endtranslate %}
                     </button>
-                <button type="button" class="btn btn-uproot dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                <ul class="dropdown-menu">
-                    <li>
-                        <span class="dropdown-item" onclick="mmodal('manage')" role="button">
-                            {% translate %}Manage players{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="mmodal('insert')" role="button">
-                            {% translate %}Insert fields{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="mmodal('adminmessage_send')" role="button">
-                            {% translate %}Send message{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="setSelectedAdminchatReplies(true)" role="button">
-                            {% translate %}Enable admin chat replies{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="setSelectedAdminchatReplies(false)" role="button">
-                            {% translate %}Disable admin chat replies{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="mmodal('redirect')" role="button">
-                            {% translate %}Redirect to URL{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="mmodal('group')" role="button">
-                            {% translate %}Group players{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="mmodal('adjust_timeout')" role="button">
-                            {% translate %}Adjust timeout{% endtranslate %}
-                        </span>
-                    </li>
-                    <li>
-                        <span class="dropdown-item" onclick="runNewPlayer()" role="button">
-                            {% translate %}Run <code>new_player</code>{% endtranslate %}
-                        </span>
-                    </li>
-                </ul>
+                <button type="button" class="btn-solid theme-uproot" data-bs-toggle="menu" aria-expanded="false">
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    <span class="visually-hidden">{% translate %}Player actions{% endtranslate %}</span>
+                </button>
+                <div class="menu">
+                    <button type="button" class="menu-item" onclick="mmodal('manage')">{% translate %}Manage players{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="mmodal('insert')">{% translate %}Insert fields{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="mmodal('adminmessage_send')">{% translate %}Send message{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="setSelectedAdminchatReplies(true)">{% translate %}Enable admin chat replies{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="setSelectedAdminchatReplies(false)">{% translate %}Disable admin chat replies{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="mmodal('redirect')">{% translate %}Redirect to URL{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="mmodal('group')">{% translate %}Group players{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="mmodal('adjust_timeout')">{% translate %}Adjust timeout{% endtranslate %}</button>
+                    <button type="button" class="menu-item" onclick="runNewPlayer()">{% translate %}Run <code>new_player</code>{% endtranslate %}</button>
+                </div>
             </div>
         </div>
     </div>
@@ -334,73 +304,81 @@
 <div class="mt-0 table-sticky-outer" id="tableContainer">
     <div class="container p-0" id="tableMain">
         <div class="border-bottom border-top border-uproot-subtle table-sticky-inner" id="tableOuter">
-            <div class="table-loading text-secondary" role="status">
-                <div class="spinner-border text-uproot" aria-hidden="true"></div>
+            <div class="table-loading fg-secondary" role="status">
+                <div class="spinner-border fg-uproot" aria-hidden="true"></div>
                 <span>{% translate %}Loading data…{% endtranslate %}</span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal to manage players -->
-{% call modal(_, "manage", title=_("Manage players"), action_text=_("Save changes"), action_handler="actuallyManage()") %}
+<!-- Dialog to manage players -->
+{% call dialog(_, "manage", title=_("Manage players"), action_text=_("Save changes"), action_handler="actuallyManage()") %}
 {{ player_count(_) }}
 <div class="mb-1">
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
-        <label class="form-check-label" for="advance_by_one">
-            {% translate %}Advance by one page{% endtranslate %}
-        </label><br>
-        <span class="form-text">
-            {% translate %}If the next page is not shown, it will be skipped.{% endtranslate %}
-        </span>
+    <div class="form-field mb-5">
+        <input class="radio" type="radio" name="manage" id="advance_by_one" value="advance_by_one">
+        <div class="form-field-content">
+            <label for="advance_by_one">
+                {% translate %}Advance by one page{% endtranslate %}
+            </label>
+            <span class="form-text">
+                {% translate %}If the next page is not shown, it will be skipped.{% endtranslate %}
+            </span>
+        </div>
     </div>
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="manage" id="reload" value="reload">
-        <label class="form-check-label" for="reload">
+    <div class="form-field mb-5">
+        <input class="radio" type="radio" name="manage" id="reload" value="reload">
+        <label for="reload">
             {% translate %}Reload players’ pages{% endtranslate %}
         </label>
     </div>
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="manage" id="revert_by_one" value="revert_by_one">
-        <label class="form-check-label" for="revert_by_one">
-            {% translate %}Revert by one page{% endtranslate %}
-        </label><br>
-        <span class="form-text">
-            {% translate %}If the previous page was not shown, this will return to the current page.{% endtranslate %}
-        </span>
+    <div class="form-field mb-5">
+        <input class="radio" type="radio" name="manage" id="revert_by_one" value="revert_by_one">
+        <div class="form-field-content">
+            <label for="revert_by_one">
+                {% translate %}Revert by one page{% endtranslate %}
+            </label>
+            <span class="form-text">
+                {% translate %}If the previous page was not shown, this will return to the current page.{% endtranslate %}
+            </span>
+        </div>
     </div>
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="manage" id="put_to_end" value="put_to_end">
-        <label class="form-check-label" for="put_to_end">
-            {% translate %}Put to end{% endtranslate %}
-        </label><br>
-        <span class="form-text">
-            {% translate %}This terminates the study for the selected player(s).{% endtranslate %}
-        </span>
+    <div class="form-field mb-5">
+        <input class="radio" type="radio" name="manage" id="put_to_end" value="put_to_end">
+        <div class="form-field-content">
+            <label for="put_to_end">
+                {% translate %}Put to end{% endtranslate %}
+            </label>
+            <span class="form-text">
+                {% translate %}This terminates the study for the selected player(s).{% endtranslate %}
+            </span>
+        </div>
     </div>
-    <div class="form-check">
-        <input class="form-check-input" type="radio" name="manage" id="mark_dropout" value="mark_dropout">
-        <label class="form-check-label" for="mark_dropout">
-            {% translate %}Mark as dropout{% endtranslate %}
-        </label><br>
-        <span class="form-text">
-            {% translate %}This will run all dropout handlers registered with <code>watch_for_dropout()</code>.{% endtranslate %}
-            {% translate %}This may run <code>new_player</code> for players who have not started yet.{% endtranslate %}
-        </span>
+    <div class="form-field">
+        <input class="radio" type="radio" name="manage" id="mark_dropout" value="mark_dropout">
+        <div class="form-field-content">
+            <label for="mark_dropout">
+                {% translate %}Mark as dropout{% endtranslate %}
+            </label>
+            <span class="form-text">
+                {% translate %}This will run all dropout handlers registered with <code>watch_for_dropout()</code>.{% endtranslate %}
+                {% translate %}This may run <code>new_player</code> for players who have not started yet.{% endtranslate %}
+            </span>
+        </div>
     </div>
 </div>
 {% endcall %}
 
-<!-- Modal for inserting fields -->
-{% call modal(_, "insert", title=_("Insert fields"), action_text=_("Insert fields"), action_handler="actuallyInsert()") %}
+<!-- Dialog for inserting fields -->
+{% call dialog(_, "insert", title=_("Insert fields"), action_text=_("Insert fields"), action_handler="actuallyInsert()") %}
 {{ player_count(_) }}
-<div class="mb-3">
+<div class="mb-5">
     <textarea class="form-control font-monospace" id="json-input" rows="3">{}</textarea>
 </div>
-<div class="form-check mb-3">
-    <input class="form-check-input" type="checkbox" name="manage" id="reload2" value="reload">
-    <label class="form-check-label" for="reload2">
+<div class="form-field mb-5">
+    <input class="check" type="checkbox" name="manage" id="reload2" value="reload">
+    <label for="reload2">
         {% translate %}Reload players’ pages{% endtranslate %}
     </label>
 </div>
@@ -408,82 +386,82 @@
     {% translate %}Please enter a valid JSON <i>object</i>. For example, this inserts the fields <code>foo</code> (an integer) and <code>bar</code> (a list):{% endtranslate %}<br>
     <code>{ "foo": -42, "bar": [10, 20, 30] }</code>
 </p>
-<p class="small text-danger">
+<p class="small fg-danger">
     {% translate %}Inserting fields is not considered good practice. Use this feature only when testing or in emergencies. Manual field insertions are irrevocably recorded as such in the database.{% endtranslate %}
 </p>
 {% endcall %}
 
-<!-- Modal for admin to send message to players -->
-{% call modal(_, "adminmessage_send", title=_("Send message"), action_text=_("Send message"), action_handler="actuallyAdminmessageSend()") %}
+<!-- Dialog for admin to send message to players -->
+{% call dialog(_, "adminmessage_send", title=_("Send message"), action_text=_("Send message"), action_handler="actuallyAdminmessageSend()") %}
 {{ player_count(_) }}
-<div class="mb-3">
+<div class="mb-5">
     <textarea class="form-control" id="adminmsg" rows="3"></textarea>
 </div>
 {% endcall %}
 
-<!-- Modal for redirect to URL -->
-{% call modal(_, "redirect", title=_("Redirect to URL"), action_text=_("Redirect players"), action_handler="actuallyRedirect()") %}
+<!-- Dialog for redirect to URL -->
+{% call dialog(_, "redirect", title=_("Redirect to URL"), action_text=_("Redirect players"), action_handler="actuallyRedirect()") %}
 {{ player_count(_) }}
-<div class="mb-3">
+<div class="mb-5">
     <label for="redirect-url" class="form-label">{% translate %}Target URL{% endtranslate %}</label>
     <input type="url" class="form-control font-monospace" id="redirect-url" placeholder="https://example.com/">
     <div class="form-text">{% translate %}URL must start with http:// or https://{% endtranslate %}</div>
 </div>
 {% endcall %}
 
-<!-- Modal for grouping players -->
-{% call modal(_, "group", title=_("Group players"), action_text=_("Apply grouping"), action_handler="actuallyGroup()") %}
+<!-- Dialog for grouping players -->
+{% call dialog(_, "group", title=_("Group players"), action_text=_("Apply grouping"), action_handler="actuallyGroup()") %}
 {{ player_count(_) }}
 <div class="mb-1">
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="group_action" id="group_same" value="same_group">
-        <label class="form-check-label" for="group_same">
+    <div class="form-field mb-5">
+        <input class="radio" type="radio" name="group_action" id="group_same" value="same_group">
+        <label for="group_same">
             {% translate %}Put all selected players in the same group{% endtranslate %}
         </label>
     </div>
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="radio" name="group_action" id="group_reset" value="reset">
-        <label class="form-check-label" for="group_reset">
+    <div class="form-field mb-5">
+        <input class="radio" type="radio" name="group_action" id="group_reset" value="reset">
+        <label for="group_reset">
             {% translate %}Reset group assignment for selected players{% endtranslate %}
         </label>
     </div>
-    <div class="form-check mb-2">
-        <input class="form-check-input" type="radio" name="group_action" id="group_by_size" value="by_size">
-        <label class="form-check-label" for="group_by_size">
+    <div class="form-field mb-3">
+        <input class="radio" type="radio" name="group_action" id="group_by_size" value="by_size">
+        <label for="group_by_size">
             {% translate %}Create groups of size{% endtranslate %}:
         </label>
     </div>
-    <div class="ms-4 mb-3">
+    <div class="ms-7 mb-5">
         <input type="number" class="form-control form-control-sm" id="group-size" value="2" min="1" style="width: 80px;" onclick="I('group_by_size').checked = true;">
         <div class="form-text">{% translate %}Number of selected players must be divisible by group size.{% endtranslate %}</div>
     </div>
-    <div class="form-check mb-3 ms-4">
-        <input class="form-check-input" type="checkbox" id="group-shuffle" value="shuffle">
-        <label class="form-check-label" for="group-shuffle">
+    <div class="form-field mb-5 ms-7">
+        <input class="check" type="checkbox" id="group-shuffle" value="shuffle">
+        <label for="group-shuffle">
             {% translate %}Shuffle players before grouping{% endtranslate %}
         </label>
     </div>
 </div>
 <hr>
-<div class="form-check">
-    <input class="form-check-input" type="checkbox" id="group-reload" value="reload">
-    <label class="form-check-label" for="group-reload">
+<div class="form-field">
+    <input class="check" type="checkbox" id="group-reload" value="reload">
+    <label for="group-reload">
         {% translate %}Reload players’ pages{% endtranslate %}
     </label>
 </div>
 {% endcall %}
 
-<!-- Modal for adjusting timeout -->
-{% call modal(_, "adjust_timeout", title=_("Adjust timeout"), action_text=_("Apply"), action_handler="actuallyAdjustTimeout()") %}
+<!-- Dialog for adjusting timeout -->
+{% call dialog(_, "adjust_timeout", title=_("Adjust timeout"), action_text=_("Apply"), action_handler="actuallyAdjustTimeout()") %}
 {{ player_count(_) }}
-<div class="mb-3">
+<div class="mb-5">
     <label for="timeout-delta" class="form-label">{% translate %}Time adjustment (seconds){% endtranslate %}</label>
     <div class="input-group" style="width: 200px;">
-        <button class="btn btn-outline-uproot" type="button" onclick="I('timeout-delta').stepDown()">
+        <button class="btn-outline theme-uproot input-group-btn" type="button" onclick="I('timeout-delta').stepDown()">
             <i class="bi bi-dash"></i>
         </button>
         <input type="number" class="form-control text-center font-monospace" id="timeout-delta" value="60" step="1">
-        <button class="btn btn-outline-uproot" type="button" onclick="I('timeout-delta').stepUp()">
+        <button class="btn-outline theme-uproot input-group-btn" type="button" onclick="I('timeout-delta').stepUp()">
             <i class="bi bi-plus"></i>
         </button>
     </div>
@@ -491,58 +469,54 @@
 </div>
 {% endcall %}
 
-<!-- Modal for player URLs -->
+<!-- Dialog for player URLs -->
 
-<div class="modal fade" id="urlModal" tabindex="-1" aria-labelledby="urlModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <div class="border-uproot-light modal-content">
-        <div class="border-uproot-light modal-header">
-            <h5 class="modal-title" id="urlModalLabel">
-                {% translate %}Player URLs{% endtranslate %}
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <h6 class="fw-semibold mb-3">{% translate %}Sessionwide URL{% endtranslate %}</h6>
-            <div class="bg-body-tertiary rounded p-3">
-                <a class="ffa-disambiguation link-subtle player-url text-break"
-                    href="../../../s/{{ sname }}/{{ session._uproot_secret }}/" target="_blank">
-                    <span x-text="window.location.origin"></span>{{ root }}/s/{{ sname }}/{{ session._uproot_secret}}/
-                </a>
-            </div>
-            {% if len(info) > 0 %}
-            <div class="d-flex align-items-center mb-3 mt-4">
-                <h6 class="fw-semibold mb-0">{% translate %}Individual player URLs{% endtranslate %}</h6>
-            </div>
-
-            <button class="btn btn-outline-uproot btn-sm mb-3" onclick="copyURLsToClipboard(this)" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
-
-            <table class="table table-sm table-hover">
-                <thead>
-                    <tr>
-                        <th class="fw-semibold ps-0">{% translate %}Player ID{% endtranslate %}</th>
-                        <th class="fw-semibold">{% translate %}Player URL{% endtranslate %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for key in info %}
-                    <tr>
-                        <td class="ps-0">{{ loop.index0 }}</td>
-                        <td>
-                            <a class="ffa-disambiguation link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/p/{{ sname }}/{{ key }}/</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-        </div>
-        </div>
+<dialog class="dialog dialog-lg dialog-scrollable border-uproot-light" id="urlModal" aria-labelledby="urlModalLabel">
+    <div class="border-uproot-light dialog-header">
+        <h5 class="dialog-title" id="urlModalLabel">
+            {% translate %}Player URLs{% endtranslate %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Close"></button>
     </div>
-</div>
+    <div class="dialog-body">
+        <h6 class="fw-semibold mb-5">{% translate %}Sessionwide URL{% endtranslate %}</h6>
+        <div class="bg-1 rounded p-5">
+            <a class="ffa-disambiguation link-subtle player-url text-break"
+                href="../../../s/{{ sname }}/{{ session._uproot_secret }}/" target="_blank">
+                <span x-text="window.location.origin"></span>{{ root }}/s/{{ sname }}/{{ session._uproot_secret}}/
+            </a>
+        </div>
+        {% if len(info) > 0 %}
+        <div class="d-flex align-items-center mb-5 mt-7">
+            <h6 class="fw-semibold mb-0">{% translate %}Individual player URLs{% endtranslate %}</h6>
+        </div>
 
-<!-- Modal for settings -->
-{% call modal(_, "settings", title=_("Change settings"), action_text=_("Save settings"), action_handler="saveSettings()") %}
+        <button class="btn-outline theme-uproot btn-sm mb-5" onclick="copyURLsToClipboard(this)" type="button">{% translate %}Copy URLs as plain text{% endtranslate %}</button>
+
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th class="fw-semibold ps-0">{% translate %}Player ID{% endtranslate %}</th>
+                    <th class="fw-semibold">{% translate %}Player URL{% endtranslate %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key in info %}
+                <tr>
+                    <td class="ps-0">{{ loop.index0 }}</td>
+                    <td>
+                        <a class="ffa-disambiguation link-subtle player-url" href="../../../p/{{ sname }}/{{ key }}/" target="_blank"><span x-text="window.location.origin"></span>{{ root }}/p/{{ sname }}/{{ key }}/</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</dialog>
+
+<!-- Dialog for settings -->
+{% call dialog(_, "settings", title=_("Change settings"), action_text=_("Save settings"), action_handler="saveSettings()") %}
 {{ json_input(_, "settings-input", _("Settings"), value=session.settings | tojson(indent=2), help_text=_("Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.")) }}
 {% endcall %}
 
@@ -625,7 +599,7 @@
             return uproot.error(_("Please enter a valid number."));
         }
 
-        window.bootstrap?.Modal.getOrCreateInstance(I("adjust_timeout-modal")).hide();
+        uproot.dialog("adjust_timeout-modal").then((dialog) => dialog.hide());
         window.invokeFromMonitor("adjust_timeout", seconds).then(() => {
             uproot.alert(_("The action has completed."));
         });
@@ -687,17 +661,6 @@
             I("tableContainer").classList.remove("table-sticky-outer-full-width");
         }
     }
-
-    // ========================================================================
-    // Initialization
-    // ========================================================================
-
-    uproot.onStart(() => {
-        // Initialize Bootstrap popovers
-        document.querySelectorAll("[data-bs-toggle='popover']").forEach(el => {
-            new bootstrap.Popover(el);
-        });
-    });
 </script>
 
 {% endblock late %}

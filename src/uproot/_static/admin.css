@@ -44,7 +44,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .iframe-container:hover {
-    border-color: var(--bs-uproot);
+    border-color: var(--bs-uproot-base);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -72,7 +72,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .reload-button {
-    background: var(--bs-uproot, #007bff);
+    background: var(--bs-uproot-base);
     color: white;
     border: none;
     border-radius: 3px;
@@ -88,7 +88,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .reload-button:hover {
-    background: var(--bs-uproot-dark, #0056b3);
+    background: var(--bs-uproot-fg-emphasis);
     transform: scale(1.1);
 }
 
@@ -109,7 +109,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .iframe-container.resizing {
     z-index: 1001;
-    border-color: var(--bs-uproot);
+    border-color: var(--bs-uproot-base);
 }
 
 .iframe-container iframe {
@@ -119,8 +119,8 @@ h1, h2, h3, h4, h5, h6 {
     display: block;
 }
 
-.form-check-input:checked {
-    background-color: var(--bs-uproot);
+:root {
+    --bs-control-checked-bg: var(--bs-uproot-base);
 }
 
 span.a-value {
@@ -133,7 +133,7 @@ tr span.a-value {
     border-bottom: 1px solid #fff;
 }
 tr:hover span.a-value {
-    border-bottom: 1px dotted var(--bs-light-text-emphasis);
+    border-bottom: 1px dotted var(--bs-fg-2);
 }
 
 footer a {
@@ -152,8 +152,8 @@ footer a {
 }
 
 .sort-indicator {
-    font-family: var(--bs-font-monospace);
-    color: var(--bs-uproot);
+    font-family: var(--bs-font-mono);
+    color: var(--bs-uproot-base);
 }
 
 /* Surrounding divs to enable scrolling within table */
@@ -223,7 +223,7 @@ footer a {
 
 .pagination .page-item .page-link {
     align-items: center;
-    color: var(--bs-uproot);
+    color: var(--bs-uproot-base);
     display: flex;
     height: 100%;
     justify-content: center;
@@ -231,11 +231,11 @@ footer a {
 }
 .pagination .page-item.disabled .page-link {
     background-color: unset;
-    color: var(--bs-tertiary-color);
+    color: var(--bs-fg-3);
 }
 .pagination .page-item.active .page-link {
-    background-color: var(--bs-uproot-bg-light);
-    border-color: rgba(var(--bs-uproot-border-subtle-light-rgb), 0.6);
+    background-color: var(--bs-uproot-bg-muted);
+    border-color: color-mix(in oklch, var(--bs-uproot-border-subtle-light) 60%, transparent);
     border-bottom-color: var(--bs-uproot-border-subtle);
     font-weight: 800;
     pointer-events: none;
@@ -254,12 +254,12 @@ footer a {
 
 /* Color visited links so it's clear during debugging which participant URL has been opened */
 .player-url:visited,
-.player-name .link-subtle:visited {
-    color: var(--bs-uproot) !important;
+.player-name.link-subtle:visited {
+    color: var(--bs-uproot-base) !important;
 }
 .player-url:visited:hover,
-.player-name .link-subtle:visited:hover {
-    color: var(--bs-uproot-dark) !important;
+.player-name.link-subtle:visited:hover {
+    color: var(--bs-uproot-fg-emphasis) !important;
 }
 
 /* Session page: taller table container */
@@ -315,7 +315,7 @@ a:hover .not-yet-implemented {
 
 .adminchat-inbox-sidebar {
     background: linear-gradient(180deg, #f8f9fb, #f3f4f8);
-    border-right: 1px solid rgba(var(--bs-uproot-rgb), 0.12);
+    border-right: 1px solid color-mix(in oklch, var(--bs-uproot-base) 12%, transparent);
     display: flex;
     flex-direction: column;
     min-width: 260px;
@@ -323,7 +323,7 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-inbox-toolbar {
-    border-bottom: 1px solid rgba(var(--bs-uproot-rgb), 0.1);
+    border-bottom: 1px solid color-mix(in oklch, var(--bs-uproot-base) 10%, transparent);
     padding: 0.75rem;
 }
 
@@ -350,12 +350,12 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-inbox-item:hover {
-    background: rgba(var(--bs-uproot-rgb), 0.06);
+    background: color-mix(in oklch, var(--bs-uproot-base) 6%, transparent);
 }
 
 .adminchat-inbox-item-active {
-    background: rgba(var(--bs-uproot-rgb), 0.12) !important;
-    border-left: 3px solid var(--bs-uproot);
+    background: color-mix(in oklch, var(--bs-uproot-base) 12%, transparent) !important;
+    border-left: 3px solid var(--bs-uproot-base);
 }
 
 .adminchat-inbox-item-check {
@@ -377,7 +377,7 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-inbox-item-name {
-    font-family: var(--bs-font-monospace);
+    font-family: var(--bs-font-mono);
     font-size: 0.88rem;
     font-weight: 600;
     overflow: hidden;
@@ -394,13 +394,13 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-inbox-item-meta {
-    color: var(--bs-secondary-color);
+    color: var(--bs-fg-2);
     font-size: 0.75rem;
     margin-top: 0.1rem;
 }
 
 .adminchat-inbox-empty {
-    color: var(--bs-secondary-color);
+    color: var(--bs-fg-2);
     padding: 2rem;
     text-align: center;
 }
@@ -418,7 +418,7 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-status-sent {
-    background: var(--bs-uproot);
+    background: var(--bs-uproot-base);
 }
 
 .adminchat-status-reply {
@@ -448,7 +448,7 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-inbox-item-unread .adminchat-inbox-item-snippet {
-    color: var(--bs-body-color);
+    color: var(--bs-fg-body);
     font-weight: 600;
 }
 
@@ -462,13 +462,13 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-thread-header {
-    border-bottom: 1px solid rgba(var(--bs-uproot-rgb), 0.1);
+    border-bottom: 1px solid color-mix(in oklch, var(--bs-uproot-base) 10%, transparent);
     margin-bottom: 1rem;
     padding-bottom: 1rem;
 }
 
 .adminchat-eyebrow {
-    color: var(--bs-uproot);
+    color: var(--bs-uproot-base);
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -476,16 +476,16 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-helper {
-    color: var(--bs-secondary-color);
+    color: var(--bs-fg-2);
     font-size: 0.88rem;
 }
 
 .adminchat-player-name {
-    font-family: var(--bs-font-monospace);
+    font-family: var(--bs-font-mono);
 }
 
 .adminchat-meta-label {
-    color: var(--bs-secondary-color);
+    color: var(--bs-fg-2);
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -495,7 +495,7 @@ a:hover .not-yet-implemented {
 
 .adminchat-composer-shell {
     background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(var(--bs-uproot-rgb), 0.16);
+    border: 1px solid color-mix(in oklch, var(--bs-uproot-base) 16%, transparent);
     border-radius: 0.75rem;
     margin-top: auto;
     padding: 1rem;
@@ -508,7 +508,7 @@ a:hover .not-yet-implemented {
 
 .adminchat-transcript {
     background: rgba(255, 255, 255, 0.84);
-    border: 1px solid rgba(var(--bs-uproot-rgb), 0.12);
+    border: 1px solid color-mix(in oklch, var(--bs-uproot-base) 12%, transparent);
     border-radius: 0.75rem;
     display: flex;
     flex: 1;
@@ -528,9 +528,9 @@ a:hover .not-yet-implemented {
 
 .adminchat-bubble-admin {
     align-self: flex-end;
-    background-color: var(--bs-uproot-bg-light);
-    border: 1px solid rgba(var(--bs-uproot-rgb), 0.18);
-    color: var(--bs-uproot-dark);
+    background-color: var(--bs-uproot-bg-muted);
+    border: 1px solid color-mix(in oklch, var(--bs-uproot-base) 18%, transparent);
+    color: var(--bs-uproot-fg-emphasis);
 }
 
 .adminchat-bubble-player {
@@ -547,7 +547,7 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-message-time {
-    color: var(--bs-secondary-color);
+    color: var(--bs-fg-2);
     font-size: 0.75rem;
 }
 
@@ -560,9 +560,9 @@ a:hover .not-yet-implemented {
 .adminchat-empty-state {
     align-items: center;
     background: rgba(255, 255, 255, 0.84);
-    border: 1px dashed rgba(var(--bs-uproot-rgb), 0.24);
+    border: 1px dashed color-mix(in oklch, var(--bs-uproot-base) 24%, transparent);
     border-radius: 0.75rem;
-    color: var(--bs-secondary-color);
+    color: var(--bs-fg-2);
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -573,7 +573,7 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-empty-title {
-    color: var(--bs-emphasis-color);
+    color: var(--bs-fg-body);
     font-size: 1.05rem;
     font-weight: 700;
     margin-bottom: 0.4rem;
@@ -586,7 +586,7 @@ a:hover .not-yet-implemented {
 }
 
 .adminchat-broadcast-header {
-    border-bottom: 1px solid rgba(var(--bs-uproot-rgb), 0.1);
+    border-bottom: 1px solid color-mix(in oklch, var(--bs-uproot-base) 10%, transparent);
     margin-bottom: 1rem;
     padding-bottom: 1rem;
 }
@@ -611,7 +611,7 @@ a:hover .not-yet-implemented {
     }
 
     .adminchat-inbox-sidebar {
-        border-bottom: 1px solid rgba(var(--bs-uproot-rgb), 0.12);
+        border-bottom: 1px solid color-mix(in oklch, var(--bs-uproot-base) 12%, transparent);
         border-right: 0;
         max-height: 40vh;
         width: 100%;
@@ -627,8 +627,20 @@ a:hover .not-yet-implemented {
    Tabulator Data Table Styling
    ============================================================================ */
 
+/* Tabulator’s Bootstrap theme targets Bootstrap 5, so map its variables to Bootstrap 6 tokens */
+:root {
+    --bs-body-bg: var(--bs-bg-body);
+    --bs-body-color: var(--bs-fg-body);
+    --bs-emphasis-color: var(--bs-fg-body);
+    --bs-primary-border-subtle: var(--bs-primary-border);
+    --bs-secondary-bg: var(--bs-bg-2);
+    --bs-secondary-color: var(--bs-fg-2);
+    --bs-tertiary-bg: var(--bs-bg-1);
+    --bs-tertiary-color: var(--bs-fg-3);
+}
+
 #data-table {
-    font-family: var(--bs-font-monospace);
+    font-family: var(--bs-font-mono);
     height: 100% !important;
 }
 #data-table input[type=search] {
@@ -645,7 +657,7 @@ a:hover .not-yet-implemented {
     background-color: #eeeeee;
 }
 #data-table .tabulator-row.tabulator-selected {
-    background-color: var(--bs-uproot-bg-light) !important;
+    background-color: var(--bs-uproot-bg-muted) !important;
 }
 
 .tabulator-col-content,
@@ -655,16 +667,16 @@ a:hover .not-yet-implemented {
 
 /* Dropout indication in the player monitor */
 #data-table .tabulator-row.row-dropout {
-    background-color: rgba(var(--bs-danger-rgb), 0.06);
-    box-shadow: inset 3px 0 0 rgba(var(--bs-danger-rgb), 0.85);
+    background-color: color-mix(in oklch, var(--bs-danger-base) 6%, transparent);
+    box-shadow: inset 3px 0 0 color-mix(in oklch, var(--bs-danger-base) 85%, transparent);
 }
 #data-table .tabulator-row.row-dropout:hover {
-    background-color: rgba(var(--bs-danger-rgb), 0.12);
+    background-color: color-mix(in oklch, var(--bs-danger-base) 12%, transparent);
 }
 
 .dropout-status {
     align-items: center;
-    color: var(--bs-danger-text-emphasis);
+    color: var(--bs-danger-fg-emphasis);
     display: inline-flex;
     font-family: var(--bs-body-font-family);
     font-weight: 600;
@@ -677,13 +689,13 @@ a:hover .not-yet-implemented {
 /* Sorted column styling */
 .tabulator-col[aria-sort="ascending"] .tabulator-col-content,
 .tabulator-col[aria-sort="descending"] .tabulator-col-content {
-    background-color: rgba(var(--bs-uproot-rgb), 0.25) !important;
+    background-color: color-mix(in oklch, var(--bs-uproot-base) 25%, transparent) !important;
 }
 
 /* ID column styling */
 .tabulator-cell[tabulator-field="id"],
 .tabulator-col[tabulator-field="id"] {
-    color: var(--bs-uproot);
+    color: var(--bs-uproot-base);
 }
 
 .tabulator-cell[tabulator-field="id"],
@@ -692,7 +704,7 @@ a:hover .not-yet-implemented {
 }
 
 .tabulator-col-content {
-    background-color: var(--bs-uproot-bg-light);
+    background-color: var(--bs-uproot-bg-muted);
     border-bottom: 1px solid var(--bs-uproot-border-subtle);
     border-right: 1px dashed var(--bs-uproot-border-subtle);
     height: 100%;

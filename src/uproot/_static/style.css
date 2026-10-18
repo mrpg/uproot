@@ -1,102 +1,75 @@
-/* uproot color scheme */
+/* uproot’s styles live in Bootstrap’s “custom” cascade layer, above its components and below its utilities */
+@layer custom {
+
+/* uproot theme, following Bootstrap’s theme tokens (use with .theme-uproot) */
 :root {
-    --bs-uproot: #4e1388;
-    --bs-uproot-rgb: 78, 19, 136;
-    --bs-uproot-bg-light: #f0e5fb;  /* rgb(240, 229, 251) */
-    --bs-uproot-bg-subtle: #faf6fe;  /* rgb(250, 246, 254) */
+    --bs-uproot-base: #4e1388;
+    --bs-uproot-fg: #4e1388;
+    --bs-uproot-fg-emphasis: #300c55;
+    --bs-uproot-bg: #4e1388;
+    --bs-uproot-bg-subtle: #faf6fe;
+    --bs-uproot-bg-muted: #f0e5fb;
+    --bs-uproot-border: #4e1388;
     --bs-uproot-border-light: #9241e4;
-    --bs-uproot-border-light-rgb: 146, 65, 228;
     --bs-uproot-border-subtle: #ba86ee;
-    --bs-uproot-border-subtle-rgb: 186, 134, 238;
     --bs-uproot-border-subtle-light: #dcbef4;
-    --bs-uproot-border-subtle-light-rgb: 220, 190, 244;
-    --bs-uproot-dark: #300c55;
-    --bs-uproot-dark-rgb: 48, 12, 85;
+    --bs-uproot-focus-ring: color-mix(in oklch, #4e1388 50%, var(--bs-bg-body));
+    --bs-uproot-contrast: #fff;
+
+    /* Make body text black (instead of Bootstrap’s default dark gray) */
+    --bs-fg-body: var(--bs-black, #000);
 }
 
-/* Make body text black in light theme (instead of Bootstrap’s default #212529) */
-:root,
-[data-bs-theme=light] {
-    --bs-body-color: var(--bs-black, #000);
-    --bs-body-color-rgb: var(--bs-black-rgb, 0, 0, 0);
+.theme-uproot {
+    --bs-theme-base: var(--bs-uproot-base);
+    --bs-theme-fg: var(--bs-uproot-fg);
+    --bs-theme-fg-emphasis: var(--bs-uproot-fg-emphasis);
+    --bs-theme-bg: var(--bs-uproot-bg);
+    --bs-theme-bg-subtle: var(--bs-uproot-bg-subtle);
+    --bs-theme-bg-muted: var(--bs-uproot-bg-muted);
+    --bs-theme-border: var(--bs-uproot-border);
+    --bs-theme-focus-ring: var(--bs-uproot-focus-ring);
+    --bs-theme-contrast: var(--bs-uproot-contrast);
 }
 
 .bg-uproot {
-    background-color: rgba(var(--bs-uproot-rgb), var(--bs-bg-opacity, 1)) !important;
+    background-color: var(--bs-uproot-bg);
 }
-.bg-uproot-light {
-    background-color: var(--bs-uproot-bg-light) !important;
+.bg-subtle-uproot {
+    background-color: var(--bs-uproot-bg-subtle);
 }
-.bg-uproot-subtle {
-    background-color: var(--bs-uproot-bg-subtle) !important;
+.bg-muted-uproot {
+    background-color: var(--bs-uproot-bg-muted);
 }
 
-.border-opacity-0 {
-    --bs-border-opacity: 0;
+.fg-uproot {
+    color: var(--bs-uproot-fg);
+}
+.fg-uproot-emphasis {
+    color: var(--bs-uproot-fg-emphasis);
 }
 
 .border-uproot {
-    --bs-border-opacity: 1;
-    border-color: rgba(var(--bs-uproot-rgb), var(--bs-border-opacity)) !important;
+    border-color: var(--bs-uproot-border);
 }
 .border-uproot-light {
-    --bs-border-opacity: 1;
-    border-color: rgba(var(--bs-uproot-border-light-rgb), var(--bs-border-opacity)) !important;
+    border-color: var(--bs-uproot-border-light);
 }
 .border-uproot-subtle {
-    --bs-border-opacity: 1;
-    border-color: rgba(var(--bs-uproot-border-subtle-rgb), var(--bs-border-opacity)) !important;
+    border-color: var(--bs-uproot-border-subtle);
 }
 .border-uproot-subtle-light {
-    --bs-border-opacity: 1;
-    border-color: rgba(var(--bs-uproot-border-subtle-light-rgb), var(--bs-border-opacity)) !important;
-}
-
-.btn-uproot {
-    --bs-btn-color: #fff;
-    --bs-btn-bg: var(--bs-uproot);
-    --bs-btn-border-color: var(--bs-uproot);
-    --bs-btn-hover-color: #fff;
-    --bs-btn-hover-bg: var(--bs-uproot-dark);
-    --bs-btn-hover-border-color: var(--bs-uproot-dark);
-    --bs-btn-focus-shadow-rgb: 49, 132, 253;
-    --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: var(--bs-uproot-dark);
-    --bs-btn-active-border-color: var(--bs-uproot-dark);
-    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --bs-btn-disabled-color: #fff;
-    --bs-btn-disabled-bg: var(--bs-uproot);
-    --bs-btn-disabled-border-color: var(--bs-uproot);
-}
-.btn-outline-uproot {
-    --bs-btn-color: var(--bs-uproot);
-    --bs-btn-border-color: var(--bs-uproot);
-    --bs-btn-hover-color: #fff;
-    --bs-btn-hover-bg: var(--bs-uproot);
-    --bs-btn-hover-border-color: var(--bs-uproot);
-    --bs-btn-focus-shadow-rgb: 13, 110, 253;
-    --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: var(--bs-uproot);
-    --bs-btn-active-border-color: var(--bs-uproot);
-    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --bs-btn-disabled-color: var(--bs-uproot);
-    --bs-btn-disabled-bg: transparent;
-    --bs-btn-disabled-border-color: var(--bs-uproot);
-    --bs-gradient: none;
-}
-.btn-xs {
-    --bs-btn-font-size: .75rem;
-    --bs-btn-padding-x: .5rem;
-    --bs-btn-padding-y: .25rem;
-    --bs-btn-border-radius: var(--bs-border-radius-sm);
+    border-color: var(--bs-uproot-border-subtle-light);
 }
 
 /* Dedicated classes for switching to sans-serif and serif font */
 /* Adapted from https://tailwindcss.com/docs/font-family, extending Bootstrap’s default fonts  */
 :root {
     --bs-font-math: "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", math, serif;
-    --bs-font-monospace: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+    --bs-font-mono: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+    --bs-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --bs-font-serif: ui-serif, "New York", "Noto Serif", "Liberation Serif", "Times New Roman", Times, Cambria, Georgia, serif;
+    --bs-body-font-family: var(--bs-font-sans-serif);
 }
 /* Class for formulas in math font */
 .font-math {
@@ -138,7 +111,7 @@ input[type=email], input[type=file], input[type=text], input[type=url], textarea
 /* We enable tabular figures in tables and particular input fields */
 input[type=date],
 input[type=number],
-span[id^="popover-content-"],
+.form-range-bubble,
 td, th, *[style*="table-cell"], .d-table-cell {
     --fvn-spacing: tabular-nums;
     font-variant-alternates:
@@ -182,23 +155,10 @@ ol li::marker {
     font-variant-alternates: styleset(disambiguation-except-zero) !important;
 }
 
-/* Extension of the Bootstrap .bg-opacity-* classes */
-.bg-opacity-5 {
-  --bs-bg-opacity: 0.05;
-}
-.bg-opacity-8 {
-  --bs-bg-opacity: 0.08;
-}
-.bg-opacity-15 {
-  --bs-bg-opacity: 0.15;
-}
-.bg-opacity-20 {
-  --bs-bg-opacity: 0.20;
-}
-
 /* Adding classes for highlighting, inspired by https://getbootstrap.com/docs/5.3/docsref/#callouts */
 /* Use in conjunction with utilities like .alert, .bg-*, .border-*, card, etc. */
 .callout {
+    display: block;
     border-bottom-width: 0px;
     border-left-width: 5px !important;
     border-right-width: 0px;
@@ -210,17 +170,6 @@ ol li::marker {
 /* Override bootstrap.css to make font size of <code> elements match the surrounding text */
 code {
     font-size: unset;
-}
-
-/* Extension of the Bootstrap .fs-* classes */
-.fs-sm {
-    font-size: small;
-}
-.fs-xs {
-    font-size: x-small;
-}
-.fs-xxs {
-    font-size: xx-small;
 }
 
 /* Extension of the Bootstrap .fw- classes */
@@ -268,224 +217,6 @@ code {
         /* tiny border-radius so the element appears to have sharp corners without creating the visual illusion of protruding corners */
 }
 
-/* Extension of the Bootstrap .g* and .m* classes */
-/* 4.5 spacing value: 2.25rem */
-
-/* Base gutter utilities */
-.g-4-5,
-.gx-4-5 {
-    --bs-gutter-x: 2.25rem;
-}
-.g-4-5,
-.gy-4-5 {
-    --bs-gutter-y: 2.25rem;
-}
-
-/* Base margin utilities */
-.m-4-5 {
-    margin: 2.25rem !important;
-}
-.mb-4-5 {
-    margin-bottom: 2.25rem !important;
-}
-.me-4-5 {
-    margin-right: 2.25rem !important;
-}
-.ms-4-5 {
-    margin-left: 2.25rem !important;
-}
-.mt-4-5 {
-    margin-top: 2.25rem !important;
-}
-.mx-4-5 {
-    margin-right: 2.25rem !important;
-    margin-left: 2.25rem !important;
-}
-.my-4-5 {
-    margin-top: 2.25rem !important;
-    margin-bottom: 2.25rem !important;
-}
-
-/* sm */
-@media (min-width: 576px) {
-    .g-sm-4-5,
-    .gx-sm-4-5 {
-        --bs-gutter-x: 2.25rem;
-    }
-    .g-sm-4-5,
-    .gy-sm-4-5 {
-        --bs-gutter-y: 2.25rem;
-    }
-    .m-sm-4-5 {
-        margin: 2.25rem !important;
-    }
-    .mb-sm-4-5 {
-        margin-bottom: 2.25rem !important;
-    }
-    .me-sm-4-5 {
-        margin-right: 2.25rem !important;
-    }
-    .ms-sm-4-5 {
-        margin-left: 2.25rem !important;
-    }
-    .mt-sm-4-5 {
-        margin-top: 2.25rem !important;
-    }
-    .mx-sm-4-5 {
-        margin-right: 2.25rem !important;
-        margin-left: 2.25rem !important;
-    }
-    .my-sm-4-5 {
-        margin-top: 2.25rem !important;
-        margin-bottom: 2.25rem !important;
-    }
-}
-
-/* md */
-@media (min-width: 768px) {
-    .g-md-4-5,
-    .gx-md-4-5 {
-        --bs-gutter-x: 2.25rem;
-    }
-    .g-md-4-5,
-    .gy-md-4-5 {
-        --bs-gutter-y: 2.25rem;
-    }
-    .m-md-4-5 {
-        margin: 2.25rem !important;
-    }
-    .mb-md-4-5 {
-        margin-bottom: 2.25rem !important;
-    }
-    .me-md-4-5 {
-        margin-right: 2.25rem !important;
-    }
-    .ms-md-4-5 {
-        margin-left: 2.25rem !important;
-    }
-    .mt-md-4-5 {
-        margin-top: 2.25rem !important;
-    }
-    .mx-md-4-5 {
-        margin-right: 2.25rem !important;
-        margin-left: 2.25rem !important;
-    }
-    .my-md-4-5 {
-        margin-top: 2.25rem !important;
-        margin-bottom: 2.25rem !important;
-    }
-}
-
-/* lg */
-@media (min-width: 992px) {
-    .g-lg-4-5,
-    .gx-lg-4-5 {
-        --bs-gutter-x: 2.25rem;
-    }
-    .g-lg-4-5,
-    .gy-lg-4-5 {
-        --bs-gutter-y: 2.25rem;
-    }
-    .m-lg-4-5 {
-        margin: 2.25rem !important;
-    }
-    .mb-lg-4-5 {
-        margin-bottom: 2.25rem !important;
-    }
-    .me-lg-4-5 {
-        margin-right: 2.25rem !important;
-    }
-    .ms-lg-4-5 {
-        margin-left: 2.25rem !important;
-    }
-    .mt-lg-4-5 {
-        margin-top: 2.25rem !important;
-    }
-    .mx-lg-4-5 {
-        margin-right: 2.25rem !important;
-        margin-left: 2.25rem !important;
-    }
-    .my-lg-4-5 {
-        margin-top: 2.25rem !important;
-        margin-bottom: 2.25rem !important;
-    }
-}
-
-/* xl */
-@media (min-width: 1200px) {
-    .g-xl-4-5,
-    .gx-xl-4-5 {
-        --bs-gutter-x: 2.25rem;
-    }
-    .g-xl-4-5,
-    .gy-xl-4-5 {
-        --bs-gutter-y: 2.25rem;
-    }
-    .m-xl-4-5 {
-        margin: 2.25rem !important;
-    }
-    .mb-xl-4-5 {
-        margin-bottom: 2.25rem !important;
-    }
-    .me-xl-4-5 {
-        margin-right: 2.25rem !important;
-    }
-    .ms-xl-4-5 {
-        margin-left: 2.25rem !important;
-    }
-    .mt-xl-4-5 {
-        margin-top: 2.25rem !important;
-    }
-    .mx-xl-4-5 {
-        margin-right: 2.25rem !important;
-        margin-left: 2.25rem !important;
-    }
-    .my-xl-4-5 {
-        margin-top: 2.25rem !important;
-        margin-bottom: 2.25rem !important;
-    }
-}
-
-/* xxl */
-@media (min-width: 1400px) {
-    .g-xxl-4-5,
-    .gx-xxl-4-5 {
-        --bs-gutter-x: 2.25rem;
-    }
-    .g-xxl-4-5,
-    .gy-xxl-4-5 {
-        --bs-gutter-y: 2.25rem;
-    }
-    .m-xxl-4-5 {
-        margin: 2.25rem !important;
-    }
-    .mb-xxl-4-5 {
-        margin-bottom: 2.25rem !important;
-    }
-    .me-xxl-4-5 {
-        margin-right: 2.25rem !important;
-    }
-    .ms-xxl-4-5 {
-        margin-left: 2.25rem !important;
-    }
-    .mt-xxl-4-5 {
-        margin-top: 2.25rem !important;
-    }
-    .mx-xxl-4-5 {
-        margin-right: 2.25rem !important;
-        margin-left: 2.25rem !important;
-    }
-    .my-xxl-4-5 {
-        margin-top: 2.25rem !important;
-        margin-bottom: 2.25rem !important;
-    }
-}
-
-/* Extension of the Bootstrap .w-* classes */
-.w-fit-content {
-    width: fit-content !important;
-}
-
 /* Styling of Likert scales */
 .likert-cell {
     min-width: 4ch;
@@ -494,19 +225,19 @@ code {
     --fvn-spacing: proportional-nums;
 }
 .uproot-likert caption {
-    color: var(--bs-body-color);
+    color: var(--bs-fg-body);
 }
 .uproot-likert-responsive {
     display: block;
     border: 1px solid var(--bs-border-color);
-    border-radius: var(--bs-border-radius-lg);
+    border-radius: var(--bs-radius-5);
     padding: 0.75rem 1rem;
 }
 .uproot-likert-responsive .uproot-form-description {
     margin-top: 1rem;  /* like .mt-3 */
 }
 .uproot-likert-responsive-caption {
-    color: var(--bs-body-color);
+    color: var(--bs-fg-body);
     grid-column: 1 / -1;
 }
 .uproot-likert-responsive-caption .form-label {
@@ -543,12 +274,12 @@ code {
     align-self: first baseline;
 }
 .uproot-likert-responsive-mobile-label {
-    color: var(--bs-tertiary-color);
+    color: var(--bs-fg-3);
     font-weight: 600;
     padding-right: 1rem;  /* like .pe-3 */
     text-align: right;
 }
-.uproot-likert-responsive-mobile-label .form-check-label {
+.uproot-likert-responsive-mobile-label label {
     font-variant-numeric: tabular-nums !important;
     text-wrap: nowrap;
 }
@@ -635,54 +366,38 @@ code {
     padding-bottom: 1rem;  /* like .pb-3 */
 }
 
-/* In-text hyperlink with gray underline that turns black on hover */
-/* See https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css */
+/* In-text hyperlink in the surrounding color with a faint underline that intensifies on hover */
 .link-subtle {
-    color: var(--bs-dark) !important;  /* link-dark */
+    color: inherit;
     text-decoration-line: underline;
-    text-underline-offset: .25em !important;  /* link-offset-2 */
-    --bs-link-underline-opacity: .25;  /* .link-underline-opacity-25 */
-    text-decoration-color: rgba(var(--bs-dark-rgb), var(--bs-link-underline-opacity)); /* .link-underline-dark */
+    text-decoration-color: color-mix(in oklch, currentcolor 25%, transparent);
+    text-underline-offset: .25em;
 }
-.link-subtle:hover, .link-subtle:focus {
-    color: var(--bs-dark) !important;
-    --bs-link-underline-opacity: 1;  /* link-underline-opacity-100-hover */
-    text-decoration-color: rgba(var(--bs-dark-rgb), var(--bs-link-underline-opacity)) !important;
+.link-subtle:hover, .link-subtle:focus-visible {
+    color: inherit;
+    text-decoration-color: currentcolor;
 }
 
-.link-underline-uproot {
-    -webkit-text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity)) !important;
-    text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity)) !important;
+/* Hyperlink without underline, which appears on hover (combine with .fg-* for color) */
+.link-hover {
+    text-decoration-line: none;
+    text-underline-offset: .25em;
 }
-.link-underline-uproot:hover, .link-underline-uproot:focus {
-    color: var(--bs-uproot-dark) !important;
-    -webkit-text-decoration-color: rgba(var(--bs-uproot-rgb-dark), var(--bs-link-underline-opacity)) !important;
-    text-decoration-color: rgba(var(--bs-uproot-rgb-dark), var(--bs-link-underline-opacity)) !important;
+.link-hover:hover, .link-hover:focus-visible {
+    text-decoration-line: underline;
 }
 
+/* Hyperlink in uproot colors without underline */
 .link-uproot {
-    color: rgba(var(--bs-uproot-rgb), var(--bs-link-opacity, 1)) !important;
-    -webkit-text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity, 1)) !important;
-    text-decoration-color: rgba(var(--bs-uproot-rgb), var(--bs-link-underline-opacity, 1)) !important;
+    color: var(--bs-uproot-fg);
+    text-decoration-line: none;
 }
-.link-uproot:hover, .link-uproot:focus {
-    color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-opacity, 1)) !important;
-    -webkit-text-decoration-color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-underline-opacity, 1)) !important;
-    text-decoration-color: rgba(var(--bs-uproot-dark-rgb), var(--bs-link-underline-opacity, 1)) !important;
+.link-uproot:hover, .link-uproot:focus-visible {
+    color: var(--bs-uproot-fg-emphasis);
 }
 
 .text-ls-uppercase {
     letter-spacing: 0.05em;
-}
-
-.text-uproot {
-    --bs-text-opacity: 1;
-    color: rgba(var(--bs-uproot-rgb), var(--bs-text-opacity)) !important;
-}
-
-.text-uproot-dark {
-    --bs-text-opacity: 1;
-    color: rgba(var(--bs-uproot-dark-rgb), var(--bs-text-opacity)) !important;
 }
 
 /* Main style */
@@ -738,12 +453,12 @@ main {
     padding: 0;
 }
 
-input[type="radio"].form-check-input {
-    border-color: var(--bs-gray-500);
+.radio {
+    --bs-radio-border-color: var(--bs-gray-500);
 }
 
-#error-modal {
-    z-index: 9999;
+#error-modal, #connection-timeout-modal {
+    --bs-dialog-backdrop-bg: rgb(255 0 0 / 50%);
 }
 
 #uproot-buddy {
@@ -764,9 +479,9 @@ input[type="radio"].form-check-input {
 }
 .uproot-buddy-label {
     background-color: #fff;
-    border: 1px solid var(--bs-uproot);
-    border-radius: var(--bs-border-radius-pill);
-    color: var(--bs-uproot);
+    border: 1px solid var(--bs-uproot-border);
+    border-radius: var(--bs-radius-pill);
+    color: var(--bs-uproot-fg);
     font-size: 0.8rem;
     font-weight: 600;
     max-width: 10rem;
@@ -800,24 +515,19 @@ input[type="radio"].form-check-input {
 .uproot-timeout {
     font-variant-numeric: tabular-nums;
 }
-.alert-uproot {
-    --bs-alert-bg: var(--bs-uproot-bg-subtle);
-    --bs-alert-border-color: var(--bs-uproot);
-    --bs-alert-color: var(--bs-black);
-}
 .uproot-timeout-light {
-    --bs-alert-bg: var(--bs-light);
-    --bs-alert-border-color: var(--bs-tertiary-color);
-    --bs-alert-color: var(--bs-secondary-color);
+    --bs-alert-bg: var(--bs-bg-1);
+    --bs-alert-border-color: var(--bs-fg-3);
+    --bs-alert-color: var(--bs-fg-2);
 }
 .uproot-timeout-warning {
     --bs-alert-bg: var(--bs-warning-bg-subtle);
-    --bs-alert-border-color: var(--bs-warning);
+    --bs-alert-border-color: var(--bs-warning-base);
     --bs-alert-color: var(--bs-black);
 }
 .uproot-timeout-danger {
     --bs-alert-bg: var(--bs-danger-bg-subtle);
-    --bs-alert-border-color: var(--bs-danger);
+    --bs-alert-border-color: var(--bs-danger-base);
     --bs-alert-color: var(--bs-black);
 }
 
@@ -826,8 +536,8 @@ input[type="radio"].form-check-input {
 }
 
 div.without-anchoring-overlay {
-    background: var(--bs-primary);
-    border-radius: var(--bs-border-radius-pill);
+    background: var(--bs-primary-base);
+    border-radius: var(--bs-radius-pill);
     position: absolute;
     top: 0;
     left: 0;
@@ -853,14 +563,14 @@ div.without-anchoring-overlay {
 }
 
 #uproot-testing-button-wrapper .bg-hover-uproot:hover {
-    background-color: var(--bs-uproot) !important;
+    background-color: var(--bs-uproot-bg) !important;
 }
 #uproot-testing-button-wrapper .text-hover-white:hover {
     color: white !important;
 }
 
 .message-hover:hover {
-    background-color: rgba(13, 110, 253, 0.05) !important;
+    background-color: color-mix(in oklch, var(--bs-primary-base) 5%, transparent) !important;
 }
 .messages-container {
     height: 280px;
@@ -895,52 +605,20 @@ div.without-anchoring-overlay {
     padding-bottom: 0.45em;
     text-wrap: wrap;
 }
-.uproot-slider-popover-container {
-    height: 3.25rem;
-    width: 0;
-}
 .uproot-slider-popover-spacer {
-    height: 3.25rem;
+    height: 2.5rem;
 }
-.popover-body {
-    padding: 0.5rem 0.75rem;
+.form-range:not(.uproot-slider-touched) .form-range-bubble {
+    visibility: hidden;
 }
 
 /* Radio toggle-clear styles (requires JS initialization via nonRequiredRadios) */
-.radio-toggle-enabled .form-check.radio-toggle-clear-hover > .form-check-label {
-    color: var(--bs-dark-bg-subtle);
+.radio-toggle-enabled .form-field.radio-toggle-clear-hover > label {
+    color: var(--bs-fg-4);
     text-decoration: line-through;
-    text-decoration-color: var(--bs-dark-bg-subtle);
+    text-decoration-color: var(--bs-fg-4);
     text-decoration-thickness: from-font;
     cursor: pointer;
-}
-
-/* RTL support for Bootstrap form-check (radio buttons, checkboxes) */
-[dir="rtl"] .form-check {
-    padding-left: 0;
-    padding-right: 1.5em;
-}
-[dir="rtl"] .form-check .form-check-input {
-    float: right;
-    margin-left: 0;
-    margin-right: -1.5em;
-}
-[dir="rtl"] .form-check-inline {
-    margin-right: 0;
-    margin-left: 1rem;
-}
-[dir="rtl"] .form-switch {
-    padding-left: 0;
-    padding-right: 2.5em;
-}
-[dir="rtl"] .form-switch .form-check-input {
-    float: right;
-    margin-left: 0;
-    margin-right: -2.5em;
-    background-position: right center;
-}
-[dir="rtl"] .form-switch .form-check-input:checked {
-    background-position: left center;
 }
 
 /* Print styles */
@@ -954,7 +632,7 @@ div.without-anchoring-overlay {
     /* Hide interactive/non-printable elements */
     #uproot-buddy,
     #uproot-timeout,
-    .modal {
+    .dialog {
         display: none !important;
     }
 
@@ -983,4 +661,6 @@ div.without-anchoring-overlay {
     body {
         overflow: visible;
     }
+}
+
 }

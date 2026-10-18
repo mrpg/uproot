@@ -669,24 +669,23 @@ window.uproot = {
         return null;
     },
 
-    error(html) {
-        const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
-            const modal = bootstrap.Modal.getOrCreateInstance(el);
-            modal.hide();
+    async dialog(id, config = {}) {
+        const { Dialog } = await import("bootstrap");
+        const el = this.I(id);
 
-            return modal;
-        });
+        if (!el.open) {
+            Dialog.getInstance(el)?.dispose();
+        }
 
-        let errorModal = bootstrap.Modal.getOrCreateInstance(this.I("error-modal"), { "backdrop": "static" });
+        return Dialog.getOrCreateInstance(el, config);
+    },
+
+    async error(html) {
+        const dialog = await this.dialog("error-modal", { backdrop: "static" });
 
         this.I("error-modal-body").innerHTML = html; // SAFE (users need to be careful!)
 
-        errorModal.show();
-        errorModal._backdrop._element.style.backgroundColor = "red";
-
-        this.I("error-modal").addEventListener("hidden.bs.modal", () => {
-            shownModals.forEach(modal => modal.show());
-        }, { once: true });
+        dialog.show();
     },
 
     skipFromTesting() {
@@ -695,102 +694,66 @@ window.uproot = {
         this.api("skip", desiredShowPage).then(this.reload);
     },
 
-    alert(html) {
-        const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
-            const modal = bootstrap.Modal.getOrCreateInstance(el);
-            modal.hide();
-
-            return modal;
-        });
-
-        const alertEl = this.I("alert-modal");
-        const existingAlertModal = bootstrap.Modal.getInstance(alertEl);
-        if (existingAlertModal && !alertEl.classList.contains("show")) {
-            existingAlertModal.dispose();
-        }
-        let alertModal = bootstrap.Modal.getOrCreateInstance(alertEl, { "backdrop": true });
+    async alert(html) {
+        const dialog = await this.dialog("alert-modal");
 
         this.I("alert-modal-body").innerHTML = html; // SAFE (users need to be careful, and prefer window.alert()!)
 
-        alertModal.show();
-
-        this.I("alert-modal").addEventListener("hidden.bs.modal", () => {
-            shownModals.forEach(modal => modal.show());
-        }, { once: true });
+        dialog.show();
     },
 
-    prompt(html, value = "") {
+    async prompt(html, value = "") {
+        const dialogEl = this.I("alert-modal");
+        const dialog = await this.dialog("alert-modal", { backdrop: "static" });
+
+        // Create the prompt content with input field
+        const inputId = "uproot-prompt-input-" + this.uuid();
+        this.I("alert-modal-body").innerHTML = `${html}<input type="text" id="${inputId}" class="form-control mt-5" autocomplete="off">`; // SAFE (users need to be careful!)
+
+        const inputElement = this.I(inputId);
+        inputElement.value = value;
+
+        // Turn the close button into a solid OK button for the duration of the prompt
+        const button = dialogEl.querySelector(".dialog-footer button");
+        const buttonClass = button.className;
+        const buttonText = button.textContent;
+        button.className = "btn-solid theme-uproot";
+        button.textContent = _("OK");
+        button.removeAttribute("data-bs-dismiss");
+
         return new Promise((resolve) => {
-            const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
-                const modal = bootstrap.Modal.getOrCreateInstance(el);
-                modal.hide();
+            let result = null;
 
-                return modal;
-            });
-
-            let alertModal = bootstrap.Modal.getOrCreateInstance(this.I("alert-modal"), { "backdrop": "static" });
-
-            // Create the prompt content with input field
-            const inputId = "uproot-prompt-input-" + this.uuid();
-            this.I("alert-modal-body").innerHTML = `${html}<input type="text" id="${inputId}" class="form-control mt-3" autocomplete="off">`; // SAFE (users need to be careful!)
-
-            const inputElement = this.I(inputId);
-
-            // Modify the existing button to be a non-outlined OK button
-            const existingButton = this.I("alert-modal").querySelector('.modal-footer button');
-            if (existingButton) {
-                existingButton.className = "btn btn-uproot";
-                existingButton.textContent = _("OK");
-                existingButton.removeAttribute('data-bs-dismiss');
-            }
-
-            const handleResponse = (value) => {
-                alertModal.hide();
-                resolve(value);
+            const finish = (response) => {
+                result = response;
+                dialog.hide();
             };
 
-            const handleOkClick = () => {
-                const value = inputElement.value;
-                handleResponse(value);
-            };
+            const handleOkClick = () => finish(inputElement.value);
 
             const handleKeydown = (e) => {
                 if (e.key === "Enter") {
                     e.preventDefault();
-                    const value = inputElement.value;
-                    handleResponse(value);
-                }
-                else if (e.key === "Escape") {
-                    e.preventDefault();
-                    handleResponse(null);
+                    finish(inputElement.value);
                 }
             };
 
-            // Add event listeners
             inputElement.addEventListener("keydown", handleKeydown);
-            if (existingButton) {
-                existingButton.addEventListener("click", handleOkClick);
-            }
+            button.addEventListener("click", handleOkClick);
 
-            I(inputId).value = value;
-            alertModal.show();
-
-            // Focus the input after modal is shown
-            this.I("alert-modal").addEventListener("shown.bs.modal", () => {
+            dialogEl.addEventListener("shown.bs.dialog", () => {
                 inputElement.focus();
             }, { once: true });
 
-            this.I("alert-modal").addEventListener("hidden.bs.modal", () => {
-                // Clean up event listeners and restore original button
-                inputElement.removeEventListener("keydown", handleKeydown);
-                if (existingButton) {
-                    existingButton.removeEventListener("click", handleOkClick);
-                    existingButton.className = "btn btn-outline-uproot";
-                    existingButton.textContent = _("Close");
-                    existingButton.setAttribute('data-bs-dismiss', 'modal');
-                }
-                shownModals.forEach(modal => modal.show());
+            dialogEl.addEventListener("hidden.bs.dialog", () => {
+                button.removeEventListener("click", handleOkClick);
+                button.className = buttonClass;
+                button.textContent = buttonText;
+                button.setAttribute("data-bs-dismiss", "dialog");
+                resolve(result);
             }, { once: true });
+
+            dialog.show();
         });
     },
 
@@ -856,21 +819,12 @@ window.uproot = {
         this.I("uproot-buddy").hidden = false;
     },
 
-    adminMessage(text) {
-        const modalEl = this.I("adminmessage-modal");
-
-        if (text === undefined && modalEl.classList.contains("show")) {
+    async adminMessage(text) {
+        if (text === undefined && this.I("adminmessage-modal").open) {
             return;
         }
 
-        const shownModals = Array.from(document.querySelectorAll(".modal.show")).map(el => {
-            const modal = bootstrap.Modal.getOrCreateInstance(el);
-            modal.hide();
-
-            return modal;
-        });
-
-        let alertModal = bootstrap.Modal.getOrCreateInstance(modalEl, { "backdrop": "static" });
+        const dialog = await this.dialog("adminmessage-modal", { backdrop: "static" });
 
         if (text !== undefined) {
             const body = this.I("adminmessage-modal-body");
@@ -880,7 +834,7 @@ window.uproot = {
                 let notice = body.querySelector(".uproot-adminmessage-notice");
                 if (!notice) {
                     notice = document.createElement("div");
-                    notice.className = "alert alert-warning uproot-adminmessage-notice";
+                    notice.className = "alert theme-warning uproot-adminmessage-notice";
                     body.prepend(notice);
                 }
                 notice.innerText = text;
@@ -889,11 +843,7 @@ window.uproot = {
             }
         }
 
-        alertModal.show();
-
-        modalEl.addEventListener("hidden.bs.modal", () => {
-            shownModals.forEach(modal => modal.show());
-        }, { once: true });
+        dialog.show();
 
         this.ensureBuddy();
     },
@@ -1074,7 +1024,7 @@ window.uproot = {
             const nav = document.createElement("nav");
             nav.setAttribute("aria-label", "Pagination");
             const ul = document.createElement("ul");
-            ul.className = "pagination pagination-sm mb-3";
+            ul.className = "pagination pagination-sm mb-5";
             nav.appendChild(ul);
             wrapper.insertBefore(nav, wrapper.firstChild);
 
@@ -1196,16 +1146,13 @@ window.uproot = {
         }
     },
 
-    slidersWithPopovers() {
-        const pxPerRem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        const wrappers = document.querySelectorAll(".uproot-slider-popover-wrapper");
+    async slidersWithPopovers() {
+        const { Range } = await import("bootstrap");
 
-        wrappers.forEach((wrapper) => {
-            const slider = wrapper.querySelector("input[type='range']");
+        document.querySelectorAll(".uproot-slider-popover-wrapper").forEach((wrapper) => {
+            const range = wrapper.querySelector(".form-range");
+            const slider = range?.querySelector("input[type='range']");
             if (!slider) return;
-
-            const container = wrapper.querySelector(".uproot-slider-popover-container");
-            if (!container) return;
 
             const fieldName = slider.name || slider.id;
             const flexContainer = wrapper.parentElement;
@@ -1221,49 +1168,13 @@ window.uproot = {
                 maxLabel.textContent = this.formatForInterface(fieldName, Number(maxLabel.dataset.raw));
             }
 
-            let popoverShown = false;
-            let bsPopover = null;
+            // The value bubble only appears once the slider has been moved
+            slider.addEventListener("input", () => range.classList.add("uproot-slider-touched"), { once: true });
 
-            // Create content span for popover
-            const contentId = `popover-content-${slider.id}`;
-            bsPopover = new bootstrap.Popover(container, {
-                animation: false,
-                content: `<span id="${contentId}"></span>`,
-                html: true,
-                offset: [0, -2.75 * pxPerRem],
-                placement: "top",
-                trigger: "manual",
-            });
-
-            const updatePopover = () => {
-                const min = slider.min !== "" ? Number(slider.min) : 0;
-                const max = slider.max !== "" ? Number(slider.max) : 100;
-                const val = Number(slider.value);
-                const percent = (val - min) / (max - min);
-                const rangeWidth = slider.getBoundingClientRect().width;
-                const thumbRadius = pxPerRem / 2;
-                const thumbOffset = thumbRadius + percent * (rangeWidth - 2 * thumbRadius);
-
-                container.style.marginLeft = `${thumbOffset}px`;
-
-                const formattedValue = this.formatForInterface(slider.name || slider.id, val);
-
-                if (!popoverShown) {
-                    bsPopover.show();
-                    popoverShown = true;
-                } else {
-                    bsPopover.update();
-                }
-
-                const contentEl = document.getElementById(contentId);
-                if (contentEl) {
-                    contentEl.textContent = formattedValue;
-                }
-            };
-
-            slider.addEventListener("input", updatePopover);
-            window.addEventListener("resize", () => {
-                if (popoverShown) updatePopover();
+            Range.getInstance(range)?.dispose();
+            new Range(range, {
+                bubble: true,
+                formatter: (value) => this.formatForInterface(fieldName, value),
             });
         });
     },
@@ -1402,7 +1313,6 @@ window.uproot = {
     },
 
     enableConnectionLostModal() {
-        let connectionModal = null;
         let timeoutTimer = null;
         let startupTimer = null;
         let isPageUnloading = false;
@@ -1412,20 +1322,8 @@ window.uproot = {
             isPageUnloading = true;
         });
 
-        const ensureConnectionModal = () => {
-            if (!connectionModal) {
-                connectionModal = bootstrap.Modal.getOrCreateInstance(
-                    I("connection-timeout-modal"),
-                    { backdrop: "static", keyboard: false }
-                );
-            }
-            return connectionModal;
-        };
-
-        const showConnectionLostModal = () => {
+        const showConnectionLostModal = async () => {
             if (isPageUnloading) return;
-
-            const modal = ensureConnectionModal();
 
             // Show/hide reload button based on dirty state
             const reloadBtn = I("connection-modal-reload-btn");
@@ -1434,15 +1332,13 @@ window.uproot = {
                 reloadBtn.hidden = this.dirty;
             }
 
-            modal.show();
-            modal._backdrop._element.style.backgroundColor = "red";
+            (await this.dialog("connection-timeout-modal")).show();
         };
 
-        const hideConnectionLostModal = () => {
+        const hideConnectionLostModal = async () => {
             clearTimeout(startupTimer);
-            if (connectionModal) {
-                connectionModal.hide();
-                connectionModal = null;
+            if (I("connection-timeout-modal").open) {
+                (await this.dialog("connection-timeout-modal")).hide();
             }
         };
 
@@ -1495,7 +1391,7 @@ window.uproot = {
 
         composerHtml(chatId) {
             return `
-                <div class="d-flex gap-2 uproot-chat-composer">
+                <div class="d-flex gap-3 uproot-chat-composer">
                     <label for="message-input-chat-${chatId}" class="visually-hidden">${_("Type your message")}</label>
                     <textarea id="message-input-chat-${chatId}"
                               class="form-control"
@@ -1503,7 +1399,7 @@ window.uproot = {
                               required
                               rows="1"
                               autocomplete="off"></textarea>
-                    <button type="button" class="btn btn-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">${_("Send")}</button>
+                    <button type="button" class="btn-solid theme-primary" onclick="uproot.chat.sendMessage('${chatId}')" aria-label="Send message">${_("Send")}</button>
                 </div>
             `;
         },
@@ -1548,7 +1444,7 @@ window.uproot = {
             const composer = canReply ? this.composerHtml(chatId) : "";
 
             el.innerHTML = /* SAFE */ `<div id="chat-${chatId}" class="uproot-chat chat-container hidden" data-chatid="${chatId}">
-                <div class="messages-container border rounded bg-white mb-3" role="log" aria-label="Chat messages" aria-live="polite">
+                <div class="messages-container border rounded bg-white mb-5" role="log" aria-label="Chat messages" aria-live="polite">
                     <ul class="list-unstyled mb-0 p-0" id="messages-chat-${chatId}">
                     </ul>
                 </div>
@@ -1571,7 +1467,7 @@ window.uproot = {
                 });
         },
 
-        addMessage(chatId, msgId, username, message, timestamp, cls = "text-primary") {
+        addMessage(chatId, msgId, username, message, timestamp, cls = "fg-primary") {
             if (!this.messageStore[chatId]) {
                 this.messageStore[chatId] = new Set();
             }
@@ -1596,11 +1492,11 @@ window.uproot = {
             const isoString = time.toISOString();
 
             const messageElement = document.createElement("li");
-            messageElement.className = "px-3 py-2 message-hover";
+            messageElement.className = "px-5 py-3 message-hover";
             messageElement.innerHTML = /* SAFE */ `
                 <div class="d-flex justify-content-between align-items-start mb-1">
                     <span class="fw-semibold ${cls} sender">${escapedUsername}</span>
-                    <time class="text-secondary small time" title="${isoString}" datetime="${isoString}">${timeString}</time>
+                    <time class="fg-secondary small time" title="${isoString}" datetime="${isoString}">${timeString}</time>
                 </div>
                 <div class="text-break">${escapedMessage}</div>
             `;
@@ -1633,15 +1529,15 @@ window.uproot = {
                 msgs.forEach((msg) => {
                     if (msg.cname && I(`chat-${msg.cname}`)) {
                         let senderRepresentation = msg.sender[1];
-                        let colorCls = "text-success";
+                        let colorCls = "fg-success";
 
                         if (msg.sender[0] === "self") {
                             senderRepresentation = `${msg.sender[1]} (${_("You")})`;
-                            colorCls = "text-primary";
+                            colorCls = "fg-primary";
                         }
                         else if (msg.sender[0] === "admin") {
                             senderRepresentation = _("Research Coordinator");
-                            colorCls = "text-danger";
+                            colorCls = "fg-danger";
                         }
 
                         window.uproot.chat.addMessage(

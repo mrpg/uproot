@@ -2,20 +2,20 @@
 
 {% block titlearea %}
 
-<div class="align-center d-flex flex-wrap justify-content-between my-4" id="title-container">
+<div class="align-center d-flex flex-wrap justify-content-between my-7" id="title-container">
     <h2 id="uproot-title" class="fw-semibold">
         {% translate %}
         Session
         {% endtranslate %}
         <a href="../" class="font-monospace link-subtle">{{ sname }}</a>
-        <span class="fw-light text-secondary">&rsaquo; {% translate %}Download data{% endtranslate %}</span>
-        <a class="link-underline-opacity-0 link-uproot ms-2" href="https://uproot.science/running/export/#the-three-formats" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-5"></i></a>
+        <span class="fw-light fg-secondary">&rsaquo; {% translate %}Download data{% endtranslate %}</span>
+        <a class="link-uproot ms-3" href="https://uproot.science/running/export/#the-three-formats" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-lg"></i></a>
     </h2>
-    <div class="d-flex flex-wrap gap-2">
+    <div class="d-flex flex-wrap gap-3">
         {% if has_pipelines %}
-        <a class="btn btn-outline-uproot my-1" href="../pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
+        <a class="btn-outline theme-uproot my-1" href="../pipelines/">{% translate %}Pipelines{% endtranslate %}</a>
         {% endif %}
-        <a class="btn btn-uproot my-1" href="../viewdata/">{% translate %}View data{% endtranslate %}</a>
+        <a class="btn-solid theme-uproot my-1" href="../viewdata/">{% translate %}View data{% endtranslate %}</a>
     </div>
 </div>
 
@@ -24,7 +24,7 @@
 
 {% block main3 %}
 
-<h3 class="mb-3">{% translate %}Main data{% endtranslate %}</h3>
+<h3 class="mb-5">{% translate %}Main data{% endtranslate %}</h3>
 
 <form method="get" action="get/" target="_blank" x-data="{
     grouped: true,
@@ -35,85 +35,91 @@
     ],
     nextGroupVarId: 1,
 }">
-    <div class="gx-xl-4-5 row">
+    <div class="xl:gx-10 row">
         <!-- Column 1 -->
-        <div class="col-12 col-xl-6 mb-4">
-            <h4 class="mb-3">
+        <div class="col-12 xl:col-6 mb-7">
+            <h4 class="mb-5">
                 {% translate %}Formats{% endtranslate %}
             </h4>
-            <p class="text-secondary">
+            <p class="fg-secondary">
                 {% translate %}
                 Every download is a ZIP archive containing three or four key data formats, page times, a data dictionary, and integrity checksums.
                 {% endtranslate %}
-                <a class="d-inline-block h-0 link-uproot link-underline-opacity-0 ms-1" href="https://uproot.science/running/export/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}">
-                    <i class="bi bi-book fs-6"></i>
+                <a class="d-inline-block h-0 link-uproot ms-1" href="https://uproot.science/running/export/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}">
+                    <i class="bi bi-book fs-md"></i>
                 </a>
             </p>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="format-latest-fields" x-model="grouped">
-                <label class="form-check-label" for="format-latest-fields">{% translate %}Latest &times; Field(s){% endtranslate %}</label>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}
-                    Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.
-                    {% endtranslate %}
-                    <span class="d-block mt-2">
+            <div class="form-field">
+                <input class="check" type="checkbox" id="format-latest-fields" x-model="grouped">
+                <div class="form-field-content">
+                    <label for="format-latest-fields">{% translate %}Latest &times; Field(s){% endtranslate %}</label>
+                    <div class="form-text mt-3 fg-secondary">
                         {% translate %}
-                        “Latest × Field(s)” is enabled by default. It adds a derived view of data already present in the archive without changing the three standard data formats. Fields with many combinations may increase export time and size.
+                        Adds one row per player per specified grouping (like per round): shows what each participant’s state was at the end of each round, condition, or other grouping you specify.
                         {% endtranslate %}
-                    </span>
-                </div>
-                <div id="customInputs" class="my-4" style="display: none;" x-show="grouped">
-                    <div id="inputContainer">
-                        <template x-for="(groupVar, index) in groupVars" :key="groupVar.id">
-                        <div class="input-group mb-2">
-                            <div class="form-floating">
-                                <input type="text" class="font-monospace form-control" :id="groupVar.id" name="gvar" placeholder="grouping variable" x-model="groupVar.value" disabled :disabled="!grouped">
-                                <label :for="groupVar.id">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace" x-text="groupVar.example"></span>)</label>
-                            </div>
-                            <button type="button" class="btn btn-outline-danger remove-input" @click="if (groupVars.length > 1) groupVars.splice(index, 1)">{% translate %}Remove{% endtranslate %}</button>
-                        </div>
-                        </template>
+                        <span class="d-block mt-3">
+                            {% translate %}
+                            “Latest × Field(s)” is enabled by default. It adds a derived view of data already present in the archive without changing the three standard data formats. Fields with many combinations may increase export time and size.
+                            {% endtranslate %}
+                        </span>
                     </div>
-                    <button type="button" class="btn btn-outline-uproot btn-sm mb-2" id="addInput" @click="nextGroupVarId += 1; groupVars.push({ id: `group-var-extra-${nextGroupVarId}`, value: '', example: 'round' })">
-                        <i class="bi bi-plus-lg"></i> {% translate %}Add grouping variable{% endtranslate %}
-                    </button>
+                    <div id="customInputs" class="my-7" style="display: none;" x-show="grouped">
+                        <div id="inputContainer">
+                            <template x-for="(groupVar, index) in groupVars" :key="groupVar.id">
+                            <div class="input-group mb-3">
+                                <div class="form-floating">
+                                    <label :for="groupVar.id">{% translate %}Grouping variable{% endtranslate %} ({% translate %}e.g.,{% endtranslate %} <span class="font-monospace" x-text="groupVar.example"></span>)</label>
+                                    <input type="text" class="font-monospace form-control" :id="groupVar.id" name="gvar" placeholder="grouping variable" x-model="groupVar.value" disabled :disabled="!grouped">
+                                </div>
+                                <button type="button" class="btn-outline theme-danger input-group-btn remove-input" @click="if (groupVars.length > 1) groupVars.splice(index, 1)">{% translate %}Remove{% endtranslate %}</button>
+                            </div>
+                            </template>
+                        </div>
+                        <button type="button" class="btn-outline theme-uproot btn-sm mb-3" id="addInput" @click="nextGroupVarId += 1; groupVars.push({ id: `group-var-extra-${nextGroupVarId}`, value: '', example: 'round' })">
+                            <i class="bi bi-plus-lg"></i> {% translate %}Add grouping variable{% endtranslate %}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Column 2 -->
-        <div class="col-12 col-xl-6 mb-4">
-            <h4 class="mb-3">
+        <div class="col-12 xl:col-6 mb-7">
+            <h4 class="mb-5">
                 {% translate %}File type{% endtranslate %}
             </h4>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" id="filetype-csv" name="filetype" value="csv" checked>
-                <label class="form-check-label" for="filetype-csv">CSV</label>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}CSV is the better choice for spreadsheet applications.{% endtranslate %}
-                    {% translate %}Each format comes as one CSV file per storage, such as latest/player.csv.{% endtranslate %}
+            <div class="form-field mb-5">
+                <input class="radio" type="radio" id="filetype-csv" name="filetype" value="csv" checked>
+                <div class="form-field-content">
+                    <label for="filetype-csv">CSV</label>
+                    <div class="form-text mt-3 fg-secondary">
+                        {% translate %}CSV is the better choice for spreadsheet applications.{% endtranslate %}
+                        {% translate %}Each format comes as one CSV file per storage, such as latest/player.csv.{% endtranslate %}
+                    </div>
                 </div>
             </div>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="radio" id="filetype-jsonl" name="filetype" value="jsonl">
-                <label class="form-check-label" for="filetype-jsonl">JSONL</label>
+            <div class="form-field mb-5">
+                <input class="radio" type="radio" id="filetype-jsonl" name="filetype" value="jsonl">
+                <label for="filetype-jsonl">JSONL</label>
             </div>
-            <h4 class="mb-3 mt-5">
+            <h4 class="mb-5 mt-12">
                 {% translate %}Filters{% endtranslate %}
             </h4>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="apply-filters" name="filters" value="1" checked>
-                <label class="form-check-label" for="apply-filters">
-                    {% translate %}Apply reasonable filters{% endtranslate %}
-                </label>
-                <div class="form-text mt-2 text-secondary">
-                    {% translate %}
-                    Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.
-                    {% endtranslate %}
+            <div class="form-field">
+                <input class="check" type="checkbox" id="apply-filters" name="filters" value="1" checked>
+                <div class="form-field-content">
+                    <label for="apply-filters">
+                        {% translate %}Apply reasonable filters{% endtranslate %}
+                    </label>
+                    <div class="form-text mt-3 fg-secondary">
+                        {% translate %}
+                        Excludes, renames or transforms uproot-internal fields to provide cleaner data focused on experimental variables and participant responses.
+                        {% endtranslate %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-lg btn-uproot">{% translate %}Download{% endtranslate %}</button>
+    <button type="submit" class="btn-lg btn-solid theme-uproot">{% translate %}Download{% endtranslate %}</button>
 </form>
 
 {% endblock main3 %}

@@ -99,11 +99,11 @@ function adminchatReplyBadge(summary) {
     }
 
     if (summary.enabled) {
-        return `<span class="badge badge-xs text-bg-success">${_("replies on")}</span>`;
+        return `<span class="badge badge-xs theme-success">${_("replies on")}</span>`;
     }
 
     if (summary.has_messages) {
-        return `<span class="badge badge-xs text-bg-secondary">${_("read-only")}</span>`;
+        return `<span class="badge badge-xs theme-secondary">${_("read-only")}</span>`;
     }
 
     return "";
@@ -111,7 +111,7 @@ function adminchatReplyBadge(summary) {
 
 function adminchatSnippet(summary, uname) {
     if (!summary?.last_message_text) {
-        return `<span class="text-body-tertiary">${_("No messages yet")}</span>`;
+        return `<span class="fg-3">${_("No messages yet")}</span>`;
     }
 
     const prefix = summary.last_sender === "admin" ? `${_("You")}: ` : "";
@@ -119,10 +119,10 @@ function adminchatSnippet(summary, uname) {
     const unread = adminchatIsUnread(uname);
 
     if (unread) {
-        return `<span class="fw-semibold text-body">${prefix}${text}</span>`;
+        return `<span class="fw-semibold fg-body">${prefix}${text}</span>`;
     }
 
-    return `<span class="text-body-secondary">${prefix}${text}</span>`;
+    return `<span class="fg-2">${prefix}${text}</span>`;
 }
 
 function adminchatBulkRepliesState(unames) {
@@ -183,7 +183,7 @@ function renderInboxSidebar() {
         return /* SAFE */ `
             <li class="adminchat-inbox-item ${activeClass} ${unreadClass}" data-uname="${uproot.escape(uname)}">
                 <div class="adminchat-inbox-item-check">
-                    <input type="checkbox" class="form-check-input"
+                    <input type="checkbox" class="check"
                            data-adminchat-select="1"
                            data-uname="${uproot.escape(uname)}"
                            ${isSelected ? "checked" : ""}
@@ -195,7 +195,7 @@ function renderInboxSidebar() {
                     <div class="adminchat-inbox-item-header">
                         ${adminchatStatusIcon(summary, uname)}
                         <span class="${nameClass}">${uproot.escape(uname)}</span>
-                        ${unread ? `<span class="badge badge-xs bg-warning text-dark">${_("new")}</span>` : ""}
+                        ${unread ? `<span class="badge badge-xs theme-warning">${_("new")}</span>` : ""}
                         ${adminchatReplyBadge(summary)}
                     </div>
                     <div class="adminchat-inbox-item-snippet">${adminchatSnippet(summary, uname)}</div>
@@ -247,7 +247,7 @@ function renderAdminchatMessages(thread) {
 
             return /* SAFE */ `
                 <article class="adminchat-message ${bubbleClass}">
-                    <header class="align-items-center d-flex justify-content-between gap-3 mb-2">
+                    <header class="align-items-center d-flex justify-content-between gap-5 mb-3">
                         <span class="adminchat-message-sender">${sender}</span>
                         <time class="adminchat-message-time">${uproot.escape(time)}</time>
                     </header>
@@ -275,20 +275,20 @@ function renderComposer(opts) {
                 placeholder="${placeholder}"
                 x-model="$store.adminchat.draft"
             ></textarea>
-            <div class="align-items-center d-flex flex-wrap justify-content-between gap-3 mt-3">
+            <div class="align-items-center d-flex flex-wrap justify-content-between gap-5 mt-5">
                 <div>
                     ${toggleHandler ? `
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="adminchat-replies-toggle"
+                        <div class="form-field">
+                            <div class="switch"><input type="checkbox" role="switch" id="adminchat-replies-toggle"
                                    data-indeterminate="${repliesIndeterminate ? "1" : "0"}"
                                    ${repliesChecked ? "checked" : ""}
-                                   onchange="${toggleHandler}">
-                            <label class="form-check-label" for="adminchat-replies-toggle">${_("Player can reply")}</label>
+                                   onchange="${toggleHandler}" switch></div>
+                            <label for="adminchat-replies-toggle">${_("Player can reply")}</label>
                         </div>
                     ` : ""}
                 </div>
                 <button
-                    class="btn btn-uproot"
+                    class="btn-solid theme-uproot"
                     type="button"
                     ${adminchatState.sending ? "disabled" : ""}
                     onclick="${sendHandler}">
@@ -301,20 +301,20 @@ function renderComposer(opts) {
 
 function buildSinglePlayerHeader(uname, thread) {
     const player = thread.player;
-    const label = player?.label ? uproot.escape(player.label) : `<span class="text-body-tertiary">${_("No label")}</span>`;
-    const playerId = player?.id != null ? uproot.escape(String(player.id)) : `<span class="text-body-tertiary">&mdash;</span>`;
+    const label = player?.label ? uproot.escape(player.label) : `<span class="fg-3">${_("No label")}</span>`;
+    const playerId = player?.id != null ? uproot.escape(String(player.id)) : `<span class="fg-3">&mdash;</span>`;
 
     return /* SAFE */ `
-        <div class="d-flex align-items-start justify-content-between gap-3">
+        <div class="d-flex align-items-start justify-content-between gap-5">
             <div>
                 <h4 class="adminchat-player-name mb-1">${uproot.escape(uname)}</h4>
-                <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <span class="text-body-secondary">${_("Player ID")}: ${playerId}</span>
-                    <span class="text-body-secondary">${_("Label")}: ${label}</span>
-                    <span class="text-body-secondary font-monospace">${uproot.escape(adminchatPageLabel(player))}</span>
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <span class="fg-2">${_("Player ID")}: ${playerId}</span>
+                    <span class="fg-2">${_("Label")}: ${label}</span>
+                    <span class="fg-2 font-monospace">${uproot.escape(adminchatPageLabel(player))}</span>
                 </div>
             </div>
-            <a class="btn btn-outline-uproot btn-sm text-nowrap" href="${adminchatPlayerUrl(uname)}" target="_blank">
+            <a class="btn-outline theme-uproot btn-sm text-nowrap" href="${adminchatPlayerUrl(uname)}" target="_blank">
                 ${_("Open player page")}
             </a>
         </div>
@@ -327,7 +327,7 @@ function renderSinglePlayerView(uname) {
     if (!thread) {
         return /* SAFE */ `
             <div class="adminchat-empty-state">
-                <div class="spinner-border spinner-border-sm text-uproot mb-3" role="status"></div>
+                <div class="spinner-border spinner-sm fg-uproot mb-5" role="status"></div>
                 <div class="adminchat-empty-title">${_("Loading conversation...")}</div>
             </div>
         `;
@@ -353,17 +353,17 @@ function renderSinglePlayerView(uname) {
 function renderBroadcastView(unames) {
     const repliesState = adminchatBulkRepliesState(unames);
     const pills = unames.map(u =>
-        `<span class="badge bg-uproot-subtle border border-uproot text-uproot">${uproot.escape(u)}</span>`
+        `<span class="badge badge-subtle theme-uproot border-uproot">${uproot.escape(u)}</span>`
     ).join(" ");
 
     return /* SAFE */ `
         <div class="adminchat-broadcast">
             <div class="adminchat-broadcast-header">
-                <div class="adminchat-eyebrow mb-2">${_("Broadcast message")}</div>
-                <h4 class="fw-semibold mb-2">
+                <div class="adminchat-eyebrow mb-3">${_("Broadcast message")}</div>
+                <h4 class="fw-semibold mb-3">
                     ${_("Send to #n# players").replace("#n#", unames.length)}
                 </h4>
-                <div class="adminchat-broadcast-pills mb-3">${pills}</div>
+                <div class="adminchat-broadcast-pills mb-5">${pills}</div>
             </div>
             ${renderComposer({
                 targetLabel: `${unames.length} ${_("players")}`,
@@ -427,7 +427,7 @@ function renderMainArea() {
     } else if (desiredType === "loading") {
         main.innerHTML = /* SAFE */ `
             <div class="adminchat-empty-state">
-                <div class="spinner-border spinner-border-sm text-uproot mb-3" role="status"></div>
+                <div class="spinner-border spinner-sm fg-uproot mb-5" role="status"></div>
                 <div class="adminchat-empty-title">${_("Loading conversation...")}</div>
             </div>
         `;
@@ -556,7 +556,7 @@ function patchBroadcastView(selected) {
 }
 
 function patchSendButton() {
-    const btn = document.querySelector("#adminchat-main .btn-uproot");
+    const btn = document.querySelector("#adminchat-main .btn-solid.theme-uproot");
 
     if (btn) {
         btn.disabled = adminchatState.sending;

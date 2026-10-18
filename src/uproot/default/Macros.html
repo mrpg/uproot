@@ -1,6 +1,6 @@
 {% macro error(field, id="") %}
     {% if field.errors %}
-        <div class="card mt-2 text-bg-danger border-danger rounded-0-1" role="alert"{% if id %} id="{{ id }}"{% endif %}>
+        <div class="card mt-3 bg-danger fg-contrast-danger border-danger rounded-0-1" role="alert"{% if id %} id="{{ id }}"{% endif %}>
             {% for error in field.errors %}
                 <div class="card-body pb-1 pt-1">
                     <small>{{ error }}</small>
@@ -11,7 +11,10 @@
 {% endmacro %}
 
 
-{% macro error_class(field) %}{% if field.errors %}alert alert-danger border-danger callout uproot-error text-black{% endif %}{% endmacro %}
+{% macro error_class(field) %}{% if field.errors %}alert theme-danger border-danger callout uproot-error fg-black{% endif %}{% endmacro %}
+
+
+{% macro choices_class(field) %}{% if field.layout | default("vertical") == "vertical" %}form-group{% else %}d-flex flex-wrap column-gap-7 row-gap-3{% endif %}{% endmacro %}
 
 
 {% set translate = _ %}
@@ -22,7 +25,7 @@
     {% if replace_minus %}
         {% set label_text = label_text | replace("-", "−") %}
     {% endif %}
-    {{ label(text=label_text, class_=class_, id=id) }}
+    {{ label(text=label_text, class_=class_ or false, id=id) }}
 {%- endmacro %}
 
 
@@ -47,9 +50,9 @@
                         {% if field0.render_kw and field0.render_kw.get("class") %}
                             <div class="{{ field0.render_kw.get('class') }}">
                         {% else %}
-                            <div class="text-body-tertiary text-center">
+                            <div class="fg-3 text-center">
                         {% endif %}
-                        {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
+                        {{ translated_label(subfield.label, "", replace_minus=true) }}
                         </div>
                     </th>
                 {% endfor %}
@@ -58,7 +61,7 @@
         <tbody>
         {% for field_ in varargs %}
             <tr class="likert-item-row">
-                <th class="likert-item pe-3 ps-0" scope="row">
+                <th class="likert-item pe-5 ps-0" scope="row">
                     <span class="form-label uproot-form-label">{{ translate(field_.label.text | string) if field_.label.text is not none else "" }}</span>
                     {% if field_.description %}
                         <small class="form-text uproot-form-description">{{ translate(field_.description) | safe }}</small>
@@ -66,7 +69,7 @@
                 </th>
                 {% for subfield in field_ %}
                     <td class="text-center likert-cell" onclick="this.children[0].click()">
-                        {{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                        {{ subfield(class_="radio", data_uproot_radio="") }}
                     </td>
                 {% endfor %}
             </tr>
@@ -78,7 +81,7 @@
 {% macro likert_grid() %}
     {% set field0 = varargs.0 %}
     {% set ncols = field0.choices | length %}
-    {% set grid_breakpoint = kwargs.get("breakpoint", 992) | int %}  {# default: Bootstrap’s lg breakpoint #}
+    {% set grid_breakpoint = kwargs.get("breakpoint", 1024) | int %}  {# default: Bootstrap’s lg breakpoint #}
     {% set grid_narrow_breakpoint = grid_breakpoint - 1 %}
     {% set grid_id = field0.id ~ "-likert-grid" %}
     <style>
@@ -226,7 +229,7 @@
             #{{ grid_id }} .uproot-likert-grid-cell-last .uproot-likert-grid-mobile-label {
                 border-bottom: 0;
             }
-            #{{ grid_id }} .uproot-likert-grid-mobile-label .form-check-label {
+            #{{ grid_id }} .uproot-likert-grid-mobile-label label {
                 font-variant-numeric: tabular-nums;
             }
         }
@@ -252,9 +255,9 @@
                 {% if field0.render_kw and field0.render_kw.get("class") %}
                     <div class="{{ field0.render_kw.get('class') }}">
                 {% else %}
-                    <div class="text-body-tertiary text-center">
+                    <div class="fg-3 text-center">
                 {% endif %}
-                    {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
+                    {{ translated_label(subfield.label, "", replace_minus=true) }}
                 </div>
             </div>
         {% endfor %}
@@ -268,11 +271,11 @@
             {% for subfield in field_ %}
                 <div class="uproot-likert-grid-cell{% if field_.description %} uproot-likert-grid-row-before-description{% endif %}{% if loop.first %} uproot-likert-grid-cell-first{% elif loop.last %} uproot-likert-grid-cell-last{% if field_.description %}  uproot-likert-grid-cell-before-description{% endif %}{% endif %}">
                     <span class="uproot-likert-grid-radio">
-                        &#8239;{{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                        &#8239;{{ subfield(class_="radio", data_uproot_radio="") }}
                         {# for consistent vertical spacing and optical margin alignment #}
                     </span>
                     <span class="uproot-likert-grid-mobile-label">
-                        {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
+                        {{ translated_label(subfield.label, "", replace_minus=true) }}
                     </span>
                     <span class="uproot-likert-grid-mobile-scale-label">
                         {% if loop.first %}
@@ -304,19 +307,21 @@
     <div class="uproot-form-group {{ field.class_wrapper | default('', true) }}">
         <div class="{{ error_class(field) }}">
         {% if field.type == "BooleanField" %}
-            <div class="form-check">
-                {% set class_list = ["form-check-input"] %}
+            <div class="form-field">
+                {% set class_list = ["check"] %}
                 {% if field.render_kw and field.render_kw.get("class") %}
                     {% set noop = class_list.append(field.render_kw.get("class")) %}
                 {% endif %}
                 {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
-                {{ translated_label(field.label, "form-check-label uproot-form-label") }}
-                {% if field.description %}
-                    <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
-                {% endif %}
+                <div class="form-field-content">
+                    {{ translated_label(field.label, "uproot-form-label") }}
+                    {% if field.description %}
+                        <small class="form-text uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                    {% endif %}
+                </div>
             </div>
         {% elif field.type == "DecimalRangeField" or field.type == "FloatRangeField" %}
-            {% set field_breakpoint = field.breakpoint | default(992) | int %}
+            {% set field_breakpoint = field.breakpoint | default(1024) | int %}
             <style>
                 @media (min-width: {{ field_breakpoint }}px) {
                     #{{ field.id }}-range .uproot-slider-label-wrapper {
@@ -329,7 +334,7 @@
                 }
             </style>
             {{ translated_label(field.label, "form-label uproot-form-label") }}
-            {% set class_list = ["form-range"] %}
+            {% set class_list = ["form-range-input"] %}
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set noop = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
@@ -340,21 +345,21 @@
                 {% if field.label_min is defined and field.label_min != "" %}
                     <div class="uproot-slider-label-wrapper">
                         {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
-                        <div class="me-3 text-end uproot-slider-label uproot-slider-label-min{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].min }}">
+                        <div class="me-5 text-end uproot-slider-label uproot-slider-label-min{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].min }}">
                             {{ translate(field.label_min) }}
                         </div>
                     </div>
                 {% endif %}
                 <div class="uproot-slider-input-wrapper{% if field.hide_popover is defined and not field.hide_popover %} uproot-slider-popover-wrapper{% endif %}">
-                    {% if field.hide_popover is defined and not field.hide_popover %}
-                    <div class="uproot-slider-popover-container"></div>
-                    {% endif %}
-                    {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
+                    {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
+                    <div class="form-range">
+                        {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
+                    </div>
                 </div>
                 {% if field.label_max is defined and field.label_max != "" %}
                     <div class="uproot-slider-label-wrapper">
                         {% if field.hide_popover is defined and not field.hide_popover %}<div class="uproot-slider-popover-spacer"></div>{% endif %}
-                        <div class="ms-3 text-start uproot-slider-label uproot-slider-label-max{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].max }}">
+                        <div class="ms-5 text-start uproot-slider-label uproot-slider-label-max{{ field.label_max_min_class_suffix }}" data-raw="{{ field.validators[1].max }}">
                             {{ translate(field.label_max) }}
                         </div>
                     </div>
@@ -371,14 +376,14 @@
                     {% set noop = class_list.append(field.render_kw.get("class")) %}
                 {% endif %}
                 {% if field.label_floating is defined and field.label_floating is not none %}
+                    <label for="{{ field.id }}">{{ translate(field.label_floating) }}</label>
                     {{ field(class_=" ".join(class_list), placeholder="e-mail", aria_describedby=describedby) | safe }}
-                    <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ translate(field.label_floating) }}</label>
                 {% else %}
                     {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                 {% endif %}
             </div>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-3 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "LikertField" %}
             {% set ncols = field.choices | length %}
@@ -431,9 +436,9 @@
                         {% if field.render_kw and field.render_kw.get("class") %}
                             <div class="{{ field.render_kw.get('class') }}">
                         {% else %}
-                            <div class="text-body-tertiary">
+                            <div class="fg-3">
                         {% endif %}
-                            {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
+                            {{ translated_label(subfield.label, "", replace_minus=true) }}
                         </div>
                     </div>
                 {% endfor %}
@@ -442,11 +447,11 @@
                 {% for subfield in field %}
                     <div class="uproot-likert-responsive-option{% if loop.first %} uproot-likert-responsive-option-min{% elif loop.last %} uproot-likert-responsive-option-max{% endif %}{% if loop.last %} uproot-likert-responsive-option-last{% endif %}">
                         <span>
-                            &#8239;{{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                            &#8239;{{ subfield(class_="radio", data_uproot_radio="") }}
                             {# for consistent vertical spacing and optical margin alignment #}
                         </span>
                         <span class="uproot-likert-responsive-mobile-label">
-                            {{ translated_label(subfield.label, "form-check-label", replace_minus=true) }}
+                            {{ translated_label(subfield.label, "", replace_minus=true) }}
                         </span>
                         <span class="uproot-likert-responsive-mobile-scale-label{% if loop.first %} uproot-likert-responsive-mobile-scale-label-min{% elif loop.last %} uproot-likert-responsive-mobile-scale-label-max{% endif %}">
                             {% if loop.first %}
@@ -475,9 +480,9 @@
                                 {% if field.render_kw and field.render_kw.get("class") %}
                                     <div class="{{ field.render_kw.get('class') }}">
                                 {% else %}
-                                    <div class="text-body-tertiary">
+                                    <div class="fg-3">
                                 {% endif %}
-                                    {{ translated_label(subfield.label, "form-check-label me-0", replace_minus=true) }}
+                                    {{ translated_label(subfield.label, "", replace_minus=true) }}
                                 </div>
                             </th>
                         {% endfor %}
@@ -486,13 +491,13 @@
                 </thead>
                 <tbody>
                     <tr class="likert-response-row">
-                        <th class="likert-scale-min text-end pe-3 ps-0" scope="row">{{ translate(field.label_min | string) if field.label_min is not none else "" }}</th>
+                        <th class="likert-scale-min text-end pe-5 ps-0" scope="row">{{ translate(field.label_min | string) if field.label_min is not none else "" }}</th>
                         {% for subfield in field %}
                             <td class="text-center likert-cell" onclick="this.children[0].click()">
-                                {{ subfield(class_="form-check-input", data_uproot_radio="") }}
+                                {{ subfield(class_="radio", data_uproot_radio="") }}
                             </td>
                         {% endfor %}
-                        <th class="likert-scale-max text-start pe-0 ps-3" scope="row">{{ translate(field.label_max | string) if field.label_max is not none else "" }}</th>
+                        <th class="likert-scale-max text-start pe-0 ps-5" scope="row">{{ translate(field.label_max | string) if field.label_max is not none else "" }}</th>
                     </tr>
                 </tbody>
             </table>
@@ -501,42 +506,34 @@
             {% endif %}
         {% elif field.type == "RadioField" %}
             {{ translated_label(field.label, "form-label uproot-form-label", id=field.id ~ "-label") }}
-            <div role="radiogroup" aria-labelledby="{{ field.id }}-label"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
+            <div class="{{ choices_class(field) }}" role="radiogroup" aria-labelledby="{{ field.id }}-label"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
             {% for subfield in field %}
-                {% set div_class_list = ["form-check"] %}
-                {% if field.render_kw and field.render_kw.get("class") %}
-                    {% set noop = div_class_list.append(field.render_kw.get("class")) %}
-                {% endif %}
-                <div class="{{ ' '.join(div_class_list) }}">
-                    {{ subfield(class_="form-check-input", data_uproot_radio="") }}
-                    {{ translated_label(subfield.label, "form-check-label") }}
+                <div class="form-field {{ field.render_kw.get('class', '') if field.render_kw else '' }}">
+                    {{ subfield(class_="radio", data_uproot_radio="") }}
+                    {{ translated_label(subfield.label, "") }}
                 </div>
             {% endfor %}
             </div>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-3 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "BoundedChoiceField" %}
             {{ translated_label(field.label, "form-label uproot-form-label", id=field.id ~ "-label") }}
             <input type="hidden" name="{{ field.name }}" value="">
-            <div class="uproot-bounded-choice" role="group" aria-labelledby="{{ field.id }}-label"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} data-bounded-min="{{ field.bounded_min }}" data-bounded-max="{{ field.bounded_max if field.bounded_max is not none else '' }}">
+            <div class="uproot-bounded-choice {{ choices_class(field) }}" role="group" aria-labelledby="{{ field.id }}-label"{% if describedby %} aria-describedby="{{ describedby }}"{% endif %} data-bounded-min="{{ field.bounded_min }}" data-bounded-max="{{ field.bounded_max if field.bounded_max is not none else '' }}">
             {% for subfield in field %}
-                {% set div_class_list = ["form-check"] %}
-                {% if field.render_kw and field.render_kw.get("class") %}
-                    {% set noop = div_class_list.append(field.render_kw.get("class")) %}
-                {% endif %}
-                <div class="{{ ' '.join(div_class_list) }}">
-                    <input type="checkbox" class="form-check-input" id="{{ subfield.id }}" name="{{ field.name }}" value="{{ subfield.data }}"{% if field.data and subfield.data in field.data %} checked{% endif %}>
-                    {{ translated_label(subfield.label, "form-check-label") }}
+                <div class="form-field {{ field.render_kw.get('class', '') if field.render_kw else '' }}">
+                    <input type="checkbox" class="check" id="{{ subfield.id }}" name="{{ field.name }}" value="{{ subfield.data }}"{% if field.data and subfield.data in field.data %} checked{% endif %}>
+                    {{ translated_label(subfield.label, "") }}
                 </div>
             {% endfor %}
             </div>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-3 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "SelectField" %}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
-            {% set class_list = ["form-select"] %}
+            {% set class_list = ["form-control"] %}
             {% if field.render_kw and field.render_kw.get("class") %}
                 {% set noop = class_list.append(field.render_kw.get("class")) %}
             {% endif %}
@@ -559,7 +556,7 @@
                 {% endif %}
             </select>
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-3 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% elif field.type == "BICField" or field.type == "IBANField" or field.type == "StringField" or field.type == "TextAreaField" %}
             {{ translated_label(field.label, "form-label uproot-form-label") }}
@@ -575,8 +572,8 @@
                         {% set noop = class_list.append(field.render_kw.get("class")) %}
                     {% endif %}
                     {% if field.label_floating is defined and field.label_floating is not none %}
+                        <label for="{{ field.id }}">{{ translate(field.label_floating) }}</label>
                         {{ field(class_=" ".join(class_list), placeholder="text", aria_describedby=describedby) | safe }}
-                        <label class="text-body-tertiary bg-transparent" for="{{ field.name }}">{{ translate(field.label_floating) }}</label>
                     {% else %}
                         {{ field(class_=" ".join(class_list), aria_describedby=describedby) | safe }}
                     {% endif %}
@@ -588,7 +585,7 @@
                 </div>
             {% endif %}
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-3 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% else %}
             {# DateField, FileField, IntegerField, DecimalField, FloatField #}
@@ -611,7 +608,7 @@
                 </div>
             {% endif %}
             {% if field.description %}
-                <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
+                <small class="form-text mt-3 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
             {% endif %}
         {% endif %}
         {{ error(field, err_id) }}

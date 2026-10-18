@@ -24,69 +24,62 @@ Internal Server Error
 
 {% if show_testing %}
 
-<div class="alert alert-danger" role="alert">
-    <h4 class="alert-heading">
-        <span class="badge bg-danger me-2">{{ exception_type }}</span>
-        Exception
-    </h4>
-    <p class="mb-0">{{ error_message }}</p>
+<div class="alert theme-danger" role="alert">
+    <div>
+        <h4 class="alert-heading">
+            <span class="badge theme-danger me-3">{{ exception_type }}</span>
+            Exception
+        </h4>
+        <p class="mb-0">{{ error_message }}</p>
+    </div>
 </div>
 
-<div class="accordion" id="errorAccordion">
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stackTrace">
-                Stack Trace
-            </button>
-        </h2>
-        <div id="stackTrace" class="accordion-collapse collapse" data-bs-parent="#errorAccordion">
-            <div class="accordion-body">
-                {% for frame in stack_frames %}
-                <div class="card mb-2">
-                    <div class="card-header">
-                        <strong>{{ frame.function }}</strong>
-                        <small class="text-secondary">{{ frame.filename }}:{{ frame.lineno }}</small>
-                    </div>
-                    <div class="card-body">
-                        <pre><code>{{ frame.code }}</code></pre>
-                    </div>
+<div class="accordion">
+    <details class="accordion-item" name="errorAccordion">
+        <summary class="accordion-header">
+            Stack Trace
+            <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m2 5 6 6 6-6"/></svg>
+        </summary>
+        <div class="accordion-body">
+            {% for frame in stack_frames %}
+            <div class="card mb-5">
+                <div class="card-header">
+                    <strong>{{ frame.function }}</strong>
+                    <small class="fg-secondary">{{ frame.filename }}:{{ frame.lineno }}</small>
                 </div>
-                {% endfor %}
+                <div class="card-body">
+                    <pre><code>{{ frame.code }}</code></pre>
+                </div>
             </div>
+            {% endfor %}
         </div>
-    </div>
+    </details>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#localVars">
-                Local Variables
-            </button>
-        </h2>
-        <div id="localVars" class="accordion-collapse collapse" data-bs-parent="#errorAccordion">
-            <div class="accordion-body">
-                <pre><code>{% for name, value in local_vars.items() %}{{ name }} = {{ value }}
+    <details class="accordion-item" name="errorAccordion">
+        <summary class="accordion-header">
+            Local Variables
+            <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m2 5 6 6 6-6"/></svg>
+        </summary>
+        <div class="accordion-body">
+            <pre><code>{% for name, value in local_vars.items() %}{{ name }} = {{ value }}
 {% endfor %}</code></pre>
-            </div>
         </div>
-    </div>
+    </details>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fullTraceback">
-                Full Traceback
-            </button>
-        </h2>
-        <div id="fullTraceback" class="accordion-collapse collapse" data-bs-parent="#errorAccordion">
-            <div class="accordion-body">
-                <pre><code>{{ traceback }}</code></pre>
-            </div>
+    <details class="accordion-item" name="errorAccordion">
+        <summary class="accordion-header">
+            Full Traceback
+            <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m2 5 6 6 6-6"/></svg>
+        </summary>
+        <div class="accordion-body">
+            <pre><code>{{ traceback }}</code></pre>
         </div>
-    </div>
+    </details>
 </div>
 
 {% else %}
 
-<div class="alert alert-secondary" role="alert">
+<div class="alert theme-secondary" role="alert">
     {% translate %}
     Log in as admin to view more information on this page.
     {% endtranslate %}

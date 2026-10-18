@@ -66,12 +66,12 @@ function createTableRow(label, value, options = {}) {
     const row = createElement("div", "d-table-row");
 
     const labelSpan = createElement("span",
-        "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase",
+        "d-table-cell fs-sm fw-medium opacity-75 pe-7 text-ls-uppercase text-nowrap text-uppercase",
         { textContent: label }
     );
 
     let valueClass = "d-table-cell w-100";
-    if (isNA) valueClass += " text-body-tertiary";
+    if (isNA) valueClass += " fg-3";
     if (isMonospace) valueClass += " font-monospace"; else valueClass += " fvn-proportional-nums";
 
     const valueSpan = createElement("span", valueClass);
@@ -125,25 +125,25 @@ function renderRooms(rooms, containerId) {
     }
 
     sortedRooms.forEach(room => {
-        const col = createElement("div", "mb-4 uproot-pagination-item");
+        const col = createElement("div", "mb-7 uproot-pagination-item");
         col.dataset.paginationLabel = getPaginationLabel(room.name);
         const card = createElement("div", "border-uproot callout card");
 
         // Card header
         const cardHeader = createElement("div", "bg-white border-0 card-header pe-0");
         const headerContent = createElement("div",
-            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2 text-uproot"
+            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-3 fg-uproot"
         );
 
-        const title = createElement("h5", "fw-semibold mb-0 pb-1 me-3 overflow-x-auto text-nowrap");
+        const title = createElement("h5", "fw-semibold mb-0 pb-1 me-5 overflow-x-auto text-nowrap");
         const roomUrl = adminUrl("room", room.name);
-        title.innerHTML = `<a class="link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover link-underline-uproot text-uproot" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.6;">&#xF56B;</i></a>`; // SAFE
+        title.innerHTML = `<a class="fg-uproot link-hover" href="${roomUrl}"><span class="font-monospace">${encodeURIComponent(room.name)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.6;">&#xF56B;</i></a>`; // SAFE
 
         const statusBadge = createBadge(
             room.open ? _("room is Open") : _("Closed"),
             room.open
-                ? "badge bg-success border border-success my-1"
-                : "badge border border-danger my-1 text-danger"
+                ? "badge theme-success my-1"
+                : "badge badge-outline theme-danger my-1"
         );
 
         const rightCol = document.createElement("div");
@@ -156,11 +156,11 @@ function renderRooms(rooms, containerId) {
 
         // Card body
         const cardBody = createElement("div",
-            "bg-white card-body d-flex justify-content-between pb-1 pe-0 pt-1 rounded-bottom"
+            "bg-white card-body d-flex flex-row justify-content-between pb-1 pe-0 pt-1 rounded-bottom"
         );
 
-        const leftCol = createElement("div", "overflow-x-auto me-3");
-        const infoTable = createElement("div", "col d-table mb-2");
+        const leftCol = createElement("div", "overflow-x-auto me-5");
+        const infoTable = createElement("div", "col d-table mb-3");
 
         // Session row
         if (room.sname) {
@@ -207,21 +207,21 @@ function renderRooms(rooms, containerId) {
 
         const fillBadgeClass = (fillRatio) =>
             fillRatio >= 1
-                ? "badge bg-success border border-success mb-2"
+                ? "badge theme-success mb-3"
                 : fillRatio >= 0.9
-                    ? "badge bg-warning border border-warning mb-2 text-dark"
-                    : "badge bg-danger border border-danger mb-2";
+                    ? "badge theme-warning mb-3"
+                    : "badge theme-danger mb-3";
 
         // Capacity badge
         let capacityClass;
         if (room.capacity != null) {
             capacityClass = room.open
                 ? fillBadgeClass(nPlayers / room.capacity)
-                : "badge border border-danger mb-2 text-danger";
+                : "badge badge-outline theme-danger mb-3";
         } else {
             capacityClass = room.open
-                ? "badge bg-success border border-success mb-2"
-                : "badge border border-success mb-2 text-success";
+                ? "badge theme-success mb-3"
+                : "badge badge-outline theme-success mb-3";
         }
         badges.appendChild(createBadge(
             `${_("Capacity")}: ${room.capacity != null ? room.capacity : "∞"}`,
@@ -232,7 +232,7 @@ function renderRooms(rooms, containerId) {
         if (room.sname && uproot.vars.sessions[room.sname]) {
             const playersClass = room.capacity != null
                 ? fillBadgeClass(nPlayers / room.capacity)
-                : "badge bg-success border border-success mb-2";
+                : "badge theme-success mb-3";
             badges.appendChild(createBadge(
                 `${_("Players")}: ${nPlayers}`,
                 playersClass
@@ -265,25 +265,25 @@ function renderSessions(sessions, containerId) {
     }
 
     sortedSessions.forEach(session => {
-        const col = createElement("div", "mb-4 uproot-pagination-item");
+        const col = createElement("div", "mb-7 uproot-pagination-item");
         const card = createElement("div", "callout card border-uproot-light");
 
         // Card header
         const cardHeader = createElement("div", "bg-white border-0 card-header pe-0");
         const headerContent = createElement("div",
-            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-2"
+            "align-items-center border-bottom border-uproot-light d-flex justify-content-between pb-3"
         );
 
         if (session.sname) {
-            const title = createElement("h5", "d-inline-block fw-semibold mb-1 me-3 overflow-x-auto text-nowrap");
+            const title = createElement("h5", "d-inline-block fw-semibold mb-1 me-5 overflow-x-auto text-nowrap");
             const sessionUrl = adminUrl("session", session.sname);
-            title.innerHTML = `<a class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.60;">&#xF56B;</i></a>`; // SAFE
+            title.innerHTML = `<a class="fg-body link-hover" href="${sessionUrl}"><span class="font-monospace">${encodeURIComponent(session.sname)}</span> &nbsp;<i class="font-bi" style="font-size-adjust: 0.60;">&#xF56B;</i></a>`; // SAFE
             headerContent.appendChild(title);
         }
 
         if (session.created) {
             const time = createElement("small",
-                "badge border border-opacity-0 border-white fw-normal px-0 my-1 text-body-tertiary",
+                "badge fw-normal px-0 my-1 fg-3",
                 { textContent: `${_("Created")}: ${epochToLocalDateTime(session.created)}` }
             );
             headerContent.appendChild(time);
@@ -296,8 +296,8 @@ function renderSessions(sessions, containerId) {
             "bg-white card-body d-flex flex-row justify-content-between pb-1 pe-0 pt-0 rounded-bottom"
         );
 
-        const infoTableWrapper = createElement("div", "overflow-x-auto me-3");
-        const infoTable = createElement("div", "d-table mb-2 mt-1");
+        const infoTableWrapper = createElement("div", "overflow-x-auto me-5");
+        const infoTable = createElement("div", "d-table mb-3 mt-1");
 
         // Room row
         if (session.room) {
@@ -334,14 +334,14 @@ function renderSessions(sessions, containerId) {
         if (session.n_players != null) {
             badges.appendChild(createBadge(
                 `${_("Players")}: ${session.n_players}`,
-                "badge bg-uproot border border-uproot mb-2"
+                "badge theme-uproot mb-3"
             ));
         }
 
         if (session.n_groups != null) {
             badges.appendChild(createBadge(
                 `${_("Groups")}: ${session.n_groups}`,
-                "badge bg-white border border-uproot ms-2 text-uproot"
+                "badge badge-outline theme-uproot ms-3"
             ));
         }
 
@@ -366,7 +366,7 @@ function renderSessions(sessions, containerId) {
 function renderConfigsApps(data, containerId) {
     const container = I(containerId);
 
-    const select = createElement("select", "font-monospace form-select", {
+    const select = createElement("select", "font-monospace form-control", {
         id: "configs-apps-select",
         name: "config"
     });
@@ -399,11 +399,9 @@ function renderConfigsApps(data, containerId) {
         select.appendChild(optgroup);
     });
 
-    container.appendChild(select);
-
     const label = createElement("label", "", { textContent: _("Config or app") });
     label.htmlFor = "configs-apps-select";
-    container.appendChild(label);
+    container.append(label, select);
 
     return select;
 }
@@ -413,11 +411,11 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
     container.innerHTML = "";  // SAFE
     if (!data[groupKey]) return;
 
-    const card = createElement("div", "mb-3");
+    const card = createElement("div", "mb-5");
 
     const cardBodyClass = groupKey === "configs"
-        ? "bg-light border-uproot-subtle"
-        : "bg-light border-uproot-subtle-light";
+        ? "bg-1 border-uproot-subtle"
+        : "bg-1 border-uproot-subtle-light";
 
     const cardTitleFontClass = groupKey === "configs"
         ? ""
@@ -435,22 +433,22 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
 
     entries.forEach(({ key, value, displayKey }) => {
         const item = createElement("div",
-            "align-items-start border-start callout d-flex justify-content-between px-3 py-2 mb-3 uproot-pagination-item " +
+            "align-items-start border-start callout d-flex justify-content-between px-5 py-3 mb-5 uproot-pagination-item " +
             cardBodyClass
         );
         item.dataset.paginationLabel = getPaginationLabel(displayKey);
 
         const content = createElement("div", "flex-grow-1 overflow-x-auto");
 
-        const title = createElement("div", cardTitleFontClass + " fw-semibold h5 my-2", {
+        const title = createElement("div", cardTitleFontClass + " fw-semibold h5 my-3", {
             textContent: displayKey
         });
         content.appendChild(title);
 
         if (value != null && value !== "") {
-            const desc = createElement("div", "d-table mb-2");
+            const desc = createElement("div", "d-table mb-3");
             const descLabel = createElement("div",
-                "d-table-cell fs-sm fw-medium opacity-75 pe-4 text-ls-uppercase text-nowrap text-uppercase",
+                "d-table-cell fs-sm fw-medium opacity-75 pe-7 text-ls-uppercase text-nowrap text-uppercase",
                 { textContent: key.startsWith("~") ? _("Description") : _("Apps") }
             );
             const descContent = createElement("div",
@@ -464,7 +462,7 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
 
         item.appendChild(content);
 
-        const detailsLink = createElement("a", "btn btn-sm btn-outline-uproot btn-launch flex-grow-0", {
+        const detailsLink = createElement("a", "btn-sm btn-outline theme-uproot btn-launch flex-grow-0", {
             href: newSessionUrl(key),
             title: _("New session")
         });
@@ -483,10 +481,10 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
 // ============================================================================
 
 function showBibTeX() {
-    uproot.alert(`<h5 class="mb-3">${_("Pre-formatted citation")} <span class="fw-light">(Chicago style)</span></h5>
-<p class="mb-4">Grossmann, Max&nbsp;R.&nbsp;P., and Holger Gerhardt. 2025. “uproot: A Software Framework for Behavioral Experiments.” Unpublished manuscript.</p>
-<h5 class="mb-3">${_("BibTeX entry")}</h5>
-<code class="text-uproot">
+    uproot.alert(`<h5 class="mb-5">${_("Pre-formatted citation")} <span class="fw-light">(Chicago style)</span></h5>
+<p class="mb-7">Grossmann, Max&nbsp;R.&nbsp;P., and Holger Gerhardt. 2025. “uproot: A Software Framework for Behavioral Experiments.” Unpublished manuscript.</p>
+<h5 class="mb-5">${_("BibTeX entry")}</h5>
+<code class="fg-uproot">
 <b>@unpublished</b>{<b>uproot</b>,<br>
 &nbsp;&nbsp;<b>author</b> = {Grossmann, Max~R.~P. and Gerhardt, Holger},<br>
 &nbsp;&nbsp;<b>title</b>&nbsp;= {uproot: A Software Framework for Behavioral Experiments},<br>
@@ -519,7 +517,7 @@ function announcements() {
             document.getElementById("nudge-announcements")?.remove();
         }
 
-        let safeHTML = `<p class="alert alert-uproot border-uproot callout text-black" role="alert">`;
+        let safeHTML = `<p class="alert theme-uproot border-uproot callout fg-black" role="alert">`;
 
         safeHTML += _("You are running version #i_am#. The current version is #recommended#.")
             .replace("#i_am#", uproot.escape(uproot.vars.uproot_version))
@@ -528,25 +526,25 @@ function announcements() {
         safeHTML += "</p>";
 
         if (!data.versionIsCurrent) {
-            safeHTML += `<p class="alert alert-danger border-danger callout text-black" role="alert">`;
+            safeHTML += `<p class="alert theme-danger border-danger callout fg-black" role="alert">`;
             safeHTML += _("Your version is outdated.");
             safeHTML += "</p>";
         }
         else if (data.versionAnnouncement == null) {
-            safeHTML += `<p class="alert alert-success border-success callout text-black" role="alert">`;
+            safeHTML += `<p class="alert theme-success border-success callout fg-black" role="alert">`;
             safeHTML += _("Your version appears to be up to date.");
             safeHTML += "</p>";
         }
 
         if (data.generalAnnouncement) {
-            safeHTML += `<div class="alert alert-warning border-warning callout text-black" role="alert">
+            safeHTML += `<div class="alert theme-warning border-warning callout fg-black" role="alert">
                              <b>${_("General announcement")}</b>:
                              ${uproot.escape(data.generalAnnouncement)}
                          </div>`;
         }
 
         if (data.versionAnnouncement != null) {
-            safeHTML += '<p class="alert alert-danger border-danger callout text-black" role="alert">';
+            safeHTML += '<p class="alert theme-danger border-danger callout fg-black" role="alert">';
             safeHTML += `<b>${_("Announcement for your version")}</b>: `;
             safeHTML += uproot.escape(data.versionAnnouncement);
             safeHTML += "</p>";

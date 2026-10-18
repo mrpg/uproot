@@ -532,8 +532,8 @@
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'Wenn dieses Kästchen nicht aktiviert ist, bleibt die Kapazität des Raums unverändert. Das heißt, dass neu hinzukommende Spieler die Session vergrößern können.'
 
-? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
-: "Wenn Sie uproot nützlich finden, <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>zitieren Sie es bitte</a> in akademischen Publikationen."
+? "If you find uproot useful, please <a class='link-subtle' href='javascript:showBibTeX()'>cite it</a> in academic publications."
+: "Wenn Sie uproot nützlich finden, <a class='link-subtle' href='javascript:showBibTeX()'>zitieren Sie es bitte</a> in akademischen Publikationen."
 
 ? 'Inactive sessions'
 : 'Inaktive Sessions'
@@ -1239,3 +1239,12 @@
 
 ? 'Loading data…'
 : 'Daten werden geladen…'
+
+? 'Data options'
+: 'Datenoptionen'
+
+? 'Player actions'
+: 'Spieleraktionen'
+
+? 'Table options'
+: 'Tabellenoptionen'

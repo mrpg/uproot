@@ -11,9 +11,9 @@ New room
 
 {% block titlearea %}
 
-<h2 id="uproot-title" class="fw-semibold my-4">
+<h2 id="uproot-title" class="fw-semibold my-7">
     {% translate %}New room{% endtranslate %}
-    <a class="link-underline-opacity-0 link-uproot ms-2" href="https://uproot.science/running/rooms/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-5"></i></a>
+    <a class="link-uproot ms-3" href="https://uproot.science/running/rooms/" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-lg"></i></a>
 </h2>
 
 {% endblock titlearea %}
@@ -21,7 +21,7 @@ New room
 
 {% block main %}
 
-<div class="alert alert-warning border-warning text-black callout mb-4">
+<div class="alert theme-warning border-warning fg-black callout mb-7">
     <p>
         {% translate %}Please note that a room created this way will disappear when you reset the database.{% endtranslate %}
     </p>
@@ -35,7 +35,7 @@ New room
 
 {% include "RoomSettingsForm.html" %}
 
-<button type="button" class="btn btn-uproot mt-4" onclick="createRoom()">{% translate %}Create room{% endtranslate %}</button>
+<button type="button" class="btn-solid theme-uproot mt-7" onclick="createRoom()">{% translate %}Create room{% endtranslate %}</button>
 
 {% endblock main %}
 

@@ -9,7 +9,7 @@ See `pyproject.toml`.
 | Library | Version | License |
 |---|---|---|
 | [Alpine.js](https://alpinejs.dev/) | 3.17.4 | MIT |
-| [Bootstrap](https://getbootstrap.com/) | 5.3.8 | MIT |
+| [Bootstrap](https://getbootstrap.com/) | 6.0.0-alpha.1 | MIT |
 | [Bootstrap Icons](https://icons.getbootstrap.com/) | 1.13.2 | MIT |
 | [Tabulator](https://tabulator.info/) | 6.6.1 | MIT |
 

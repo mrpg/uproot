@@ -25,7 +25,7 @@ Please wait
     <main id="uproot-main" tabindex="-1">
         {% if _uproot_errors %}
         {% for error in _uproot_errors %}
-        <div class="alert alert-danger uproot-main-error" role="alert">
+        <div class="alert theme-danger uproot-main-error" role="alert">
             {{ error }}
         </div>
         {% endfor %}
@@ -42,7 +42,7 @@ Please wait
 
 {% if _uproot_internal.bad %}
 
-<div class="alert alert-danger mb-4" role="alert">
+<div class="alert theme-danger mb-7" role="alert">
     {% translate %}
     You provided invalid credentials.
     {% endtranslate %}
@@ -51,7 +51,7 @@ Please wait
 {% endif %}
 
 <form method="post" onsubmit="return uproot.beginSubmit(this)">
-    <div class="mb-3">
+    <div class="mb-5">
         <label for="label" class="form-label">
             {% translate %}
             Please enter your Access Code.
@@ -61,7 +61,7 @@ Please wait
     </div>
 
     <div class="d-grid">
-        <button type="submit" class="btn btn-primary btn-lg">
+        <button type="submit" class="btn-solid theme-primary btn-lg">
             {% translate %}
             Submit
             {% endtranslate %}

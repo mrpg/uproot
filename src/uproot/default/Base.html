@@ -4,7 +4,7 @@
 {% block titlearea %}
 
 {% if _uproot_title %}
-<h1 id="uproot-title" class="my-4">
+<h1 id="uproot-title" class="my-7">
     {{ _uproot_title }}
 </h1>
 {% endif %}
@@ -17,13 +17,13 @@
 {% if buttons and not buttons_placed.placed %}
 <div id="uproot-button-wrapper">
     {% if page.allow_back %}
-    <button type="button" id="uproot-button-back" class="btn btn-outline-secondary" onclick="uproot.goBack()">
+    <button type="button" id="uproot-button-back" class="btn-outline theme-secondary" onclick="uproot.goBack()">
         {% translate %}
         Back
         {% endtranslate %}
     </button>
     {% endif %}
-    <button type="submit" id="uproot-button-next" class="btn btn-primary">
+    <button type="submit" id="uproot-button-next" class="btn-solid theme-primary">
         {% translate %}
         Next
         {% endtranslate %}

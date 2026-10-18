@@ -14,11 +14,11 @@ Status
 
 {% if not deployment.PUBLIC_DEMO %}
 
-<div class="gx-lg-4-5 row">
-    <div class="col-12 col-lg-6 mb-4-5">
+<div class="lg:gx-10 row">
+    <div class="col-12 lg:col-6 mb-10">
         <div class="card h-100">
             <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Database{% endtranslate %}</h4>
+                <h4 class="border-bottom fw-semibold mb-0 mt-3 pb-5">{% translate %}Database{% endtranslate %}</h4>
             </div>
             <div class="card-body">
                 <table class="table table-sm">
@@ -35,8 +35,8 @@ Status
                         {% endif %}
                     </tbody>
                 </table>
-                <h5 class="mb-3 mt-4">{% translate %}Download database dump{% endtranslate %}</h5>
-                <p class="text-secondary">
+                <h5 class="mb-5 mt-7">{% translate %}Download database dump{% endtranslate %}</h5>
+                <p class="fg-secondary">
                     {% translate %}
                     This creates a complete machine-readable record of all data.
                     {% endtranslate %}
@@ -45,14 +45,14 @@ Status
                     {% endtranslate %}
                 </p>
                 <p class="mb-1">
-                    <a class="btn btn-sm btn-uproot" href="../dump/">
+                    <a class="btn-sm btn-solid theme-uproot" href="../dump/">
                         {% translate %}
                         Download
                         {% endtranslate %}
                     </a>
                 </p>
-                <h5 class="mb-3 mt-4">{% translate %}Download project code{% endtranslate %}</h5>
-                <p class="text-secondary">
+                <h5 class="mb-5 mt-7">{% translate %}Download project code{% endtranslate %}</h5>
+                <p class="fg-secondary">
                     {% translate %}
                     This creates an archive of all project files that are not excluded by <code>.gitignore</code>.
                     {% endtranslate %}
@@ -64,7 +64,7 @@ Status
                 </p>
                 {% if archivable %}
                 <p class="mb-1">
-                    <a class="btn btn-sm btn-uproot" href="../archive/">
+                    <a class="btn-sm btn-solid theme-uproot" href="../archive/">
                         {% translate %}
                         Download
                         {% endtranslate %}
@@ -74,12 +74,12 @@ Status
             </div>
         </div>
     </div>
-    <div class="col-12 col-xl-6 mb-4-5">
+    <div class="col-12 xl:col-6 mb-10">
         <div class="card h-100">
             <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">uproot {% translate %}version{% endtranslate %}</h4>
+                <h4 class="border-bottom fw-semibold mb-0 mt-3 pb-5">uproot {% translate %}version{% endtranslate %}</h4>
             </div>
-            <div class="card-body pb-3">
+            <div class="card-body pb-5">
                 <p>
                     {% translate %}You are currently running{% endtranslate %}
                     uproot {{ uproot_version }}.
@@ -87,13 +87,13 @@ Status
 
                 {% if deployment.UPSTREAM %}
                 {% if nudge_announcements %}
-                <div class="alert alert-warning align-items-start border-warning callout d-flex mb-4 text-black" id="nudge-announcements">
-                    <i class="bi bi-megaphone me-2 pe-1"></i>
+                <div class="alert theme-warning align-items-start border-warning callout d-flex mb-7 fg-black" id="nudge-announcements">
+                    <i class="bi bi-megaphone me-3 pe-1"></i>
                     <div>
                         {% translate %}
                         You have not checked for important announcements recently.
                         {% endtranslate %}
-                        <button type="button" class="btn btn-link btn-sm d-block link-subtle p-0 pt-1" onclick="dismissAnnouncements()">
+                        <button type="button" class="btn-link btn-sm d-block link-subtle p-0 pt-1" onclick="dismissAnnouncements()">
                             {% translate %}
                             Dismiss nudge
                             {% endtranslate %}
@@ -103,13 +103,13 @@ Status
                 {% endif %}
 
                 <p class="mb-1">
-                    <button type="button" class="btn btn-outline-uproot btn-sm fw-semibold" onclick="announcements()">
+                    <button type="button" class="btn-outline theme-uproot btn-sm fw-semibold" onclick="announcements()">
                         {% translate %}
                         Check for important announcements
                         {% endtranslate %}
                     </button>
                 </p>
-                <small class="d-block form-text pt-2">
+                <small class="d-block form-text pt-3">
                     {% translate %}
                     uproot never automatically phones home.
                     {% endtranslate %}
@@ -123,11 +123,11 @@ Status
     </div>
 </div>
 
-<div class="gx-lg-4-5 row">
-    <div class="col-12 col-lg-6 mb-4-5">
+<div class="lg:gx-10 row">
+    <div class="col-12 lg:col-6 mb-10">
         <div class="card h-100">
             <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">
+                <h4 class="border-bottom fw-semibold mb-0 mt-3 pb-5">
                     {% translate %}
                     Active logins
                     {% endtranslate %}
@@ -135,8 +135,8 @@ Status
             </div>
             <div class="card-body">
                 {% if deployment.UNSAFE %}
-                <div class="alert alert-danger callout border-danger d-flex text-black mt-1">
-                    <i class="bi bi-info-circle me-2"></i>
+                <div class="alert theme-danger callout border-danger d-flex fg-black mt-1">
+                    <i class="bi bi-info-circle me-3"></i>
                     <div class="ps-1">
                         {% translate %}
                         You are running uproot with flag <code>--unsafe</code>. Do this only when running on <code>localhost</code>, as this flag allows anyone to log in as admin.
@@ -170,11 +170,11 @@ Status
                         <tr>
                             <td class="ps-0"><strong>{{ user }}</strong></td>
                             <td>
-                                <span class="badge bg-uproot">{{ info.token_count }}</span>
+                                <span class="badge theme-uproot">{{ info.token_count }}</span>
                             </td>
                             <td>
                                 {% for created_at in info.created_at %}
-                                    <small class="text-secondary d-block">{{ created_at }}</small>
+                                    <small class="fg-secondary d-block">{{ created_at }}</small>
                                 {% endfor %}
                             </td>
                         </tr>
@@ -182,15 +182,15 @@ Status
                     </tbody>
                 </table>
                 {% else %}
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
+                <div class="alert theme-info">
+                    <i class="bi bi-info-circle me-3"></i>
                     {% translate %}
                     No active authentication sessions found.
                     {% endtranslate %}
                 </div>
                 {% endif %}
-                <p class="mb-1 mt-4">
-                    <button class="btn btn-danger btn-sm mb-0" type="submit" formaction="logout-all/" formmethod="post">
+                <p class="mb-1 mt-7">
+                    <button class="btn-solid theme-danger btn-sm mb-0" type="submit" formaction="logout-all/" formmethod="post">
                         {% translate %}
                         Log out all
                         {% endtranslate %}
@@ -200,10 +200,10 @@ Status
             </div>
         </div>
     </div>
-    <div class="col-12 col-xl-6 mb-4-5">
+    <div class="col-12 xl:col-6 mb-10">
         <div class="card h-100">
             <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">Python {% translate %}version{% endtranslate %}</h4>
+                <h4 class="border-bottom fw-semibold mb-0 mt-3 pb-5">Python {% translate %}version{% endtranslate %}</h4>
             </div>
             <div class="card-body">
                 <p>{% translate %}You are using the following Python version{% endtranslate %}:</p>
@@ -213,14 +213,14 @@ Status
     </div>
 </div>
 
-<div class="gx-lg-4-5 row">
-    <div class="col-12 col-xl-6 mb-4-5">
+<div class="lg:gx-10 row">
+    <div class="col-12 xl:col-6 mb-10">
         <div class="card overflow-y-auto" style="max-height: 450px">
             <div class="bg-white border-0 card-header pb-1">
-                <h4 class="border-bottom fw-semibold mb-0 mt-2 pb-3">{% translate %}Installed packages{% endtranslate %}</h4>
+                <h4 class="border-bottom fw-semibold mb-0 mt-3 pb-5">{% translate %}Installed packages{% endtranslate %}</h4>
             </div>
-            <div class="card-body pt-2">
-                <p class="text-secondary">
+            <div class="card-body pt-3">
+                <p class="fg-secondary">
                     {% translate %}
                     For the purpose of documentation and replication, each session automatically stores which packages were installed when it was created. See <code>session.packages</code>.
                     {% endtranslate %}
@@ -235,8 +235,8 @@ Status
                     <tbody class="font-monospace">
                         {% for pkg, version in packages %}
                         <tr>
-                            <td class="ps-0 {% if pkg=='uproot-science' %}fw-bold text-uproot{% endif %}">{{ pkg }}</td>
-                            <td class="pe-0 {% if pkg=='uproot-science' %}fw-bold text-uproot{% endif %}">{{ version }}</td>
+                            <td class="ps-0 {% if pkg=='uproot-science' %}fw-bold fg-uproot{% endif %}">{{ pkg }}</td>
+                            <td class="pe-0 {% if pkg=='uproot-science' %}fw-bold fg-uproot{% endif %}">{{ version }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -246,8 +246,8 @@ Status
     </div>
 </div>
 
-<div x-data="{ show: false }" class="mb-3">
-    <button class="btn btn-outline-uproot" type="button" @click="show = !show">
+<div x-data="{ show: false }" class="mb-5">
+    <button class="btn-outline theme-uproot" type="button" @click="show = !show">
         <span x-show="!show">
         {% translate %}Show information for uproot developers{% endtranslate %}
         </span>
@@ -256,9 +256,9 @@ Status
         </span>
     </button>
     {# No i18n needed here #}
-    <div x-show="show" class="card border-uproot-light mt-3">
+    <div x-show="show" class="card border-uproot-light mt-5">
         <div class="bg-white border-0 card-header">
-            <h4 class="fw-semibold mb-0 mt-2 pb-0">Missing terms</h4>
+            <h4 class="fw-semibold mb-0 mt-3 pb-0">Missing terms</h4>
         </div>
         <div class="card-body">
             <textarea class="form-control" rows="10" readonly>{{ missing | tojson }}</textarea>

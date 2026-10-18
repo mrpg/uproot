@@ -164,7 +164,7 @@ class RangeField(wtforms.fields.Field):
     def __init__(
         self,
         *,
-        breakpoint: int = 992,
+        breakpoint: int = 1024,
         class_wrapper: str | None = None,
         hide_popover: bool = False,
         label: str = "",
@@ -395,7 +395,7 @@ class LikertField(LikertFieldClassic):
     def __init__(
         self,
         *,
-        breakpoint: int = 992,
+        breakpoint: int = 1024,
         choices: list[tuple[Any, str] | Any] | dict[Any, str] | None = None,
         class_wrapper: str | None = None,
         label: str = "",
@@ -455,14 +455,10 @@ class RadioField(wtforms.fields.RadioField):
 
         if render_kw is None:
             render_kw = {}
-        if layout != "vertical":
-            if "class" in render_kw:
-                render_kw["class"] += " form-check-inline"
-            else:
-                render_kw["class"] = "form-check-inline"
         render_kw["autocomplete"] = "off"
 
         self.class_wrapper = class_wrapper
+        self.layout = layout
 
         super().__init__(
             choices=choices,
@@ -643,14 +639,10 @@ class BoundedChoiceField(wtforms.fields.SelectMultipleField):
 
         if render_kw is None:
             render_kw = {}
-        if layout != "vertical":
-            if "class" in render_kw:
-                render_kw["class"] += " form-check-inline"
-            else:
-                render_kw["class"] = "form-check-inline"
         render_kw["autocomplete"] = "off"
 
         self.class_wrapper = class_wrapper
+        self.layout = layout
         self.bounded_min = min
         self.bounded_max = max
 

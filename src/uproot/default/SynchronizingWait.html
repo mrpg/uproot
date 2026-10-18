@@ -10,8 +10,8 @@ Please wait
 
 {% block main %}
 
-<div class="progress hidden" id="wait-progress-parent">
-    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" aria-label="{% translate %}Please wait{% endtranslate %}" id="wait-progress"></div>
+<div class="progress hidden" id="wait-progress-parent" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" aria-label="{% translate %}Please wait{% endtranslate %}">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" id="wait-progress"></div>
 </div>
 
 {% include app_or_default(app, "SynchronizingWaitInfo.html") ignore missing %}
@@ -37,7 +37,7 @@ Please wait
 
     function updateBar(x) {
         I("wait-progress").style.width = `${Math.round(100 * x)}%`;
-        I("wait-progress").ariaValueNow = x;
+        I("wait-progress-parent").ariaValueNow = x;
     }
 
     function showBar() {

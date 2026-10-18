@@ -50,9 +50,9 @@ Login
 <input type="hidden" id="pw" name="pw" value="">
 
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card mt-5 shadow">
-            <div class="card-body p-4">
+    <div class="md:col-6 lg:col-4">
+        <div class="card mt-12 shadow">
+            <div class="card-body p-7">
                 <i>{% translate %}Here be dragons.{% endtranslate %}</i>
             </div>
         </div>
@@ -60,22 +60,22 @@ Login
 </div>
 {% else %}
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card mt-5 shadow">
-            <div class="card-body p-4">
-                <h3 class="card-title mb-4">
+    <div class="md:col-6 lg:col-4">
+        <div class="card mt-12 shadow">
+            <div class="card-body p-7">
+                <h3 class="mb-7">
                     {% translate %}
                     Login
                     {% endtranslate %}
                 </h3>
                 {% if bad %}
-                <div class="alert alert-danger" role="alert">
+                <div class="alert theme-danger" role="alert">
                     {% translate %}
                     You provided invalid credentials.
                     {% endtranslate %}
                 </div>
                 {% endif %}
-                <div class="mb-3">
+                <div class="mb-5">
                     <label for="user" class="form-label">
                         {% translate %}
                         Username
@@ -83,7 +83,7 @@ Login
                     </label>
                     <input type="text" class="form-control" id="user" name="user" required>
                 </div>
-                <div class="mb-3">
+                <div class="mb-5">
                     <label for="pw" class="form-label">
                         {% translate %}
                         Password
@@ -92,17 +92,17 @@ Login
                     <div class="input-group">
                         <input type="password" class="form-control" id="pw" name="pw" required>
                         <button
-                            class="border btn"
+                            class="btn-outline theme-secondary input-group-btn"
                             id="toggle-pw"
                             type="button"
                             title="{% translate %}Reveal password{% endtranslate %}"
                         >
-                            <i class="bi bi-eye text-uproot"></i>
+                            <i class="bi bi-eye fg-uproot"></i>
                         </button>
                     </div>
                 </div>
-                <div class="d-grid pt-2">
-                    <button type="submit" class="btn btn-uproot">
+                <div class="d-grid pt-3">
+                    <button type="submit" class="btn-solid theme-uproot">
                         {% translate %}
                         Submit
                         {% endtranslate %}

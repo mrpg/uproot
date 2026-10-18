@@ -13,8 +13,8 @@ Dashboard
 {% block main %}
 
 {% if nudge_announcements %}
-<div class="alert alert-warning border-warning text-black callout mb-4 d-flex align-items-start" id="nudge-announcements">
-    <i class="bi bi-megaphone me-2 pe-1 pt-1"></i>
+<div class="alert theme-warning border-warning fg-black callout mb-7 d-flex align-items-start" id="nudge-announcements">
+    <i class="bi bi-megaphone me-3 pe-1 pt-1"></i>
     <div class="d-flex justify-content-between w-100">
         <div class="pt-1">
             {% translate %}
@@ -30,7 +30,7 @@ Dashboard
             </small>
         </div>
         <div>
-            <button type="button" class="btn btn-sm btn-warning" onclick="announcements()">
+            <button type="button" class="btn-sm btn-solid theme-warning" onclick="announcements()">
                 {% translate %}
                 Check now
                 {% endtranslate %}
@@ -40,16 +40,16 @@ Dashboard
 </div>
 {% endif %}
 
-<div class="gx-xl-4-5 pt-2 row">
-    <div class="col-12 col-xl-6">
-        <h3 class="mb-4">
+<div class="xl:gx-10 pt-3 row">
+    <div class="col-12 xl:col-6">
+        <h3 class="mb-7">
             {% translate %}
             Rooms
             {% endtranslate %}
         </h3>
         {% if not deployment.PUBLIC_DEMO %}
-        <div class="col mb-3 uproot-pagination" id="rooms-container">
-            <span class="text-body-tertiary">{% translate %}
+        <div class="col mb-5 uproot-pagination" id="rooms-container">
+            <span class="fg-3">{% translate %}
             No rooms defined at this time.
             {% endtranslate %}</span>
         </div>
@@ -57,15 +57,15 @@ Dashboard
         {% include "PublicDemo.html" %}
         {% endif %}
     </div>
-    <div class="col-12 col-xl-6">
-        <h3 class="mb-4">
+    <div class="col-12 xl:col-6">
+        <h3 class="mb-7">
             {% translate %}
             Active sessions
             {% endtranslate %}
         </h3>
         {% if not deployment.PUBLIC_DEMO %}
-        <div class="col mb-4 uproot-pagination" id="sessions-container">
-            <span class="text-body-tertiary">{% translate %}
+        <div class="col mb-7 uproot-pagination" id="sessions-container">
+            <span class="fg-3">{% translate %}
             No active sessions at this time.
             {% endtranslate %}</span>
         </div>
@@ -75,27 +75,27 @@ Dashboard
     </div>
 </div>
 
-<div class="gx-lg-4-5 row">
-    <div class="col-12 col-lg-6">
-        <h3 class="mb-4 mt-3">
+<div class="lg:gx-10 row">
+    <div class="col-12 lg:col-6">
+        <h3 class="mb-7 mt-5">
             {% translate %}
             Configs
             {% endtranslate %}
         </h3>
-        <div class="mb-4" id="configs-container">
-            <span class="text-body-tertiary">{% translate %}
+        <div class="mb-7" id="configs-container">
+            <span class="fg-3">{% translate %}
             No configs defined at this time.
             {% endtranslate %}</span>
         </div>
     </div>
-    <div class="col-12 col-lg-6">
-        <h3 class="mb-4 mt-3">
+    <div class="col-12 lg:col-6">
+        <h3 class="mb-7 mt-5">
             {% translate %}
             Apps
             {% endtranslate %}
         </h3>
-        <div class="mb-4" id="apps-container">
-            <span class="text-body-tertiary">{% translate %}
+        <div class="mb-7" id="apps-container">
+            <span class="fg-3">{% translate %}
             No apps defined at this time.
             {% endtranslate %}</span>
         </div>

@@ -255,7 +255,7 @@ function createMonitorColumns(data) {
 function formatPlayerCell(cell) {
     const value = cell.getValue();
     // data-uname attribute allows us to find this element for heartbeat updates
-    return `<div class="d-flex align-items-center gap-2">
+    return `<div class="d-flex align-items-center gap-3">
         <a class="link-subtle player-name" href="${uproot.vars.root}/p/${uproot.vars.sname}/${value}/" target="_blank">${value}</a>
         <span class="heartbeat" data-uname="${value}" aria-hidden="true">♥</span>
     </div>`;
@@ -326,7 +326,7 @@ function formatLastSeenCell(cell) {
     if (value.length >= 8) {
         const hhmm = value.slice(-8, -3);
         const ss = value.slice(-3);
-        return `<span title="${value}">${hhmm}<span class="text-secondary opacity-50">${ss}</span></span>`;
+        return `<span title="${value}">${hhmm}<span class="fg-secondary opacity-50">${ss}</span></span>`;
     }
     return value;
 }
@@ -637,7 +637,7 @@ uproot.onCustomEvent("Attended", (event) => {
 });
 
 // ============================================================================
-// Window API (for cross-file and modal communication)
+// Window API (for cross-file and dialog communication)
 // ============================================================================
 
 /**
@@ -682,35 +682,31 @@ window.invokeFromMonitor = function(fname, ...args) {
 };
 
 /**
- * Opens a modal for player management actions.
+ * Opens a dialog for player management actions.
  */
-window.mmodal = function(modalName) {
+window.mmodal = async function(modalName) {
     const selected = getSelectedPlayers();
-    const modal = window.bootstrap?.Modal.getOrCreateInstance(
-        I(`${modalName}-modal`),
-        { backdrop: true }
-    );
 
     if (selected.length > 0) {
         // Update Alpine store with selected player count
         if (window.Alpine && Alpine.store("session")) {
             Alpine.store("session").selectedCount = selected.length;
         }
-        modal?.show();
+        (await uproot.dialog(`${modalName}-modal`)).show();
     } else {
         uproot.error(_("No players selected."));
     }
 };
 
 // ============================================================================
-// Modal Action Handlers
+// Dialog Action Handlers
 // ============================================================================
 
 window.actuallyManage = function() {
     const action = uproot.selectedValue("manage");
 
     if (action) {
-        window.bootstrap?.Modal.getOrCreateInstance(I("manage-modal")).hide();
+        uproot.dialog("manage-modal").then((dialog) => dialog.hide());
         window.invokeFromMonitor(action).then((data) => {
             if (data) window.newInfoOnline(data);
             loadExtraData();
@@ -735,7 +731,7 @@ window.actuallyInsert = function() {
         return uproot.error(_("Invalid JSON."));
     }
 
-    window.bootstrap?.Modal.getOrCreateInstance(I("insert-modal")).hide();
+    uproot.dialog("insert-modal").then((dialog) => dialog.hide());
     window.invokeFromMonitor("insert_fields", { fields, reload }).then(() => {
         loadExtraData();
         uproot.alert(_("The action has completed."));
@@ -745,7 +741,7 @@ window.actuallyInsert = function() {
 window.actuallyAdminmessageSend = function() {
     const msg = I("adminmsg")?.value ?? "";
 
-    window.bootstrap?.Modal.getOrCreateInstance(I("adminmessage_send-modal")).hide();
+    uproot.dialog("adminmessage_send-modal").then((dialog) => dialog.hide());
     window.invokeFromMonitor("adminmessage", msg).then(() => {
         uproot.alert(_("The action has completed."));
     });
@@ -769,7 +765,7 @@ window.actuallyRedirect = function() {
         return uproot.error(_("URL must start with http:// or https://"));
     }
 
-    window.bootstrap?.Modal.getOrCreateInstance(I("redirect-modal")).hide();
+    uproot.dialog("redirect-modal").then((dialog) => dialog.hide());
     window.invokeFromMonitor("redirect", url).then(() => {
         uproot.alert(_("The action has completed."));
     });
@@ -790,7 +786,7 @@ window.actuallyGroup = function() {
         return uproot.error(_("Group size must be at least 1."));
     }
 
-    window.bootstrap?.Modal.getOrCreateInstance(I("group-modal")).hide();
+    uproot.dialog("group-modal").then((dialog) => dialog.hide());
     window.invokeFromMonitor("group_players", { action, group_size: groupSize, shuffle, reload })
         .then((result) => {
             loadExtraData();

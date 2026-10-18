@@ -11,7 +11,7 @@ Admin area
 
 <!doctype html>
 
-<html lang="{{ _uproot_internal.language }}" data-bs-theme="auto">
+<html lang="{{ _uproot_internal.language }}" data-bs-theme="light">
     <head>
         <title>
             uproot: {{ _uproot_title | striptags }}
@@ -28,6 +28,9 @@ Admin area
         <link rel="stylesheet" href="{{ internalstatic('admin.css') }}">
         <link rel="stylesheet" href="{{ internalstatic('webfonts.css') }}">
         <link rel="stylesheet" href="{{ internalstatic('inter-tnum.css') }}">
+
+        <script type="importmap">{"imports": {"bootstrap": {{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') | tojson }} } }</script>
+        <script type="module">import "bootstrap";</script>
 
         {% block _uproot_scripts %}
         <script src="{{ internalstatic('uproot.js') }}"></script>
@@ -50,7 +53,6 @@ Admin area
         <script src="{{ internalstatic('admin.js') }}"></script>
         {% endblock _uproot_scripts %}
 
-        <script src="{{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
         <script src="{{ internalstatic('vendor/tabulator-tables/tabulator.min.js') }}"></script>
         <script src="{{ internalstatic('vendor/alpinejs/cdn.min.js') }}" defer></script>
 
@@ -60,83 +62,81 @@ Admin area
         {% include "ProjectAdminHead.html" ignore missing %}
     </head>
     <body>
-        <div class="modal fade" id="error-modal" tabindex="-1" aria-labelledby="error-modalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="error-modalLabel">
-                            {% translate %}
-                            Error
-                            {% endtranslate %}
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div id="error-modal-body"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
-                            {% translate %}
-                            Close
-                            {% endtranslate %}
-                        </button>
-                    </div>
-                </div>
+        <dialog class="dialog" id="error-modal" aria-labelledby="error-modal-title">
+            <div class="dialog-header">
+                <h5 class="dialog-title" id="error-modal-title">
+                    {% translate %}
+                    Error
+                    {% endtranslate %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Close"></button>
             </div>
-        </div>
+            <div class="dialog-body">
+                <div id="error-modal-body"></div>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn-outline theme-danger" data-bs-dismiss="dialog">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+            </div>
+        </dialog>
 
-        <div class="modal fade" id="alert-modal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <div id="alert-modal-body"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-uproot" data-bs-dismiss="modal" aria-label="Close">
-                            {% translate %}
-                            Close
-                            {% endtranslate %}
-                        </button>
-                    </div>
-                </div>
+        <dialog class="dialog" id="alert-modal" aria-describedby="alert-modal-body">
+            <div class="dialog-body">
+                <div id="alert-modal-body"></div>
             </div>
-        </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn-outline theme-uproot" data-bs-dismiss="dialog">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+            </div>
+        </dialog>
 
         {% if not (disable_navigation | default(false)) %}
-        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm" id="uproot-navbar">
+        <nav class="navbar lg:navbar-expand bg-uproot sticky-top shadow-sm" data-bs-theme="dark" id="uproot-navbar">
             <div class="container">
-                <h1 class="fs-4 p-0 mb-1"><a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover" href="{{ _uproot_internal.root }}/admin/" tabindex="-1">uproot</a></h1>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                <h1 class="fs-xl p-0 mb-1"><a class="fg-white link-hover" href="{{ _uproot_internal.root }}/admin/" tabindex="-1">uproot</a></h1>
+                <button class="btn-icon navbar-toggler fg-white" type="button" data-bs-toggle="drawer" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon" aria-hidden="true"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-4 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/">{% translate %}Dashboard{% endtranslate %}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-4 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/rooms/">{% translate %}Rooms{% endtranslate %}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-4 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/sessions/">{% translate %}Sessions{% endtranslate %}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover mx-4 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/status/">{% translate %}Status{% endtranslate %}</a>
-                        </li>
-                        <li class="nav-item">
-                            <form class="d-inline" method="post" action="{{ _uproot_internal.root }}/admin/logout/">
-                                <button type="submit" class="btn btn-link link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover ms-4 my-1 p-0 border-0 align-baseline">{% translate %}Logout{% endtranslate %}</button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
+                <dialog class="drawer drawer-end bg-uproot" tabindex="-1" id="navbarNav" aria-labelledby="navbarNavLabel">
+                    <div class="drawer-header">
+                        <h5 class="drawer-title fg-white" id="navbarNavLabel">uproot</h5>
+                        <button type="button" class="btn-close fg-white" data-bs-dismiss="drawer" aria-label="Close"></button>
+                    </div>
+                    <div class="drawer-body">
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="fg-white link-hover mx-7 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/">{% translate %}Dashboard{% endtranslate %}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="fg-white link-hover mx-7 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/rooms/">{% translate %}Rooms{% endtranslate %}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="fg-white link-hover mx-7 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/sessions/">{% translate %}Sessions{% endtranslate %}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="fg-white link-hover mx-7 my-1 d-inline-block" href="{{ _uproot_internal.root }}/admin/status/">{% translate %}Status{% endtranslate %}</a>
+                            </li>
+                            <li class="nav-item">
+                                <form class="d-inline" method="post" action="{{ _uproot_internal.root }}/admin/logout/">
+                                    <button type="submit" class="btn-link fg-white link-hover ms-7 my-1 p-0 border-0 align-baseline">{% translate %}Logout{% endtranslate %}</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </dialog>
             </div>
         </nav>
         {% else %}
         <!-- Name-only bar at top of login page -->
-        <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm" id="uproot-navbar">
+        <nav class="navbar bg-uproot sticky-top shadow-sm" data-bs-theme="dark" id="uproot-navbar">
             <div class="container">
-                <h1 class="fs-4 p-0 mb-1"><a class="link-light link-offset-2 link-underline-light link-underline-opacity-0 link-underline-opacity-100-hover" href="{{ _uproot_internal.root }}/admin/" tabindex="-1">uproot</a></h1>
+                <h1 class="fs-xl p-0 mb-1"><a class="fg-white link-hover" href="{{ _uproot_internal.root }}/admin/" tabindex="-1">uproot</a></h1>
             </div>
         </nav>
         {% endif %}
@@ -146,7 +146,7 @@ Admin area
             {% endblock start %}
 
             {% block titlearea %}
-            <h2 id="uproot-title" class="fw-semibold my-4">
+            <h2 id="uproot-title" class="fw-semibold my-7">
                 {{ _uproot_title }}
             </h2>
             {% endblock titlearea %}
@@ -154,7 +154,7 @@ Admin area
             <main id="uproot-main">
                 {% if _uproot_errors %}
                 {% for error in _uproot_errors %}
-                <div class="alert alert-danger" role="alert">
+                <div class="alert theme-danger" role="alert">
                     {{ error }}
                 </div>
                 {% endfor %}
@@ -185,38 +185,38 @@ Admin area
         {% block late2 %}
         {% endblock late2 %}
 
-        <footer class="bg-uproot-subtle border-uproot-subtle border-1 pb-3 pt-2" id="uproot-footer" style="margin-top: auto;">
-            <div class="container my-2">
-                <div class="gx-lg-4-5 mb-2 pt-2 row">
-                    <div class="col-12 col-lg-6">
-                        <a class="btn btn-xs btn-uproot me-2 mb-2 mt-1" href="https://uproot.science/" target="_blank">{% translate %}uproot docs{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-uproot me-2 mb-2 mt-1" href="https://github.com/mrpg/uproot-examples" target="_blank">{% translate %}uproot examples{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-outline-uproot me-2 mb-2 mt-1" href="https://github.com/mrpg/uproot" target="_blank">{% translate %}uproot on GitHub{% endtranslate %}</a>
+        <footer class="bg-subtle-uproot border-uproot-subtle border-1 pb-5 pt-3" id="uproot-footer" style="margin-top: auto;">
+            <div class="container my-3">
+                <div class="lg:gx-10 mb-3 pt-3 row">
+                    <div class="col-12 lg:col-6">
+                        <a class="btn-xs btn-solid theme-uproot me-3 mb-3 mt-1" href="https://uproot.science/" target="_blank">{% translate %}uproot docs{% endtranslate %}</a>
+                        <a class="btn-xs btn-solid theme-uproot me-3 mb-3 mt-1" href="https://github.com/mrpg/uproot-examples" target="_blank">{% translate %}uproot examples{% endtranslate %}</a>
+                        <a class="btn-xs btn-outline theme-uproot me-3 mb-3 mt-1" href="https://github.com/mrpg/uproot" target="_blank">{% translate %}uproot on GitHub{% endtranslate %}</a>
                     </div>
-                    <div class="col-12 col-lg-6">
-                        <a class="btn btn-xs btn-danger me-2 mb-2 mt-1" href="https://github.com/mrpg/uproot/issues" target="_blank">{% translate %}Report a bug{% endtranslate %}</a>
-                        <a class="btn btn-xs btn-warning me-2 mb-2 mt-1" href="https://q.mg.sb/uproot-help" target="_blank">{% translate %}Get help{% endtranslate %}</a>
+                    <div class="col-12 lg:col-6">
+                        <a class="btn-xs btn-solid theme-danger me-3 mb-3 mt-1" href="https://github.com/mrpg/uproot/issues" target="_blank">{% translate %}Report a bug{% endtranslate %}</a>
+                        <a class="btn-xs btn-solid theme-warning me-3 mb-3 mt-1" href="https://q.mg.sb/uproot-help" target="_blank">{% translate %}Get help{% endtranslate %}</a>
                         {% if deployment.UPSTREAM and not (disable_navigation | default(false)) %}
-                        <button type="button" class="btn btn-xs btn-success mb-2 mt-1" onclick="praise()">{% translate %}Submit praise{% endtranslate %}</button>
+                        <button type="button" class="btn-xs btn-solid theme-success mb-3 mt-1" onclick="praise()">{% translate %}Submit praise{% endtranslate %}</button>
                         {% endif %}
                     </div>
                 </div>
-                <div class="gx-lg-4-5 fs-sm pt-1 row text-uproot">
-                    <p class="col-12 col-lg-6 mb-2 fw-semibold">
+                <div class="lg:gx-10 fs-sm pt-1 row fg-uproot">
+                    <p class="col-12 lg:col-6 mb-3 fw-semibold">
                         &copy; Max R. P. Grossmann, Holger Gerhardt, et al., 2026.
                     </p>
-                    <p class="col-12 col-lg-6 mb-2">
+                    <p class="col-12 lg:col-6 mb-3">
                         {% translate %}
-                        If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications.
+                        If you find uproot useful, please <a class='link-subtle' href='javascript:showBibTeX()'>cite it</a> in academic publications.
                         {% endtranslate %}
                     </p>
                 </div>
-                <div class="gx-lg-4-5 fs-sm opacity-50 pt-1 row text-uproot">
-                    <p class="col-12 col-lg-6 mb-2">
-                        uproot is free software: you can redistribute it and/or modify it under the terms of the <a class="link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+                <div class="lg:gx-10 fs-sm opacity-50 pt-1 row fg-uproot">
+                    <p class="col-12 lg:col-6 mb-3">
+                        uproot is free software: you can redistribute it and/or modify it under the terms of the <a class="link-subtle" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
                     </p>
-                    <p class="col-12 col-lg-6 mb-2">
-                        uproot is distributed in the hope that it will be useful, but <i>without any warranty</i>; without even the implied warranty of <i>merchantability</i> or <i>fitness for a particular purpose</i>. See the <a class="link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> for more details.
+                    <p class="col-12 lg:col-6 mb-3">
+                        uproot is distributed in the hope that it will be useful, but <i>without any warranty</i>; without even the implied warranty of <i>merchantability</i> or <i>fitness for a particular purpose</i>. See the <a class="link-subtle" href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a> for more details.
                     </p>
                 </div>
             </div>

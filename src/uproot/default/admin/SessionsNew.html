@@ -11,9 +11,9 @@ New session
 
 {% block titlearea %}
 
-<h2 id="uproot-title" class="fw-semibold my-4">
+<h2 id="uproot-title" class="fw-semibold my-7">
     {% translate %}New session{% endtranslate %}
-    <a class="link-underline-opacity-0 link-uproot ms-2" href="https://uproot.science/running/rooms/#sessions" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-5"></i></a>
+    <a class="link-uproot ms-3" href="https://uproot.science/running/rooms/#sessions" target="_blank" title="{% translate %}Documentation{% endtranslate %}" aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book fs-lg"></i></a>
 </h2>
 
 {% endblock titlearea %}
@@ -27,6 +27,6 @@ New session
 
 {% include "SessionCreate.html" %}
 
-<button type="button" class="btn btn-uproot mt-3" onclick="createSession()">{% translate %}Create session{% endtranslate %}</button>
+<button type="button" class="btn-solid theme-uproot mt-5" onclick="createSession()">{% translate %}Create session{% endtranslate %}</button>
 
 {% endblock main %}

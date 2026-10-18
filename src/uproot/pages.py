@@ -354,7 +354,7 @@ def make_buttons(
     def button_next(**kwargs: Any) -> Markup:
         state["placed"] = True
         label = kwargs.pop("label", None) or translate("Next")
-        kwargs.setdefault("class_", "btn btn-primary")
+        kwargs.setdefault("class_", "btn-solid theme-primary")
         kwargs.setdefault("type", "submit")
         kwargs.setdefault("id", "uproot-button-next")
         return Markup(  # nosec B704
@@ -366,7 +366,7 @@ def make_buttons(
         if not allow_back:
             return Markup("")
         label = kwargs.pop("label", None) or translate("Back")
-        kwargs.setdefault("class_", "btn btn-outline-secondary")
+        kwargs.setdefault("class_", "btn-outline theme-secondary")
         kwargs.setdefault("type", "button")
         kwargs.setdefault("id", "uproot-button-back")
         kwargs.setdefault("onclick", "uproot.goBack()")
@@ -400,7 +400,7 @@ def make_timeout(
             "Remaining time on this page:"
         )
         aria_label = translate("Remaining time on this page")
-        class_ = kwargs.pop("class_", "alert callout mb-4-5 mt-4 pe-4")
+        class_ = kwargs.pop("class_", "alert callout mb-10 mt-7 pe-7")
         kwargs.setdefault("id", "uproot-timeout")
         kwargs["data_uproot_timeout_box"] = True
         time_id = kwargs.pop("time_id", "uproot-time-remaining")

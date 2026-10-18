@@ -1,10 +1,10 @@
 <div id="chat-{{ chat.mname }}" class="uproot-chat chat-container hidden" data-chatid="{{ chat.mname }}">
-    <div class="messages-container border rounded bg-white mb-3" role="log" aria-label="Chat messages" aria-live="polite">
+    <div class="messages-container border rounded bg-white mb-5" role="log" aria-label="Chat messages" aria-live="polite">
         <ul class="list-unstyled mb-0 p-0" id="messages-chat-{{ chat.mname }}">
         </ul>
     </div>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-3">
         <label for="message-input-chat-{{ chat.mname }}" class="visually-hidden">{% translate %}Type your message{% endtranslate %}</label>
         <textarea id="message-input-chat-{{ chat.mname }}"
                   class="form-control"
@@ -12,6 +12,6 @@
                   autocomplete="off"
                   rows="1"
                   onkeydown="uproot.chat.handleChatKeydown(event, '{{ chat.mname }}')"></textarea>
-        <button type="button" class="btn btn-outline-primary" onclick="uproot.chat.sendMessage('{{ chat.mname }}')" aria-label="Send message">Send</button>
+        <button type="button" class="btn-outline theme-primary" onclick="uproot.chat.sendMessage('{{ chat.mname }}')" aria-label="Send message">Send</button>
     </div>
 </div>

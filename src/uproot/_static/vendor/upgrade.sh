@@ -20,15 +20,18 @@ curl -fL \
 cd ..
 
 # Bootstrap CSS + JS
+# Newest 6.x release, including alphas and betas
+BOOTSTRAP_VERSION="$(curl -fsSL -G "https://data.jsdelivr.com/v1/packages/npm/bootstrap/resolved" --data-urlencode "specifier=>=6.0.0-0 <7" | sed -n -E 's/^[[:space:]]*"version": "([^"]+)".*/\1/p')"
+test -n "$BOOTSTRAP_VERSION"
 mv bootstrap/ _temp/
 mkdir bootstrap/
 cd bootstrap/
 curl -fL \
-    -O "https://cdn.jsdelivr.net/npm/bootstrap@5/LICENSE" \
-    -O "https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js" \
-    -O "https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js.map" \
-    -O "https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" \
-    -O "https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css.map"
+    -O "https://cdn.jsdelivr.net/npm/bootstrap@${BOOTSTRAP_VERSION}/LICENSE" \
+    -O "https://cdn.jsdelivr.net/npm/bootstrap@${BOOTSTRAP_VERSION}/dist/js/bootstrap.bundle.min.js" \
+    -O "https://cdn.jsdelivr.net/npm/bootstrap@${BOOTSTRAP_VERSION}/dist/js/bootstrap.bundle.min.js.map" \
+    -O "https://cdn.jsdelivr.net/npm/bootstrap@${BOOTSTRAP_VERSION}/dist/css/bootstrap.min.css" \
+    -O "https://cdn.jsdelivr.net/npm/bootstrap@${BOOTSTRAP_VERSION}/dist/css/bootstrap.min.css.map"
 cd ..
 
 # Upgrade Bootstrap Icons CSS and font files

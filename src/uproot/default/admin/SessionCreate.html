@@ -1,45 +1,47 @@
-<div class="gx-xl-4-5 row">
-    <div class="col-12 col-xl-8 mb-2">
+<div class="xl:gx-10 row">
+    <div class="col-12 xl:col-8 mb-3">
         <div class="form-floating" id="config-select"></div>
     </div>
-    <div class="col-12 col-xl-4 mb-2">
+    <div class="col-12 xl:col-4 mb-3">
         <div class="form-floating">
+            <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
             <input class="form-control" id="nplayers" inputmode="numeric" min="0" name="nplayers"
                 pattern="[0-9]+" placeholder="0" required step="1" type="number" value=""
                 oninput="checkSuggestedMultiple()">
-            <label for="nplayers" class="form-label">{% translate %}Number of players{% endtranslate %}</label>
         </div>
 
-        <small class="d-block form-text fw-bold mt-2 text-danger" id="suggested-multiple-hint" style="visibility: hidden;">
+        <small class="d-block form-text fw-bold mt-3 fg-danger" id="suggested-multiple-hint" style="visibility: hidden;">
             <span id="suggested-multiple-text"></span>
             <a href="https://uproot.science/getting-started/tutorial/?h=suggested_multiple#4-define-the-app" target="_blank"
-                class="link-underline-opacity-0 link-danger ms-1"
+                class="fg-danger text-decoration-none ms-1"
                 title="{% translate %}Documentation{% endtranslate %}"
                 aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book"></i></a>
             <a href="https://uproot.science/multiplayer/groups/#groups-are-lazy" target="_blank"
-                class="link-underline-opacity-0 link-danger"
+                class="fg-danger text-decoration-none"
                 title="{% translate %}Documentation{% endtranslate %}"
                 aria-label="{% translate %}Documentation{% endtranslate %}"><i class="bi bi-book"></i></a>
         </small>
     </div>
 </div>
 
-<div class="gx-xl-4-5 row">
+<div class="xl:gx-10 row">
 
-    <div class="col-12 col-xl-8 mb-4">
+    <div class="col-12 xl:col-8 mb-7">
 
     <div>
         {% for config, error in settings_errors.items() %}
-        <div class="alert alert-danger fs-5 mt-3" role="alert"
+        <div class="alert theme-danger fs-lg mt-5" role="alert"
             data-session-settings-error="{{ config }}" hidden>
             <i class="bi bi-exclamation-triangle-fill"></i>
-            <strong>{{ _("Error in #config#:").replace("#config#", config) }}</strong>
-            {{ error }}
+            <div>
+                <strong>{{ _("Error in #config#:").replace("#config#", config) }}</strong>
+                {{ error }}
+            </div>
         </div>
         {% endfor %}
 
-        <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" id="automatic_settings"
+        <div class="form-field mt-5">
+            <input class="check" type="checkbox" id="automatic_settings"
                 onchange="settingsAutomaticChanged(true)" checked>
             <label for="automatic_settings">{% translate %}Keep default settings{% endtranslate %}</label>
         </div>
@@ -58,17 +60,17 @@
             }
         </script>
 
-        <div class="form-floating mt-3" id="settings-json-container" hidden>
-            <textarea class="form-control h-auto font-monospace" id="settings-json" rows="10" placeholder="Settings"></textarea>
+        <div class="form-floating mt-5" id="settings-json-container" hidden>
             <label for="settings-json">{% translate %}Settings{% endtranslate %}</label>
-            <small class="d-block form-text pt-2">
+            <textarea class="form-control h-auto font-monospace" id="settings-json" rows="10" placeholder="Settings"></textarea>
+            <small class="d-block form-text pt-3">
                 {% translate %}
                 Input is evaluated as a JavaScript expression. You can use comments, calculations, variables, etc. The result must be JSON-serializable.
                 {% endtranslate %}
             </small>
         </div>
 
-        <div class="mt-3" id="settings-custom-container" hidden>
+        <div class="mt-5" id="settings-custom-container" hidden>
             {% for config, forms in settings_forms.items() %}
             <div data-session-settings-config="{{ config }}" hidden>
                 {% for form in forms %}
@@ -80,15 +82,15 @@
     </div>
 
     <div x-data="{automatic: true}">
-        <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" id="automatic_sname"
+        <div class="form-field mt-5">
+            <input class="check" type="checkbox" id="automatic_sname"
                 @click="automatic = !automatic; if (automatic) { I('sname').value = ''; }" checked>
             <label for="automatic_sname">{% translate %}Set session name automatically{% endtranslate %}</label>
         </div>
-        <div class="form-floating mt-3" x-show="!automatic">
-            <input class="font-monospace form-control" type="text" id="sname" name="sname" placeholder="Session name">
+        <div class="form-floating mt-5" x-show="!automatic">
             <label for="sname">{% translate %}Session name{% endtranslate %}</label>
-            <small class="d-block form-text pt-2">
+            <input class="font-monospace form-control" type="text" id="sname" name="sname" placeholder="Session name">
+            <small class="d-block form-text pt-3">
                 {% translate %}
                 The session name must only use the following characters: <code>A-Za-z0-9-._</code>
                 {% endtranslate %}
@@ -97,15 +99,15 @@
     </div>
 
     <div x-data="{automatic: true}">
-        <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" id="automatic_unames"
+        <div class="form-field mt-5">
+            <input class="check" type="checkbox" id="automatic_unames"
                 @click="automatic = !automatic; if (automatic) { I('unames').value = ''; }" checked>
             <label for="automatic_unames">{% translate %}Set player names automatically{% endtranslate %}</label>
         </div>
-        <div class="form-floating mt-3" x-show="!automatic">
-            <textarea class="form-control h-auto font-monospace" id="unames" rows="10" name="unames" placeholder="Player names"></textarea>
+        <div class="form-floating mt-5" x-show="!automatic">
             <label for="unames">{% translate %}Player names{% endtranslate %}</label>
-            <small class="d-block form-text pt-2">
+            <textarea class="form-control h-auto font-monospace" id="unames" rows="10" name="unames" placeholder="Player names"></textarea>
+            <small class="d-block form-text pt-3">
                 {% translate %}
                 Insert one player name per line of text. The number of player names must match the number of players. Each player name must only use the following characters: <code>A-Za-z0-9-._</code>
                 {% endtranslate %}
@@ -115,16 +117,18 @@
 
 </div>
 
-<div class="col-12 col-xl-4 mb-4">
+<div class="col-12 xl:col-4 mb-7">
 
 <div>
-    <div class="form-check mt-3">
-        <input class="form-check-input" type="checkbox" id="simulate" name="simulate">
-        <label for="simulate">{% translate %}Simulate responses{% endtranslate %}</label>
-        <small class="d-block form-text pt-1">
-            {% translate %}If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.{% endtranslate %}
-            {% translate %}This is useful for testing and development purposes.{% endtranslate %}
-        </small>
+    <div class="form-field mt-5">
+        <input class="check" type="checkbox" id="simulate" name="simulate">
+        <div class="form-field-content">
+            <label for="simulate">{% translate %}Simulate responses{% endtranslate %}</label>
+            <small class="d-block form-text pt-1">
+                {% translate %}If enabled, the app’s <code>simulate.js</code> file will run whenever player pages load in this session.{% endtranslate %}
+                {% translate %}This is useful for testing and development purposes.{% endtranslate %}
+            </small>
+        </div>
     </div>
 </div>
 

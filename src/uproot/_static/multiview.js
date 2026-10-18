@@ -88,7 +88,7 @@ class MultiviewManager {
 
             const container = this.createContainer(
                 ids[i],
-                labels[i] === "" ? "<span class='text-body-tertiary'>N/A</span>": uproot.escape(labels[i]),
+                labels[i] === "" ? "<span class='fg-3'>N/A</span>": uproot.escape(labels[i]),
                 urls[i],
                 col * containerWidth,
                 row * containerHeight,
@@ -117,7 +117,7 @@ class MultiviewManager {
         const titleSpan = document.createElement('span');
         titleSpan.className = 'iframe-title';
         titleSpan.innerHTML =
-            `<b>${_("ID")} <span class="font-monospace">${id}</span></b> <span class="fw-light"><span class="text-body-tertiary">&nbsp;|&nbsp;</span> ${_("Label")} <span class="font-monospace">${label}</span> <span class="text-body-tertiary">&nbsp;|&nbsp;</span> ${_("URL")} ${this.getDisplayName(url)}</span>`;
+            `<b>${_("ID")} <span class="font-monospace">${id}</span></b> <span class="fw-light"><span class="fg-3">&nbsp;|&nbsp;</span> ${_("Label")} <span class="font-monospace">${label}</span> <span class="fg-3">&nbsp;|&nbsp;</span> ${_("URL")} ${this.getDisplayName(url)}</span>`;
 
         const reloadButton = document.createElement('button');
         reloadButton.className = 'reload-button';
