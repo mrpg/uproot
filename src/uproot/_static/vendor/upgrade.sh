@@ -8,17 +8,23 @@ set -euxo pipefail
 mkdir _temp/
 
 # Upgrade Alpine.js
+# Its npm package ships no license file, so take that from the matching GitHub tag
+ALPINE_VERSION="$(curl -fsSL "https://data.jsdelivr.com/v1/packages/npm/alpinejs/resolved?specifier=3" | sed -n -E 's/^[[:space:]]*"version": "([^"]+)".*/\1/p')"
+test -n "$ALPINE_VERSION"
 mv alpinejs/ _temp/
 mkdir alpinejs/
 cd alpinejs/
-curl -L -O "https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"
+curl -fL \
+    -O "https://cdn.jsdelivr.net/npm/alpinejs@${ALPINE_VERSION}/dist/cdn.min.js" \
+    -O "https://raw.githubusercontent.com/alpinejs/alpine/v${ALPINE_VERSION}/LICENSE.md"
 cd ..
 
 # Bootstrap CSS + JS
 mv bootstrap/ _temp/
 mkdir bootstrap/
 cd bootstrap/
-curl -L \
+curl -fL \
+    -O "https://cdn.jsdelivr.net/npm/bootstrap@5/LICENSE" \
     -O "https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js" \
     -O "https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js.map" \
     -O "https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" \
@@ -29,10 +35,12 @@ cd ..
 mv bootstrap-icons/ _temp/
 mkdir bootstrap-icons/
 cd bootstrap-icons/
-curl -O "https://cdn.jsdelivr.net/npm/bootstrap-icons@1/font/bootstrap-icons.min.css"
+curl -fL \
+    -O "https://cdn.jsdelivr.net/npm/bootstrap-icons@1/LICENSE" \
+    -O "https://cdn.jsdelivr.net/npm/bootstrap-icons@1/font/bootstrap-icons.min.css"
 mkdir fonts
 cd fonts
-curl -L \
+curl -fL \
     -O "https://cdn.jsdelivr.net/npm/bootstrap-icons@1/font/fonts/bootstrap-icons.woff" \
     -O "https://cdn.jsdelivr.net/npm/bootstrap-icons@1/font/fonts/bootstrap-icons.woff2"
 cd ../../
@@ -41,7 +49,8 @@ cd ../../
 mv tabulator-tables/ _temp/
 mkdir tabulator-tables/
 cd tabulator-tables/
-curl -L \
+curl -fL \
+    -O "https://unpkg.com/tabulator-tables@6/LICENSE" \
     -O "https://unpkg.com/tabulator-tables@6/dist/css/tabulator_bootstrap5.min.css" \
     -O "https://unpkg.com/tabulator-tables@6/dist/css/tabulator_bootstrap5.min.css.map" \
     -O "https://unpkg.com/tabulator-tables@6/dist/js/tabulator.min.js" \
