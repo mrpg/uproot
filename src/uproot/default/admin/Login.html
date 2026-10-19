@@ -119,6 +119,7 @@ Login
 
 {% block late %}
 
+{% if not login_token_enabled %}
 <script>
     const pwInput = document.getElementById("pw");
     const togglePw = document.getElementById("toggle-pw");
@@ -134,5 +135,6 @@ Login
         );
     });
 </script>
+{% endif %}
 
 {% endblock late %}
