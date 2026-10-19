@@ -532,8 +532,8 @@
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'このチェックを外すと、ルームの定員は変更されません。これにより、新たな参加者がセッションを拡大できます。'
 
-? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
-: "uprootが有用であれば、学術論文で<a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>引用</a>してください。"
+? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='#citation-modal' data-bs-toggle='modal'>cite it</a> in academic publications."
+: "uprootが有用であれば、学術論文で<a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='#citation-modal' data-bs-toggle='modal'>引用</a>してください。"
 
 ? 'Inactive sessions'
 : '非アクティブなセッション'
@@ -1203,9 +1203,6 @@
 
 ? 'Reload iframe'
 : 'iframeを再読み込み'
-
-? 'Show BibTeX entry'
-: 'BibTeXエントリを表示'
 
 ? 'No players available'
 : 'プレイヤーがいません'

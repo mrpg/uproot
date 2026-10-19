@@ -532,8 +532,8 @@
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 
-? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
-: "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications."
+? "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='#citation-modal' data-bs-toggle='modal'>cite it</a> in academic publications."
+: "If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='#citation-modal' data-bs-toggle='modal'>cite it</a> in academic publications."
 
 ? 'Inactive sessions'
 : 'Inactive sessions'
@@ -1203,9 +1203,6 @@
 
 ? 'Reload iframe'
 : 'Reload iframe'
-
-? 'Show BibTeX entry'
-: 'Show BibTeX entry'
 
 ? 'No players available'
 : 'No players available'

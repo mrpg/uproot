@@ -102,6 +102,33 @@ Admin area
             </div>
         </div>
 
+        <div class="modal fade" id="citation-modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <h5 class="mb-3">{% translate %}Pre-formatted citation{% endtranslate %} <span class="fw-light">(Chicago style)</span></h5>
+                        <p class="mb-4">Grossmann, Max&nbsp;R.&nbsp;P., and Holger Gerhardt. 2026. “uproot: A Software Framework for Behavioral Experiments.” Unpublished manuscript.</p>
+                        <h5 class="mb-3">{% translate %}BibTeX entry{% endtranslate %}</h5>
+                        <code class="text-uproot">
+<b>@unpublished</b>{<b>uproot</b>,<br>
+&nbsp;&nbsp;<b>author</b> = {Grossmann, Max~R.~P. and Gerhardt, Holger},<br>
+&nbsp;&nbsp;<b>title</b>&nbsp;= {uproot: A Software Framework for Behavioral Experiments},<br>
+&nbsp;&nbsp;<b>year</b>&nbsp;= {2026},<br>
+&nbsp;&nbsp;<b>note</b>&nbsp;= {Unpublished manuscript}<br>
+}
+                        </code>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-uproot" data-bs-dismiss="modal" aria-label="Close">
+                            {% translate %}
+                            Close
+                            {% endtranslate %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {% if not (disable_navigation | default(false)) %}
         <nav class="navbar navbar-dark navbar-expand-lg bg-uproot sticky-top shadow-sm" id="uproot-navbar">
             <div class="container">
@@ -207,7 +234,7 @@ Admin area
                     </p>
                     <p class="col-12 col-lg-6 mb-2">
                         {% translate %}
-                        If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='javascript:showBibTeX()'>cite it</a> in academic publications.
+                        If you find uproot useful, please <a class='link-offset-2 link-underline-uproot link-underline-opacity-25 link-underline-opacity-100-hover' href='#citation-modal' data-bs-toggle='modal'>cite it</a> in academic publications.
                         {% endtranslate %}
                     </p>
                 </div>
