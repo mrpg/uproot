@@ -604,6 +604,10 @@ async def render(
         else:
             form = form(formdata)
             form.validate()
+
+            # Add the errors that the page's validate() assigned to fields
+            for fname, ferrors in (field_errors or {}).items():
+                form[fname].errors = [*form[fname].errors, *ferrors]
     except ValueError:
         form = None
 
@@ -905,6 +909,12 @@ async def validate(
         elif isinstance(errors_from_page, dict):
             field_errors: dict[str, list[str]] = {}
             for fname, ferrors in errors_from_page.items():
+                ensure(
+                    fname in form,
+                    KeyError,
+                    f"validate() returned errors for {fname!r}, which is not a field",
+                )
+
                 if isinstance(ferrors, str):
                     ferrors = [ferrors]
                 field_errors[fname] = list(ferrors)
