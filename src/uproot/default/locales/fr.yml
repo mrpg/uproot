@@ -532,8 +532,8 @@
 ? 'If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.'
 : 'Si cette case n’est pas cochée, la capacité de la salle ne sera pas modifiée. De nouveaux arrivants dans la salle pourront alors agrandir la session.'
 
-? "If you find uproot useful, please <a class='link-subtle' href='javascript:showBibTeX()'>cite it</a> in academic publications."
-: "Si uproot vous est utile, merci de le <a class='link-subtle' href='javascript:showBibTeX()'>citer</a> dans vos publications académiques."
+? "If you find uproot useful, please <a class='link-subtle' href='#citation-modal' data-bs-toggle='dialog'>cite it</a> in academic publications."
+: "Si uproot vous est utile, merci de le <a class='link-subtle' href='#citation-modal' data-bs-toggle='dialog'>citer</a> dans vos publications académiques."
 
 ? 'Inactive sessions'
 : 'Sessions inactives'
@@ -1203,9 +1203,6 @@
 
 ? 'Reload iframe'
 : 'Recharger l’iframe'
-
-? 'Show BibTeX entry'
-: 'Afficher l’entrée BibTeX'
 
 ? 'No players available'
 : 'Aucun joueur disponible'

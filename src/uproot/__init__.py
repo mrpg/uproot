@@ -1,6 +1,14 @@
 # Copyright Max R. P. Grossmann, Holger Gerhardt, et al., 2025.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+"""
+[Wir] ergreifen keine Idee, sondern die Idee ergreift uns, und
+knechtet uns, und peitscht uns in die Arena hinein, daß wir,
+wie gezwungene Gladiatoren, für sie kämpfen.
+
+— Heinrich Heine
+"""
+
 from collections import defaultdict
 from time import time  # This file uses clock time
 from typing import TYPE_CHECKING, Any
@@ -15,7 +23,7 @@ if TYPE_CHECKING:
     from uproot.storage import Storage
 
 
-__version_info__ = 0, 9, 1
+__version_info__ = 0, 10, 0
 __version__ = ".".join(map(str, __version_info__))
 __author__ = "Max R. P. Grossmann, Holger Gerhardt, et al."
 __email__ = "info@uproot.science"

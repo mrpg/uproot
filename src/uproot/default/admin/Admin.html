@@ -96,6 +96,29 @@ Admin area
             </div>
         </dialog>
 
+        <dialog class="dialog" id="citation-modal">
+            <div class="dialog-body">
+                <h5 class="mb-5">{% translate %}Pre-formatted citation{% endtranslate %} <span class="fw-light">(Chicago style)</span></h5>
+                <p class="mb-7">Grossmann, Max&nbsp;R.&nbsp;P., and Holger Gerhardt. 2026. “uproot: A Software Framework for Behavioral Experiments.” Unpublished manuscript.</p>
+                <h5 class="mb-5">{% translate %}BibTeX entry{% endtranslate %}</h5>
+                <code class="fg-uproot">
+<b>@unpublished</b>{<b>uproot</b>,<br>
+&nbsp;&nbsp;<b>author</b> = {Grossmann, Max~R.~P. and Gerhardt, Holger},<br>
+&nbsp;&nbsp;<b>title</b>&nbsp;= {uproot: A Software Framework for Behavioral Experiments},<br>
+&nbsp;&nbsp;<b>year</b>&nbsp;= {2026},<br>
+&nbsp;&nbsp;<b>note</b>&nbsp;= {Unpublished manuscript}<br>
+}
+                </code>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn-outline theme-uproot" data-bs-dismiss="dialog">
+                    {% translate %}
+                    Close
+                    {% endtranslate %}
+                </button>
+            </div>
+        </dialog>
+
         {% if not (disable_navigation | default(false)) %}
         <nav class="navbar lg:navbar-expand bg-uproot sticky-top shadow-sm" data-bs-theme="dark" id="uproot-navbar">
             <div class="container">
@@ -207,7 +230,7 @@ Admin area
                     </p>
                     <p class="col-12 lg:col-6 mb-3">
                         {% translate %}
-                        If you find uproot useful, please <a class='link-subtle' href='javascript:showBibTeX()'>cite it</a> in academic publications.
+                        If you find uproot useful, please <a class='link-subtle' href='#citation-modal' data-bs-toggle='dialog'>cite it</a> in academic publications.
                         {% endtranslate %}
                     </p>
                 </div>

@@ -476,24 +476,6 @@ function renderConfigsAppsCards(data, containerId, groupKey) {
     container.appendChild(card);
 }
 
-// ============================================================================
-// Citation
-// ============================================================================
-
-function showBibTeX() {
-    uproot.alert(`<h5 class="mb-5">${_("Pre-formatted citation")} <span class="fw-light">(Chicago style)</span></h5>
-<p class="mb-7">Grossmann, Max&nbsp;R.&nbsp;P., and Holger Gerhardt. 2025. “uproot: A Software Framework for Behavioral Experiments.” Unpublished manuscript.</p>
-<h5 class="mb-5">${_("BibTeX entry")}</h5>
-<code class="fg-uproot">
-<b>@unpublished</b>{<b>uproot</b>,<br>
-&nbsp;&nbsp;<b>author</b> = {Grossmann, Max~R.~P. and Gerhardt, Holger},<br>
-&nbsp;&nbsp;<b>title</b>&nbsp;= {uproot: A Software Framework for Behavioral Experiments},<br>
-&nbsp;&nbsp;<b>year</b>&nbsp;= {2026},<br>
-&nbsp;&nbsp;<b>note</b>&nbsp;= {Unpublished manuscript}<br>
-}
-</code>`);
-}
-
 function praise() {
     uproot.invoke("praise").then((text) => {
         const el = document.createElement("p");

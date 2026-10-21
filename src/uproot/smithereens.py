@@ -126,7 +126,7 @@ def to_player_ids(members: Iterable[PlayerLike]) -> list[t.PlayerIdentifier]:
 
 
 def create_group(
-    session: Storage,
+    session: Storage | t.SessionIdentifier,
     members: Iterable[PlayerLike],
     *,
     gname: str | None = None,
@@ -156,12 +156,15 @@ def create_group(
     """
     member_pids = to_player_ids(members)
 
+    if isinstance(session, t.SessionIdentifier):
+        session = t.materialize(session)
+
     with session:
         return c.create_group(session, member_pids, gname=gname, overwrite=overwrite)
 
 
 def create_groups(
-    session: Storage,
+    session: Storage | t.SessionIdentifier,
     groups: Iterable[Iterable[PlayerLike]],
     *,
     overwrite: bool = False,
@@ -188,6 +191,9 @@ def create_groups(
         pairs = [[players[i], players[i+1]] for i in range(0, len(players), 2)]
         gids = create_groups(player._uproot_session, pairs)
     """
+    if isinstance(session, t.SessionIdentifier):
+        session = t.materialize(session)
+
     with session:
         return [
             c.create_group(session, to_player_ids(members), overwrite=overwrite)

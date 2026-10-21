@@ -35,7 +35,9 @@ from jinja2.parser import Parser
 from markupsafe import Markup
 from pydantic import validate_call
 from starlette.staticfiles import StaticFiles
+from wtforms import FieldList
 from wtforms import Form as BaseForm
+from wtforms import FormField
 from wtforms.i18n import messages_path
 from wtforms.widgets.core import clean_key, html_params
 
@@ -507,6 +509,10 @@ async def form_factory(page: type[Page], player: Storage | None) -> type[BaseFor
     )
 
     if fields is not None:
+        for name, field in fields.items():
+            if issubclass(field.field_class, (FormField, FieldList)):
+                raise TypeError(f"Nested fields are not supported: {name!r}")
+
         translations = FormTranslations(await page_language(page, player))
 
         class Meta:
@@ -603,7 +609,11 @@ async def render(
                 form = form()
         else:
             form = form(formdata)
-            form.validate()
+
+            # Show the errors found when the submission was validated, including
+            # those that the page's validate() assigned to fields
+            for fname, ferrors in (field_errors or {}).items():
+                form[fname].errors = ferrors
     except ValueError:
         form = None
 
@@ -905,6 +915,12 @@ async def validate(
         elif isinstance(errors_from_page, dict):
             field_errors: dict[str, list[str]] = {}
             for fname, ferrors in errors_from_page.items():
+                ensure(
+                    fname in form,
+                    KeyError,
+                    f"validate() returned errors for {fname!r}, which is not a field",
+                )
+
                 if isinstance(ferrors, str):
                     ferrors = [ferrors]
                 field_errors[fname] = list(ferrors)
