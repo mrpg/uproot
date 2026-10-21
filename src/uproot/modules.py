@@ -76,7 +76,9 @@ class ModuleManager:
 
     def stop_watching(self) -> None:
         self.observer.stop()
-        self.observer.join()
+
+        if self.observer.is_alive():
+            self.observer.join()
 
     def load_module(self, module_name: str, module_file: Path) -> ModuleType:
         spec = importlib.util.spec_from_file_location(module_name, module_file)
