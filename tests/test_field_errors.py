@@ -51,20 +51,32 @@ def question_template(monkeypatch):
     )
 
 
-async def test_errors_from_validate_are_shown_with_their_field(question_template):
-    formdata = FormData({"answer": "a"})
-    valid, errors, field_errors = (await pages.validate(Question, None, formdata))[1:]
-
-    assert not valid
-    assert field_errors == {"answer": ["Not quite."]}
-
+async def submit(page, formdata):
+    valid, errors, field_errors = (await pages.validate(page, None, formdata))[1:]
     request = Request({"type": "http", "path": "/", "headers": []})
     html = await pages.render(
-        None, request, None, Question, formdata, errors, None, None, field_errors
+        None, request, None, page, formdata, errors, None, None, field_errors
     )
 
-    assert "Not quite." in html
+    return valid, html
+
+
+async def test_errors_from_validate_are_shown_once_with_their_field(
+    question_template,
+):
+    valid, html = await submit(Question, FormData({"answer": "a"}))
+
+    assert not valid
+    assert html.count("Not quite.") == 1
     assert "uproot-error" in html
+
+
+async def test_errors_of_fields_themselves_are_shown_once(question_template):
+    valid, html = await submit(Question, FormData({}))
+
+    assert not valid
+    assert html.count("This field is required.") == 1
+    assert "Not quite." not in html
 
 
 async def test_errors_for_unknown_fields_are_rejected():

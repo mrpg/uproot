@@ -603,11 +603,11 @@ async def render(
                 form = form()
         else:
             form = form(formdata)
-            form.validate()
 
-            # Add the errors that the page's validate() assigned to fields
+            # Show the errors found when the submission was validated, including
+            # those that the page's validate() assigned to fields
             for fname, ferrors in (field_errors or {}).items():
-                form[fname].errors = [*form[fname].errors, *ferrors]
+                form[fname].errors = ferrors
     except ValueError:
         form = None
 
