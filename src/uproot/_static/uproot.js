@@ -1244,7 +1244,9 @@ window.uproot = {
                 const thumbRadius = pxPerRem / 2;
                 const thumbOffset = thumbRadius + percent * (rangeWidth - 2 * thumbRadius);
 
-                container.style.marginLeft = `${thumbOffset}px`;
+                // A transform, unlike a margin, does not widen the slider's flex
+                // item, so the labels next to it keep their width on resize
+                container.style.transform = `translateX(${thumbOffset}px)`;
 
                 const formattedValue = this.formatForInterface(slider.name || slider.id, val);
 
