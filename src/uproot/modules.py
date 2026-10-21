@@ -147,6 +147,11 @@ class ModuleManager:
                         f"Could not find source file for module {module_name}"
                     )
 
+                # Bytecode is only checked against the source's size and mtime (in
+                # seconds), so a quick edit of the same size would run stale code
+                Path(importlib.util.cache_from_source(module_file)).unlink(
+                    missing_ok=True
+                )
                 reloaded = self.load_module(module_name, Path(module_file))
                 self[module_name] = reloaded
                 poison_module(old_module)
@@ -161,11 +166,20 @@ class ModuleFileHandler(FileSystemEventHandler):
         self.manager = manager
 
     def on_modified(self, event: Any) -> None:
-        if event.is_directory:
-            return
+        if not event.is_directory:
+            self.changed(Path(event.src_path))
 
-        file_path = Path(event.src_path)
+    def on_created(self, event: Any) -> None:
+        if not event.is_directory:
+            self.changed(Path(event.src_path))
 
+    def on_moved(self, event: Any) -> None:
+        # Editors that save atomically write a temporary file and then move it
+        # over the original, which never emits on_modified for the original
+        if not event.is_directory:
+            self.changed(Path(event.dest_path))
+
+    def changed(self, file_path: Path) -> None:
         if file_path.suffix == ".py":
             module_dir = str(file_path.parent)
 

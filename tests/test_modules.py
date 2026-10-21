@@ -2,8 +2,9 @@ import sys
 from pathlib import Path
 
 import pytest
+from watchdog.events import FileMovedEvent
 
-from uproot.modules import ModuleManager
+from uproot.modules import ModuleFileHandler, ModuleManager
 
 
 def write_app(app_dir: Path, source: str) -> None:
@@ -54,3 +55,25 @@ def test_reload_module_keeps_old_module_when_reload_fails(tmp_path: Path) -> Non
         assert old_module.removed == 2
     finally:
         sys.modules.pop("reload_failure_app", None)
+
+
+def test_atomic_save_reloads_module(tmp_path: Path) -> None:
+    app_dir = tmp_path / "atomic_save_app"
+    write_app(app_dir, "value = 1\n")
+
+    manager = ModuleManager()
+    try:
+        manager.import_module(str(app_dir))
+
+        # Editors that save atomically move a temporary file over the original.
+        # The new source has the same size and likely the same mtime (in seconds).
+        temporary = app_dir / "__init__.py.tmp"
+        temporary.write_text("value = 2\n", encoding="utf-8")
+        temporary.replace(app_dir / "__init__.py")
+        ModuleFileHandler(manager).on_moved(
+            FileMovedEvent(str(temporary), str(app_dir / "__init__.py"))
+        )
+
+        assert manager["atomic_save_app"].value == 2
+    finally:
+        sys.modules.pop("atomic_save_app", None)
