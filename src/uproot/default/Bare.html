@@ -19,7 +19,7 @@
 
 {% if not disable_bootstrap %}
 <link rel="stylesheet" href="{{ internalstatic('vendor/bootstrap/bootstrap.min.css') }}">
-<script type="importmap">{"imports": {"bootstrap": {{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') | tojson }} } }</script>
+<script type="importmap">{"imports": {"bootstrap": {{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') | tojson | safe }} } }</script>
 <script type="module">import "bootstrap";</script>
 {% endif %}
 

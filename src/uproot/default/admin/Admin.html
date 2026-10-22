@@ -29,7 +29,7 @@ Admin area
         <link rel="stylesheet" href="{{ internalstatic('webfonts.css') }}">
         <link rel="stylesheet" href="{{ internalstatic('inter-tnum.css') }}">
 
-        <script type="importmap">{"imports": {"bootstrap": {{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') | tojson }} } }</script>
+        <script type="importmap">{"imports": {"bootstrap": {{ internalstatic('vendor/bootstrap/bootstrap.bundle.min.js') | tojson | safe }} } }</script>
         <script type="module">import "bootstrap";</script>
 
         {% block _uproot_scripts %}
