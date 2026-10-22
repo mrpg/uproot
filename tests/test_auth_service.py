@@ -208,3 +208,22 @@ def test_clear_failed_logins():
 
     assert ip not in auth.FAILED_ATTEMPTS
     assert ip not in auth.BANNED_IPS
+
+
+def test_ban_key_groups_ipv6_by_prefix():
+    assert auth.ban_key("2001:db8:1:2::1") == "2001:db8:1::/48"
+    assert auth.ban_key("2001:db8:1:ffff::abcd") == "2001:db8:1::/48"
+    assert auth.ban_key("::ffff:1.2.3.4") == "1.2.3.4"
+    assert auth.ban_key("1.2.3.4") == "1.2.3.4"
+    assert auth.ban_key("not-an-ip") == "not-an-ip"
+
+
+def test_ipv6_ban_covers_whole_prefix():
+    for i in range(auth.MAX_FAILED_ATTEMPTS):
+        auth.record_failed_login(f"2001:db8:1:{i:x}::{i + 1:x}")
+
+    assert auth.is_ip_banned("2001:db8:1:beef::1") is True
+    assert auth.is_ip_banned("2001:db8:2::1") is False
+
+    auth.clear_failed_logins("2001:db8:1::42")
+    assert auth.is_ip_banned("2001:db8:1:beef::1") is False
