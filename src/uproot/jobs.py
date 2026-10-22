@@ -19,7 +19,6 @@ from uproot import cache
 from uproot.constraints import ensure
 from uproot.types import (
     PlayerIdentifier,
-    Sessionname,
     Value,
     ensure_awaitable,
     materialize,
@@ -201,31 +200,6 @@ def restore(app: FastAPI, admin: s.Storage) -> None:
 
                         if pair not in entries:
                             entries.append(pair)
-
-
-def here(
-    sname: Sessionname,
-    show_page: int,
-    among: list[PlayerIdentifier] | None = None,
-    strict: bool = True,
-) -> set[PlayerIdentifier]:
-    with s.Session(sname) as session:
-        all_players: list[PlayerIdentifier] = session._uproot_players
-
-    if strict:
-        return {
-            pid
-            for pid in all_players
-            if (among is None or pid in among)
-            and materialize(pid).show_page == show_page
-        }
-    else:
-        return {
-            pid
-            for pid in all_players
-            if (among is None or pid in among)
-            and materialize(pid).show_page >= show_page
-        }
 
 
 def entered_grouping_page(player: s.Storage, show_page: int) -> list[PlayerIdentifier]:
