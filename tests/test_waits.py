@@ -368,6 +368,18 @@ def test_synchronizing_wait_rejects_async_all_here():
                 pass
 
 
+def test_synchronizing_wait_rejects_async_all_here_from_mixin():
+    class Mixin:
+        @classmethod
+        async def all_here(page, group):
+            pass
+
+    with pytest.raises(TypeError, match="all_here must not be async"):
+
+        class Wait(Mixin, SynchronizingWait):
+            pass
+
+
 async def test_synchronizing_wait_refreshes_player_fields_set_through_group_players(
     session_with_two_players,
 ):
@@ -388,8 +400,10 @@ async def test_synchronizing_wait_refreshes_player_fields_set_through_group_play
         assert player.bonus == "bonus0"
 
 
-async def test_synchronizing_wait_show_skips_page_and_notifies_waiters_when_ready(
+@pytest.mark.parametrize("scope_kind", ["group", "session"])
+async def test_synchronizing_wait_show_skips_page_and_notifies_waiters_once_when_ready(
     session_with_two_players,
+    scope_kind,
 ):
     sid, pids = session_with_two_players
 
@@ -403,7 +417,7 @@ async def test_synchronizing_wait_show_skips_page_and_notifies_waiters_when_read
         player.show_page = -1
 
     class Wait(SynchronizingWait):
-        pass
+        synchronize = scope_kind
 
     with s.Player(*pids[0]) as player:
         assert await Wait.show(player) is True
@@ -414,12 +428,116 @@ async def test_synchronizing_wait_show_skips_page_and_notifies_waiters_when_read
         player.show_page = 0
         assert await Wait.show(player) is False
 
+    for pid in pids + pids:
+        with s.Player(*pid) as player:
+            assert await Wait.wait(player) == ("submit", 1)
+            assert await Wait.show(player) is False
+            assert await Wait.may_proceed(player) is True
+
     for pid in pids:
         queued_id, queued = queues[tuple(pid)].get_nowait()
         assert queued_id is not None
         assert queued["event"] == "Synchronized"
         assert queued["constraint"] == 0
         assert queued["data"] is None
+        assert queues[tuple(pid)].empty()
+
+
+@pytest.mark.parametrize("scope_kind", ["group", "session"])
+async def test_synchronizing_wait_reads_fresh_membership_and_positions(
+    session_with_two_players,
+    scope_kind,
+):
+    sid, pids = session_with_two_players
+    with s.Session(sid) as session:
+        c.create_group(session, pids, expected_size=2)
+        outsider = c.create_player(session)
+
+    class Wait(SynchronizingWait):
+        synchronize = scope_kind
+
+    with s.Player(*pids[0]) as player:
+        members = Wait.wait_for(player)
+        expected = pids if scope_kind == "group" else pids + [outsider]
+        assert members == expected
+        members.clear()
+        assert Wait.wait_for(player) == expected
+
+        with s.Player(*pids[1]) as other:
+            other.show_page = -1
+        assert await Wait.wait(player) == ("wait", 1 / len(expected))
+        assert await Wait.may_proceed(player) is False
+
+        with s.Player(*pids[1]) as other:
+            other.show_page = 1
+        with s.Player(*outsider) as other:
+            other.show_page = 1
+        assert await Wait.wait(player) == ("submit", 1)
+
+        # A fresh check still blocks if somebody is moved back after polling.
+        with s.Player(*pids[1]) as other:
+            other.show_page = -1
+        assert await Wait.may_proceed(player) is False
+
+        with s.Session(sid) as session:
+            newcomer = c.create_player(session)
+        if scope_kind == "session":
+            assert Wait.wait_for(player) == expected + [newcomer]
+            assert await Wait.wait(player) == ("wait", 2 / 4)
+        else:
+            assert Wait.wait_for(player) == expected
+            assert await Wait.wait(player) == ("wait", 1 / 2)
+
+
+@pytest.mark.parametrize("scope_kind", ["group", "session"])
+async def test_synchronizing_wait_retries_failed_callback_and_releases_each_page_once(
+    session_with_two_players,
+    scope_kind,
+):
+    sid, pids = session_with_two_players
+    with s.Session(sid) as session:
+        c.create_group(session, pids, expected_size=2)
+    q.Q.clear()
+    for pid in pids:
+        q.register(tuple(pid))
+    calls = 0
+
+    class Wait(SynchronizingWait):
+        synchronize = scope_kind
+
+        @classmethod
+        def all_here(page, **scopes):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise RuntimeError("try again")
+            for member in scopes[scope_kind].players:
+                with member:
+                    member.bonus = calls
+
+    with (
+        s.Player(*pids[0]) as player,
+        pytest.raises(RuntimeError, match="try again"),
+    ):
+        await Wait.may_proceed(player)
+    assert all(queue.empty() for queues in q.Q.values() for queue in queues)
+
+    for show_page in (0, 1):
+        for pid in pids:
+            with s.Player(*pid) as player:
+                player.show_page = show_page
+        for pid in pids + pids:
+            with s.Player(*pid) as player:
+                assert await Wait.may_proceed(player) is True
+                assert player.bonus == show_page + 2
+        assert calls == show_page + 2
+        for pid in pids:
+            [queue] = q.Q[tuple(pid)]
+            queued_id, queued = queue.get_nowait()
+            assert queued_id is not None
+            assert queued["event"] == "Synchronized"
+            assert queued["constraint"] == show_page
+            assert queue.empty()
 
 
 def test_create_group_does_not_append_group_when_member_validation_fails(

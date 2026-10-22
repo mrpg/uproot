@@ -28,6 +28,7 @@ MAX_FAILED_ATTEMPTS = 50
 ATTEMPT_WINDOW = 3600.0
 BAN_DURATION = 6 * 3600.0
 MAX_TRACKED_IPS = 10_000
+IPV6_BAN_PREFIX = 48
 CLEANUP_INTERVAL = 600.0
 
 FAILED_ATTEMPTS: dict[str, list[float]] = {}
@@ -53,6 +54,22 @@ def get_client_ip(request: Request) -> str:
         return str(ipaddress.ip_address(ip))
     except ValueError:
         return ip
+
+
+def ban_key(ip: str) -> str:
+    """Track IPv6 clients by prefix so that rotating addresses cannot evade bans."""
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return ip
+
+    if isinstance(addr, ipaddress.IPv6Address):
+        if addr.ipv4_mapped is not None:
+            return str(addr.ipv4_mapped)
+
+        return str(ipaddress.ip_network(f"{addr}/{IPV6_BAN_PREFIX}", strict=False))
+
+    return ip
 
 
 def sweep_stale_entries() -> None:
@@ -81,14 +98,15 @@ def is_ip_banned(ip: str) -> bool:
     if not ip or is_localhost(ip):
         return False
 
-    expiry = BANNED_IPS.get(ip)
+    key = ban_key(ip)
+    expiry = BANNED_IPS.get(key)
 
     if expiry is None:
         return False
 
     if monotonic() >= expiry:
-        BANNED_IPS.pop(ip, None)
-        FAILED_ATTEMPTS.pop(ip, None)
+        BANNED_IPS.pop(key, None)
+        FAILED_ATTEMPTS.pop(key, None)
         return False
 
     return True
@@ -104,9 +122,10 @@ def record_failed_login(ip: str) -> None:
     if is_ip_banned(ip):
         return
 
+    key = ban_key(ip)
     now = monotonic()
     cutoff = now - ATTEMPT_WINDOW
-    attempts = FAILED_ATTEMPTS.get(ip)
+    attempts = FAILED_ATTEMPTS.get(key)
 
     if attempts is not None:
         attempts = [ts for ts in attempts if ts > cutoff]
@@ -117,16 +136,17 @@ def record_failed_login(ip: str) -> None:
         attempts = []
 
     attempts.append(now)
-    FAILED_ATTEMPTS[ip] = attempts
+    FAILED_ATTEMPTS[key] = attempts
 
     if len(attempts) >= MAX_FAILED_ATTEMPTS:
-        BANNED_IPS[ip] = now + BAN_DURATION
-        del FAILED_ATTEMPTS[ip]
+        BANNED_IPS[key] = now + BAN_DURATION
+        del FAILED_ATTEMPTS[key]
 
 
 def clear_failed_logins(ip: str) -> None:
-    FAILED_ATTEMPTS.pop(ip, None)
-    BANNED_IPS.pop(ip, None)
+    key = ban_key(ip)
+    FAILED_ATTEMPTS.pop(key, None)
+    BANNED_IPS.pop(key, None)
 
 
 def ensure_globals() -> None:

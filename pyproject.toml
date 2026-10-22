@@ -48,7 +48,7 @@ dependencies = [
 ]
 
 [tool.uv]
-exclude-newer = "1 day"
+exclude-newer = "6 hours"
 python-preference = "system"
 
 [project.urls]

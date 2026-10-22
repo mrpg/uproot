@@ -486,17 +486,12 @@ class FrozenPage(type):
             ):
                 raise TypeError(f"Method {name}.{attr_name} must be a @classmethod")
 
-            if attr_name in (
-                "all_here",
-                "after_grouping",
-            ) and inspect.iscoroutinefunction(
-                attr_value.__func__
-                if isinstance(attr_value, classmethod)
-                else attr_value
-            ):
-                raise TypeError(f"Method {name}.{attr_name} must not be async")
-
         klass = super().__new__(cls, name, bases, namespace)
+
+        # Check resolved attributes so that mixins cannot sneak these in
+        for attr_name in ("all_here", "after_grouping"):
+            if inspect.iscoroutinefunction(getattr(klass, attr_name, None)):
+                raise TypeError(f"Method {name}.{attr_name} must not be async")
 
         if "context" in namespace:
             raise TypeError(
@@ -690,7 +685,7 @@ class GroupCreatingWait(InternalPage):
         )
 
         # Already in a group - don't show page
-        if await page.call_after(player):
+        if page.call_after(player):
             return False
 
         # Try to create a group immediately
@@ -701,7 +696,7 @@ class GroupCreatingWait(InternalPage):
 
         # If grouping succeeded, player now has a group - don't show page
         # Need to wait for more players if grouping did not succeed.
-        return not await page.call_after(player)
+        return not page.call_after(player)
 
     @internal_live
     async def please_group(page, player: Any) -> tuple[str, float]:
@@ -719,7 +714,7 @@ class GroupCreatingWait(InternalPage):
         player.refresh("_uproot_group")
 
         # Re-check group status after grouping attempt
-        if await page.call_after(player):
+        if page.call_after(player):
             return "submit", 1
 
         # Get fresh count for progress display
@@ -732,10 +727,10 @@ class GroupCreatingWait(InternalPage):
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
         player.refresh("_uproot_group")
-        return await page.call_after(player)
+        return page.call_after(player)
 
     @classmethod
-    async def call_after(page, player: "Storage") -> bool:
+    def call_after(page, player: "Storage") -> bool:
         if player._uproot_group is not None:
             group = player.group
 
@@ -743,8 +738,7 @@ class GroupCreatingWait(InternalPage):
                 if group.get("app") is None:
                     group.app = page.__module__
 
-                await ensure_awaitable(
-                    optional_call_once,
+                optional_call_once(
                     page,
                     "after_grouping",
                     storage=group,
@@ -770,86 +764,74 @@ class SynchronizingWait(InternalPage):
 
     @classmethod
     def wait_for(page, player: "Storage") -> list[PlayerIdentifier]:
+        from uproot import cache
+
         if page.synchronize == "group":
-            s = player.group
+            namespace = ("group", *player._uproot_group)
         elif page.synchronize == "session":
-            s = player.session
+            namespace = ("session", *player._uproot_session)
         else:
             raise NotImplementedError
 
-        with s:
-            return cast(list[PlayerIdentifier], s._uproot_players)
+        return list(cache.peek(namespace, "_uproot_players"))
 
     @internal_live
     async def wait(page, player: Any) -> tuple[str, float]:
-        from uproot.jobs import here
+        from uproot import cache
 
         wf = page.wait_for(player)
-        # For synchronization, allow players who have advanced past this page (strict=False)
-        h = here(player._uproot_session, player.show_page, wf, False)
+        show_page = player.show_page
+        arrived = sum(
+            cache.peek(("player", *pid), "show_page") >= show_page for pid in wf
+        )
 
-        if len(h) == len(wf):
+        if arrived == len(wf):
             return "submit", 1
         else:
-            return "wait", len(h) / len(wf)
+            return "wait", arrived / len(wf)
 
     @classmethod
     async def may_proceed(page, player: "Storage") -> bool:
-        # Use fresh wait check instead of potentially stale frontend data
-        from uproot.jobs import here
-        from uproot.queues import enqueue
+        from uproot import cache
 
         wf = page.wait_for(player)
-        # For synchronization, allow players who have advanced past this page (strict=False)
-        h = here(player._uproot_session, player.show_page, wf, False)
-
-        # All required players must be here or advanced
-        if len(h) < len(wf):
+        show_page = player.show_page
+        if any(cache.peek(("player", *pid), "show_page") < show_page for pid in wf):
             return False
 
-        if page.synchronize == "group":
-            group = player.group
+        with getattr(player, page.synchronize) as scope:
+            # Claim the callback and broadcast together, even without all_here.
+            optional_call_once(
+                page,
+                "release_waiters",
+                storage=scope,
+                show_page=show_page,
+                scope=scope,
+                wf=wf,
+                constraint=show_page,
+            )
 
-            with group:
-                await ensure_awaitable(
-                    optional_call_once,
-                    page,
-                    "all_here",
-                    storage=group,
-                    show_page=player.show_page,
-                    group=group,
-                )
+        player.refresh()
+        return True
 
-            player.refresh()
-        elif page.synchronize == "session":
-            session = player.session
+    @classmethod
+    def release_waiters(
+        page, scope: "Storage", wf: list[PlayerIdentifier], constraint: int
+    ) -> None:
+        from uproot.queues import enqueue
 
-            with session:
-                await ensure_awaitable(
-                    optional_call_once,
-                    page,
-                    "all_here",
-                    storage=session,
-                    show_page=player.show_page,
-                    session=session,
-                )
-
-            player.refresh()
-        else:
-            raise NotImplementedError
+        optional_call(page, "all_here", **{page.synchronize: scope})
 
         for pid in wf:
             enqueue(
                 tuple(pid),
                 {
                     "source": "synchronizing",
-                    "constraint": player.show_page,
+                    "constraint": constraint,
                     "event": "Synchronized",
                     "data": None,
                 },
             )
-
-        return True
 
 
 class SmoothOperator(ABC):
