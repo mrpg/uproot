@@ -8,6 +8,7 @@ from time import time
 from typing import Any, cast
 
 import httpx2
+import mistune
 from packaging.version import InvalidVersion, Version
 from sortedcontainers import SortedDict
 
@@ -65,7 +66,8 @@ async def announcements() -> dict[str, Any]:
     """Fetch announcements from the maintainers' server.
 
     The returned data is enriched with fields computed against the running
-    version: "versionIsCurrent" and "versionAnnouncement" (or None).
+    version: "versionIsCurrent" and "versionAnnouncement" (or None), plus
+    HTML-escaped Markdown in "generalAnnouncementHtml" and "versionAnnouncementHtml".
     """
     ANNOUNCEMENTS_URL = "https://uproot.science/announcements.json"
 
@@ -91,6 +93,14 @@ async def announcements() -> dict[str, Any]:
     data["recommendedVersion"] = recommended
     data["versionIsCurrent"] = version_is_current(u.__version__, recommended)
     data["versionAnnouncement"] = version_announcements.get(u.__version__)
+
+    markdown = mistune.create_markdown(escape=True, plugins=[])
+
+    for field in ("generalAnnouncement", "versionAnnouncement"):
+        announcement = data.get(field)
+        data[f"{field}Html"] = (
+            markdown(announcement) if announcement is not None else None
+        )
 
     return data
 
