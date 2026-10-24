@@ -237,7 +237,7 @@ def create_quick_room(config: str, simulate: bool) -> str:
     return roomname
 
 
-async def get_examples(url: str, target_dir: str = "uproot-examples-master") -> None:
+async def get_examples(url: str, target_dir: str = "uproot-examples-main") -> None:
     zip_path = None
     try:
         async with (
@@ -459,7 +459,7 @@ def newpage(ctx: click.Context, app: str, page: str) -> None:
 def examples(ctx: click.Context) -> None:
     asyncio.run(
         get_examples(
-            "https://github.com/mrpg/uproot-examples/archive/refs/heads/master.zip"
+            "https://github.com/mrpg/uproot-examples/archive/refs/heads/main.zip"
         )
     )
 
