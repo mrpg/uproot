@@ -218,7 +218,7 @@ def test_find_field_texts(tmp_path: Path):
                 ")",
                 'team = wtforms.SelectField(choices=["Red", "Blue"], label=name)',
                 'plain = StringField(render_kw={"placeholder": "Not translated"})',
-                'grouped = wtforms.SelectField(choices={"Team": [("a", "Alpha")]})',
+                'grouped = wtforms.SelectField(choices={"Team": {"a": "Alpha"}})',
             ]
         ),
         encoding="utf-8",
@@ -233,6 +233,51 @@ def test_find_field_texts(tmp_path: Path):
         ("Red", 6),
         ("Team", 8),
         ("Yes", 3),
+    ]
+
+
+@pytest.mark.parametrize(
+    "choice, expected",
+    [
+        ('SelectChoice("a", "Alpha")', ["Alpha"]),
+        (
+            'wtforms.SelectChoice(value="a", label="Alpha", optgroup="Team")',
+            ["Alpha", "Team"],
+        ),
+        ('fields.SelectChoice("Same")', ["Same"]),
+        ('SelectChoice(value="Fallback", label=None)', ["Fallback"]),
+        (
+            'SelectChoice("a", "Alpha", {"title": "Ignored"}, "Team")',
+            ["Alpha", "Team"],
+        ),
+        ('SelectChoice("a", label=dynamic, optgroup=group)', []),
+        ("SelectChoice(value=1)", []),
+        ('SelectChoice("a", "", optgroup="")', []),
+    ],
+)
+def test_find_field_texts_in_select_choices(tmp_path: Path, choice, expected):
+    source = tmp_path / "example.py"
+    source.write_text(f"choices = [{choice}]\n", encoding="utf-8")
+
+    assert sorted(i18ncheck.find_field_texts(str(source))) == [
+        (label, 1) for label in expected
+    ]
+
+
+def test_find_select_choice_texts_inside_fields(tmp_path: Path):
+    source = tmp_path / "example.py"
+    source.write_text(
+        'team = SelectField(label="Team", choices=[\n'
+        '    SelectChoice("a", label="Alpha"),\n'
+        '    ("b", "Beta", {"title": "Ignored"}),\n'
+        "])\n",
+        encoding="utf-8",
+    )
+
+    assert sorted(i18ncheck.find_field_texts(str(source))) == [
+        ("Alpha", 2),
+        ("Beta", 1),
+        ("Team", 1),
     ]
 
 

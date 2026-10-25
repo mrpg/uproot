@@ -137,13 +137,13 @@ def choice_labels(node: ast.expr) -> list[str]:
 
     if isinstance(node, (ast.List, ast.Tuple)):
         for element in node.elts:
-            if isinstance(element, ast.Tuple) and len(element.elts) == 2:
+            if isinstance(element, ast.Tuple) and len(element.elts) in (2, 3):
                 element = element.elts[1]
             if isinstance(element, ast.Constant) and isinstance(element.value, str):
                 labels.append(element.value)
     elif isinstance(node, ast.Dict):
         for key, value in zip(node.keys, node.values):
-            if isinstance(value, (ast.List, ast.Tuple)):
+            if isinstance(value, (ast.List, ast.Tuple, ast.Dict)):
                 if isinstance(key, ast.Constant) and isinstance(key.value, str):
                     labels.append(key.value)
                 labels.extend(choice_labels(value))
@@ -155,8 +155,8 @@ def choice_labels(node: ast.expr) -> list[str]:
 
 def find_field_texts(filepath: str) -> list[tuple[str, int]]:
     """Return literal labels, descriptions, and choice labels of form fields,
-    such as RadioField(label="...", choices=[...]). uproot translates these
-    when rendering a form."""
+    including SelectChoice labels and groups. uproot translates these when
+    rendering a form."""
     with open(filepath, "r", encoding="utf-8") as f:
         tree = ast.parse(f.read(), filename=filepath)
 
@@ -168,22 +168,42 @@ def find_field_texts(filepath: str) -> list[tuple[str, int]]:
         func = node.func
         name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
 
-        if not name.endswith("Field"):
+        texts: list[ast.expr | None]
+        if name == "SelectChoice":
+            arguments = dict(
+                zip(("value", "label", "render_kw", "optgroup"), node.args)
+            )
+            arguments.update(
+                (keyword.arg, keyword.value)
+                for keyword in node.keywords
+                if keyword.arg is not None
+            )
+            label = arguments.get("label")
+            if label is None or (
+                isinstance(label, ast.Constant) and label.value is None
+            ):
+                label = arguments.get("value")
+            texts = [label, arguments.get("optgroup")]
+        elif name.endswith("Field"):
+            texts = [
+                keyword.value for keyword in node.keywords if keyword.arg in FIELD_TEXTS
+            ]
+            for keyword in node.keywords:
+                if keyword.arg == "choices":
+                    results += [
+                        (label, keyword.value.lineno)
+                        for label in choice_labels(keyword.value)
+                    ]
+        else:
             continue
 
-        for keyword in node.keywords:
-            if (
-                keyword.arg in FIELD_TEXTS
-                and isinstance(keyword.value, ast.Constant)
-                and isinstance(keyword.value.value, str)
-                and keyword.value.value
-            ):
-                results.append((keyword.value.value, keyword.value.lineno))
-            elif keyword.arg == "choices":
-                results += [
-                    (label, keyword.value.lineno)
-                    for label in choice_labels(keyword.value)
-                ]
+        results += [
+            (text.value, text.lineno)
+            for text in texts
+            if isinstance(text, ast.Constant)
+            and isinstance(text.value, str)
+            and text.value
+        ]
 
     return results
 

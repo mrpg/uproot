@@ -544,19 +544,13 @@
                 {% if field.placeholder is defined and field.placeholder() %}
                     <option value=""{% if field.data is none %} selected{% endif %}>—</option>
                 {% endif %}
-                {% if field.has_groups() %}
-                    {% for group, choices in field.iter_groups() %}
-                        <optgroup label="{{ translate(group | string) if group is not none else '' }}">
-                            {% for value, label, selected, render_kw in choices %}
-                                {{ field.widget.render_option(value, translate(label | string) if label is not none else "", selected, **render_kw) }}
-                            {% endfor %}
-                        </optgroup>
+                {% for group, choices in field.iter_groups() %}
+                    {% if group is not none %}<optgroup label="{{ translate(group | string) }}">{% endif %}
+                    {% for value, label, selected, render_kw in choices %}
+                        {{ field.widget.render_option(Choice(value, translate(label | string) if label is not none else "", selected, render_kw)) }}
                     {% endfor %}
-                {% else %}
-                    {% for value, label, selected, render_kw in field.iter_choices() %}
-                        {{ field.widget.render_option(value, translate(label | string) if label is not none else "", selected, **render_kw) }}
-                    {% endfor %}
-                {% endif %}
+                    {% if group is not none %}</optgroup>{% endif %}
+                {% endfor %}
             </select>
             {% if field.description %}
                 <small class="form-text mt-2 uproot-form-description" id="{{ desc_id }}">{{ translate(field.description) | safe }}</small>
