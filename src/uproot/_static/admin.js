@@ -518,18 +518,19 @@ function announcements() {
             safeHTML += "</p>";
         }
 
+        // Announcement HTML is rendered server-side with raw HTML escaped.
         if (data.generalAnnouncement) {
             safeHTML += `<div class="alert theme-warning border-warning callout fg-black" role="alert">
                              <b>${_("General announcement")}</b>:
-                             ${uproot.escape(data.generalAnnouncement)}
+                             ${data.generalAnnouncementHtml}
                          </div>`;
         }
 
         if (data.versionAnnouncement != null) {
-            safeHTML += '<p class="alert theme-danger border-danger callout fg-black" role="alert">';
+            safeHTML += '<div class="alert theme-danger border-danger callout fg-black" role="alert">';
             safeHTML += `<b>${_("Announcement for your version")}</b>: `;
-            safeHTML += uproot.escape(data.versionAnnouncement);
-            safeHTML += "</p>";
+            safeHTML += data.versionAnnouncementHtml;
+            safeHTML += "</div>";
         }
 
         uproot.alert(safeHTML);

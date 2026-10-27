@@ -35,7 +35,7 @@ from jinja2.parser import Parser
 from markupsafe import Markup
 from pydantic import validate_call
 from starlette.staticfiles import StaticFiles
-from wtforms import FieldList
+from wtforms import Choice, FieldList
 from wtforms import Form as BaseForm
 from wtforms import FormField
 from wtforms.i18n import messages_path
@@ -1023,5 +1023,6 @@ ENV.filters["tojson"] = tojson_filter
 ENV.filters["to"] = to_filter
 ENV.filters["type"] = type_filter
 ENV.filters["unixtime2datetime"] = unixtime2datetime_filter
+ENV.globals["Choice"] = Choice
 ENV.globals["get_setting"] = template_get_setting
 ENV.globals["select_html_params"] = select_html_params

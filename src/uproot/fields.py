@@ -9,24 +9,32 @@ import wtforms
 import wtforms.fields
 import wtforms.validators
 import wtforms.widgets
+from wtforms import SelectChoice
 
 Field = wtforms.fields.Field
 Number = int | float | Decimal
 EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
 
-def type_coercer(choices: list[tuple[Any, str] | Any]) -> Callable[[str], Any]:
+def normalize_choices(choices: list[Any] | dict[Any, str]) -> list[SelectChoice]:
+    if isinstance(choices, dict):
+        choices = [*choices.items()]
+
+    return [
+        (
+            SelectChoice.from_input(choice)
+            if isinstance(choice, (tuple, SelectChoice))
+            else SelectChoice(choice)
+        )
+        for choice in choices
+    ]
+
+
+def type_coercer(choices: list[SelectChoice]) -> Callable[[str], Any]:
     def local_coerce(chosen: str) -> Any:
         for choice in choices:
-            if isinstance(choice, tuple) and len(choice) == 2:
-                coded_as, _ = choice
-            else:
-                coded_as = choice
-
-            submission = str(coded_as)
-
-            if chosen in (submission, coded_as):
-                return coded_as
+            if chosen in (str(choice.value), choice.value):
+                return choice.value
 
         raise ValueError("Invalid choice")
 
@@ -338,7 +346,7 @@ class LikertFieldClassic(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
-        choices: list[tuple[Any, str] | Any] | dict[Any, str] | None = None,
+        choices: list[Any] | dict[Any, str] | None = None,
         class_wrapper: str | None = None,
         label: str = "",
         label_max: str = "",
@@ -353,13 +361,11 @@ class LikertFieldClassic(wtforms.fields.RadioField):
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
         if choices is None:
-            choices = [(i, str(i)) for i in range(min, max + 1)]
+            choices = [SelectChoice(i, str(i)) for i in range(min, max + 1)]
             range_validator = wtforms.validators.NumberRange(min=min, max=max)
-        elif isinstance(choices, dict):
-            choices = [*choices.items()]
-            range_validator = None
         else:
             range_validator = None
+        choices = normalize_choices(choices)
 
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -396,7 +402,7 @@ class LikertField(LikertFieldClassic):
         self,
         *,
         breakpoint: int = 1024,
-        choices: list[tuple[Any, str] | Any] | dict[Any, str] | None = None,
+        choices: list[Any] | dict[Any, str] | None = None,
         class_wrapper: str | None = None,
         label: str = "",
         label_max: str = "",
@@ -432,7 +438,7 @@ class RadioField(wtforms.fields.RadioField):
     def __init__(
         self,
         *,
-        choices: list[tuple[Any, str] | Any] | dict[Any, str] | None = None,
+        choices: list[Any] | dict[Any, str] | None = None,
         class_wrapper: str | None = None,
         label: str = "",
         layout: str = "vertical",
@@ -445,8 +451,7 @@ class RadioField(wtforms.fields.RadioField):
     ) -> None:
         if choices is None:
             choices = [True, False]
-        elif isinstance(choices, dict):
-            choices = [*choices.items()]
+        choices = normalize_choices(choices)
 
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -477,7 +482,7 @@ class SelectField(wtforms.fields.SelectField):
     def __init__(
         self,
         *,
-        choices: list[tuple[Any, str] | Any] | dict[Any, str],
+        choices: list[Any] | dict[Any, str],
         class_wrapper: str | None = None,
         label: str = "",
         optional: bool = False,
@@ -487,8 +492,7 @@ class SelectField(wtforms.fields.SelectField):
         default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
-        if isinstance(choices, dict):
-            choices = [*choices.items()]
+        choices = normalize_choices(choices)
 
         if not optional:
             v = [wtforms.validators.InputRequired()]
@@ -517,7 +521,7 @@ class SelectField(wtforms.fields.SelectField):
         """Whether to render an empty first option. Without one, browsers
         preselect the first choice, which is saved if the participant skips
         the question. Choices that already include "" need no placeholder."""
-        return not any(str(choice[0]) == "" for choice in self.iter_choices())
+        return not any(str(choice.value) == "" for choice in self.iter_choices())
 
 
 class TextField(wtforms.fields.Field):
@@ -620,7 +624,7 @@ class BoundedChoiceField(wtforms.fields.SelectMultipleField):
     def __init__(
         self,
         *,
-        choices: list[tuple[Any, str] | Any] | dict[Any, str],
+        choices: list[Any] | dict[Any, str],
         class_wrapper: str | None = None,
         label: str = "",
         layout: str = "vertical",
@@ -632,8 +636,7 @@ class BoundedChoiceField(wtforms.fields.SelectMultipleField):
         default: Any | None = None,
         **kwargs: Any,  # WTForms-internal use only
     ) -> None:
-        if isinstance(choices, dict):
-            choices = [*choices.items()]
+        choices = normalize_choices(choices)
 
         v = [BoundedChoiceValidator(min=min, max=max)]
 
