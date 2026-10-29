@@ -49,14 +49,12 @@ class Entry(type):
         namespace: dict[str, Any],
         **kwargs: Any,
     ) -> type[Any]:
-        annotations = namespace.get("__annotations__", {})
+        new_class = super().__new__(cls, name, bases, namespace)
 
-        if "id" in annotations:
+        if "id" in inspect.get_annotations(new_class):
             raise ValueError(
                 f"Class {name} cannot define 'id' field - it's reserved for storage"
             )
-
-        new_class = super().__new__(cls, name, bases, namespace)
 
         return validated_dataclass(
             new_class,  # type: ignore[arg-type]
