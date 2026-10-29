@@ -197,6 +197,7 @@ SUGGESTED_MULTIPLE = 2
 
 class C:
     PAYOFF_MATRIX = {
+        # (you cooperate, other cooperates): your payoff
         (True, True): 10,
         (True, False): 0,
         (False, True): 15,
@@ -225,42 +226,14 @@ class Sync(SynchronizingWait):
     @classmethod
     def all_here(page, group: GroupType) -> None:
         for player in group.players:
-            other = player.other_in_group
-            player.payoff = C.PAYOFF_MATRIX[player.cooperate, other.cooperate]
+            player.payoff = C.PAYOFF_MATRIX[
+                player.cooperate,
+                player.other_in_group.cooperate,
+            ]
 
 
 class Results(Page):
     pass
-
-
-def pipeline(session: SessionType, data: Any = None) -> list[dict[str, Any]]:
-    rows = []
-
-    for group in session.groups(app=__name__):
-        players = group.players
-        player1, player2 = players
-
-        for member_id, player in enumerate(players):
-            other = player2 if member_id == 0 else player1
-            player_data = player.within(app=__name__)
-            other_data = other.within(app=__name__)
-            cooperate = player_data.get("cooperate")
-            other_cooperate = other_data.get("cooperate")
-
-            rows.append(
-                {
-                    "session": session.name,
-                    "group": group.name,
-                    "uname": player.name,
-                    "member_id": member_id,
-                    "cooperate": cooperate,
-                    "other_uname": other.name,
-                    "other_cooperate": other_cooperate,
-                    "payoff": player_data.get("payoff"),
-                }
-            )
-
-    return rows
 
 
 page_order = [
@@ -275,11 +248,8 @@ page_order = [
 INSTRUCTIONS_HTML = """
 {% extends "Base.html" %}
 
-
 {% block title %}
-
 Instructions
-
 {% endblock title %}
 
 
@@ -289,43 +259,31 @@ Instructions
 
 <p>You will each make one private choice: to cooperate or not to cooperate.</p>
 
-<p>There is no opportunity to communicate with the other participant. Neither of you will learn the other's choice until both decisions have been
-    submitted. Please make your choice on the next page.</p>
+<p>There is no opportunity to communicate with the other participant. Neither of you will learn the other’s choice until both decisions have been submitted. Please make your choice on the next page.</p>
 
 <p>The two decisions jointly determine both your payoff and the other participant’s payoff as follows:</p>
 
 <table class="table">
-  <thead class="align-top">
-    <tr>
-      <th style="width: 30%;"></th>
-      <th style="width: 35%;">The other participant cooperates</th>
-      <th style="width: 35%;">The other participant does not\xa0cooperate</th>
-    </tr>
-  </thead>
-  <tbody class="align-top">
-    <tr>
-      <th class="ps-0">You cooperate</th>
-      <td>
-        {{ C.PAYOFF_MATRIX[(True, True)] | fmtnum(places=0, pre="$") }} for you<br>
-        {{ C.PAYOFF_MATRIX[(True, True)] | fmtnum(places=0, pre="$") }} for the other participant
-      </td>
-      <td>
-        {{ C.PAYOFF_MATRIX[(True, False)] | fmtnum(places=0, pre="$") }} for you<br>
-        {{ C.PAYOFF_MATRIX[(False, True)] | fmtnum(places=0, pre="$") }} for the other participant
-      </td>
-    </tr>
-    <tr>
-      <th class="ps-0">You do not\xa0cooperate</th>
-      <td>
-        {{ C.PAYOFF_MATRIX[(False, True)] | fmtnum(places=0, pre="$") }} for you<br>
-        {{ C.PAYOFF_MATRIX[(True, False)] | fmtnum(places=0, pre="$") }} for the other participant
-      </td>
-      <td>
-        {{ C.PAYOFF_MATRIX[(False, False)] | fmtnum(places=0, pre="$") }} for you<br>
-        {{ C.PAYOFF_MATRIX[(False, False)] | fmtnum(places=0, pre="$") }} for the other participant
-      </td>
-    </tr>
-  </tbody>
+    <thead>
+        <tr>
+            <th></th>
+            <th>The other participant cooperates</th>
+            <th>The other participant does not cooperate</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for you in [True, False] %}
+        <tr>
+            <th>{{ "You cooperate" if you else "You do not cooperate" }}</th>
+            {% for other in [True, False] %}
+            <td>
+                {{ C.PAYOFF_MATRIX[you, other] | fmtnum(pre="$", places=2) }} for you<br>
+                {{ C.PAYOFF_MATRIX[other, you] | fmtnum(pre="$", places=2) }} for the other participant
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
 
 {% endblock main %}
@@ -334,11 +292,8 @@ Instructions
 DILEMMA_HTML = """
 {% extends "Base.html" %}
 
-
 {% block title %}
-
-Please decide
-
+Your decision
 {% endblock title %}
 
 
@@ -352,11 +307,8 @@ Please decide
 RESULTS_HTML = """
 {% extends "Base.html" %}
 
-
 {% block title %}
-
 Results
-
 {% endblock title %}
 
 
@@ -369,12 +321,12 @@ Results
 {% endif %}
 
 {% if player.other_in_group.cooperate %}
-<p>Your partner cooperated.</p>
+<p>The other participant cooperated.</p>
 {% else %}
-<p>Your partner did not cooperate.</p>
+<p>The other participant did not cooperate.</p>
 {% endif %}
 
-<p>Your payoff is <b>{{ player.payoff }}</b>.</p>
+<p>Your payoff is <b>{{ player.payoff | fmtnum(pre="$", places=2) }}</b>.</p>
 
 {% endblock main %}
 """.lstrip()
@@ -416,6 +368,10 @@ SIMULATE_PD_JS = """\
 // The use of this file is optional. What you write here will run whenever
 // player pages load in sessions created with the "Simulate responses" option
 // enabled, allowing you to check whether your experiment works as intended.
+
+uproot.simulate.on("#APP#/Instructions", (sim) => {
+    sim.submit();
+});
 
 uproot.simulate.on("#APP#/Dilemma", (sim) => {
     sim.choose("cooperate", sim.random(["True", "False"])).submit();
