@@ -33,7 +33,8 @@ def forward(args: list[str], command: str | None = None) -> None:
         sys.argv.append(command)
     sys.argv.extend(args)
 
-    import main as _  # noqa: F401
+    if command not in ("new", "newpage"):  # These only write files
+        import main as _  # noqa: F401
 
     from uproot.cli import cli
 
