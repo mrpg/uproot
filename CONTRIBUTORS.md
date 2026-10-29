@@ -1,2 +1,3 @@
-- Holger Gerhardt
 - Max R. P. Grossmann
+- Holger Gerhardt
+- Geoffrey Castillo
