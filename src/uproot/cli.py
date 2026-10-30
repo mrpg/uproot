@@ -7,6 +7,7 @@ import logging
 import os
 import platform
 import shutil
+import signal
 import sys
 import tempfile
 import time
@@ -17,22 +18,14 @@ from pathlib import Path
 from typing import Any
 
 import click
+import h2corn
 import httpx2
-import uvicorn
 
 import uproot.deployment as d
 import uproot.examples as ex
 from uproot import archive
 
 sys.argv[0] = "uproot"
-
-
-class UvicornRunningFilter(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool:
-        return not record.getMessage().startswith("Uvicorn running on ")
-
-
-UVICORN_RUNNING_FILTER = UvicornRunningFilter()
 
 
 @contextmanager
@@ -96,16 +89,39 @@ def configure_server(host: str, port: int, unsafe: bool, public_demo: bool) -> N
 
 
 def run_server(host: str, port: int) -> None:
-    set_ulimit()
-    logging.getLogger("uvicorn.error").addFilter(UVICORN_RUNNING_FILTER)
+    from main import uproot_server
 
-    uvicorn.run(
-        "main:uproot_server",
-        host=host,
-        port=port,
-        workers=1,  # must be 1
-        **d.UVICORN_KWARGS,
-    )
+    set_ulimit()
+
+    async def serve() -> None:
+        # Keep live experiment state and database connections in this process.
+        server = h2corn.Server(
+            uproot_server,
+            h2corn.Config(
+                host=host,
+                port=port,
+                workers=1,
+                loop_threads=1,
+                **d.H2CORN_KWARGS,
+            ),
+        )
+        loop = asyncio.get_running_loop()
+        # Signal handlers interrupt the loop thread, which may hold a lock that
+        # server.shutdown() takes, so defer the call to the loop.
+        handlers = {
+            signum: signal.signal(
+                signum,
+                lambda signum, frame: loop.call_soon_threadsafe(server.shutdown),
+            )
+            for signum in (signal.SIGINT, signal.SIGTERM)
+        }
+        try:
+            await server.serve()
+        finally:
+            for signum, handler in handlers.items():
+                signal.signal(signum, handler)
+
+    asyncio.run(serve())
 
 
 def show_announcements(data: dict[str, Any], current_version: str) -> None:

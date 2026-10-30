@@ -35,6 +35,7 @@ else:
 
 DEFAULT_ROOMS: list["RoomType"] = []
 HOST: str = "127.0.0.1"
+H2CORN_KWARGS: dict[str, Any] = {"proxy_headers": True}
 # Seconds between the browser's keepalive messages. A lost connection shows
 # within this interval plus three seconds. Longer intervals save bandwidth but
 # raise shorter dropout tolerances to this interval plus three seconds. At most
@@ -91,10 +92,6 @@ TIMEOUT_TOLERANCE: float = 1.0
 UNAVAILABLE_EQUIVALENT: str = "null"
 UNSAFE: bool = False
 UPSTREAM: bool = True
-UVICORN_KWARGS: dict[str, Any] = {
-    "reload": False,
-    "log_level": "info",
-}
 
 
 def project_metadata(*args: Any, **kwargs: Any) -> None:
