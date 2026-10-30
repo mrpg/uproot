@@ -674,12 +674,6 @@ async def ws(
 
     pid = cast(t.PlayerIdentifier, t.identify(player))
     queue = q.register(tuple(pid))  # convention: queue path = (sname, uname)
-    data = auth_service.from_cookie(uauth)
-    is_admin = (
-        d.UNSAFE
-        or auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
-        is not None
-    )
 
     processed_futures: deque[int | str] = deque(maxlen=8 * 1024)
     send_lock = asyncio.Lock()
@@ -734,7 +728,7 @@ async def ws(
                     "payload": new_show_page,
                 } if isinstance(
                     new_show_page, int
-                ) and (is_admin or player.session._uproot_testing):
+                ) and (player.session._uproot_testing or auth_service.logged_in(uauth)):
                     player.show_page = new_show_page
                 case {
                     "endpoint": "invoke",
@@ -838,7 +832,7 @@ async def ws(
                         )
                 case _:
                     d.LOGGER.warning(
-                        f"Ignored websocket message starting with '{repr(result)[:64]}' (is_admin: {is_admin})"
+                        f"Ignored websocket message starting with '{repr(result)[:64]}'"
                     )
 
         if invoke_respond and "future" in result:

@@ -75,21 +75,3 @@ def test_logout_routes_are_post_only():
 
     assert methods_by_path[f"{server2.router.prefix}/logout/"] == {"POST"}
     assert methods_by_path[f"{server2.router.prefix}/status/logout-all/"] == {"POST"}
-
-
-def test_admin_websocket_logged_in_rechecks_token(monkeypatch):
-    monkeypatch.setattr(server2.d, "UNSAFE", False)
-    monkeypatch.setattr(
-        server2.auth_service,
-        "from_cookie",
-        lambda token: {"user": "admin", "token": token},
-    )
-    monkeypatch.setattr(
-        server2.auth_service,
-        "verify_auth_token",
-        lambda user, token: {"user": user} if token == "valid" else None,
-    )
-
-    assert server2.admin_websocket_logged_in("valid") is True
-    assert server2.admin_websocket_logged_in("revoked") is False
-    assert server2.admin_websocket_logged_in(None) is False

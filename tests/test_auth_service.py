@@ -49,6 +49,18 @@ def test_auth_token_lifecycle_requires_active_token(clean_auth):
     assert auth.verify_auth_token("admin", token) is None
 
 
+def test_logged_in_rejects_revoked_token(clean_auth, monkeypatch):
+    monkeypatch.setattr(d, "UNSAFE", False)
+    token = auth.create_auth_token_for_user("admin")
+
+    assert auth.logged_in(token) is True
+    assert auth.logged_in("forged") is False
+    assert auth.logged_in(None) is False
+
+    auth.revoke_auth_token(token)
+    assert auth.logged_in(token) is False
+
+
 def test_auth_token_creation_rejects_unknown_user(clean_auth):
     assert auth.create_auth_token_for_user("missing") is None
 

@@ -398,6 +398,12 @@ def from_cookie(uauth: str | None) -> dict[str, str]:
         }
 
 
+def logged_in(uauth: str | None) -> bool:
+    """Check whether an admin cookie is still valid. Long-lived connections must
+    call this again before acting, since tokens can be revoked or expire."""
+    return d.UNSAFE or bool(from_cookie(uauth)["user"])
+
+
 def verify_auth_token(user: str, token: str) -> str | None:
     """Verify an authentication token.
 

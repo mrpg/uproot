@@ -592,12 +592,7 @@ async def render(
         if player._uproot_group is not None:
             group = player.group
 
-    data = auth_service.from_cookie(uauth)
-    is_admin = (
-        d.UNSAFE
-        or auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
-        is not None
-    )
+    is_admin = auth_service.logged_in(uauth)
 
     try:
         form = await form_factory(page, player)
@@ -731,12 +726,7 @@ async def render_error(
         materialize(player._uproot_session),
     )
 
-    data = auth_service.from_cookie(uauth)
-    is_admin = (
-        d.UNSAFE
-        or auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
-        is not None
-    )
+    is_admin = auth_service.logged_in(uauth)
 
     internal = {
         "_uproot_internal": {

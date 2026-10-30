@@ -28,6 +28,7 @@ from fastapi import (
     Request,
     WebSocket,
     WebSocketDisconnect,
+    WebSocketException,
 )
 from fastapi.responses import (
     HTMLResponse,
@@ -40,6 +41,7 @@ from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 from pydantic import validate_call
 from sortedcontainers import SortedDict
+from starlette.status import WS_1008_POLICY_VIOLATION
 
 import uproot as u
 import uproot.core as c
@@ -262,24 +264,6 @@ AuthRequired = Depends(auth_required)
 DataGroupVariablesQuery = Query(default=[])
 
 
-def admin_websocket_logged_in(uauth: str | None) -> bool:
-    if d.UNSAFE:
-        return True
-
-    if uauth is None:
-        return False
-
-    try:
-        data = auth_service.from_cookie(uauth)
-    except Exception:  # noqa: BLE001
-        return False
-
-    return (
-        auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
-        is not None
-    )
-
-
 # Root directory
 
 
@@ -298,16 +282,8 @@ async def home(
 async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
     require_same_origin_websocket(websocket)
 
-    if not d.UNSAFE:
-        if uauth is None:
-            raise HTTPException(status_code=403, detail="No authentication token")
-
-        data = auth_service.from_cookie(uauth)
-        if (
-            auth_service.verify_auth_token(data.get("user", ""), data.get("token", ""))
-            is None
-        ):
-            raise HTTPException(status_code=403, detail="Invalid authentication token")
+    if not auth_service.logged_in(uauth):
+        raise WebSocketException(WS_1008_POLICY_VIOLATION, "Not logged in")
 
     await websocket.accept()
 
@@ -362,6 +338,12 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
 
             try:
                 result = await finished
+
+                # Logging out (or token expiry) must cut off commands and events
+                if not auth_service.logged_in(uauth):
+                    await websocket.close(WS_1008_POLICY_VIOLATION, "Not logged in")
+                    await cleanup_tasks()
+                    return
 
                 if fname == "from_websocket":
                     match result:
@@ -470,32 +452,24 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                         ):
                             retval = None
                             error = False
+                            t0 = now()
 
-                            if not admin_websocket_logged_in(uauth):
+                            try:
+                                retval = await cast(Any, FUNS[mname])(
+                                    *margs,
+                                    **mkwargs,
+                                )
+                            except Exception:  # noqa: BLE001
                                 error = True
-                                d.LOGGER.warning(
-                                    "Rejected %s invocation from unauthenticated admin websocket",
-                                    mname,
+                                d.LOGGER.exception(
+                                    f"Exception in {FUNS[mname].__name__}"
                                 )
-                            else:
-                                t0 = now()
 
-                                try:
-                                    retval = await cast(Any, FUNS[mname])(
-                                        *margs,
-                                        **mkwargs,
-                                    )
-                                except Exception:  # noqa: BLE001
-                                    error = True
-                                    d.LOGGER.exception(
-                                        f"Exception in {FUNS[mname].__name__}"
-                                    )
+                            delta = now() - t0
 
-                                delta = now() - t0
-
-                                d.LOGGER.debug(
-                                    f"{FUNS[mname].__name__} took {delta:.5f} seconds"
-                                )
+                            d.LOGGER.debug(
+                                f"{FUNS[mname].__name__} took {delta:.5f} seconds"
+                            )
 
                             await websocket.send_bytes(
                                 orjson.dumps(
