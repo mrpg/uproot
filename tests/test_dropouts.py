@@ -18,6 +18,7 @@ import uproot.queues as q
 import uproot.storage as s
 from uproot import server1
 from uproot.smithereens import (
+    live,
     mark_dropout,
     move_to_end,
     stop_watching_for_dropout,
@@ -121,17 +122,50 @@ async def poll_dropouts(app):
             await task
 
 
-async def test_cancel_scope_cancelled_during_websocket_cleanup(
-    watched_player, monkeypatch
+@pytest.mark.parametrize(
+    "cancel_scope", [False, True], ids=["disconnect", "cancel-scope"]
+)
+async def test_websocket_cleanup_finishes_live_handler(
+    watched_player, monkeypatch, cancel_scope
 ):
     client, pid = watched_player
+    started = asyncio.Event()
+    finished = asyncio.Event()
+
+    class LivePage:
+        @live
+        async def wait(page, player):
+            started.set()
+            try:
+                await asyncio.Future()
+            finally:
+                await asyncio.sleep(0)
+                finished.set()
+
+    monkeypatch.setattr(server1, "path2page", lambda path: LivePage)
     deregister = q.deregister
     messages = iter(
-        ({"type": "websocket.connect"}, {"type": "websocket.disconnect", "code": 1000})
+        (
+            {"type": "websocket.connect"},
+            {
+                "type": "websocket.receive",
+                "text": orjson.dumps(
+                    {
+                        "endpoint": "invoke",
+                        "payload": {"mname": "wait", "args": [], "kwargs": {}},
+                    }
+                ).decode(),
+            },
+            {"type": "websocket.disconnect", "code": 1000},
+        )
     )
 
     async def receive():
-        return next(messages)
+        message = next(messages)
+        if message["type"] == "websocket.disconnect":
+            async with asyncio.timeout(5):
+                await started.wait()
+        return message
 
     async def send(message):
         pass
@@ -139,7 +173,8 @@ async def test_cancel_scope_cancelled_during_websocket_cleanup(
     with anyio.CancelScope() as scope:
 
         def deregister_then_cancel(path, queue):
-            asyncio.get_running_loop().call_soon(scope.cancel)
+            if cancel_scope:
+                asyncio.get_running_loop().call_soon(scope.cancel)
             deregister(path, queue)
 
         monkeypatch.setattr(q, "deregister", deregister_then_cancel)
@@ -163,6 +198,7 @@ async def test_cancel_scope_cancelled_during_websocket_cleanup(
             send,
         )
 
+    assert finished.is_set()
     assert tuple(pid) not in q.Q
 
 

@@ -2514,6 +2514,7 @@ name = "uproot-science"
 version = "0.11.0"
 source = { editable = "." }
 dependencies = [
+    { name = "anyio" },
     { name = "appendmuch" },
     { name = "brotli", marker = "sys_platform != 'win32'" },
     { name = "click" },
@@ -2562,6 +2563,7 @@ pg = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anyio", specifier = ">=4.16.0" },
     { name = "appendmuch", git = "https://github.com/mrpg/appendmuch.git?rev=4c934045d3fabb1dc76bad12c53f0a20df74137f" },
     { name = "appendmuch", extras = ["pg"], marker = "extra == 'pg'", specifier = ">=0.2.0" },
     { name = "bandit", marker = "extra == 'dev'" },

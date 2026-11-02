@@ -20,6 +20,7 @@ from typing import Any, cast
 from urllib.parse import quote
 from weakref import WeakValueDictionary
 
+import anyio
 import orjson
 from fastapi import (
     APIRouter,
@@ -914,8 +915,13 @@ async def ws(
         # Keep the last-seen timestamp for dropout detection and other tabs.
         q.deregister(tuple(pid), queue)
 
-        for task in [*tasks, *background_tasks]:
+        pending_tasks = [*tasks, *background_tasks]
+        for task in pending_tasks:
             task.cancel()
+
+        # Let live handlers finish cleanup even if the request scope is cancelled.
+        with anyio.CancelScope(shield=True):
+            await asyncio.gather(*pending_tasks, return_exceptions=True)
 
 
 @functools.lru_cache(maxsize=64)
