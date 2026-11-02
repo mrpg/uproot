@@ -3,6 +3,7 @@ import sys
 from collections import defaultdict
 from types import SimpleNamespace
 
+import anyio
 import orjson
 import pytest
 from fastapi import FastAPI
@@ -118,6 +119,51 @@ async def poll_dropouts(app):
 
         with pytest.raises(asyncio.CancelledError):
             await task
+
+
+async def test_cancel_scope_cancelled_during_websocket_cleanup(
+    watched_player, monkeypatch
+):
+    client, pid = watched_player
+    deregister = q.deregister
+    messages = iter(
+        ({"type": "websocket.connect"}, {"type": "websocket.disconnect", "code": 1000})
+    )
+
+    async def receive():
+        return next(messages)
+
+    async def send(message):
+        pass
+
+    with anyio.CancelScope() as scope:
+
+        def deregister_then_cancel(path, queue):
+            asyncio.get_running_loop().call_soon(scope.cancel)
+            deregister(path, queue)
+
+        monkeypatch.setattr(q, "deregister", deregister_then_cancel)
+
+        await client.app(
+            {
+                "type": "websocket",
+                "path": f"{d.ROOT}/ws/{pid.sname}/{pid.uname}/",
+                "root_path": "",
+                "scheme": "ws",
+                "query_string": b"",
+                "headers": [
+                    (b"host", b"testserver"),
+                    (b"origin", b"http://testserver"),
+                ],
+                "client": ("testclient", 50000),
+                "server": ("testserver", 80),
+                "subprotocols": [],
+            },
+            receive,
+            send,
+        )
+
+    assert tuple(pid) not in q.Q
 
 
 async def test_closed_tab_triggers_dropout_once_after_tolerance(

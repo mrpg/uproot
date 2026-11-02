@@ -26,7 +26,7 @@ classifiers = [
 ]
 dependencies = [
     "httpx2>=2.13.1",
-    "appendmuch==0.3.0",
+    "appendmuch @ git+https://github.com/mrpg/appendmuch.git@4c934045d3fabb1dc76bad12c53f0a20df74137f",
     # Require the fixes for CVE-2026-111497 in starlette-compress's Brotli backend.
     "brotli>=1.2.1; sys_platform != 'win32'",
     "click>=8.4.2",

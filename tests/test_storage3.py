@@ -21,7 +21,6 @@ import uproot.core as c
 import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
-from uproot import cache
 
 # Define type categories for testing
 IMMUTABLE_TYPES = (
@@ -45,7 +44,7 @@ def setup_fresh_database():
     u.CONFIGS["test"] = []
 
     # Force reload of in-memory database
-    cache.load_database_into_memory()
+    d.STORE.load()
 
     with s.Admin() as admin:
         c.create_admin(admin)

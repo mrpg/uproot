@@ -679,7 +679,6 @@ async def ws(
     send_lock = asyncio.Lock()
     tasks = {}
     background_tasks: set[asyncio.Task[None]] = set()
-    cleanup_complete = False
     args: dict[str, dict[str, Any]] = {
         "from_queue": {
             "queue": queue,
@@ -853,31 +852,6 @@ async def ws(
             jj,
         )
 
-    async def cleanup_tasks() -> None:
-        nonlocal cleanup_complete
-
-        if cleanup_complete:
-            return
-
-        cleanup_complete = True
-        # Keep the last-seen timestamp for dropout detection and other tabs.
-        q.deregister(tuple(pid), queue)
-
-        active_tasks = [*tasks]
-        active_background_tasks = [*background_tasks]
-
-        for task in active_tasks:
-            task.cancel()
-        for task in active_background_tasks:
-            task.cancel()
-
-        if active_tasks or active_background_tasks:
-            await asyncio.gather(
-                *active_tasks,
-                *active_background_tasks,
-                return_exceptions=True,
-            )
-
     try:
         while True:
             done = (
@@ -937,7 +911,11 @@ async def ws(
                     new_task = asyncio.create_task(cast(Any, factory)(**args[fname]))
                     tasks[new_task] = (fname, factory)
     finally:
-        await cleanup_tasks()
+        # Keep the last-seen timestamp for dropout detection and other tabs.
+        q.deregister(tuple(pid), queue)
+
+        for task in [*tasks, *background_tasks]:
+            task.cancel()
 
 
 @functools.lru_cache(maxsize=64)

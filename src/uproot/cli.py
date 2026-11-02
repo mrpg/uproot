@@ -219,11 +219,9 @@ def create_quick_room(config: str, simulate: bool) -> str:
     import uproot.core as c
     import uproot.jobs as j
     import uproot.rooms as r
-    from uproot.cache import load_database_into_memory
     from uproot.storage import Admin, Session
 
     d.DATABASE.ensure()
-    load_database_into_memory()
 
     with Admin() as admin:
         c.create_admin(admin)

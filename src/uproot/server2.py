@@ -318,14 +318,12 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
 
         return queue
 
-    async def cleanup_tasks() -> None:
+    def cleanup_tasks() -> None:
         for task in tasks:
             task.cancel()
 
         for pulse, queue in subscriptions.values():
             pulse.unsubscribe(queue)
-
-        await asyncio.gather(*tasks.keys(), return_exceptions=True)
 
     while True:
         done, _ = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
@@ -342,7 +340,7 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                 # Logging out (or token expiry) must cut off commands and events
                 if not auth_service.logged_in(uauth):
                     await websocket.close(WS_1008_POLICY_VIOLATION, "Not logged in")
-                    await cleanup_tasks()
+                    cleanup_tasks()
                     return
 
                 if fname == "from_websocket":
@@ -555,11 +553,11 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                 else:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:
-                await cleanup_tasks()
+                cleanup_tasks()
                 return
             except Exception:  # noqa: BLE001
                 d.LOGGER.exception("Closing admin websocket after handler failure")
-                await cleanup_tasks()
+                cleanup_tasks()
                 return
 
             # Re-add new instance of the same task (except one-shot tasks)

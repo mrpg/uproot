@@ -31,7 +31,6 @@ import uproot as u
 import uproot.core as c
 import uproot.deployment as d
 import uproot.jobs as j
-from uproot.cache import load_database_into_memory
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
 from uproot.server1 import router as router1
@@ -106,7 +105,6 @@ def validate_template_defaults() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     d.DATABASE.ensure()
-    load_database_into_memory()
 
     with Admin() as admin:
         c.create_admin(admin)

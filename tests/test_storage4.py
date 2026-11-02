@@ -1,11 +1,12 @@
-from uproot.cache import load_database_into_memory
+import uproot.deployment as d
 from uproot.storage import Storage
 from uproot.types import Value
 
 
 class TestHistoryCoherence:
     def setup_method(self):
-        load_database_into_memory()
+        d.DATABASE.reset()
+        d.STORE.load()
 
     def test_simple_types_history_coherence(self):
         storage = Storage("model", "testsession", "testmodel")

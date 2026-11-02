@@ -48,8 +48,3 @@ def peek(namespace: tuple[str, ...], field: str, default: Any = MISSING) -> Any:
         return default
 
     raise AttributeError(f"{namespace!r} has no current value for {field!r}")
-
-
-def load_database_into_memory() -> None:
-    if ensure_not_none(STORE):
-        STORE.load()
