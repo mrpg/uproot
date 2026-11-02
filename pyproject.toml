@@ -143,6 +143,7 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--cov=uproot --cov-report=term-missing"
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.bandit]
 exclude_dirs = ["build", ".venv", "venv"]
