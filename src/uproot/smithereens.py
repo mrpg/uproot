@@ -89,6 +89,7 @@ __all__ = [
     "send_to",
     "send_to_one",
     "spawn",
+    "stop_watching_for_dropout",
     "to",
     "transition_to_end",
     "transition_to_page",
@@ -426,6 +427,18 @@ def watch_for_dropout(
     player._uproot_watch.append(list(triplet))
 
     u.WATCH.add((t.as_identifier(t.PlayerIdentifier, player), *triplet))
+
+
+def stop_watching_for_dropout(player: Storage) -> None:
+    """End all of a player's dropout watchers. Call this once they have finished,
+    as leaving before the End page counts as dropping out otherwise."""
+    pid = t.as_identifier(t.PlayerIdentifier, player)
+
+    with player:
+        for watch in player._uproot_watch:
+            u.WATCH.discard((pid, *watch))
+
+        player._uproot_watch = []
 
 
 def data_uri(data: bytes) -> str:

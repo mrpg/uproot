@@ -127,25 +127,21 @@ def who_online(
     tolerance: float | None = None,
     sname: str | None = None,
 ) -> set[PlayerIdentifier]:
+    """Return players seen within tolerance seconds, defaulting to one
+    keepalive interval plus response slack. Retain timestamps for dropouts."""
+    if tolerance is None:
+        from uproot import deployment
+
+        tolerance = deployment.KEEPALIVE_INTERVAL + deployment.KEEPALIVE_SLACK
+
+    t = time()
     online = set()
 
-    if tolerance is None:
-        if sname is None:
-            for sessionname, users in ONLINE.items():
-                for username in users:
-                    online.add(PlayerIdentifier(sname=sessionname, uname=username))
-        else:
-            if sname in ONLINE:
-                for username in ONLINE[sname]:
-                    online.add(PlayerIdentifier(sname=sname, uname=username))
-    else:
-        t = time()
-
-        for e in reversed(ONLINE_SORTED):
-            if t - e[0] > tolerance:
-                break
-            if sname is None or e[1].sname == sname:
-                online.add(e[1])
+    for last_seen, pid in reversed(ONLINE_SORTED):
+        if t - last_seen > tolerance:
+            break
+        if sname is None or pid.sname == sname:
+            online.add(pid)
 
     return online
 

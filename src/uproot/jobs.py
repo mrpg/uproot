@@ -96,13 +96,12 @@ def spawn(coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
 
 
 DEFAULT_DROPOUT_TOLERANCE = 30.0
-KEEPALIVE_SLACK = 3.0  # time allowed for the server's response to a keepalive
 
 
 def effective_tolerance(tolerance: float) -> float:
     """Browsers only report in every KEEPALIVE_INTERVAL seconds (and responses
     may take up to three more), so shorter tolerances would flag everyone."""
-    minimum = d.KEEPALIVE_INTERVAL + KEEPALIVE_SLACK
+    minimum = d.KEEPALIVE_INTERVAL + d.KEEPALIVE_SLACK
 
     if tolerance < minimum:
         warn_short_tolerance(tolerance, minimum)
@@ -124,39 +123,46 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
     removals = set()
 
     while True:
-        for entry in u.WATCH:
+        manual = set(u.MANUAL_DROPOUTS)
+
+        # Handlers and page requests may change u.WATCH during this pass
+        for entry in tuple(u.WATCH):
+            if entry not in u.WATCH:
+                continue
+
             try:
                 pid, tolerance, fmodule, fname = entry
 
                 triplet = [tolerance, fmodule, fname]
                 last = u.find_online_delta(pid)
 
-                if pid not in u.MANUAL_DROPOUTS and (
+                if pid not in manual and (
                     last is None or last <= effective_tolerance(tolerance)
                 ):
                     # player is online or assumed to be
                     pass
                 else:
-                    u.set_offline(pid)
-
                     with materialize(pid) as player:
-                        player._uproot_dropout = True
+                        finished = player.show_page == len(player.page_order)
 
-                        if player.show_page != len(player.page_order):
-                            try:
+                        if pid in manual or not finished:
+                            player._uproot_dropout = True
+
+                        try:
+                            if not finished:
                                 await ensure_awaitable(
                                     optional_call,
                                     u.APPS[fmodule],
                                     fname,
                                     player=player,
                                 )
-                            except Exception:  # noqa: BLE001
-                                d.LOGGER.exception(
-                                    f"Exception in dropout handler {fmodule}.{fname}"
-                                )
-                            else:
-                                if triplet in player._uproot_watch:
-                                    player._uproot_watch.remove(triplet)
+                        except Exception:  # noqa: BLE001
+                            d.LOGGER.exception(
+                                f"Exception in dropout handler {fmodule}.{fname}"
+                            )
+                        else:
+                            if triplet in player._uproot_watch:
+                                player._uproot_watch.remove(triplet)
 
                     removals.add(entry)
             except Exception:  # noqa: BLE001
@@ -167,7 +173,16 @@ async def dropout_watcher(app: FastAPI, interval: float = 3.0) -> None:
                 u.WATCH.discard(entry)
 
             removals.clear()
-            u.MANUAL_DROPOUTS.clear()
+
+        for pid in manual:
+            try:
+                with materialize(pid) as player:
+                    if not player._uproot_dropout:  # had no watcher
+                        player._uproot_dropout = True
+            except Exception:  # noqa: BLE001
+                d.LOGGER.exception(f"Exception in manual dropout of {pid}")
+
+        u.MANUAL_DROPOUTS.difference_update(manual)
 
         await asyncio.sleep(interval)
 

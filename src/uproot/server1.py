@@ -860,8 +860,8 @@ async def ws(
             return
 
         cleanup_complete = True
+        # Keep the last-seen timestamp for dropout detection and other tabs.
         q.deregister(tuple(pid), queue)
-        u.set_offline(pid)
 
         active_tasks = [*tasks]
         active_background_tasks = [*background_tasks]

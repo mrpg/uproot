@@ -43,6 +43,7 @@ H2CORN_KWARGS: dict[str, Any] = {"proxy_headers": True}
 # Values near the maximum make dropout detection sensitive to a single late
 # keepalive.
 KEEPALIVE_INTERVAL: float = 9.0
+KEEPALIVE_SLACK: float = 3.0  # time allowed for the server's response to a keepalive
 LANGUAGE: ISO639 = "en"
 LOGIN_TOKEN: str | None = None
 LOGGER: Any = logging.getLogger("uproot")

@@ -69,7 +69,7 @@ def validate_admin_password_lengths() -> None:
 def validate_keepalive_interval() -> None:
     """Dropouts are detected by missing keepalives, so the default dropout
     tolerance must cover the interval plus the time for a response."""
-    maximum = j.DEFAULT_DROPOUT_TOLERANCE - j.KEEPALIVE_SLACK
+    maximum = j.DEFAULT_DROPOUT_TOLERANCE - d.KEEPALIVE_SLACK
 
     interval: TypeAdapter[int | float] = TypeAdapter(
         Annotated[InstanceOf[int] | InstanceOf[float], Field(ge=1.0, le=maximum)]

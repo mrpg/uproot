@@ -23,7 +23,7 @@ from uproot.services.session_service import (
 
 
 async def info_online(sname: t.Sessionname) -> dict[t.Username, Any]:
-    """Get online status and info for all players in a session."""
+    """Get last-seen times and info for all players in a session."""
     online = u.ONLINE[sname]
     rawinfo: dict[t.Username, dict[str, Any]] = (
         await fields_from_all(sname, ["id", "page_order", "show_page"])

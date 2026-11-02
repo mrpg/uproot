@@ -86,7 +86,7 @@ class SessionIdentifier(str, Identifier):
         yield from (self.sname,)
 
 
-@validated_dataclass(frozen=True)
+@validated_dataclass(frozen=True, order=True)
 class PlayerIdentifier(Identifier):
     sname: Sessionname
     uname: Username

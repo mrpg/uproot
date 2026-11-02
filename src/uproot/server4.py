@@ -666,7 +666,7 @@ async def get_online_players(
     sname: str,
     bauth: None = Depends(auth_service.require_bearer_token),
 ) -> dict[str, Any]:
-    """Get online status and info for all players in a session."""
+    """Get last-seen times and info for all players in a session."""
     session_ops.session_exists(sname)
     return await player_ops.info_online(sname)
 
