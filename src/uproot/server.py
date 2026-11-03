@@ -33,6 +33,7 @@ import uproot.deployment as d
 import uproot.jobs as j
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
+from uproot.passwords import MIN_PASSWORD_LENGTH
 from uproot.server1 import router as router1
 from uproot.server2 import router as router2
 from uproot.server3 import router as router3
@@ -42,8 +43,6 @@ from uproot.types import (
     ensure_awaitable,
     optional_call,
 )
-
-MIN_PASSWORD_LENGTH: int = 5
 
 
 async def finish_cancelled_tasks(tasks: list[asyncio.Task[Any]]) -> None:

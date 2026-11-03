@@ -68,6 +68,12 @@ venv/
 DOTENV = """\
 # Set a password for the admin user. If empty or unset, a secure token-based
 # auto-login URL is printed to the console instead.
+#
+# Recommended: store a hash rather than the password itself. Run
+# `uproot hash-password` and paste its output here, keeping the single quotes:
+# UPROOT_ADMIN_PASSWORD_ARGON2ID='$argon2id$v=19$m=65536,t=3,p=4$...'
+#
+# Alternatively, set the password in plaintext (but never both):
 UPROOT_ADMIN_PASSWORD=
 """.lstrip()
 

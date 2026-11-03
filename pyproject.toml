@@ -27,6 +27,9 @@ classifiers = [
 dependencies = [
     "anyio>=4.16.0",
     "httpx2>=2.13.1",
+    "argon2-cffi>=25.1.0",
+    # argon2-cffi-bindings 26 ships no wheels for Intel Macs; 25.1.0 does.
+    "argon2-cffi-bindings<26; sys_platform == 'darwin' and platform_machine == 'x86_64'",
     "appendmuch @ git+https://github.com/mrpg/appendmuch.git@4c934045d3fabb1dc76bad12c53f0a20df74137f",
     # Require the fixes for CVE-2026-111497 in starlette-compress's Brotli backend.
     "brotli>=1.2.1; sys_platform != 'win32'",
@@ -170,6 +173,7 @@ DEP002 = [
     "radon",
     "ruff",
     # Runtime dependencies not directly imported
+    "argon2-cffi-bindings",  # Pinned for Intel Macs, which lack newer wheels
     "brotli",  # Security minimum for starlette-compress's CPython backend
     "python-multipart",  # Required by FastAPI for form data
     "twine",  # Used for publishing

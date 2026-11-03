@@ -53,6 +53,7 @@ def show_help() -> None:
     print("  setup               Create a new uproot project")
     print("  api                 Access the Admin REST API")
     print("  check-translations  Check the translations of a project")
+    print("  hash-password       Hash an admin password with Argon2id")
     print()
     print("Project commands (require main.py in current directory):")
     print("  announcements       Check for important announcements")
@@ -104,6 +105,47 @@ def setup_command(
         print("📰 The following command provides additional information:")
         print("\t" + run_prefix + "uproot --help")
         print("🤯 Help, docs & code can be found at https://uproot.science/")
+
+
+def hash_password_command() -> None:
+    import click
+
+    from uproot.passwords import MIN_PASSWORD_LENGTH, hash_password
+
+    while (
+        len(
+            password := click.prompt(
+                "Password",
+                hide_input=True,
+                confirmation_prompt="Repeat password",
+                err=True,
+            )
+        )
+        < MIN_PASSWORD_LENGTH
+    ):
+        click.secho(
+            f"Use at least {MIN_PASSWORD_LENGTH} characters.", fg="red", err=True
+        )
+
+    phc = hash_password(password).phc
+
+    def show(label: str, text: str) -> None:
+        click.echo()
+        click.secho(label, bold=True)
+        click.secho(f"\t{text}", fg="bright_blue")
+
+    show("Argon2id hash:", phc)
+    show(
+        "In your project's .env file (keep the single quotes):",
+        f"UPROOT_ADMIN_PASSWORD_ARGON2ID='{phc}'",
+    )
+    show("Or for any admin in main.py:", f'upd.ADMINS["admin"] = upd.Argon2id("{phc}")')
+    click.echo()
+    click.secho(
+        "Unset UPROOT_ADMIN_PASSWORD when using UPROOT_ADMIN_PASSWORD_ARGON2ID.",
+        fg="bright_black",
+        italic=True,
+    )
 
 
 def api_request(
@@ -287,6 +329,15 @@ For HTTPS or non-default servers:
         help="List form field texts that have no translation in any language",
     )
 
+    subparsers.add_parser(
+        "hash-password",
+        help="Hash an admin password with Argon2id",
+        description=(
+            "Prompt for an admin password and print its Argon2id hash for use in "
+            "UPROOT_ADMIN_PASSWORD_ARGON2ID or with upd.Argon2id in main.py."
+        ),
+    )
+
     for cmd in cmds:
         subparsers.add_parser(cmd, add_help=False)
 
@@ -314,6 +365,8 @@ For HTTPS or non-default servers:
             args.data,
             args.endpoint,
         )
+    elif args.command == "hash-password":
+        hash_password_command()
     elif args.command == "check-translations":
         from uproot.i18ncheck import check_project
 

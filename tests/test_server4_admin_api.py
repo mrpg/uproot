@@ -14,6 +14,7 @@ import uproot.deployment as d
 import uproot.server4 as api
 import uproot.storage as s
 from uproot import server1, server2
+from uproot.passwords import hash_password
 from uproot.services import auth
 
 
@@ -254,6 +255,31 @@ async def test_rest_auth_can_revoke_all_ui_browser_sessions_for_current_user(
 
     assert revoked == {"user": "admin", "revoked": 2}
     assert await api.get_auth_sessions(None) == {}
+
+
+async def test_rest_auth_accepts_argon2id_admin_password(monkeypatch) -> None:
+    reset_admin_state()
+    monkeypatch.setattr(auth, "ADMINS", {})
+    monkeypatch.setattr(auth, "ADMINS_HASH", None)
+    monkeypatch.setattr(auth, "ADMINS_SECRET_KEY", None)
+    monkeypatch.setattr(
+        d, "ADMINS", {"alice": hash_password("wonderland")}, raising=False
+    )
+    request = SimpleNamespace(client=SimpleNamespace(host="10.20.30.41"))
+
+    with pytest.raises(HTTPException) as excinfo:
+        await api.create_auth_session(
+            request, api.AuthLogin(user="alice", pw="wonderlant")
+        )
+
+    assert excinfo.value.status_code == 401
+
+    created = await api.create_auth_session(
+        request, api.AuthLogin(user="alice", pw="wonderland")
+    )
+
+    assert created["user"] == "alice"
+    assert auth.FAILED_ATTEMPTS == {}
 
 
 async def test_rest_auth_rate_limits_before_rechecking_credentials(monkeypatch):

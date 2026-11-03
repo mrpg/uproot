@@ -12,6 +12,7 @@ import appendmuch
 import dotenv
 
 from uproot.i18n import ISO639
+from uproot.passwords import Argon2id
 
 if TYPE_CHECKING:
     from uproot.rooms import RoomType
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 logging.basicConfig(level=logging.INFO)
 dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
 
-ADMINS: dict[str, str | EllipsisType] = {}
+ADMINS: dict[str, str | Argon2id | EllipsisType] = {}
 API_KEYS: set[str] = set()
 
 # Auto-detect PostgreSQL on Heroku (DATABASE_URL is set by Heroku Postgres addon)
@@ -188,11 +189,24 @@ else:
     ROOT = "/" + os.getenv("UPROOT_SUBDIRECTORY", "").strip("/")
 
 
-def auto_login() -> EllipsisType | str:
-    env_pw = os.getenv("UPROOT_ADMIN_PASSWORD")
+def auto_login() -> EllipsisType | str | Argon2id:
+    """Return the admin password from UPROOT_ADMIN_PASSWORD (plaintext) or
+    UPROOT_ADMIN_PASSWORD_ARGON2ID (hash). Without either, return ... to enable
+    the token-based auto login URL."""
+    plaintext = os.getenv("UPROOT_ADMIN_PASSWORD")
+    phc = os.getenv("UPROOT_ADMIN_PASSWORD_ARGON2ID")
 
-    if env_pw:
-        return env_pw
+    if plaintext and phc:
+        raise SystemExit(
+            "Set UPROOT_ADMIN_PASSWORD or UPROOT_ADMIN_PASSWORD_ARGON2ID, not both."
+        )
+    elif phc:
+        try:
+            return Argon2id(phc.strip())
+        except ValueError as e:
+            raise SystemExit(f"Invalid UPROOT_ADMIN_PASSWORD_ARGON2ID. {e}") from None
+    elif plaintext:
+        return plaintext
     else:
         return ...
 

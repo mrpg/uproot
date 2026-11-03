@@ -3,8 +3,10 @@
 
 """Authentication and authorization service."""
 
+import asyncio
 import hmac
 import ipaddress
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from time import monotonic
 from types import EllipsisType
@@ -17,11 +19,16 @@ import uproot as u
 import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
+from uproot.passwords import Argon2id
 
 # Module-level state for admin credentials
-ADMINS: dict[str, str | EllipsisType] = {}
+ADMINS: dict[str, str | Argon2id | EllipsisType] = {}
 ADMINS_HASH: str | None = None
 ADMINS_SECRET_KEY: str | None = None
+
+# Argon2id verification is slow and memory-hard by design, so it runs off the
+# event loop, and only a few at a time to bound memory use under load
+ARGON2ID_VERIFIER = ThreadPoolExecutor(max_workers=2, thread_name_prefix="argon2id")
 
 # IP-based login rate limiting (in-memory)
 MAX_FAILED_ATTEMPTS = 50
@@ -237,23 +244,28 @@ def create_token_internal(user: str) -> str:
     return token
 
 
-def admin_credentials_valid(user: str, pw: str) -> bool:
-    if user not in ADMINS or ADMINS[user] is ...:
-        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
-        return False
+async def admin_credentials_valid(user: str, pw: str) -> bool:
+    stored_pw = ADMINS.get(user, ...)
 
-    stored_pw = cast(str, ADMINS[user])
-    if not hmac.compare_digest(pw.encode(), stored_pw.encode()):
-        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
-        return False
+    if isinstance(stored_pw, Argon2id):
+        valid = await asyncio.get_running_loop().run_in_executor(
+            ARGON2ID_VERIFIER, stored_pw.verify, pw
+        )
+    elif isinstance(stored_pw, str):
+        valid = hmac.compare_digest(pw.encode(), stored_pw.encode())
+    else:
+        valid = False
 
-    return True
+    if not valid:
+        d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")
+
+    return valid
 
 
 async def create_auth_token_async(user: str, pw: str) -> str | None:
     ensure_globals()
 
-    if not admin_credentials_valid(user, pw):
+    if not await admin_credentials_valid(user, pw):
         return None
 
     return create_token_internal(user)
