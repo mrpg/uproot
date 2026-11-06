@@ -241,7 +241,7 @@ function renderAdminchatMessages(thread) {
     return /* SAFE */ `<div class="adminchat-transcript" id="adminchat-transcript">` +
         thread.messages.map((msg) => {
             const isAdmin = msg.sender?.[0] === "admin";
-            const sender = isAdmin ? _("Research Coordinator") : uproot.escape(msg.sender?.[1] ?? "");
+            const sender = uproot.escape(isAdmin ? (uproot.chat.buddyName || _("Research Coordinator")) : (msg.sender?.[1] ?? ""));
             const time = msg.time ? epochToLocalISO(msg.time) : "";
             const bubbleClass = isAdmin ? "adminchat-bubble-admin" : "adminchat-bubble-player";
 

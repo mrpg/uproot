@@ -88,6 +88,7 @@ def validate_template_defaults() -> None:
     } | {
         "buddy_image": (StrictStr | None, ...),
         "buddy_label": (StrictStr | None, ...),
+        "buddy_sender": (StrictStr | None, ...),
     }
     model = create_model("TemplateDefaults", **fields)
 

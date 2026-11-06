@@ -75,6 +75,20 @@ async def test_buddy_label_replaces_label_and_title(defaults):
     assert html.count("Messages from the study team") == 2
 
 
+@pytest.mark.parametrize(
+    "name, js",
+    [
+        (None, "null"),
+        ("Dr. Lee</script>", '"Dr. Lee<\\/script>"'),
+    ],
+)
+async def test_buddy_sender_reaches_chat_as_json(defaults, name, js):
+    defaults["buddy_sender"] = name
+    html = await render_page("RoomFull.html")
+
+    assert f"uproot.chat.buddyName = {js};" in html
+
+
 def test_shipped_defaults_are_valid():
     server.validate_template_defaults()
 
@@ -87,6 +101,7 @@ def test_shipped_defaults_are_valid():
         {"disable_alpinejs": 1},
         {"buddy_image": True},
         {"buddy_label": 1},
+        {"buddy_sender": 1},
     ],
 )
 def test_invalid_defaults_are_rejected(defaults, change):

@@ -77,9 +77,11 @@ TBLEXTRA: str = os.getenv("UPROOT_TBLEXTRA", "")
 # Change values in place, e.g., TEMPLATE_DEFAULTS["disable_alpinejs"] = True.
 # "buddy_image" replaces the chat buddy with a file found by static().
 # "buddy_label" replaces the chat buddy's label and the chat's title.
+# "buddy_sender" replaces the sender name on researcher messages.
 TEMPLATE_DEFAULTS: dict[str, bool | str | None] = {
     "buddy_image": None,
     "buddy_label": None,
+    "buddy_sender": None,
     "buttons": True,
     "disable_alpinejs": False,
     "disable_auto_start": False,
