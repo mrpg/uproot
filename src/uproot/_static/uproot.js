@@ -1642,7 +1642,7 @@ window.uproot = {
                             colorCls = "text-primary";
                         }
                         else if (msg.sender[0] === "admin") {
-                            senderRepresentation = uproot.chat.buddyName || _("Research Coordinator");
+                            senderRepresentation = uproot.chat.buddySender || _("Research Coordinator");
                             colorCls = "text-danger";
                         }
 

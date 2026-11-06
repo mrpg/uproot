@@ -86,7 +86,7 @@ async def test_buddy_sender_reaches_chat_as_json(defaults, name, js):
     defaults["buddy_sender"] = name
     html = await render_page("RoomFull.html")
 
-    assert f"uproot.chat.buddyName = {js};" in html
+    assert f"uproot.chat.buddySender = {js};" in html
 
 
 def test_shipped_defaults_are_valid():
