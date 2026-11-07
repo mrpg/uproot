@@ -93,6 +93,7 @@ TEMPLATE_DEFAULTS: dict[str, bool | str | None] = {
 }
 TEMPLATE_SWITCHES: frozenset[str] = frozenset(TEMPLATE_DEFAULTS)
 TIMEOUT_TOLERANCE: float = 1.0
+UDS: str | None = None  # Unix domain socket path; replaces HOST and PORT
 UNAVAILABLE_EQUIVALENT: str = "null"
 UNSAFE: bool = False
 UPSTREAM: bool = True

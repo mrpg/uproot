@@ -148,7 +148,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
     try:
         import setproctitle
 
-        setproctitle.setproctitle(f"[uproot server @ {d.HOST}:{d.PORT}]")
+        listener = f"unix:{d.UDS}" if d.UDS else f"{d.HOST}:{d.PORT}"
+        setproctitle.setproctitle(f"[uproot server @ {listener}]")
     except Exception:  # noqa: BLE001, S110  # nosec B110
         pass
 

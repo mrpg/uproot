@@ -20,6 +20,7 @@ from typing import Any
 import click
 import h2corn
 import httpx2
+from click.core import ParameterSource
 
 import uproot.deployment as d
 import uproot.examples as ex
@@ -76,7 +77,13 @@ def set_ulimit() -> None:
             pass
 
 
-def configure_server(host: str, port: int, unsafe: bool, public_demo: bool) -> None:
+def configure_server(
+    host: str,
+    port: int,
+    unsafe: bool,
+    public_demo: bool,
+    uds: str | None = None,
+) -> None:
     if public_demo and not unsafe:
         raise click.ClickException(
             "If you use --public-demo, you MUST also use --unsafe."
@@ -84,11 +91,21 @@ def configure_server(host: str, port: int, unsafe: bool, public_demo: bool) -> N
 
     d.HOST = host
     d.PORT = port
+    d.UDS = uds
     d.UNSAFE = unsafe
     d.PUBLIC_DEMO = public_demo
 
 
-def run_server(host: str, port: int) -> None:
+def listener_kwargs(host: str, port: int, uds: str | None) -> dict[str, Any]:
+    if uds is None:
+        return {"host": host, "port": port}
+
+    # Owner and group may connect. Restrict access further through the
+    # permissions of the socket's directory.
+    return {"bind": (f"unix:{uds}",), "uds_permissions": 0o660}
+
+
+def run_server(host: str, port: int, uds: str | None = None) -> None:
     from main import uproot_server
 
     set_ulimit()
@@ -98,11 +115,11 @@ def run_server(host: str, port: int) -> None:
         server = h2corn.Server(
             uproot_server,
             h2corn.Config(
-                host=host,
-                port=port,
-                workers=1,
-                loop_threads=1,
-                **d.H2CORN_KWARGS,
+                **(
+                    d.H2CORN_KWARGS
+                    | listener_kwargs(host, port, uds)
+                    | {"workers": 1, "loop_threads": 1}
+                ),
             ),
         )
         loop = asyncio.get_running_loop()
@@ -317,6 +334,7 @@ def cli() -> None:
 @click.command(help="Run this uproot project")
 @click.option("--host", "-h", default="127.0.0.1", show_default="127.0.0.1", help="Host")
 @click.option("--port", "-p", default=8000, show_default=8000, help="Port")
+@click.option("--uds", default=None, metavar="PATH", help="Listen on a Unix domain socket instead of host and port (requires UPROOT_ORIGIN)")
 @click.option("--unsafe", default=False, is_flag=True, help="Run without admin authentication")
 @click.option("--public-demo", default=False, is_flag=True, help="Run a public demo (use with --unsafe)")
 @click.pass_context
@@ -324,11 +342,26 @@ def run(
     ctx: click.Context,
     host: str,
     port: int,
+    uds: str | None,
     unsafe: bool,
     public_demo: bool,
 ) -> None:
-    configure_server(host, port, unsafe, public_demo)
-    run_server(host, port)
+    if uds is not None:
+        if not uds:
+            raise click.UsageError("--uds requires a socket path.")
+        if any(
+            ctx.get_parameter_source(name) is not ParameterSource.DEFAULT
+            for name in ("host", "port")
+        ):
+            raise click.UsageError("--uds cannot be combined with --host or --port.")
+        if d.ORIGIN is None:
+            raise click.UsageError(
+                "--uds requires UPROOT_ORIGIN, the public address of the reverse "
+                "proxy (e.g., UPROOT_ORIGIN=https://example.com)."
+            )
+
+    configure_server(host, port, unsafe, public_demo, uds)
+    run_server(host, port, uds)
 
 
 # fmt: off

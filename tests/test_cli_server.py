@@ -1,10 +1,14 @@
 import os
 import re
+import shutil
 import signal
 import socket
+import stat
 import subprocess
 import sys
+import tempfile
 import time
+from pathlib import Path
 
 import httpx2
 import orjson
@@ -222,3 +226,105 @@ def test_server_transports_and_single_process_lifecycle(running_server):
         )
         assert response.status_code == 200
         assert response.json()["open"] is True
+
+
+def test_server_on_unix_domain_socket():
+    # A short directory: Unix socket paths are limited to about 100 bytes.
+    project = Path(tempfile.mkdtemp(prefix="uproot-uds-"))
+    sock = project / "uproot.sock"
+    try:
+        examples.new_minimal_app(project)
+        (project / "main.py").write_text(
+            examples.PROJECT_TEMPLATE.replace("#EXAMPLE#", "my_app") + """
+from fastapi import Request
+
+upd.UPSTREAM = False
+upd.API_KEYS.add("server-test")
+upd.H2CORN_KWARGS["access_log"] = False
+
+
+@uproot_server.get("/server-state/")
+async def server_state(request: Request):
+    return {
+        "client": request.client.host if request.client else None,
+        "scheme": request.url.scheme,
+        "uds": upd.UDS,
+    }
+""",
+            encoding="utf-8",
+        )
+        with (project / "server.log").open("w+") as log:
+            process = subprocess.Popen(
+                [
+                    sys.executable,
+                    "-m",
+                    "uproot.defaultcli",
+                    "run",
+                    "--uds",
+                    str(sock),
+                    "--unsafe",
+                ],
+                cwd=project,
+                env={
+                    **os.environ,
+                    "UPROOT_DATABASE": "sqlite3",
+                    "UPROOT_SQLITE3": str(project / "data.sqlite3"),
+                    "UPROOT_ORIGIN": "https://study.example",
+                },
+                stdout=log,
+                stderr=log,
+            )
+            try:
+                # Act like a reverse proxy: forwarded headers from a peer on
+                # the socket are trusted.
+                with httpx2.Client(
+                    base_url="http://study.example",
+                    transport=httpx2.HTTPTransport(uds=str(sock)),
+                    headers={
+                        "X-Forwarded-For": "203.0.113.7",
+                        "X-Forwarded-Proto": "https",
+                    },
+                    timeout=1,
+                    trust_env=False,
+                ) as client:
+                    deadline = time.monotonic() + 15
+                    response = None
+                    while time.monotonic() < deadline and process.poll() is None:
+                        try:
+                            response = client.get("/server-state/")
+                            break
+                        except httpx2.TransportError:
+                            time.sleep(0.05)
+                    if response is None:
+                        log.seek(0)
+                        pytest.fail(f"Server did not start:\n{log.read()}")
+
+                    assert response.json() == {
+                        "client": "203.0.113.7",
+                        "scheme": "https",
+                        "uds": str(sock),
+                    }
+                    assert stat.S_ISSOCK(sock.stat().st_mode)
+                    assert stat.S_IMODE(sock.stat().st_mode) == 0o660
+                    assert client.get("/admin/dashboard/").status_code == 200
+
+                    with client.websocket(
+                        "/admin/ws/", headers={"Origin": "https://study.example"}
+                    ) as ws:
+                        ws.send_json({"endpoint": "hello", "future": 1})
+                        message = orjson.loads(ws.receive_bytes(timeout=3))
+                        assert message["payload"]["future"] == 1
+            finally:
+                if process.poll() is None:
+                    process.send_signal(signal.SIGINT)
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=5)
+                    pytest.fail("Server did not shut down gracefully")
+            log.seek(0)
+            assert process.returncode == 0, log.read()
+        assert not sock.exists()
+    finally:
+        shutil.rmtree(project, ignore_errors=True)
