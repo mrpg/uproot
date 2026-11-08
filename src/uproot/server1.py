@@ -320,6 +320,62 @@ def initialize(player: Storage) -> None:
     player_ops.prepare_player_callbacks(player)
 
 
+async def save_form(
+    page: type[t.Page], player: Storage, form: Any, formdata: Any
+) -> list[str]:
+    """Save a validated form and return the errors of handle_stealth_fields.
+    Stealth fields and uploads are passed to that handler instead of being
+    saved. If it rejects the submission, nothing is saved, just as when
+    validate() rejects it."""
+    manual = set(
+        cast(
+            Iterable[str],
+            await ensure_awaitable(
+                optional_call,
+                page,
+                "stealth_fields",
+                default_return=(),
+                player=player,
+            ),
+        )
+    ) | {
+        fname
+        for fname, field in form._fields.items()
+        if isinstance(field.data, UploadFile)
+    }
+
+    if manual:
+        errors = await ensure_awaitable(
+            optional_call,
+            page,
+            "handle_stealth_fields",
+            default_return=[],
+            player=player,
+            data=form.data,
+        )
+
+        if isinstance(errors, str):
+            errors = [errors]
+        if errors:
+            return list(errors)
+
+    await ensure_awaitable(
+        optional_call,
+        page,
+        "before_form_save",
+        player=player,
+        data=MappingProxyType(form.data),
+    )
+
+    for fname, field in form._fields.items():
+        if fname not in manual:
+            # A field missing from formdata that nonetheless validated must be
+            # an optional field that was cleared - set to None! See issue #156.
+            setattr(player, fname, field.data if fname in formdata else None)
+
+    return []
+
+
 async def timeout_fires(page: type[t.Page], player: Storage) -> bool:
     """A page timeout counts as reached up to TIMEOUT_TOLERANCE seconds early.
     Within that window, the page only advances if may_proceed allows it. Once
@@ -440,65 +496,16 @@ async def show_page(
                 form, valid, custom_errors, field_errors = await validate(
                     page, player, formdata
                 )
-                stealth_fields: dict[str, Any] = {}
 
-                for stealth in cast(
-                    Iterable[str],
-                    await ensure_awaitable(
-                        optional_call,
-                        page,
-                        "stealth_fields",
-                        default_return=(),
-                        player=player,
-                    ),
-                ):
-                    stealth_fields[stealth] = None
+                if valid and form is not None:
+                    stealth_errors = await save_form(page, player, form, formdata)
+                    custom_errors.extend(stealth_errors)
+                    valid = not stealth_errors
 
+                # A rejected submission leaves state.proceed alone, so that a
+                # timeout that has fired still advances the player
                 if valid:
-                    if form is not None:
-                        await ensure_awaitable(
-                            optional_call,
-                            page,
-                            "before_form_save",
-                            player=player,
-                            data=MappingProxyType(form.data),
-                        )
-
-                        for fname, field in form._fields.items():
-                            if (
-                                isinstance(field.data, UploadFile)
-                                or fname in stealth_fields
-                            ):
-                                stealth_fields[fname] = field.data
-                            else:
-                                if fname in formdata:
-                                    setattr(player, fname, field.data)
-                                else:
-                                    # Since this nonetheless validated, it must be an
-                                    # optional field that was cleared - set to None!
-                                    # See issue #156.
-                                    setattr(player, fname, None)
-
-                        if stealth_fields:
-                            stealth_errors = await ensure_awaitable(
-                                optional_call,
-                                page,
-                                "handle_stealth_fields",
-                                default_return=[],
-                                player=player,
-                                data=form.data,
-                            )
-                            if isinstance(stealth_errors, str):
-                                stealth_errors = [stealth_errors]
-                            if stealth_errors:
-                                custom_errors.extend(stealth_errors)
-                                state.proceed = False
-                            else:
-                                state.proceed = True
-                        else:
-                            state.proceed = True
-                    else:
-                        state.proceed = True
+                    state.proceed = True
         else:
             # A delayed duplicate may belong to a page that has already
             # advanced. Do not validate its payload against the current page.
@@ -539,7 +546,7 @@ async def show_page(
         player,
         page,
         formdata if not state.proceed else None,
-        custom_errors,
+        custom_errors if not state.proceed else None,
         metadata,
         uauth,
         field_errors if not state.proceed else None,
