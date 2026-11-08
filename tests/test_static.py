@@ -1,6 +1,5 @@
 import hashlib
 import os
-import sys
 
 import httpx2
 import pytest
@@ -79,9 +78,7 @@ async def test_server_compresses_large_static_response(project):
         )
 
     assert response.status_code == 200
-    assert response.headers["content-encoding"] == (
-        "gzip" if sys.platform == "win32" else "br"
-    )
+    assert response.headers["content-encoding"] == "br"
     assert response.text == content
 
 

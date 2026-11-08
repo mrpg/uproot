@@ -26,6 +26,7 @@ from pydantic import (
     create_model,
     validate_call,
 )
+from starlette_compress import CompressMiddleware
 
 import uproot as u
 import uproot.core as c
@@ -271,15 +272,7 @@ uproot_server = FastAPI(
     redirect_slashes=False,
 )
 
-# Brotli may lack Windows wheels for new Python releases.
-try:
-    from starlette_compress import CompressMiddleware
-
-    uproot_server.add_middleware(CompressMiddleware)
-except ImportError:
-    from starlette.middleware.gzip import GZipMiddleware
-
-    uproot_server.add_middleware(GZipMiddleware, compresslevel=4)
+uproot_server.add_middleware(CompressMiddleware)
 
 uproot_server.include_router(router1)
 uproot_server.include_router(router2)
