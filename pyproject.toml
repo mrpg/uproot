@@ -12,16 +12,16 @@ authors = [
 {name = "Max R. P. Grossmann", email = "max@uproot.science"},
 {name = "Holger Gerhardt", email = "holger@uproot.science"}
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: FastAPI",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Typing :: Typed",
 ]
 dependencies = [
@@ -71,7 +71,6 @@ where = ["src"]
 uproot = ["default/**/*", "_static/**/*", "py.typed"]
 
 [tool.black]
-target-version = ['py313']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -88,7 +87,12 @@ src = ["src"]
 exclude = ["build", "dist", ".venv", "venv", ".git", "__pycache__"]
 
 [tool.ruff.lint]
-ignore = ["I"]
+ignore = [
+    "I",
+    # `type X = ...` aliases are lazy TypeAliasType objects at runtime, which
+    # FastAPI and pydantic.validate_call treat differently from plain aliases.
+    "UP040",
+]
 
 [tool.isort]
 profile = "black"
@@ -127,7 +131,7 @@ iban = [
 [tool.mypy]
 files = ["src"]
 exclude = ["^build/", "^tests/"]
-python_version = "3.13"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

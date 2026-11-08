@@ -2,12 +2,12 @@
 
 This guide uses Python's built-in tools. For a simpler setup, see the [main README](README.md) which uses uv.
 
-## 1. Install Python 3.11+
+## 1. Install Python 3.12+
 
 <details open>
 <summary><strong>Windows</strong></summary>
 
-1. Download Python 3.11+ from [python.org](https://www.python.org/downloads/)
+1. Download Python 3.12+ from [python.org](https://www.python.org/downloads/)
 2. Run the installer as administrator
 3. **Important**: Check "Add Python to PATH" during installation
 4. Verify: `python --version`

@@ -84,7 +84,7 @@ This directory contains an [uproot](https://uproot.science/) project for browser
 
 ## Run locally
 
-Python 3.13 is recommended, but only Python 3.12 or newer is required.
+Python 3.14 is recommended, but only Python 3.12 or newer is required.
 
 [Install uv](https://docs.astral.sh/uv/getting-started/installation/), then run
 
@@ -386,7 +386,7 @@ uproot.simulate.on("#APP#/Dilemma", (sim) => {
 
 PROCFILE = "web: uproot run -h 0.0.0.0 -p $PORT\n"
 
-PYTHON_VERSION = "3.13\n"
+PYTHON_VERSION = "3.14\n"
 
 REQUIREMENTS_TXT = f"""\
 uproot-science=={u.__version__}
@@ -445,9 +445,6 @@ dependencies = [
 [tool.setuptools]
 packages = []
 
-[tool.black]
-target-version = ["py313"]
-
 [tool.isort]
 profile = "black"
 
@@ -455,7 +452,7 @@ profile = "black"
 ignore = ["F403", "F405", "RUF012", "C408", "BLE001"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.12"
 strict = true
 warn_unreachable = true
 ignore_missing_imports = true

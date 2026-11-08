@@ -201,7 +201,7 @@ def add_raw_entry(
     return entry_id
 
 
-def parse_stored_entry(
+def parse_stored_entry[T](
     data: Any,
     time: float,
     as_type: type[T],
@@ -211,7 +211,7 @@ def parse_stored_entry(
     return (entry_id, time, as_type(**entry_dict))
 
 
-def get_entries(
+def get_entries[T](
     mid: ModelIdentifier,
     as_type: type[T],
     subset: slice = slice(None),
@@ -236,7 +236,7 @@ def get_entries(
     return retval
 
 
-def entry_matches(
+def entry_matches[T](
     entry: T,
     predicate: Callable[[T], bool] | None,
     field_filters: dict[str, Any],
@@ -257,7 +257,7 @@ def entry_matches(
     return True
 
 
-def filter_entries(
+def filter_entries[T](
     mid: ModelIdentifier,
     as_type: type[T],
     *,
@@ -310,7 +310,7 @@ def filter_entries(
     return retval
 
 
-def get_latest_entry(
+def get_latest_entry[T](
     mid: ModelIdentifier,
     as_type: type[T],
 ) -> StoredEntry[T]:

@@ -45,9 +45,6 @@ if TYPE_CHECKING:
     from uproot.storage import Storage
 
 T = TypeVar("T")
-K = TypeVar("K")
-V = TypeVar("V")
-I = TypeVar("I", bound="Identifier")
 
 Value = appendmuch.Value
 
@@ -145,7 +142,7 @@ def materialize(identifier: Identifier, **kwargs: Any) -> "Storage":
             raise NotImplementedError
 
 
-def as_identifier(kind: type[I], obj: "Storage | Identifier") -> I:
+def as_identifier[I: "Identifier"](kind: type[I], obj: "Storage | Identifier") -> I:
     """Return obj as an identifier of the given kind, identifying Storage objects."""
     from uproot.storage import Storage
 
@@ -575,7 +572,7 @@ class Page(metaclass=FrozenPage):
 def timed(func: Callable[..., Any]) -> Callable[..., Any]:
     ensure_local_logger()
 
-    if asyncio.iscoroutinefunction(func):
+    if inspect.iscoroutinefunction(func):
 
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
