@@ -29,7 +29,7 @@ dependencies = [
     "httpx2>=2.13.1",
     "argon2-cffi>=25.1.0",
     # argon2-cffi-bindings 26 ships no wheels for Intel Macs; 25.1.0 does.
-    "argon2-cffi-bindings<26; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    "argon2-cffi-bindings<27; sys_platform == 'darwin' and platform_machine == 'x86_64'",
     "appendmuch==0.3.1",
     # starlette-compress only requires brotli>=1; force the CVE-2026-111497 fixes.
     "brotli>=1.2.1",
