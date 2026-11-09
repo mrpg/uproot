@@ -25,6 +25,9 @@ Room
 
 {% block main %}
 
+{# Preset labels cap the room, as in server3.roommain #}
+{% set capacity = room.capacity if room.capacity is not none else (room.labels | length if room.labels else none) %}
+
 {% if room.sname is none %}
 
 <div class="gx-lg-4-5 row">
@@ -80,11 +83,13 @@ Room
                 Determining which labels are “online” is not an exact science. Instead, uproot uses various heuristics and algorithms to make a best-effort guess at which labels were “recently seen.”
                 {% endtranslate %}
                 </p>
+                {% if room.labels is none %}
                 <p class="text-black-50">
                 {% translate %}
                 Rooms without preset labels auto-assign random labels or use acceptable labels provided through <code>?label=mylabel42</code> in the room’s URL.
                 {% endtranslate %}
                 </p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -133,13 +138,13 @@ Room
                     {% translate %}
                     If this box is unchecked, the room’s capacity will not be changed. This means that new room entrants can grow the session.
                     {% endtranslate %}
-                    {% if room.capacity is none %}
+                    {% if capacity is none %}
                     {% translate %}
                     This room’s capacity is infinite.
                     {% endtranslate %}
                     {% else %}
                     {% translate %}
-                    This room’s capacity is {{ room.capacity }}.
+                    This room’s capacity is {{ capacity }}.
                     {% endtranslate %}
                     {% endif %}
                 </small>
@@ -453,6 +458,10 @@ Room
                     {% translate %}Show individual URLs{% endtranslate %}
                 </button>
                 </p>
+                {% elif room.labels is not none %}
+                <p class="mb-0">
+                    {% translate %}This room accepts any label{% endtranslate %}.
+                </p>
                 {% else %}
                 <p class="mb-0 text-body-tertiary">
                     {% translate %}This room is not associated with any labels{% endtranslate %}.
@@ -486,13 +495,15 @@ Room
                     <div class="d-table-row">
                         <span class="d-table-cell pe-4 text-body-secondary">{% translate %}Players{% endtranslate %}</span>
                         <span class="d-table-cell">
-                            {{ n_players }}&thinsp;/&thinsp;{% if room.capacity is not none %}{{ room.capacity }}{% else %}&infin;{% endif %}
+                            {{ n_players }}&thinsp;/&thinsp;{% if capacity is not none %}{{ capacity }}{% else %}&infin;{% endif %}
                         </span>
                     </div>
                     <div class="d-table-row">
                         <span class="d-table-cell pe-4 text-body-secondary">{% translate %}Join mode{% endtranslate %}</span>
                         <span class="d-table-cell">
-                            {% if room.labels is none and room.capacity is none %}
+                            {% if room.labels is not none and not room.labels %}
+                            {% translate %}Any label accepted{% endtranslate %}
+                            {% elif room.labels is none and room.capacity is none %}
                             {% translate %}Free join{% endtranslate %}
                             {% else %}
                             {% translate %}Restricted{% endtranslate %}

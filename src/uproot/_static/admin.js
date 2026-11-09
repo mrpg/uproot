@@ -181,18 +181,22 @@ function renderRooms(rooms, containerId) {
             { isMonospace: !!room.config, isNA: !room.config }
         ));
 
-        // Labels row
-        if (room.labels != null && room.labels.length > 0) {
+        // Labels row (an empty list requires a label but accepts any)
+        const anyLabel = room.labels != null && room.labels.length === 0;
+        if (room.labels == null) {
+            infoTable.appendChild(createTableRow(_("Labels"), _("N/A"), { isNA: true }));
+        } else if (anyLabel) {
+            infoTable.appendChild(createTableRow(_("Labels"), _("any")));
+        } else {
             const labelsRow = createTableRow(_("Labels"), String(room.labels.length));
             labelsRow.title = room.labels.slice(0, 5).join(", ") + (room.labels.length > 5 ? "..." : "");
             infoTable.appendChild(labelsRow);
-        } else {
-            infoTable.appendChild(createTableRow(_("Labels"), _("N/A"), { isNA: true }));
         }
 
         // Join mode row
         const freejoin = room.labels == null && room.capacity == null;
-        infoTable.appendChild(createTableRow(_("Join mode"), freejoin ? _("free join") : _("restricted")));
+        infoTable.appendChild(createTableRow(_("Join mode"),
+            anyLabel ? _("any label accepted") : freejoin ? _("free join") : _("restricted")));
 
         leftCol.appendChild(infoTable);
         cardBody.appendChild(leftCol);
@@ -212,11 +216,12 @@ function renderRooms(rooms, containerId) {
                     ? "badge bg-warning border border-warning mb-2 text-dark"
                     : "badge bg-danger border border-danger mb-2";
 
-        // Capacity badge
+        // Capacity badge (preset labels cap the room, as in server3.roommain)
+        const capacity = room.capacity ?? (room.labels?.length || null);
         let capacityClass;
-        if (room.capacity != null) {
+        if (capacity != null) {
             capacityClass = room.open
-                ? fillBadgeClass(nPlayers / room.capacity)
+                ? fillBadgeClass(nPlayers / capacity)
                 : "badge border border-danger mb-2 text-danger";
         } else {
             capacityClass = room.open
@@ -224,14 +229,14 @@ function renderRooms(rooms, containerId) {
                 : "badge border border-success mb-2 text-success";
         }
         badges.appendChild(createBadge(
-            `${_("Capacity")}: ${room.capacity != null ? room.capacity : "∞"}`,
+            `${_("Capacity")}: ${capacity != null ? capacity : "∞"}`,
             capacityClass
         ));
 
         // Players badge
         if (room.sname && uproot.vars.sessions[room.sname]) {
-            const playersClass = room.capacity != null
-                ? fillBadgeClass(nPlayers / room.capacity)
+            const playersClass = capacity != null
+                ? fillBadgeClass(nPlayers / capacity)
                 : "badge bg-success border border-success mb-2";
             badges.appendChild(createBadge(
                 `${_("Players")}: ${nPlayers}`,

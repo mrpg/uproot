@@ -78,7 +78,11 @@ class RoomCreate(BaseModel):
     name: str = Field(..., min_length=1, description="Room name")
     config: str | None = Field(None, description="Default configuration for sessions")
     labels: list[str] | None = Field(
-        None, description="Allowed labels for participants"
+        None,
+        description=(
+            "Allowed labels for participants (empty list: any label, "
+            "but one is required)"
+        ),
     )
     capacity: int | None = Field(None, ge=1, description="Maximum capacity")
     open: bool | None = Field(
@@ -200,7 +204,9 @@ class RoomUpdate(BaseModel):
     """Request body for updating room settings."""
 
     config: str | None = Field(None, description="Default configuration")
-    labels: list[str] | None = Field(None, description="Allowed labels")
+    labels: list[str] | None = Field(
+        None, description="Allowed labels (empty list: any label, but one is required)"
+    )
     capacity: int | None = Field(None, ge=1, description="Maximum capacity")
     open: bool | None = Field(
         None,

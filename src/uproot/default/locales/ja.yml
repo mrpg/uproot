@@ -352,6 +352,9 @@
 ? 'This requires a <code>.gitignore</code> file in the project directory.'
 : 'プロジェクトディレクトリに <code>.gitignore</code> ファイルが必要です。'
 
+? 'This room accepts any label'
+: 'このルームは任意のラベルを受け入れます'
+
 ? 'This room is associated with the following config'
 : 'このルームは以下の構成に関連付けられています'
 
@@ -724,8 +727,8 @@
 ? 'This room’s capacity is infinite.'
 : 'このルームの定員は無制限です。'
 
-? 'This room’s capacity is {{ room.capacity }}.'
-: 'このルームの定員は{{ room.capacity }}人です。'
+? 'This room’s capacity is {{ capacity }}.'
+: 'このルームの定員は{{ capacity }}人です。'
 
 ? 'To edit room settings, first disassociate the session from this room.'
 : 'ルーム設定を編集するには、まずこのルームからセッションの関連付けを解除してください。'
@@ -774,6 +777,12 @@
 
 ? 'Your version is outdated.'
 : 'バージョンが古くなっています。'
+
+? 'any'
+: '任意'
+
+? 'any label accepted'
+: '任意のラベル可'
 
 ? 'e.g.,'
 : '例:'
@@ -921,6 +930,9 @@
 
 ? 'Actions'
 : 'アクション'
+
+? 'Any label accepted'
+: '任意のラベル可'
 
 ? 'Automatic (CSV if tabular)'
 : '自動（表形式の場合CSV）'

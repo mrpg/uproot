@@ -4,8 +4,9 @@
 """
 uproot rooms are finite-state machines.
 
-if labels is not None: labels will be checked in any case. Labels may only be
-used once. If labels is an empty list, any non-empty label is accepted.
+if labels is not None: participants must enter a label, and each label maps to
+at most one player. A non-empty list accepts only the listed labels. An empty
+list accepts any non-empty label.
 
 State 0:
     open=False, the room is closed. Prospective players have to wait. If
@@ -17,9 +18,10 @@ State 1:
 
     If no session is associated with the room, one is created and associated.
 
-    - labels is not None or capacity is not None:
-        add player only if associated session has free slots.
-    - labels=None and capacity=None:
+    - capacity is not None or labels is non-empty:
+        add player only if associated session has free slots. Without an
+        explicit capacity, the number of labels is the capacity.
+    - capacity=None and labels is None or empty:
         a 'freejoin' room adds players to sessions.
 """
 

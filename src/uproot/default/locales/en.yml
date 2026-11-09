@@ -352,6 +352,9 @@
 ? 'This requires a <code>.gitignore</code> file in the project directory.'
 : 'This requires a <code>.gitignore</code> file in the project directory.'
 
+? 'This room accepts any label'
+: 'This room accepts any label'
+
 ? 'This room is associated with the following config'
 : 'This room is associated with the following config'
 
@@ -724,8 +727,8 @@
 ? 'This room’s capacity is infinite.'
 : 'This room’s capacity is infinite.'
 
-? 'This room’s capacity is {{ room.capacity }}.'
-: 'This room’s capacity is {{ room.capacity }}.'
+? 'This room’s capacity is {{ capacity }}.'
+: 'This room’s capacity is {{ capacity }}.'
 
 ? 'To edit room settings, first disassociate the session from this room.'
 : 'To edit room settings, first disassociate the session from this room.'
@@ -774,6 +777,12 @@
 
 ? 'Your version is outdated.'
 : 'Your version is outdated.'
+
+? 'any'
+: 'any'
+
+? 'any label accepted'
+: 'any label accepted'
 
 ? 'e.g.,'
 : 'e.g.,'
@@ -921,6 +930,9 @@
 
 ? 'Actions'
 : 'Actions'
+
+? 'Any label accepted'
+: 'Any label accepted'
 
 ? 'Automatic (CSV if tabular)'
 : 'Automatic (CSV if tabular)'
