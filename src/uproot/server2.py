@@ -810,7 +810,7 @@ async def new_room2(
         with Session(sname_) as session:
             session.room = name
 
-        r.start(name)
+    r.sync(name)
 
     redirect_url = f"{d.ROOT}/admin/room/{quote(name, safe='')}/"
 
@@ -936,7 +936,7 @@ async def new_session_in_room(
             data=data,
         )
 
-    r.start(roomname)
+    r.sync(roomname)
 
     return RedirectResponse(f"{d.ROOT}/admin/session/{sid.sname}/", status_code=303)
 
@@ -988,8 +988,7 @@ async def update_room_settings(
         with Session(sname_) as session:
             session.room = roomname
 
-        # Release players already waiting on this room's hello page
-        r.start(roomname)
+    r.sync(roomname)
 
     redirect_url = f"{d.ROOT}/admin/room/{quote(roomname, safe='')}/"
 

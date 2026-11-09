@@ -78,7 +78,7 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     with s.Session(sname) as session:
         session.room = None
 
-    r.reset(roomname)
+    r.sync(roomname)
 
 
 async def close_room(roomname: str, disassociate_session: bool = False) -> None:
@@ -100,7 +100,7 @@ async def close_room(roomname: str, disassociate_session: bool = False) -> None:
     with s.Admin() as admin:
         admin.rooms[roomname]["open"] = False
 
-    r.reset(roomname)
+    r.sync(roomname)
 
 
 async def set_room_open(roomname: str, open: bool) -> None:
@@ -117,8 +117,7 @@ async def set_room_open(roomname: str, open: bool) -> None:
 
         room["open"] = open
 
-    if not open:
-        r.reset(roomname)
+    r.sync(roomname)
 
 
 async def set_room_capacity(roomname: str, capacity: int | None) -> None:
@@ -142,4 +141,4 @@ async def delete_room(roomname: str) -> None:
 
         del admin.rooms[roomname]
 
-    r.reset(roomname)
+    r.sync(roomname)

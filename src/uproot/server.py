@@ -32,6 +32,7 @@ import uproot as u
 import uproot.core as c
 import uproot.deployment as d
 import uproot.jobs as j
+import uproot.rooms as r
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
 from uproot.passwords import MIN_PASSWORD_LENGTH
@@ -112,6 +113,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
         j.synchronize_rooms(admin)
         j.restore(app, admin)
         nsessions = len(admin._uproot_sessions)
+        roomnames = list(admin.rooms)
+
+    for roomname in roomnames:
+        r.sync(roomname)
 
     if d.ORIGIN is None:
         d.ORIGIN = f"http://{d.HOST}:{d.PORT}"

@@ -98,7 +98,7 @@ async def roommain(
         # without disassociating its session (see set_room_open), and a closed
         # room must never admit new players.
 
-        if not room["open"] or (room["sname"] is None and room["config"] is None):
+        if not ur.ready(room):
             return HTMLResponse(
                 await render(
                     request.app,
@@ -172,9 +172,6 @@ async def roommain(
                     player.label = label
 
                 redirect_to = f"{d.ROOT}/p/{sname}/{pid.uname}/"
-
-            if new_session:
-                ur.start(roomname)
 
             return RedirectResponse(redirect_to, status_code=303)
         else:

@@ -263,7 +263,7 @@ def create_quick_room(config: str, simulate: bool) -> str:
         if simulate:
             session._uproot_simulate = True
 
-    r.start(roomname)
+    r.sync(roomname)
 
     return roomname
 

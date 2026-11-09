@@ -8,13 +8,14 @@ if labels is not None: participants must enter a label, and each label maps to
 at most one player. A non-empty list accepts only the listed labels. An empty
 list accepts any non-empty label.
 
-State 0:
-    open=False, the room is closed. Prospective players have to wait. If
-    labels is not None, they have to enter their label. The same happens
-    if open=True, but there is no config associated with the room.
+State 0 (not ready):
+    open=False, or there is neither a session nor a config associated with
+    the room. Prospective players have to wait. If labels is not None, they
+    have to enter a valid label first.
 
-State 1:
-    open=True, the room is open. Prospective players don't wait.
+State 1 (ready):
+    open=True and a session or a config is associated with the room.
+    Prospective players don't wait.
 
     If no session is associated with the room, one is created and associated.
 
@@ -23,12 +24,16 @@ State 1:
         explicit capacity, the number of labels is the capacity.
     - capacity=None and labels is None or empty:
         a 'freejoin' room adds players to sessions.
+
+Players waiting in a room are released exactly when it becomes ready: after
+every change to a room, sync() sets the room's event iff the room is ready.
 """
 
 from typing import Any, TypeAlias
 
 import uproot.events as e
 from uproot.constraints import TOKEN_CHARS, return_or_raise, valid_token
+from uproot.storage import Admin
 from uproot.types import Sessionname
 
 RoomType: TypeAlias = dict[str, Any]
@@ -123,11 +128,20 @@ def validate(room: RoomType, label: str) -> bool:
     return True
 
 
-def start(roomname: str) -> None:
-    """Signal that a room has started and clients can proceed."""
-    e.set_room(roomname)
+def ready(room: RoomType) -> bool:
+    """Whether prospective players proceed instead of waiting."""
+    return bool(room["open"]) and (
+        room["sname"] is not None or room["config"] is not None
+    )
 
 
-def reset(roomname: str) -> None:
-    """Reset a room's state so it can be reused."""
-    e.clear_room(roomname)
+def sync(roomname: str) -> None:
+    """Release waiting players iff the room exists and is ready. Call this after
+    every change to a room."""
+    with Admin() as admin:
+        room = admin.rooms.get(roomname)
+
+    if room is not None and ready(room):
+        e.set_room(roomname)
+    else:
+        e.clear_room(roomname)

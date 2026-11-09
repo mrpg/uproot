@@ -1228,8 +1228,7 @@ async def create_room(
         with Session(body.sname) as session:
             session.room = body.name
 
-        if open_status:
-            r.start(body.name)
+    r.sync(body.name)
 
     return room_detail(body.name) | {"created": True}
 
@@ -1294,9 +1293,7 @@ async def update_room(
         with Session(sname) as session:
             session.room = roomname
 
-        if open_status:
-            # Release players already waiting on this room's hello page
-            r.start(roomname)
+    r.sync(roomname)
 
     return room_detail(roomname) | {"updated": True}
 
@@ -1457,7 +1454,7 @@ async def create_session_in_room(
             data=data,
         )
 
-    r.start(roomname)
+    r.sync(roomname)
 
     return session_detail(sid.sname) | {
         "roomname": roomname,
