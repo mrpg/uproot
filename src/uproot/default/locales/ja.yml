@@ -1129,8 +1129,8 @@
 ? 'Use negative values to reduce the timeout.'
 : '負の値を入力するとタイムアウトが短くなります。'
 
-? 'Capacity must be at least 1.'
-: '定員は1以上でなければなりません。'
+? 'Capacity must not be negative.'
+: '定員は負の値にできません。'
 
 ? 'Dropout'
 : '脱落'

@@ -221,7 +221,7 @@ function renderRooms(rooms, containerId) {
         let capacityClass;
         if (capacity != null) {
             capacityClass = room.open
-                ? fillBadgeClass(nPlayers / capacity)
+                ? fillBadgeClass(capacity ? nPlayers / capacity : 1)
                 : "badge border border-danger mb-2 text-danger";
         } else {
             capacityClass = room.open
@@ -236,7 +236,7 @@ function renderRooms(rooms, containerId) {
         // Players badge
         if (room.sname && uproot.vars.sessions[room.sname]) {
             const playersClass = capacity != null
-                ? fillBadgeClass(nPlayers / capacity)
+                ? fillBadgeClass(capacity ? nPlayers / capacity : 1)
                 : "badge bg-success border border-success mb-2";
             badges.appendChild(createBadge(
                 `${_("Players")}: ${nPlayers}`,

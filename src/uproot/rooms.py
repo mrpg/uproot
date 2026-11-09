@@ -50,6 +50,9 @@ def room(
     if not valid_token(name):
         raise ValueError("Room name is invalid")
 
+    if capacity is not None and capacity < 0:
+        raise ValueError("Room capacity must not be negative")
+
     if labels is not None:
         seen: set[str] = set()
 

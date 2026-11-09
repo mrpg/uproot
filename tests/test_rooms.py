@@ -154,3 +154,45 @@ def test_waiting_player_is_released_and_admitted_on_reopen():
 
     assert response.status_code == 303
     assert response.headers["location"].startswith(f"{d.ROOT}/p/{sname}/")
+
+
+def test_negative_capacity_is_rejected():
+    setup(lab={})
+
+    with pytest.raises(ValueError):
+        r.room("other", capacity=-1)
+
+    with pytest.raises(ValueError):
+        asyncio.run(room_ops.set_room_capacity("lab", -1))
+
+
+def test_capacity_zero_admits_only_reentry_and_precreated_slots(monkeypatch):
+    monkeypatch.setattr(u, "APPS", {}, raising=False)
+    sname = setup(lab={"config": CONFIG, "open": True})
+
+    with s.Admin() as admin:
+        admin.rooms["lab"]["sname"] = sname
+
+    with s.Session(sname) as session:
+        c.create_players(session, n=1, data=[{"label": "slot1"}])
+
+    r.sync("lab")
+    asyncio.run(room_ops.set_room_capacity("lab", 0))
+
+    app = FastAPI()
+    app.include_router(server3.router)
+    client = TestClient(app)
+
+    def post(label: str):
+        return client.post(
+            f"{d.ROOT}/room/lab/", data={"label": label}, follow_redirects=False
+        )
+
+    claimed = post("slot1")
+    assert claimed.status_code == 303
+
+    assert post("newcomer").status_code == 423
+
+    reentry = post("slot1")
+    assert reentry.status_code == 303
+    assert reentry.headers["location"] == claimed.headers["location"]

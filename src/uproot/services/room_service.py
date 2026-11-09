@@ -124,8 +124,8 @@ async def set_room_capacity(roomname: str, capacity: int | None) -> None:
     """Set a room's capacity, even while a session is associated."""
     room_exists(roomname, False)
 
-    if capacity is not None and capacity < 1:
-        raise ValueError("Capacity must be at least 1")
+    if capacity is not None and capacity < 0:
+        raise ValueError("Room capacity must not be negative")
 
     with s.Admin() as admin:
         admin.rooms[roomname]["capacity"] = capacity

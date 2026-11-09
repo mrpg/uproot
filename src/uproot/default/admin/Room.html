@@ -548,7 +548,7 @@ Room
                             </label>
                         </div>
                         <input type="number" class="form-control form-control-sm" id="live-capacity"
-                            style="width: 6rem;" min="1"
+                            style="width: 6rem;" min="0"
                             {% if room.capacity is not none %}value="{{ room.capacity }}"{% endif %}
                             {% if room.capacity is none %}disabled{% endif %}>
                         <button type="button" class="btn btn-outline-uproot btn-sm" onclick="setRoomCapacity()">
@@ -601,8 +601,8 @@ Room
 
         if (checkbox.checked) {
             capacity = parseInt(input.value, 10);
-            if (isNaN(capacity) || capacity < 1) {
-                uproot.error(_("Capacity must be at least 1."));
+            if (isNaN(capacity) || capacity < 0) {
+                uproot.error(_("Capacity must not be negative."));
                 return;
             }
         }

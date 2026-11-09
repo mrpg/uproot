@@ -70,17 +70,17 @@
     </div>
 </div>
 
-<div x-data="{useCapacity: {% if room and room.capacity %}true{% else %}false{% endif %}}">
+<div x-data="{useCapacity: {% if room and room.capacity is not none %}true{% else %}false{% endif %}}">
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="use_capacity"
-            {% if room and room.capacity %}checked{% endif %}
+            {% if room and room.capacity is not none %}checked{% endif %}
             @click="useCapacity = !useCapacity; if (!useCapacity) { I('capacity').value = ''; }">
         <label for="use_capacity">{% translate %}Limit capacity of resulting session{% endtranslate %}</label>
     </div>
     <div class="form-floating mt-3" x-show="useCapacity">
         <input type="number" class="form-control w-auto" id="capacity" name="capacity"
-            placeholder="{% translate %}Maximum players{% endtranslate %}" min="1"
-            {% if room and room.capacity %}value="{{ room.capacity }}"{% endif %}>
+            placeholder="{% translate %}Maximum players{% endtranslate %}" min="0"
+            {% if room and room.capacity is not none %}value="{{ room.capacity }}"{% endif %}>
         <label for="capacity" class="form-label">{% translate %}Maximum players{% endtranslate %}</label>
         <small class="d-block form-text pt-2">
             {% translate %}

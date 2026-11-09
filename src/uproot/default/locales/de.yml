@@ -1129,8 +1129,8 @@
 ? 'Use negative values to reduce the timeout.'
 : 'Verwenden Sie negative Werte, um das Zeitlimit zu verkürzen.'
 
-? 'Capacity must be at least 1.'
-: 'Die Kapazität muss mindestens 1 betragen.'
+? 'Capacity must not be negative.'
+: 'Die Kapazität darf nicht negativ sein.'
 
 ? 'Dropout'
 : 'Dropout'

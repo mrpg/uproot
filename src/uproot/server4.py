@@ -84,7 +84,7 @@ class RoomCreate(BaseModel):
             "but one is required)"
         ),
     )
-    capacity: int | None = Field(None, ge=1, description="Maximum capacity")
+    capacity: int | None = Field(None, ge=0, description="Maximum capacity")
     open: bool | None = Field(
         None,
         description=(
@@ -207,7 +207,7 @@ class RoomUpdate(BaseModel):
     labels: list[str] | None = Field(
         None, description="Allowed labels (empty list: any label, but one is required)"
     )
-    capacity: int | None = Field(None, ge=1, description="Maximum capacity")
+    capacity: int | None = Field(None, ge=0, description="Maximum capacity")
     open: bool | None = Field(
         None,
         description=(
@@ -230,7 +230,7 @@ class RoomCapacity(BaseModel):
     """Request body for setting a room's capacity."""
 
     capacity: int | None = Field(
-        ..., ge=1, description="Maximum capacity (null for unlimited)"
+        ..., ge=0, description="Maximum capacity (null for unlimited)"
     )
 
 
