@@ -66,6 +66,7 @@ BUILTINS = {
 }
 
 H1_PATTERN = re.compile(r"<h1>(.*?)</h1>\s*", re.DOTALL)
+UPROOT_STATIC_DIR = Path(os.path.abspath(__file__)).parent / "_static"
 
 
 class MarkdownLoader(BaseLoader):
@@ -170,13 +171,14 @@ def app_or_default(app: Any, filename: str) -> str:
 
 def static_dir(realm: str) -> Path:
     if realm == "_uproot":
-        return Path(os.path.abspath(__file__)).parent / "_static"
+        return UPROOT_STATIC_DIR
     elif realm == "_project":
         return Path.cwd() / "_static"
     else:
         return Path.cwd() / realm / "_static"
 
 
+@functools.cache
 def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     """Link to a static file. Existing files get their version (?v=...), so
     that browsers may cache them indefinitely. The server ignores a missing or
@@ -184,15 +186,21 @@ def static_factory(realm: str = "_uproot") -> Callable[[str], str]:
     are replaced by their minified builds where these are up to date."""
 
     def localstatic(fname: str) -> str:
-        if realm == "_uproot":
-            fname = minified(fname)
+        if (
+            realm == "_uproot"
+            and fname.endswith(".js")
+            and not fname.endswith(".min.js")
+        ):
+            fname, path = minified_asset(fname)
+        else:
+            path = static_path(realm, fname)
 
         last_mile = "/".join(
             urllib.parse.quote(part, safe="") for part in fname.split("/")
         )
         url = f"{d.ROOT}/static/{realm}/{last_mile}"
 
-        if (path := static_path(realm, fname)) is not None:
+        if path is not None:
             url += f"?v={static_version(path)}"
 
         return url
@@ -234,29 +242,26 @@ def sha256(path: str) -> str:
         return hashlib.file_digest(f, "sha256").hexdigest()
 
 
-def minified(fname: str) -> str:
-    """X.min.js instead of X.js if the former was built from the current X.js.
-    The build (see minify.sh) states the SHA-256 of its source in its first
-    line, formatted like MINIFIED_HEADER."""
-    if not fname.endswith(".js") or fname.endswith(".min.js"):
-        return fname
-
+def minified_asset(fname: str) -> tuple[str, str | None]:
+    """X.min.js and its path instead of X.js if the former was built from the
+    current X.js. The build (see minify.sh) states the SHA-256 of its source in
+    its first line, formatted like MINIFIED_HEADER."""
     min_fname = f"{fname.removesuffix('.js')}.min.js"
 
     source = static_path("_uproot", fname)
     build = static_path("_uproot", min_fname)
 
     if source is None or build is None:
-        return fname
+        return fname, source
 
     source_sha256 = file_sha256(source)
 
     if minified_from(build) == source_sha256:
-        return min_fname
+        return min_fname, build
     else:
         warn_outdated_build(min_fname, source_sha256)
 
-        return fname
+        return fname, source
 
 
 MINIFIED_HEADER = "/* Minified from source with SHA-256 {} */"
@@ -294,10 +299,14 @@ def warn_outdated_build(min_fname: str, source_sha256: str) -> None:
 
 def static_files(realm: str) -> StaticFiles:
     """What /static/{realm}/ serves. Symlinks are followed, but paths that
-    lexically escape the realm's directory are rejected."""
-    return StaticFiles(
-        directory=static_dir(realm), check_dir=False, follow_symlink=True
-    )
+    lexically escape the realm's directory are rejected. Reusing the ASGI app
+    does not cache lookups: StaticFiles still stats the path on every call."""
+    return cached_static_files(static_dir(realm))
+
+
+@functools.cache
+def cached_static_files(directory: Path) -> StaticFiles:
+    return StaticFiles(directory=directory, check_dir=False, follow_symlink=True)
 
 
 def static_path(realm: str, fname: str) -> str | None:
@@ -314,6 +323,7 @@ def static_exists(realm: str, fname: str) -> bool:
     return static_path(realm, fname) is not None
 
 
+@functools.cache
 def static_search(*realms: str) -> Callable[[str], str]:
     """Link to a static file from the first realm that has it, from specific to
     general. If no realm has it, link to the first realm."""
@@ -503,6 +513,11 @@ class FormTranslations:
         return self.wtforms.ngettext(singular, plural, n)
 
 
+@functools.cache
+def form_translations(language: i18n.ISO639) -> FormTranslations:
+    return FormTranslations(language)
+
+
 async def form_factory(page: type[Page], player: Storage | None) -> type[BaseForm]:
     fields = await ensure_awaitable(
         optional_call, page, "fields", default_return=None, player=player
@@ -513,7 +528,7 @@ async def form_factory(page: type[Page], player: Storage | None) -> type[BaseFor
             if issubclass(field.field_class, (FormField, FieldList)):
                 raise TypeError(f"Nested fields are not supported: {name!r}")
 
-        translations = FormTranslations(await page_language(page, player))
+        translations = form_translations(await page_language(page, player))
 
         class Meta:
             def get_translations(self, form: BaseForm) -> FormTranslations:

@@ -77,3 +77,20 @@ def test_atomic_save_reloads_module(tmp_path: Path) -> None:
         assert manager["atomic_save_app"].value == 2
     finally:
         sys.modules.pop("atomic_save_app", None)
+
+
+def test_sibling_modules_share_watcher(tmp_path: Path) -> None:
+    first_dir = tmp_path / "first_app"
+    second_dir = tmp_path / "second_app"
+    write_app(first_dir, "value = 1\n")
+    write_app(second_dir, "value = 2\n")
+
+    manager = ModuleManager()
+    try:
+        manager.import_module(str(first_dir))
+        manager.import_module(str(second_dir))
+
+        assert len(manager.observer.emitters) == 1
+    finally:
+        sys.modules.pop("first_app", None)
+        sys.modules.pop("second_app", None)
