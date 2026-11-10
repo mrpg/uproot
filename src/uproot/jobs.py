@@ -192,6 +192,11 @@ def synchronize_rooms(admin: s.Storage) -> None:
         admin.rooms = {}
 
     for room in d.DEFAULT_ROOMS:
+        if room["sname"] is not None:
+            raise ValueError(
+                f"Default room {room['name']!r} must not be associated with a session"
+            )
+
         if room["name"] not in admin.rooms:
             admin.rooms[room["name"]] = room
 

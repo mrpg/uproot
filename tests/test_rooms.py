@@ -9,6 +9,7 @@ import uproot as u
 import uproot.core as c
 import uproot.deployment as d
 import uproot.events as e
+import uproot.jobs as j
 import uproot.rooms as r
 import uproot.services.room_service as room_ops
 import uproot.storage as s
@@ -196,3 +197,30 @@ def test_capacity_zero_admits_only_reentry_and_precreated_slots(monkeypatch):
     reentry = post("slot1")
     assert reentry.status_code == 303
     assert reentry.headers["location"] == claimed.headers["location"]
+
+
+def test_default_room_with_session_is_rejected(monkeypatch):
+    sname = setup()
+    monkeypatch.setattr(d, "DEFAULT_ROOMS", [r.room("lab", sname=sname)])
+
+    with s.Admin() as admin:
+        with pytest.raises(ValueError):
+            j.synchronize_rooms(admin)
+
+        assert "lab" not in admin.rooms
+
+    with s.Session(sname) as session:
+        assert session.room is None
+
+
+def test_default_rooms_are_added_once(monkeypatch):
+    setup()
+    monkeypatch.setattr(d, "DEFAULT_ROOMS", [r.room("lab", config=CONFIG)])
+
+    with s.Admin() as admin:
+        j.synchronize_rooms(admin)
+        admin.rooms["lab"]["open"] = True
+        j.synchronize_rooms(admin)
+
+        assert admin.rooms["lab"]["config"] == CONFIG
+        assert admin.rooms["lab"]["open"] is True
