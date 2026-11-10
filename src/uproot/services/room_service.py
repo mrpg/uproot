@@ -68,11 +68,14 @@ def ensure_session_available_for_room(
 
 
 async def disassociate(roomname: str, sname: t.Sessionname) -> None:
-    """Disassociate a session from a room."""
+    """Disassociate a session from a room. The session must be the room's own:
+    callers (e.g., a stale admin page) may hold an outdated association."""
     room_exists(roomname, False)
-    session_exists(sname, False)
 
     with s.Admin() as admin:
+        if admin.rooms[roomname]["sname"] != sname:
+            raise ValueError("Session is not associated with this room")
+
         admin.rooms[roomname]["sname"] = None
 
     with s.Session(sname) as session:
@@ -123,9 +126,7 @@ async def set_room_open(roomname: str, open: bool) -> None:
 async def set_room_capacity(roomname: str, capacity: int | None) -> None:
     """Set a room's capacity, even while a session is associated."""
     room_exists(roomname, False)
-
-    if capacity is not None and capacity < 0:
-        raise ValueError("Room capacity must not be negative")
+    r.check_capacity(capacity)
 
     with s.Admin() as admin:
         admin.rooms[roomname]["capacity"] = capacity

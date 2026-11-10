@@ -865,7 +865,7 @@ async def new_session_in_room(
     roomname: str,
     config: str = Form(),
     assignees: str = Form(),
-    nplayers: int = Form(),
+    nplayers: int = Form(ge=0),
     settings: str = Form(""),
     sname: str = Form(""),
     unames: str = Form(""),
@@ -907,6 +907,8 @@ async def new_session_in_room(
         if admin.rooms[roomname]["sname"] is not None:
             return RedirectResponse(f"{d.ROOT}/admin/room/{roomname}/", status_code=303)
 
+        # Anything that may raise comes before the room is touched: an unflushed
+        # Admin context then leaves the room and the session list unchanged.
         try:
             sid = c.create_session(
                 admin,
@@ -914,6 +916,18 @@ async def new_session_in_room(
                 sname=sname_,
                 settings=settings_parsed,
             )
+
+            with t.materialize(sid) as session:
+                if simulate:
+                    session._uproot_simulate = True
+
+                c.create_players(
+                    session,
+                    n=nplayers,
+                    unames=unames_list,
+                    data=data,
+                )
+                session.room = roomname
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -922,19 +936,6 @@ async def new_session_in_room(
 
         if disable_growth:
             admin.rooms[roomname]["capacity"] = nplayers
-
-    with t.materialize(sid) as session:
-        session.room = roomname
-
-        if simulate:
-            session._uproot_simulate = True
-
-        c.create_players(
-            session,
-            n=nplayers,
-            unames=unames_list,
-            data=data,
-        )
 
     r.sync(roomname)
 

@@ -2,7 +2,7 @@ import asyncio
 
 import orjson
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 import uproot as u
@@ -13,7 +13,7 @@ import uproot.jobs as j
 import uproot.rooms as r
 import uproot.services.room_service as room_ops
 import uproot.storage as s
-from uproot import server3
+from uproot import server2, server3, server4
 
 CONFIG = "test-rooms"
 
@@ -157,14 +157,166 @@ def test_waiting_player_is_released_and_admitted_on_reopen():
     assert response.headers["location"].startswith(f"{d.ROOT}/p/{sname}/")
 
 
-def test_negative_capacity_is_rejected():
+@pytest.mark.parametrize("capacity", [-1, 2.5, True, "3"])
+def test_capacity_must_be_a_non_negative_integer(capacity):
     setup(lab={})
 
     with pytest.raises(ValueError):
-        r.room("other", capacity=-1)
+        r.room("other", capacity=capacity)
 
     with pytest.raises(ValueError):
-        asyncio.run(room_ops.set_room_capacity("lab", -1))
+        asyncio.run(room_ops.set_room_capacity("lab", capacity))
+
+
+def test_empty_config_and_sname_mean_none():
+    room = r.room("lab", config="", sname="", open=True)
+
+    assert room["config"] is None
+    assert room["sname"] is None
+    assert not r.ready(room)
+
+
+def test_api_room_with_empty_sname_is_not_associated():
+    setup()
+
+    detail = asyncio.run(
+        server4.create_room(
+            server4.RoomCreate(name="lab", config="", sname="", open=True), None
+        )
+    )
+
+    assert detail["sname"] is None
+    assert detail["config"] is None
+    assert not released("lab")
+
+    asyncio.run(room_ops.delete_room("lab"))
+
+
+def test_disassociate_requires_the_rooms_own_session():
+    sname = setup(lab={}, other={})
+
+    with s.Admin() as admin:
+        other = c.create_session(admin, CONFIG).sname
+
+    for roomname, sname_ in [("lab", sname), ("other", other)]:
+        asyncio.run(
+            server4.update_room(roomname, server4.RoomUpdate(sname=sname_), None)
+        )
+
+    # For example, a stale admin page that still shows an old association
+    with pytest.raises(ValueError):
+        asyncio.run(room_ops.disassociate("lab", other))
+
+    with s.Admin() as admin:
+        assert admin.rooms["lab"]["sname"] == sname
+        assert admin.rooms["other"]["sname"] == other
+
+    with s.Session(sname) as session:
+        assert session.room == "lab"
+
+    with s.Session(other) as session:
+        assert session.room == "other"
+
+
+def new_session_in_room_form(**kwargs):
+    form = {
+        "request": None,
+        "roomname": "lab",
+        "config": CONFIG,
+        "assignees": "",
+        "nplayers": 2,
+        "settings": "",
+        "sname": "",
+        "unames": "",
+        "disable_growth": False,
+        "simulate": False,
+        "auth": {},
+    }
+
+    return server2.new_session_in_room(**(form | kwargs))
+
+
+def test_failed_session_in_room_leaves_room_untouched():
+    setup(lab={"config": CONFIG})
+
+    with s.Admin() as admin:
+        sessions = list(admin._uproot_sessions)
+
+    with pytest.raises(HTTPException) as server2_error:
+        asyncio.run(new_session_in_room_form(unames="only_one", disable_growth=True))
+
+    with pytest.raises(HTTPException) as server4_error:
+        asyncio.run(
+            server4.create_session_in_room(
+                "lab",
+                server4.RoomSessionCreate(
+                    n_players=1, unames=["bad name"], no_grow=True
+                ),
+                None,
+            )
+        )
+
+    assert server2_error.value.status_code == 400
+    assert server4_error.value.status_code == 400
+
+    with s.Admin() as admin:
+        assert admin.rooms["lab"] == r.room("lab", config=CONFIG)
+        assert admin._uproot_sessions == sessions
+
+    assert not released("lab")
+
+    response = asyncio.run(
+        new_session_in_room_form(assignees='["a1"]', disable_growth=True)
+    )
+
+    assert response.status_code == 303
+
+    with s.Admin() as admin:
+        room = admin.rooms["lab"]
+
+    assert room["open"] is True
+    assert room["capacity"] == 2
+    assert released("lab")
+
+    with s.Session(room["sname"]) as session:
+        assert session.room == "lab"
+        labels = []
+
+        for pid in session._uproot_players:
+            with s.Player(pid.sname, pid.uname) as player:
+                labels.append(player.label)
+
+    assert sorted(labels) == ["", "a1"]
+
+
+async def authenticated() -> dict:
+    return {"user": "admin"}
+
+
+def test_session_in_room_rejects_negative_nplayers():
+    setup(lab={"config": CONFIG})
+    app = FastAPI()
+    app.include_router(server2.router)
+    app.dependency_overrides[server2.auth_required] = authenticated
+    client = TestClient(app)
+
+    def post(nplayers: str):
+        return client.post(
+            f"{d.ROOT}/admin/room/lab/",
+            data={
+                "config": CONFIG,
+                "assignees": "[]",
+                "nplayers": nplayers,
+                "disable_growth": "true",
+            },
+            follow_redirects=False,
+        )
+
+    assert post("-1").status_code == 422
+    assert post("0").status_code == 303
+
+    with s.Admin() as admin:
+        assert admin.rooms["lab"]["capacity"] == 0
 
 
 def test_capacity_zero_admits_only_reentry_and_precreated_slots(monkeypatch):

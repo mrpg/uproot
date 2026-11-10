@@ -1427,6 +1427,8 @@ async def create_session_in_room(
             data.append({"label": label})
 
     with Admin() as admin:
+        # Anything that may raise comes before the room is touched: an unflushed
+        # Admin context then leaves the room and the session list unchanged.
         with bad_request():
             sid = c.create_session(
                 admin,
@@ -1435,24 +1437,23 @@ async def create_session_in_room(
                 settings=settings_parsed,
             )
 
+            with t.materialize(sid) as session:
+                if body.simulate:
+                    session._uproot_simulate = True
+
+                c.create_players(
+                    session,
+                    n=body.n_players,
+                    unames=body.unames,
+                    data=data,
+                )
+                session.room = roomname
+
         admin.rooms[roomname]["sname"] = sid.sname
         admin.rooms[roomname]["open"] = True
 
         if body.no_grow:
             admin.rooms[roomname]["capacity"] = body.n_players
-
-    with t.materialize(sid) as session:
-        session.room = roomname
-
-        if body.simulate:
-            session._uproot_simulate = True
-
-        c.create_players(
-            session,
-            n=body.n_players,
-            unames=body.unames,
-            data=data,
-        )
 
     r.sync(roomname)
 

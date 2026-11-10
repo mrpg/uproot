@@ -50,8 +50,7 @@ def room(
     if not valid_token(name):
         raise ValueError("Room name is invalid")
 
-    if capacity is not None and capacity < 0:
-        raise ValueError("Room capacity must not be negative")
+    check_capacity(capacity)
 
     if labels is not None:
         seen: set[str] = set()
@@ -68,14 +67,21 @@ def room(
 
             seen.add(label)
 
+    # An empty config or sname means none: storing "" would make the room
+    # count as ready or as associated with a session that does not exist.
     return {
         "name": name,
-        "config": config,
+        "config": config or None,
         "labels": labels,
         "capacity": capacity,
         "open": open,
-        "sname": sname,
+        "sname": sname or None,
     }
+
+
+def check_capacity(capacity: Any) -> None:
+    if capacity is not None and (type(capacity) is not int or capacity < 0):
+        raise ValueError("Room capacity must be a non-negative integer")
 
 
 def freejoin(room: RoomType) -> bool:
