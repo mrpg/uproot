@@ -52,9 +52,18 @@ def released(roomname: str) -> bool:
         (True, None, CONFIG, True),
         (True, "s", None, True),
         (True, "s", CONFIG, True),
+        (True, None, "unloaded", False),
+        (True, "s", "unloaded", True),
     ],
 )
-def test_ready(open: bool, sname: str | None, config: str | None, expected: bool):
+def test_ready(
+    monkeypatch,
+    open: bool,
+    sname: str | None,
+    config: str | None,
+    expected: bool,
+):
+    monkeypatch.setitem(u.CONFIGS, CONFIG, [])
     room = {"open": open, "sname": sname, "config": config}
 
     assert r.ready(room) is expected
@@ -93,6 +102,51 @@ def test_room_without_session_or_config_cannot_open():
     with pytest.raises(ValueError):
         asyncio.run(room_ops.set_room_open("lab", True))
 
+    assert not released("lab")
+
+
+def test_room_with_unloaded_config_is_not_ready(monkeypatch):
+    monkeypatch.setattr(u, "APPS", {}, raising=False)
+    setup()
+    asyncio.run(
+        server2.new_room2(
+            request=None,
+            name="lab",
+            config="unloaded",
+            labels="",
+            use_labels=False,
+            capacity="",
+            room_sname="",
+            open=True,
+            auth={},
+        )
+    )
+
+    assert not released("lab")
+
+    with pytest.raises(ValueError):
+        asyncio.run(room_ops.set_room_open("lab", True))
+
+    app = FastAPI()
+    app.include_router(server3.router)
+    response = TestClient(app).post(f"{d.ROOT}/room/lab/", follow_redirects=False)
+
+    assert response.status_code == 200  # the waiting page, not an error
+
+    with s.Admin() as admin:
+        assert admin.rooms["lab"]["sname"] is None
+
+    # A config that is no longer loaded (e.g., after a restart) stops releasing
+    asyncio.run(room_ops.set_room_open("lab", False))
+
+    with s.Admin() as admin:
+        admin.rooms["lab"]["config"] = CONFIG
+
+    asyncio.run(room_ops.set_room_open("lab", True))
+    assert released("lab")
+
+    monkeypatch.delitem(u.CONFIGS, CONFIG)
+    r.sync("lab")
     assert not released("lab")
 
 

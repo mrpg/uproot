@@ -113,9 +113,9 @@ async def set_room_open(roomname: str, open: bool) -> None:
     with s.Admin() as admin:
         room = admin.rooms[roomname]
 
-        if open and room["sname"] is None and room["config"] is None:
+        if open and not r.ready(room | {"open": True}):
             raise ValueError(
-                "Cannot open a room that has no associated session or config"
+                "Cannot open a room that has no associated session or loaded config"
             )
 
         room["open"] = open

@@ -9,13 +9,13 @@ at most one player. A non-empty list accepts only the listed labels. An empty
 list accepts any non-empty label.
 
 State 0 (not ready):
-    open=False, or there is neither a session nor a config associated with
-    the room. Prospective players have to wait. If labels is not None, they
-    have to enter a valid label first.
+    open=False, or there is neither a session nor a loaded config associated
+    with the room. Prospective players have to wait. If labels is not None,
+    they have to enter a valid label first.
 
 State 1 (ready):
-    open=True and a session or a config is associated with the room.
-    Prospective players don't wait.
+    open=True and a session or a loaded config (one in uproot.CONFIGS) is
+    associated with the room. Prospective players don't wait.
 
     If no session is associated with the room, one is created and associated.
 
@@ -31,6 +31,7 @@ every change to a room, sync() sets the room's event iff the room is ready.
 
 from typing import Any, TypeAlias
 
+import uproot as u
 import uproot.events as e
 from uproot.constraints import TOKEN_CHARS, return_or_raise, valid_token
 from uproot.storage import Admin
@@ -138,9 +139,10 @@ def validate(room: RoomType, label: str) -> bool:
 
 
 def ready(room: RoomType) -> bool:
-    """Whether prospective players proceed instead of waiting."""
+    """Whether prospective players proceed instead of waiting. A config that is
+    not loaded (e.g., removed from the project) cannot start a session."""
     return bool(room["open"]) and (
-        room["sname"] is not None or room["config"] is not None
+        room["sname"] is not None or room["config"] in u.CONFIGS
     )
 
 

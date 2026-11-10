@@ -10,7 +10,8 @@ After every operation, the abstract state must be unchanged (a rejected request)
 or reachable by at most K steps of the model's Step relation (transcribed
 below), and EventsOK, AssocOK, LabelsUnique and the exactness of the encoding
 (no "" config or sname, capacities are non-negative ints) must hold on the real
-state. Size: UPROOT_MODEL_SEEDS (default "1"; comma-separated), and
+state. Rooms may name a config that is not loaded, and restarts may load or
+unload one. Size: UPROOT_MODEL_SEEDS (default "1"; comma-separated), and
 UPROOT_MODEL_WALKS (default 50) walks of UPROOT_MODEL_STEPS (default 120) each.
 
 test_admission_cases replays admission cases computed by the Lean model (in
@@ -48,7 +49,9 @@ pytestmark = pytest.mark.skipif(
     reason="model tests are opt-in: set UPROOT_MODEL_TESTS=1",
 )
 
-CONFIG = "model-cfg"
+CONFIG = "model-cfg"  # always loaded
+EXTRA = "model-extra"  # loaded or not, may change at restarts
+UNLOADED = "model-unloaded"  # never loaded
 
 # The restart operation replays the room-relevant prefix of server.lifespan.
 LIFESPAN_PREFIX = """    with Admin() as admin:
@@ -70,7 +73,7 @@ async def fake_render(*args: Any, metadata: Any = None, **kwargs: Any) -> str:
 
 @pytest.fixture
 def model_env(monkeypatch):
-    monkeypatch.setitem(u.CONFIGS, CONFIG, [])
+    monkeypatch.setattr(u, "CONFIGS", u.CONFIGS | {CONFIG: []})  # a private copy
     monkeypatch.setitem(u.CONFIGS_EXTRA, CONFIG, {"settings": {}})
     monkeypatch.setattr(server3, "path2page", lambda path: path)
     monkeypatch.setattr(server3, "render", fake_render)
@@ -106,6 +109,7 @@ class World:
     sessions: frozenset
     sessroom: frozenset  # of (sname, roomname), for non-None entries
     events: frozenset  # roomnames whose event is set
+    configs: frozenset  # uproot.CONFIGS (fixed while a process runs)
 
     def room_map(self) -> dict:
         return dict(self.rooms)
@@ -114,17 +118,18 @@ class World:
         return dict(self.sessroom)
 
 
-def mk(rooms: dict, sessions: Any, sessroom: dict, events: Any) -> World:
+def mk(rooms: dict, sessions: Any, sessroom: dict, events: Any, configs: Any) -> World:
     return World(
         frozenset(rooms.items()),
         frozenset(sessions),
         frozenset((k, v) for k, v in sessroom.items() if v is not None),
         frozenset(events),
+        frozenset(configs),
     )
 
 
-def ready(room: Room) -> bool:
-    return bool(room.open) and (room.sname is not None or room.config is not None)
+def ready(room: Room, configs: frozenset) -> bool:
+    return bool(room.open) and (room.sname is not None or room.config in configs)
 
 
 def set_room(w: World, roomname: str, room: Room | None) -> World:
@@ -135,14 +140,14 @@ def set_room(w: World, roomname: str, room: Room | None) -> World:
     else:
         rooms[roomname] = room
 
-    return mk(rooms, w.sessions, w.sessroom_map(), w.events)
+    return mk(rooms, w.sessions, w.sessroom_map(), w.events, w.configs)
 
 
 def link(w: World, sname: str, roomname: str | None) -> World:
     sessroom = w.sessroom_map()
     sessroom[sname] = roomname
 
-    return mk(w.room_map(), w.sessions, sessroom, w.events)
+    return mk(w.room_map(), w.sessions, sessroom, w.events, w.configs)
 
 
 def link_opt(w: World, sname: str | None, roomname: str) -> World:
@@ -153,19 +158,19 @@ def new_session(w: World, sname: str) -> World:
     sessroom = w.sessroom_map()
     sessroom[sname] = None
 
-    return mk(w.room_map(), w.sessions | {sname}, sessroom, w.events)
+    return mk(w.room_map(), w.sessions | {sname}, sessroom, w.events, w.configs)
 
 
 def sync(w: World, roomname: str) -> World:
     room = w.room_map().get(roomname)
     events = set(w.events)
 
-    if room is not None and ready(room):
+    if room is not None and ready(room, w.configs):
         events.add(roomname)
     else:
         events.discard(roomname)
 
-    return mk(w.room_map(), w.sessions, w.sessroom_map(), events)
+    return mk(w.room_map(), w.sessions, w.sessroom_map(), events, w.configs)
 
 
 def available(w: World, sname: str, roomname: str) -> bool:
@@ -176,14 +181,14 @@ def available(w: World, sname: str, roomname: str) -> bool:
     )
 
 
-def restart(w: World, defaults: list, names: list) -> World:
+def restart(w: World, defaults: list, names: list, configs: frozenset) -> World:
     rooms = w.room_map()
 
-    for roomname, room in defaults:  # addDefaults, on fresh events
+    for roomname, room in defaults:  # addDefaults, on fresh events and configs
         if roomname not in rooms:
             rooms[roomname] = room
 
-    w = mk(rooms, w.sessions, w.sessroom_map(), ())
+    w = mk(rooms, w.sessions, w.sessroom_map(), (), configs)
 
     for roomname in names:  # syncAll
         w = sync(w, roomname)
@@ -227,7 +232,7 @@ def successors(w: World, post: World, restart_args: Any) -> list:
             out.append(("delete", sync(set_room(w, rn, None), rn)))
 
         for b in (False, True):
-            if not b or cur.sname is not None or cur.config is not None:
+            if not b or cur.sname is not None or cur.config in w.configs:
                 out.append(("setOpen", sync(set_room(w, rn, replace(cur, open=b)), rn)))
 
         caps = {cur.capacity} | (
@@ -244,19 +249,19 @@ def successors(w: World, post: World, restart_args: Any) -> list:
                     stored = link(set_room(new_session(w, sname), rn, room), sname, rn)
                     out.append(("sessionInRoom", sync(stored, rn)))
 
-                if ready(cur):
+                if ready(cur, w.configs):
                     room = replace(cur, sname=sname)
                     stored = link(set_room(new_session(w, sname), rn, room), sname, rn)
                     out.append(("joinCreates", stored))
 
     if restart_args is not None:
         defaults, names = restart_args
-        stored = restart(w, defaults, []).room_map()
+        stored = restart(w, defaults, [], post.configs).room_map()
 
         if all(room.sname is None for _, room in defaults) and all(
             rn in names for rn in stored
         ):
-            out.append(("restart", restart(w, defaults, names)))
+            out.append(("restart", restart(w, defaults, names, post.configs)))
 
     return out
 
@@ -315,7 +320,7 @@ def abstract(known: set) -> tuple[World, dict]:
     sessroom = {sname: session_room(sname) for sname in known | sessions}
     events = {rn for rn, event in e.ROOMS.items() if event.is_set()}
 
-    return mk(rooms, sessions, sessroom, events), raw
+    return mk(rooms, sessions, sessroom, events, u.CONFIGS), raw
 
 
 def violations(w: World, raw: dict) -> list[str]:
@@ -332,7 +337,7 @@ def violations(w: World, raw: dict) -> list[str]:
             errors.append(f"room {rn}: capacity {cap!r}")
 
     for rn in set(rooms) | set(w.events):  # EventsOK
-        if (rn in w.events) != (rn in rooms and ready(rooms[rn])):
+        if (rn in w.events) != (rn in rooms and ready(rooms[rn], w.configs)):
             errors.append(f"EventsOK fails at {rn}")
 
     for rn, room in rooms.items():  # AssocOK, both directions
@@ -366,7 +371,7 @@ def violations(w: World, raw: dict) -> list[str]:
 ROOMS = ["r1", "r2", "r3", "quick1"]
 LABELSETS = [None, [], ["a", "b"], ["a"], ["a", "a"], [""]]
 CAPS = [None, 0, 1, 2, 3, -1, 2.5, True, "3"]
-CONFIGS = [None, "", CONFIG]
+CONFIGS = [None, "", CONFIG, EXTRA, UNLOADED]
 JOINLABELS = [None, "", "a", "b", "c", "a b"]
 
 
@@ -437,7 +442,7 @@ class Walk:
             server2.new_room2(
                 request=None,
                 name=rng.choice(ROOMS),
-                config=rng.choice(["", " ", CONFIG]),
+                config=rng.choice(["", " ", CONFIG, EXTRA, UNLOADED]),
                 labels=rng.choice(["", "a\nb", "a\na", "c"]),
                 use_labels=rng.choice([False, True]),
                 capacity=rng.choice(["", "0", "2", "-1", "x"]),
@@ -472,7 +477,7 @@ class Walk:
             server2.update_room_settings(
                 request=None,
                 roomname=self.pick_room(),
-                config=rng.choice(["", CONFIG]),
+                config=rng.choice(["", CONFIG, EXTRA, UNLOADED]),
                 labels=rng.choice(["", "a\nb"]),
                 use_labels=rng.choice([False, True]),
                 capacity=rng.choice(["", "1", "-2"]),
@@ -600,14 +605,24 @@ class Walk:
         return [
             r.room(
                 rng.choice(ROOMS),
-                config=rng.choice([None, CONFIG]),
+                config=rng.choice([None, CONFIG, EXTRA, UNLOADED]),
                 open=rng.choice([False, True]),
             )
             for _ in range(rng.choice([0, 1, 2]))
         ]
 
+    def new_process(self) -> None:
+        """A new process: events.ROOMS is in-memory, and the project may now
+        load different configs."""
+        e.ROOMS.clear()
+
+        if self.rng.random() < 0.5:
+            if EXTRA in u.CONFIGS:
+                del u.CONFIGS[EXTRA]
+            else:
+                u.CONFIGS[EXTRA] = []
+
     def lifespan_prefix(self) -> list:
-        e.ROOMS.clear()  # a fresh process: events.ROOMS is in-memory
 
         with s.Admin() as admin:
             c.create_admin(admin)
@@ -625,6 +640,7 @@ class Walk:
 
     def restart(self) -> None:
         d.DEFAULT_ROOMS[:] = self.random_defaults()
+        self.new_process()
         names = self.lifespan_prefix()
         self.restart_args = (self.defaults_now(), names)
 
@@ -642,6 +658,8 @@ class Walk:
         bad["sname"] = self.rng.choice(snames)
         d.DEFAULT_ROOMS[:] = self.random_defaults() + [bad]
 
+        e.ROOMS.clear()
+
         with pytest.raises(ValueError):
             self.lifespan_prefix()
 
@@ -653,6 +671,7 @@ class Walk:
 
     def quick_room(self) -> None:  # CLI: create_quick_room, then the server starts
         d.DEFAULT_ROOMS[:] = self.random_defaults()
+        self.new_process()
         cli.create_quick_room(CONFIG, False)
         names = self.lifespan_prefix()
         self.restart_args = (self.defaults_now(), names)
@@ -696,7 +715,7 @@ def test_refinement(model_env, seed):
         reset()
         walk = Walk(rng)
         pre, raw = abstract(walk.known)
-        assert pre == mk({}, (), {}, ())
+        assert pre == mk({}, (), {}, (), u.CONFIGS)
         assert not violations(pre, raw)
         trace: list[Any] = []
 
@@ -758,7 +777,7 @@ def replay(client: TestClient, case: dict) -> tuple[str, list]:
 
         admin.rooms["lab"] = r.room(
             "lab",
-            config=case["config"] and CONFIG,
+            config={"cfg": CONFIG, "unknown": UNLOADED}.get(case["config"]),
             labels=case["labels"],
             capacity=case["capacity"],
             open=case["open"],
