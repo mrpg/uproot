@@ -5,7 +5,7 @@ Not run by default. Opt in with UPROOT_MODEL_TESTS=1, and set
 UPROOT_PAGE_CASES to the cases that the model computes (in uproot-proofs:
 lake exe page-cases > page-cases.jsonl), e.g.:
 
-    UPROOT_MODEL_TESTS=1 UPROOT_PAGE_CASES=page-cases.jsonl \\
+    UPROOT_DATABASE=sqlite3 UPROOT_SQLITE3=:memory: UPROOT_MODEL_TESTS=1 UPROOT_PAGE_CASES=page-cases.jsonl \\
         uv run pytest tests/test_pages_model.py
 
 UPROOT_FORMAL_SHARD=k/n replays every n-th case starting with the k-th.
@@ -16,10 +16,9 @@ server1.show_page and compares what happens (hook calls, the start, saves, and
 the page displayed, in order) and the player afterwards (position, started, the
 hooks that ran where, and deadlines) with what the model computed.
 
-A hook that moves the player does so through another Storage instance:
-move_to_page() to a page, or show_page = n to the end. (move_to_end() would
-run the end's before_always_once at once, while the model runs it when the
-player enters the end, which only changes the order of events.)
+A hook that moves the player uses move_to_page() or move_to_end() through
+another Storage instance. Saved ordinary values, cleared optional fields,
+and preservation of manual and unrelated fields are compared as well.
 """
 
 import json
@@ -38,7 +37,7 @@ import uproot.types as t
 from uproot import pages, server1
 from uproot.fields import IntegerField, StringField
 from uproot.pages import page2path
-from uproot.smithereens import move_to_page
+from uproot.smithereens import move_to_end, move_to_page
 
 pytestmark = pytest.mark.skipif(
     not os.getenv("UPROOT_MODEL_TESTS"),
@@ -72,7 +71,7 @@ def move(player: Any, target: int, classes: list[type[t.Page]]) -> None:
     with s.Player(*t.identify(player)) as other:
         if 0 <= other.show_page < target:
             if target == len(classes):
-                other.show_page = target
+                move_to_end(other, reload_=False)
             else:
                 move_to_page(other, classes[target], reload_=False)
 
@@ -184,7 +183,10 @@ def form_data(case: dict[str, Any], player: Any) -> dict[str, str]:
         form = case["pages"][position]["form"]
 
         if form is not None:
-            data["a"] = "7" if form["valid"] else "x"
+            if not form["valid"]:
+                data["a"] = "x"
+            elif spec["value"] is not None:
+                data["a"] = str(spec["value"])
 
             if form["stealth"]:
                 data["s"] = "ok"
@@ -209,6 +211,7 @@ def state(player: Any, npages: int) -> dict[str, Any]:
         "started": player.started,
         "ran": sorted(ran),
         "deadlines": sorted(deadlines),
+        "values": {name: player.get(name) for name in ("a", "s", "untouched")},
     }
 
 
@@ -243,6 +246,8 @@ async def replay(index: int, case: dict[str, Any], env: Any) -> tuple[Any, Any]:
         player._uproot_timeouts_until = {
             str(p): float(deadline) for p, deadline in initial["deadlines"]
         }
+        for name, value in initial["values"].items():
+            setattr(player, name, value)
         request = request_for(case)
 
         if isinstance(request, PostRequest):

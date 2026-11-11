@@ -23,6 +23,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 import uproot as u
 import uproot.core as c
 import uproot.deployment as d
+import uproot.events as e
 import uproot.jobs as j
 import uproot.rooms as ur
 import uproot.types as t
@@ -204,6 +205,7 @@ async def ws(
         room = admin.rooms[roomname]
 
     needs_label = room["labels"] is not None
+    signal = e.ROOMS[roomname]
 
     if label == "" and not needs_label:
         existing_labels = [pid.uname for pid in u.who_online(sname=f"^{roomname}")]
@@ -224,6 +226,7 @@ async def ws(
         },
         "subscribe_to_room": {
             "roomname": roomname,
+            "signal": signal,
         },
     }
 
@@ -280,19 +283,26 @@ async def ws(
                         )
                     # Otherwise ignore messages (for now)
                 elif fname == "subscribe_to_room":
-                    await websocket.send_bytes(
+                    # Unlike a binary frame, a text frame is handled synchronously,
+                    # so the client sees RoomDeleted before the close.
+                    await websocket.send_text(
                         orjson.dumps(
                             {
                                 "kind": "event",
                                 "payload": {
-                                    "event": "RoomStarted",
+                                    "event": "RoomStarted" if result else "RoomDeleted",
                                     "detail": {
                                         "label": local_context,
                                     },
                                 },
                             }
-                        )
+                        ).decode()
                     )
+                    if not result:
+                        u.set_offline(pid)
+                        cleanup_tasks()
+                        await websocket.close()
+                        return
                 else:
                     raise NotImplementedError(fname)
             except WebSocketDisconnect:

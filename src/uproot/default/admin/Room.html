@@ -270,6 +270,10 @@ Room
         uproot.reload();
     });
 
+    uproot.onCustomEvent("RoomDeleted", () => {
+        window.location.href = "../../rooms/";
+    });
+
     uproot.onCustomEvent("Attended", (event) => {
         const label = event?.detail?.uname;
         if (!label) return;

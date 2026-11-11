@@ -724,6 +724,9 @@
 ? 'This page will advance automatically.'
 : 'Esta página avanzará automáticamente.'
 
+? 'This room is no longer available.'
+: 'Esta sala ya no está disponible.'
+
 ? 'This room’s capacity is infinite.'
 : 'La capacidad de esta sala es infinita.'
 

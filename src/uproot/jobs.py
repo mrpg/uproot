@@ -58,9 +58,13 @@ async def subscribe_to_adminchat(
     return cast(dict[str, Any], await queue.get())
 
 
-async def subscribe_to_room(roomname: str) -> bool:
-    await e.ROOMS[roomname].wait()
-    return True
+def subscribe_to_room(
+    roomname: str, signal: e.RoomEvent | None = None
+) -> Coroutine[Any, Any, bool]:
+    """True on readiness, False when that room lifetime is deleted."""
+    # Capture the lifetime before scheduling the coroutine: deletion/recreation
+    # must not attach an old subscription to a new room of the same name.
+    return (e.ROOMS[roomname] if signal is None else signal).wait_ready()
 
 
 BACKGROUND_TASKS: set[asyncio.Task[Any]] = set()

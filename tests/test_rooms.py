@@ -4,6 +4,7 @@ import orjson
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 import uproot as u
 import uproot.core as c
@@ -21,6 +22,7 @@ CONFIG = "test-rooms"
 def setup(**rooms: dict) -> str:
     d.DATABASE.reset()
     d.STORE.load()  # DATABASE.reset() clears the driver, not the store's cache
+    e.ROOMS.clear()
     u.CONFIGS[CONFIG] = []
     u.CONFIGS_EXTRA[CONFIG] = {"settings": {}}
 
@@ -199,7 +201,7 @@ def test_waiting_player_is_released_and_admitted_on_reopen():
         f"{d.ROOT}/roomws/lab/?label=waiting1", headers={"origin": "http://testserver"}
     ) as websocket:
         websocket.portal.call(room_ops.set_room_open, "lab", True)
-        message = orjson.loads(websocket.receive_bytes())
+        message = orjson.loads(websocket.receive_text())
 
     assert message["payload"]["event"] == "RoomStarted"
     assert message["payload"]["detail"]["label"] == "waiting1"
@@ -210,6 +212,51 @@ def test_waiting_player_is_released_and_admitted_on_reopen():
 
     assert response.status_code == 303
     assert response.headers["location"].startswith(f"{d.ROOT}/p/{sname}/")
+
+
+@pytest.mark.parametrize("started", [False, True])
+async def test_deletion_terminates_only_the_old_room_lifetime(started):
+    setup(lab={})
+    old_signal = e.ROOMS["lab"]
+    subscription = j.subscribe_to_room("lab")
+    if started:
+        subscription = asyncio.create_task(subscription)
+        await asyncio.sleep(0)
+    await room_ops.delete_room("lab")
+    assert not old_signal.is_set()
+
+    with s.Admin() as admin:
+        admin.rooms["lab"] = r.room("lab", config=CONFIG, open=True)
+    r.sync("lab")
+    assert e.ROOMS["lab"] is not old_signal
+    assert await subscription is False
+    assert await j.subscribe_to_room("lab", signal=old_signal) is False
+    assert await j.subscribe_to_room("lab") is True
+
+
+@pytest.mark.parametrize("during_accept", [False, True])
+def test_deletion_notifies_and_closes_waiting_websocket(monkeypatch, during_accept):
+    setup(lab={})
+    app = FastAPI()
+    app.include_router(server3.router)
+    if during_accept:
+        accept = WebSocket.accept
+
+        async def accept_then_delete(websocket, *args, **kwargs):
+            await accept(websocket, *args, **kwargs)
+            await room_ops.delete_room("lab")
+
+        monkeypatch.setattr(WebSocket, "accept", accept_then_delete)
+    with TestClient(app).websocket_connect(
+        f"{d.ROOT}/roomws/lab/?label=waiting1", headers={"origin": "http://testserver"}
+    ) as websocket:
+        if not during_accept:
+            websocket.portal.call(room_ops.delete_room, "lab")
+        message = orjson.loads(websocket.receive_text())
+        assert message["payload"]["event"] == "RoomDeleted"
+        assert message["payload"]["detail"]["label"] == "waiting1"
+        with pytest.raises(WebSocketDisconnect):
+            websocket.receive_bytes()
 
 
 @pytest.mark.parametrize("capacity", [-1, 2.5, True, "3"])

@@ -391,7 +391,10 @@ def transition_to_page(
 def transition_to_end(player: Storage, reload_: bool = True) -> None:
     with player:
         player.show_page = len(player.page_order)
-        c.reach_end(player)
+        # In a page request, finish the current phase before entering the end.
+        # External moves still finish immediately, even if the player never returns.
+        if not c.in_page_request(player):
+            c.reach_end(player)
 
     if reload_:
         reload(player)

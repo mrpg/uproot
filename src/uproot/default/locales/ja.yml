@@ -724,6 +724,9 @@
 ? 'This page will advance automatically.'
 : 'このページは自動的に進みます。'
 
+? 'This room is no longer available.'
+: 'このルームは利用できなくなりました。'
+
 ? 'This room’s capacity is infinite.'
 : 'このルームの定員は無制限です。'
 

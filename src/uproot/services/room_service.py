@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from sortedcontainers import SortedDict
 
 import uproot.deployment as d
+import uproot.events as e
 import uproot.rooms as r
 import uproot.storage as s
 import uproot.types as t
@@ -143,3 +144,4 @@ async def delete_room(roomname: str) -> None:
         del admin.rooms[roomname]
 
     r.sync(roomname)
+    e.delete_room(roomname)

@@ -18,7 +18,7 @@ from time import time
 from types import MappingProxyType
 from typing import Any, cast
 from urllib.parse import quote
-from weakref import WeakValueDictionary
+from weakref import WeakValueDictionary, ref
 
 import anyio
 import orjson
@@ -50,7 +50,7 @@ import uproot.services.session_service as session_ops
 import uproot.types as t
 from uproot import chat, i18n
 from uproot.constraints import valid_token
-from uproot.core import find_free_slot, starts_segment
+from uproot.core import PAGE_REQUEST, find_free_slot, reach_end, starts_segment
 from uproot.pages import (
     path2page,
     render,
@@ -118,8 +118,8 @@ class Display:
 # uproot-proofs, whose names (call, once, visit, leave, ...) these functions
 # share. A request ends by displaying the page at the player's position:
 #
-# 1. Entering. A position is entered whenever navigation reaches it: early(),
-#    then before_always_once. Then show() decides. A page that is not shown is
+# 1. Entering. Entry runs early(), then before_always_once. For forward
+#    navigation and loading, show() then decides. A page that is not shown is
 #    skipped (after_always_once, then the next position is entered); a shown
 #    page is displayed (before_once, then the page). End.html is always shown.
 # 2. Once. before_always_once, before_once, after_once and after_always_once
@@ -128,12 +128,13 @@ class Display:
 #    page runs it only if it has never run there.
 # 3. Forms. Only the form of the page at the player's position, with a valid
 #    token, can be submitted. Any other request is handled as loading the page.
+#    Hooks retain the actual request, including its HTTP method.
 # 4. Leaving. An accepted submission leaves the page if may_proceed allows it.
 # 5. Timeouts. After a page's deadline, every request is a timed-out
 #    submission, also Back.
 # 6. Back leads to the nearest earlier page that is shown, without crossing the
 #    start of an app, a round or an iteration of Repeat. Otherwise, the player
-#    stays.
+#    stays. Selection asks show() before entry and does not ask it again.
 # 7. Moves. A hook may move the player (move_to_page, move_to_end). The hooks of
 #    the current step finish, then the player enters the target.
 
@@ -586,7 +587,21 @@ async def show_page(
     player: Storage,
     uauth: str | None = None,
 ) -> str:
-    display = await respond(request, player)
+    task = asyncio.current_task()
+    assert task is not None
+    token = PAGE_REQUEST.set((cast(t.PlayerIdentifier, t.identify(player)), ref(task)))
+    try:
+        display = await respond(request, player)
+    except BaseException:
+        # A failed request cannot enter the end that a hook moved the player to
+        player.refresh("show_page", "page_order")
+
+        if player.show_page == len(player.page_order):
+            reach_end(player)
+
+        raise
+    finally:
+        PAGE_REQUEST.reset(token)
     metadata = {}
 
     u.set_online(cast(t.PlayerIdentifier, t.identify(player)))

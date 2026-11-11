@@ -544,7 +544,7 @@ async def ws(websocket: WebSocket, uauth: str | None = Cookie(None)) -> None:
                             {
                                 "kind": "event",
                                 "payload": {
-                                    "event": "RoomStarted",
+                                    "event": "RoomStarted" if result else "RoomDeleted",
                                     "detail": {},
                                 },
                             }

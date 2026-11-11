@@ -5,18 +5,38 @@
 # the Storage instance is "below" or "a member of" the entity being
 # created, initialized, and so on.
 
+import asyncio
 import importlib.metadata
 import inspect
 import sys
 from collections.abc import Iterable, Sequence
+from contextvars import ContextVar
 from decimal import Decimal
 from typing import Any, cast
+from weakref import ReferenceType
 
 import uproot as u
 import uproot.queues as q
 import uproot.storage as s
 import uproot.types as t
 from uproot.constraints import ensure
+
+# Background tasks inherit context; do not retain a completed request's task.
+PAGE_REQUEST: ContextVar[
+    tuple[t.PlayerIdentifier, ReferenceType[asyncio.Task[Any]]] | None
+] = ContextVar("uproot_page_request", default=None)
+
+
+def in_page_request(player: s.Storage) -> bool:
+    """Whether this task is handling this player's page, also through another Storage."""
+    active = PAGE_REQUEST.get()
+    if active is None or active[0] != t.identify(player):
+        return False
+    try:
+        owner = active[1]()
+        return owner is not None and owner is asyncio.current_task()
+    except RuntimeError:  # A copied context used outside an event loop
+        return False
 
 
 def create_admin(admin: s.Storage) -> None:

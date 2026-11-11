@@ -9,7 +9,26 @@ from uproot.types import BoundedPulse, PlayerIdentifier, Sessionname, Value
 ATTENDANCE: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
 FIELDCHANGE: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
 ADMINCHAT: defaultdict[Sessionname, BoundedPulse] = defaultdict(BoundedPulse)
-ROOMS: defaultdict[str, Event] = defaultdict(Event)
+
+
+class RoomEvent(Event):
+    """Readiness of one room lifetime; deletion also terminates its waiters."""
+
+    deleted: bool = False
+
+    def delete(self) -> None:
+        self.deleted = True
+        # Wake existing waiters, while keeping the readiness flag clear.
+        self.set()
+        self.clear()
+
+    async def wait_ready(self) -> bool:
+        if not self.deleted:
+            await super().wait()
+        return not self.deleted
+
+
+ROOMS: defaultdict[str, RoomEvent] = defaultdict(RoomEvent)
 
 
 def set_attendance(pid: PlayerIdentifier) -> None:
@@ -33,3 +52,9 @@ def set_room(roomname: str) -> None:
 
 def clear_room(roomname: str) -> None:
     ROOMS[roomname].clear()
+
+
+def delete_room(roomname: str) -> None:
+    signal = ROOMS.pop(roomname, None)
+    if signal is not None:
+        signal.delete()

@@ -1425,7 +1425,7 @@ window.uproot = {
         };
 
         const showConnectionLostModal = () => {
-            if (isPageUnloading) return;
+            if (isPageUnloading || this.ws?.shouldReconnect === false) return;
 
             const modal = ensureConnectionModal();
 

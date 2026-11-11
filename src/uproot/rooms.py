@@ -25,8 +25,9 @@ State 1 (ready):
     - capacity=None and labels is None or empty:
         a 'freejoin' room adds players to sessions.
 
-Players waiting in a room are released exactly when it becomes ready: after
-every change to a room, sync() sets the room's event iff the room is ready.
+After each change, sync() sets the readiness event iff the room is ready.
+Awakened clients recheck readiness when joining. Deletion terminates existing
+subscriptions separately; a new room with the same name has a fresh signal.
 """
 
 from typing import Any, TypeAlias

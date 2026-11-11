@@ -1,6 +1,7 @@
 """Navigation as specified in uproot-proofs (Pages.lean): Back, timeouts, moves
 by hooks, and requests that do not carry the current page's form."""
 
+import asyncio
 import time
 
 import pytest
@@ -16,7 +17,7 @@ from uproot.fields import IntegerField
 from uproot.pages import page2path
 from uproot.server1 import show_page
 from uproot.services import player_service as ps
-from uproot.smithereens import Rounds, move_to_page
+from uproot.smithereens import Rounds, move_to_end, move_to_page
 
 LOG: list = []
 
@@ -183,6 +184,132 @@ class Target(t.Page):
     @classmethod
     def before_always_once(page, player):
         LOG.append("Target.before_always_once")
+
+
+@pytest.mark.parametrize("hook", ["early", "after_once"])
+async def test_move_to_end_finishes_current_phase_before_cleanup(setup, hook):
+    def move(player):
+        with s.Player(*t.identify(player)) as other:
+            move_to_end(other, reload_=False)
+
+    def observe(player):
+        LOG.append(("old phase", player.app, player.round))
+
+    class Moving(t.Page):
+        @classmethod
+        def early(page, player, request):
+            if hook == "early":
+                move(player)
+
+        @classmethod
+        def before_always_once(page, player):
+            if hook == "early":
+                observe(player)
+
+        @classmethod
+        def after_once(page, player):
+            move(player)
+
+        @classmethod
+        def after_always_once(page, player):
+            observe(player)
+
+    pid = setup([Moving], 0, app="test", block="a", round=2, round_nested=[2])
+    data = None if hook == "early" else {"_uproot_from": "0", "_uproot_csrf": csrf(pid)}
+    assert await request(pid, data) == "End"
+    assert ("old phase", "test", 2) in LOG
+    with s.Player(*pid) as player:
+        assert player.app is None
+        assert not hasattr(player, "round")
+        assert not c.in_page_request(player)
+
+
+async def test_spawned_task_does_not_inherit_end_deferral(setup):
+    class Moving(t.Page):
+        @classmethod
+        async def early(page, player, request):
+            async def external_move():
+                with s.Player(*t.identify(player)) as other:
+                    move_to_end(other, reload_=False)
+                    assert other.app is None
+
+            await asyncio.create_task(external_move())
+
+    pid = setup([Moving], 0, app="test")
+    assert await request(pid) == "End"
+
+
+async def test_failed_request_restores_end_cleanup_context(setup):
+    class Failing(t.Page):
+        @classmethod
+        def early(page, player, request):
+            raise ValueError("failed hook")
+
+    pid = setup([Failing], 0, app="test")
+    with pytest.raises(ValueError, match="failed hook"):
+        await request(pid)
+    with s.Player(*pid) as player:
+        assert not c.in_page_request(player)
+        move_to_end(player, reload_=False)
+        assert player.app is None
+
+
+async def test_failed_request_still_reaches_deferred_end(setup):
+    class Moving(t.Page):
+        @classmethod
+        def early(page, player, request):
+            with s.Player(*t.identify(player)) as other:
+                move_to_end(other, reload_=False)
+            raise ValueError("after move")
+
+    pid = setup([Moving], 0, app="test", block="a", round=2, round_nested=[2])
+    with pytest.raises(ValueError, match="after move"):
+        await request(pid)
+    with s.Player(*pid) as player:
+        assert player.show_page == len(player.page_order)
+        assert player.app is None
+        assert not hasattr(player, "round")
+
+
+@pytest.mark.parametrize("foreign", [False, True])
+async def test_loading_retains_actual_request_for_early(setup, foreign):
+    class Aware(t.Page):
+        @classmethod
+        def fields(page, player):
+            return {"answer": IntegerField(label="Answer")}
+
+        @classmethod
+        def early(page, player, request):
+            player.method = request.method
+
+    pid = setup([Aware], 0, answer=13)
+    data = {"_uproot_from": "1", "answer": "99"} if foreign else None
+    assert await request(pid, data) == "Aware"
+    with s.Player(*pid) as player:
+        assert player.method == ("POST" if foreign else "GET")
+        assert player.answer == 13
+
+
+async def test_back_selects_before_entry_without_rechecking_show(setup):
+    class Prior(t.Page):
+        @classmethod
+        def show(page, player):
+            LOG.append("select")
+            return player.visible
+
+        @classmethod
+        def early(page, player, request):
+            LOG.append("enter")
+            player.visible = False
+
+    pid = setup([Prior, First], 1, visible=True)
+    assert (
+        await request(pid, {"_uproot_from": "back-1", "_uproot_csrf": csrf(pid)})
+        == "Prior"
+    )
+    assert LOG[:2] == ["select", "enter"]
+    with s.Player(*pid) as player:
+        assert not player.visible
 
 
 async def test_move_from_skipped_page_is_kept(setup):

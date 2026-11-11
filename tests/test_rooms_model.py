@@ -1,9 +1,9 @@
-"""Check uproot's rooms against the Lean model in uproot-formal
-(UprootFormal/Rooms.lean and UprootFormal/Labels.lean).
+"""Check uproot's rooms against the Lean model in uproot-proofs
+(UprootProofs/Rooms.lean and UprootProofs/Labels.lean).
 
 Not run by default. Opt in with UPROOT_MODEL_TESTS=1, e.g.:
 
-    UPROOT_MODEL_TESTS=1 uv run pytest tests/test_rooms_model.py
+    UPROOT_DATABASE=sqlite3 UPROOT_SQLITE3=:memory: UPROOT_MODEL_TESTS=1 uv run pytest tests/test_rooms_model.py
 
 test_refinement runs random adversarial walks over the real room handlers.
 After every operation, the abstract state must be unchanged (a rejected request)
@@ -15,7 +15,7 @@ unload one. Size: UPROOT_MODEL_SEEDS (default "1"; comma-separated), and
 UPROOT_MODEL_WALKS (default 50) walks of UPROOT_MODEL_STEPS (default 120) each.
 
 test_admission_cases replays admission cases computed by the Lean model (in
-uproot-formal: lake exe room-cases > room-cases.jsonl) through
+uproot-proofs: lake exe room-cases > room-cases.jsonl) through
 POST /room/{roomname}/. Set UPROOT_FORMAL_CASES to that file;
 UPROOT_FORMAL_SHARD=k/n replays every n-th case starting with the k-th.
 """

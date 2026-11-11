@@ -83,18 +83,25 @@ Please wait
 
 {% else %}
 
+<div id="room-waiting">
 <p>
     {% translate %}
     This page will advance automatically.
     {% endtranslate %}
 </p>
-
 <p>
     <b>
         {% translate %}
         Keep this page open and watch it at all times.
         {% endtranslate %}
     </b>
+</p>
+</div>
+
+<p id="room-deleted" class="alert alert-info" role="status" hidden>
+    {% translate %}
+    This room is no longer available.
+    {% endtranslate %}
 </p>
 
 <form id="label-form" method="post" onsubmit="return uproot.beginSubmit(this)">
@@ -133,6 +140,12 @@ Please wait
         });
 
         uproot.onCustomEvent("RoomStarted", setLabelAndSubmit);
+        uproot.onCustomEvent("RoomDeleted", () => {
+            uproot.ws.close();
+            window.clearInterval(uproot.keepAliveInterval);
+            I("room-waiting").hidden = true;
+            I("room-deleted").hidden = false;
+        });
     }
 </script>
 
