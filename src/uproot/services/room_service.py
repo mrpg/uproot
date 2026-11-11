@@ -73,7 +73,7 @@ async def disassociate(roomname: str, sname: t.Sessionname) -> None:
     room_exists(roomname, False)
 
     with s.Admin() as admin:
-        if admin.rooms[roomname]["sname"] != sname:
+        if sname is None or admin.rooms[roomname]["sname"] != sname:
             raise ValueError("Session is not associated with this room")
 
         admin.rooms[roomname]["sname"] = None

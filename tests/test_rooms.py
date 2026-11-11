@@ -20,6 +20,7 @@ CONFIG = "test-rooms"
 
 def setup(**rooms: dict) -> str:
     d.DATABASE.reset()
+    d.STORE.load()  # DATABASE.reset() clears the driver, not the store's cache
     u.CONFIGS[CONFIG] = []
     u.CONFIGS_EXTRA[CONFIG] = {"settings": {}}
 
@@ -270,6 +271,28 @@ def test_disassociate_requires_the_rooms_own_session():
 
     with s.Session(other) as session:
         assert session.room == "other"
+
+
+def test_disassociate_rejects_null_without_touching_session_named_none():
+    setup(lab={}, other={})
+
+    with s.Admin() as admin:
+        c.create_session(admin, CONFIG, sname="None")
+
+    asyncio.run(server4.update_room("other", server4.RoomUpdate(sname="None"), None))
+
+    with pytest.raises(ValueError, match="Session is not associated with this room"):
+        asyncio.run(server2.FUNS["disassociate"]("lab", None))
+
+    with s.Admin() as admin:
+        assert admin.rooms["lab"]["sname"] is None
+        assert admin.rooms["other"]["sname"] == "None"
+
+    with s.Session("None") as session:
+        assert session.room == "other"
+
+    assert not released("lab")
+    assert released("other")
 
 
 def new_session_in_room_form(**kwargs):

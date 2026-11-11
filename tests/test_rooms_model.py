@@ -410,7 +410,9 @@ class Walk:
         return self.rng.choice(ROOMS)
 
     def new_sname(self) -> str:
-        sname = self.rng.choice(["", "", f"s{self.rng.randrange(10**6)}", "ghost", " "])
+        sname = self.rng.choice(
+            ["", "", f"s{self.rng.randrange(10**6)}", "ghost", "None", " "]
+        )
         self.known.add(sname)
 
         return sname
