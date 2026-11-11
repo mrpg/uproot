@@ -937,7 +937,7 @@ async def validate(
     return form, not errors, errors, {}
 
 
-def verify_csrf(page: type[Page], player: Storage, formdata: "FormData") -> bool:
+def verify_csrf(player: Storage, formdata: "FormData") -> bool:
     supplied = formdata.get("_uproot_csrf")
     expected = f"{player._uproot_session}+{player.name}+{player._uproot_key}"
 

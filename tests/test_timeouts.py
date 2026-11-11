@@ -11,6 +11,9 @@ class FakePlayer:
         self._uproot_timeouts_until = {"0": deadline}
         self.may_proceed_calls = 0
 
+    def flush(self) -> None:
+        pass
+
     def refresh(self, *fields: str) -> None:
         pass
 

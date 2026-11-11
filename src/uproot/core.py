@@ -394,6 +394,14 @@ def make_start_app(appname: str) -> type[t.InternalPage]:
     return StartApp
 
 
+def starts_segment(path: str) -> bool:
+    """Whether the page at path starts an app, a round or an iteration of
+    Repeat. Going back (Back, reverting) never crosses such a page: its hooks do
+    not run in reverse, so player.app and player.round would stay ahead of the
+    page that the player goes back to."""
+    return path.endswith("/#StartApp") or path in ("#RoundStart", "#RepeatStart")
+
+
 def reach_end(player: s.Storage) -> None:
     """Run the End page's hook for a player who was put at the end directly
     (e.g., by an admin) instead of navigating there. The hook cannot wait until

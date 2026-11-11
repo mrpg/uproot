@@ -49,8 +49,8 @@ import uproot.services.room_service as room_ops
 import uproot.services.session_service as session_ops
 import uproot.types as t
 from uproot import chat, i18n
-from uproot.constraints import ensure, valid_token
-from uproot.core import find_free_slot
+from uproot.constraints import valid_token
+from uproot.core import find_free_slot, starts_segment
 from uproot.pages import (
     path2page,
     render,
@@ -89,33 +89,102 @@ def page_lock(sname: t.Sessionname, uname: str) -> asyncio.Lock:
     return lock
 
 
-@dataclass
-class PageTransitionState:
-    original_show_page: int
-    direction: int = 1  # 1 for forward, -1 for backward
-    proceed: bool = False
-    timeout_fired: bool = False
+# How hooks that a page does not define behave (default_return)
+DEFAULTS: dict[str, bool] = {"show": True, "may_proceed": True, "allow_back": False}
 
-    @property
-    def forward(self) -> bool:
-        return self.direction == 1
 
-    def go_back(self) -> None:
-        self.direction = -1
-        self.proceed = True
+@dataclass(frozen=True)
+class Shown:
+    """How a displayed page shows its form: fresh (the default), or with the
+    submitted values and the errors found in them, if any."""
 
-    def route_was_requested(self, player: Storage) -> bool:
-        return bool(player.show_page != self.original_show_page)
+    formdata: Any = None
+    custom_errors: list[str] | None = None
+    field_errors: dict[str, list[str]] | None = None
 
-    def first_forward_candidate(self, player: Storage) -> int:
-        if self.route_was_requested(player):
-            return cast(int, player.show_page)
 
-        return cast(int, player.show_page + 1)
+FRESH = Shown()
+
+
+@dataclass(frozen=True)
+class Display:
+    """The page that a request displays, and how it shows its form."""
+
+    page: type[t.Page]
+    shown: Shown = FRESH
+
+
+# The participant-facing state machine. Its specification is Pages.lean in
+# uproot-proofs, whose names (call, once, visit, leave, ...) these functions
+# share. A request ends by displaying the page at the player's position:
+#
+# 1. Entering. A position is entered whenever navigation reaches it: early(),
+#    then before_always_once. Then show() decides. A page that is not shown is
+#    skipped (after_always_once, then the next position is entered); a shown
+#    page is displayed (before_once, then the page). End.html is always shown.
+# 2. Once. before_always_once, before_once, after_once and after_always_once
+#    run the first time their occasion arises at a position, always, but only
+#    once. early() runs whenever navigation reaches a position, but loading the
+#    page runs it only if it has never run there.
+# 3. Forms. Only the form of the page at the player's position, with a valid
+#    token, can be submitted. Any other request is handled as loading the page.
+# 4. Leaving. An accepted submission leaves the page if may_proceed allows it.
+# 5. Timeouts. After a page's deadline, every request is a timed-out
+#    submission, also Back.
+# 6. Back leads to the nearest earlier page that is shown, without crossing the
+#    start of an app, a round or an iteration of Repeat. Otherwise, the player
+#    stays.
+# 7. Moves. A hook may move the player (move_to_page, move_to_end). The hooks of
+#    the current step finish, then the player enters the target.
+
+
+def page_at(player: Storage, position: int) -> type[t.Page]:
+    return path2page(show2path(player.page_order, position))
 
 
 def current_page(player: Storage) -> type[t.Page]:
-    return path2page(show2path(player.page_order, player.show_page))
+    return page_at(player, player.show_page)
+
+
+async def call(page: type[t.Page], hook: str, player: Storage, **kwargs: Any) -> Any:
+    """Run a hook of page, if page defines it. Flush in-place changes before
+    refreshing moves made through another Storage instance."""
+    result = await ensure_awaitable(
+        optional_call,
+        page,
+        hook,
+        default_return=DEFAULTS.get(hook),
+        player=player,
+        **kwargs,
+    )
+    player.flush()
+    player.refresh("show_page", "page_order")
+
+    return result
+
+
+async def once(
+    page: type[t.Page],
+    hook: str,
+    player: Storage,
+    position: int,
+    *,
+    again: bool = False,
+    **kwargs: Any,
+) -> None:
+    """Run a hook of page if it has not run at position yet, or again."""
+    await ensure_awaitable(
+        optional_call_once,
+        page,
+        hook,
+        storage=player,
+        show_page=position,
+        rerun=again,
+        player=player,
+        **kwargs,
+    )
+    player.flush()
+    player.refresh("show_page", "page_order")
 
 
 async def enter_page(
@@ -126,127 +195,147 @@ async def enter_page(
     *,
     rerun: bool,
 ) -> None:
-    """Run what precedes show() on a page: early(), then before_always_once.
-    Forward navigation runs early() whenever it passes the page (rerun=True).
-    Otherwise, e.g., when a player loads the page, it only runs if it has not
-    run there before."""
-    await ensure_awaitable(
-        optional_call_once,
-        page,
-        "early",
-        storage=player,
-        show_page=show_page,
-        rerun=rerun,
-        player=player,
-        request=request,
-    )
-    await ensure_awaitable(
-        optional_call_once,
-        page,
-        "before_always_once",
-        storage=player,
-        show_page=show_page,
-        player=player,
-    )
+    """Enter the page at position show_page: early(), then before_always_once.
+    rerun: run early() even if it has run there before (navigation)."""
+    await once(page, "early", player, show_page, again=rerun, request=request)
+    await once(page, "before_always_once", player, show_page)
 
 
-async def advance_to_next_visible_page(
+async def visit_position(
     request: Request,
     player: Storage,
-    state: PageTransitionState,
-) -> type[t.Page]:
-    if state.forward:
-        candidate = state.first_forward_candidate(player)
+    position: int,
+    again: bool,
+    shown: Shown | None,
+) -> tuple[type[t.Page], int | None]:
+    """One position of visit(): its page, and where to go on (None if the page
+    is to be displayed)."""
+    end = len(player.page_order)
 
-        while candidate <= len(player.page_order):
-            page = path2page(show2path(player.page_order, candidate))
+    if position >= end:
+        player.show_page = end
+        page = page_at(player, end)
+        await enter_page(request, page, player, end, rerun=again)
+        await once(page, "before_once", player, end)
+
+        return page, None
+
+    player.show_page = position
+    page = page_at(player, position)
+    await enter_page(request, page, player, position, rerun=again)
+
+    if player.show_page != position:
+        return page, player.show_page
+
+    is_shown = shown is not None or bool(await call(page, "show", player))
+
+    if player.show_page != position:
+        return page, player.show_page
+
+    if is_shown:
+        await once(page, "before_once", player, position)
+
+        return page, None if player.show_page == position else player.show_page
+
+    await once(page, "after_always_once", player, position)
+
+    return page, position + 1 if player.show_page == position else player.show_page
+
+
+async def visit(
+    request: Request,
+    player: Storage,
+    position: int,
+    *,
+    again: bool,
+    shown: Shown | None = None,
+) -> Display:
+    """Enter position and go on from there until a page is displayed. again:
+    run early() even if it has run before (navigation, as opposed to loading the
+    page). shown: display position with this form, without asking show()
+    (staying, or going back, which asked)."""
+    while True:
+        page, next_position = await visit_position(
+            request, player, position, again, shown
+        )
+
+        if next_position is None:
+            return Display(page, shown or FRESH)
+
+        position, again, shown = next_position, True, None
+
+
+async def leave(
+    request: Request, player: Storage, position: int, page: type[t.Page]
+) -> Display:
+    """Leave position forward: after_once, after_always_once, then enter the
+    next position, or the one a hook moved the player to."""
+    await once(page, "after_once", player, position)
+    await once(page, "after_always_once", player, position)
+
+    if player.show_page != position:
+        return await visit(request, player, player.show_page, again=True)
+
+    return await visit(request, player, position + 1, again=True)
+
+
+async def proceed(
+    request: Request, player: Storage, position: int, page: type[t.Page]
+) -> Display:
+    """Leave position forward, unless it is the end."""
+    if position < len(player.page_order):
+        return await leave(request, player, position, page)
+
+    return await visit(request, player, position, again=False, shown=FRESH)
+
+
+async def load(request: Request, player: Storage, position: int) -> Display:
+    """Load the page at position, unless a hook moved the player."""
+    if player.show_page != position:
+        return await visit(request, player, player.show_page, again=True)
+
+    return await visit(request, player, position, again=False)
+
+
+async def stay(
+    request: Request, player: Storage, position: int, shown: Shown
+) -> Display:
+    """Stay at position and display it with shown, unless a hook moved the
+    player."""
+    if player.show_page != position:
+        return await visit(request, player, player.show_page, again=True)
+
+    return await visit(request, player, position, again=False, shown=shown)
+
+
+async def go_back(
+    request: Request, player: Storage, position: int, page: type[t.Page]
+) -> Display:
+    """Back to the nearest earlier page that is shown, without crossing the
+    start of an app, a round or an iteration of Repeat. Otherwise, stay."""
+    allowed = await call(page, "allow_back", player)
+
+    if player.show_page != position:
+        return await visit(request, player, player.show_page, again=True)
+
+    if allowed:
+        candidate = position - 1
+
+        while candidate >= 0 and not starts_segment(player.page_order[candidate]):
             player.show_page = candidate
+            shown = await call(page_at(player, candidate), "show", player)
 
-            await enter_page(request, page, player, candidate, rerun=True)
+            if player.show_page != candidate:
+                return await visit(request, player, player.show_page, again=True)
 
-            if await ensure_awaitable(
-                optional_call, page, "show", default_return=True, player=player
-            ):
-                return page
-
-            await ensure_awaitable(
-                optional_call_once,
-                page,
-                "after_always_once",
-                storage=player,
-                show_page=candidate,
-                player=player,
-            )
-
-            candidate += 1
-    else:
-        candidate = player.show_page - 1
-
-        while candidate >= 0:
-            page = path2page(show2path(player.page_order, candidate))
-            player.show_page = candidate
-
-            if await ensure_awaitable(
-                optional_call, page, "show", default_return=True, player=player
-            ):
-                return page
+            if shown:
+                return await visit(request, player, candidate, again=True, shown=FRESH)
 
             candidate -= 1
 
-    return current_page(player)
+        player.show_page = position
 
-
-async def run_current_page_after_hooks(
-    page: type[t.Page],
-    player: Storage,
-    state: PageTransitionState,
-) -> None:
-    if not state.forward:
-        return
-
-    await ensure_awaitable(
-        optional_call_once,
-        page,
-        "after_once",
-        storage=player,
-        show_page=state.original_show_page,
-        player=player,
-    )
-    await ensure_awaitable(
-        optional_call_once,
-        page,
-        "after_always_once",
-        storage=player,
-        show_page=state.original_show_page,
-        player=player,
-    )
-    player.refresh("show_page")
-
-
-async def settle_before_once(
-    player: Storage,
-    page: type[t.Page],
-    state: PageTransitionState,
-) -> type[t.Page]:
-    if not state.forward:
-        return page
-
-    while True:
-        sp_before = player.show_page
-        await ensure_awaitable(
-            optional_call_once,
-            page,
-            "before_once",
-            storage=player,
-            show_page=player.show_page,
-            player=player,
-        )
-        player.refresh("show_page")
-
-        if player.show_page == sp_before:
-            return page
-
-        page = current_page(player)
+    return await stay(request, player, position, FRESH)
 
 
 @router.get("/")
@@ -387,12 +476,109 @@ async def timeout_fires(page: type[t.Page], player: Storage) -> bool:
     if timeout_reached(page, player, 0.0):
         return True
 
-    allowed = await ensure_awaitable(
-        optional_call, page, "may_proceed", default_return=True, player=player
-    )
-    player.refresh("show_page")
+    return bool(await call(page, "may_proceed", player))
 
-    return bool(allowed)
+
+async def timed_out(page: type[t.Page], player: Storage) -> bool:
+    """Whether the deadline of the player's position counts as reached; if so,
+    timeout_reached has run."""
+    if not await timeout_fires(page, player):
+        return False
+
+    await call(page, "timeout_reached", player)
+
+    return True
+
+
+async def accept(
+    page: type[t.Page], player: Storage, formdata: Any
+) -> tuple[bool, Shown]:
+    """Check a submitted form and save it if it is accepted: if the fields
+    validate and neither validate() nor handle_stealth_fields rejects it."""
+    form, valid, custom_errors, field_errors = await validate(page, player, formdata)
+
+    if valid and form is not None:
+        stealth_errors = await save_form(page, player, form, formdata)
+        custom_errors.extend(stealth_errors)
+        valid = not stealth_errors
+
+    player.flush()
+    player.refresh("show_page", "page_order")
+
+    return valid, Shown(formdata, custom_errors, field_errors)
+
+
+def submission(player: Storage, formdata: Any) -> tuple[bool, Any] | None:
+    """(back, formdata) if formdata is the form of the player's position with a
+    valid token, None otherwise. _uproot_from is the position, prefixed with
+    back- for Back."""
+    if formdata is None:
+        return None
+
+    source = formdata.get("_uproot_from")
+
+    if not isinstance(source, str):
+        return None
+
+    back = source.startswith("back-")
+
+    try:
+        position = int(source.removeprefix("back-"))
+    except ValueError:
+        return None
+
+    if position != player.show_page or not verify_csrf(player, formdata):
+        return None
+
+    return back, formdata
+
+
+async def respond(request: Request, player: Storage) -> Display:
+    """What a request does, up to displaying a page."""
+    if request.method == "GET":
+        formdata = None
+    elif request.method == "POST":
+        formdata = await request.form()
+    else:
+        raise HTTPException(status_code=400)
+
+    position = player.show_page
+    submitted = submission(player, formdata)
+
+    if position == -1:  # Initialize.html
+        if submitted is not None and not submitted[0]:
+            player.started = True
+            initialize(player)
+
+            return await visit(request, player, 0, again=True)
+
+        return Display(current_page(player))
+
+    page = current_page(player)  # Fails for invalid positions
+    fired = await timed_out(page, player)
+
+    if submitted is None:
+        if fired:
+            return await proceed(request, player, position, page)
+
+        return await load(request, player, position)
+
+    back, formdata = submitted
+
+    if fired:  # A timed-out submission, even of Back
+        await accept(page, player, formdata)
+
+        return await proceed(request, player, position, page)
+
+    if back:
+        return await go_back(request, player, position, page)
+
+    accepted, shown = await accept(page, player, formdata)
+
+    if accepted and await call(page, "may_proceed", player):
+        return await proceed(request, player, position, page)
+
+    return await stay(request, player, position, shown)
 
 
 async def show_page(
@@ -400,143 +586,15 @@ async def show_page(
     player: Storage,
     uauth: str | None = None,
 ) -> str:
-    # This function is written in a very verbose style to reveal logic issues early
-
-    ppath = show2path(player.page_order, player.show_page)
-    page = path2page(ppath)
-    form = None
-    formdata = None
-    custom_errors: list[str] = []
-    field_errors: dict[str, list[str]] = {}
+    display = await respond(request, player)
     metadata = {}
-    state = PageTransitionState(original_show_page=player.show_page)
 
-    if await timeout_fires(page, player):
-        await ensure_awaitable(
-            optional_call, page, "timeout_reached", default_return=None, player=player
-        )
-        state.proceed = True
-        state.timeout_fired = True
-
-    if request.method == "GET":
-        if player.show_page == -1:
-            pass
-        elif player.show_page == len(player.page_order) or (
-            player.started and len(player.page_order) > player.show_page > -1
-        ):
-            # Players who were moved here directly (e.g., by move_to_page() or by
-            # an admin) arrive by loading the page, so enter it as forward
-            # navigation does. What already ran here does not run again.
-            await enter_page(request, page, player, player.show_page, rerun=False)
-
-            if not state.timeout_fired and not await ensure_awaitable(
-                optional_call, page, "show", default_return=True, player=player
-            ):
-                # Skip the page as forward navigation does
-                await ensure_awaitable(
-                    optional_call_once,
-                    page,
-                    "after_always_once",
-                    storage=player,
-                    show_page=player.show_page,
-                    player=player,
-                )
-                # Hooks may move this player through another Storage instance.
-                player.refresh("show_page")
-                page = await advance_to_next_visible_page(request, player, state)
-        else:
-            raise HTTPException(status_code=501)
-    elif request.method == "POST":
-        formdata = await request.form()
-
-        try:
-            uproot_from_value = formdata["_uproot_from"]
-            ensure(isinstance(uproot_from_value, str), ValueError)
-            uproot_from_str = str(uproot_from_value)
-
-            # Check for back navigation
-            if uproot_from_str.startswith("back-"):
-                send_from = int(
-                    uproot_from_str[5:]
-                )  # Extract page number after "back-"
-                is_back_navigation = True
-            else:
-                send_from = int(uproot_from_str)
-                is_back_navigation = False
-        except (KeyError, ValueError):
-            send_from = -1000
-            is_back_navigation = False
-
-        if player.show_page == send_from and verify_csrf(page, player, formdata):
-            if is_back_navigation:
-                allow_back = await ensure_awaitable(
-                    optional_call,
-                    page,
-                    "allow_back",
-                    default_return=False,
-                    player=player,
-                )
-                if allow_back and player.show_page > 0:
-                    state.go_back()
-                elif not allow_back:
-                    raise RuntimeError(
-                        f"Back navigation attempted but not allowed on page {page.__class__.__name__}"
-                    )
-                else:
-                    raise RuntimeError(
-                        f"Back navigation attempted but player is at first page (show_page={player.show_page})"
-                    )
-            elif player.show_page == -1:  # Initialize.html
-                if not player.started:
-                    player.started = True
-
-                initialize(player)
-                state.proceed = True
-            else:  # any other page - need to validate
-                form, valid, custom_errors, field_errors = await validate(
-                    page, player, formdata
-                )
-
-                if valid and form is not None:
-                    stealth_errors = await save_form(page, player, form, formdata)
-                    custom_errors.extend(stealth_errors)
-                    valid = not stealth_errors
-
-                # A rejected submission leaves state.proceed alone, so that a
-                # timeout that has fired still advances the player
-                if valid:
-                    state.proceed = True
-        else:
-            # A delayed duplicate may belong to a page that has already
-            # advanced. Do not validate its payload against the current page.
-            formdata = None
-    else:
-        raise HTTPException(status_code=400)
-
-    if state.proceed and not state.timeout_fired:
-        state.proceed = cast(
-            bool,
-            await ensure_awaitable(
-                optional_call, page, "may_proceed", default_return=True, player=player
-            ),
-        )
-        # Refresh show_page from storage: may_proceed (e.g. all_here) may
-        # have modified it via a separate Storage object whose write
-        # bypasses our field cache.
-        player.refresh("show_page")
-
-    if state.proceed and player.show_page < len(player.page_order):
-        await run_current_page_after_hooks(page, player, state)
-        page = await advance_to_next_visible_page(request, player, state)
-
-    pid = cast(t.PlayerIdentifier, t.identify(player))
-
-    u.set_online(pid)
-
-    page = await settle_before_once(player, page, state)
+    u.set_online(cast(t.PlayerIdentifier, t.identify(player)))
 
     if (
-        to := await ensure_awaitable(optional_call, page, "set_timeout", player=player)
+        to := await ensure_awaitable(
+            optional_call, display.page, "set_timeout", player=player
+        )
     ) is not None:
         metadata["remaining_seconds"] = to
 
@@ -544,12 +602,12 @@ async def show_page(
         request.app,
         request,
         player,
-        page,
-        formdata if not state.proceed else None,
-        custom_errors if not state.proceed else None,
+        display.page,
+        display.shown.formdata,
+        display.shown.custom_errors,
         metadata,
         uauth,
-        field_errors if not state.proceed else None,
+        display.shown.field_errors,
     )
 
 

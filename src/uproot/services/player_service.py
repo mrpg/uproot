@@ -14,7 +14,7 @@ import uproot.storage as s
 import uproot.types as t
 from uproot import chat
 from uproot.constraints import ensure
-from uproot.core import reach_end, resolve_page_order
+from uproot.core import reach_end, resolve_page_order, starts_segment
 from uproot.services.session_service import (
     players_exist,
     run_new_session_callbacks,
@@ -247,8 +247,7 @@ def previous_page(uname: str, page_order: list[str], show_page: int) -> int:
         or page_order[previous].endswith("/#StartApp")
     ):
         ensure(
-            page_order[previous] not in ("#RoundStart", "#RepeatStart")
-            and not page_order[previous].endswith("/#StartApp"),
+            not starts_segment(page_order[previous]),
             ValueError,
             f"Cannot revert {uname} past {page_order[previous]}, the start of a "
             "round or an app",

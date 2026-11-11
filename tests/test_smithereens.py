@@ -9,12 +9,7 @@ import uproot.storage as s
 import uproot.types as t
 from uproot.data import latest
 from uproot.pages import page2path, path2page
-from uproot.server1 import (
-    PageTransitionState,
-    advance_to_next_visible_page,
-    run_current_page_after_hooks,
-    show_page,
-)
+from uproot.server1 import leave, show_page, visit
 from uproot.services import player_service as ps
 from uproot.services.data_service import data_rows_for_session
 from uproot.smithereens import (
@@ -407,6 +402,32 @@ async def test_loading_the_end_page_runs_its_hook(monkeypatch):
         assert player.app is None
 
 
+async def test_navigation_preserves_random_order_on_reload(monkeypatch):
+    class Other(t.Page):
+        pass
+
+    class ReverseRng:
+        def shuffle(self, groups):
+            groups.reverse()
+
+    for page in (Other, Target):
+        monkeypatch.setitem(u.PAGES, page2path(page), page)
+
+    monkeypatch.setattr("uproot.smithereens.rng", ReverseRng)
+    monkeypatch.setattr("uproot.server1.render", render_name)
+    pid = create_player()
+
+    with s.Player(*pid) as player:
+        player.page_order = list(map(page2path, c.expand([RandomOrder(Other, Target)])))
+        player.started = True
+        player.show_page = 0
+
+    for request in (GetRequest(), GetRequest()):
+        with s.Player(*pid) as player:
+            assert await show_page(request, player) == "Target"
+            assert player.page_order[2:4] == [page2path(Target), page2path(Other)]
+
+
 async def test_arriving_players_enter_their_page_as_navigation_does(monkeypatch):
     calls = []
 
@@ -558,8 +579,7 @@ async def test_navigation_runs_early_whenever_it_passes_a_page(monkeypatch):
 
         for _ in range(2):  # E.g., after going back
             player.show_page = 0
-            state = PageTransitionState(0, proceed=True)
-            assert await advance_to_next_visible_page(None, player, state) is Early
+            assert (await visit(None, player, 1, again=True)).page is Early
 
     assert calls == [1, 1]
 
@@ -583,10 +603,11 @@ async def test_repeat_does_not_intercept_move_to_page(monkeypatch):
     current = None
     for expected in (Target, Feedback, Target):
         with s.Player(*pid) as player:
-            state = PageTransitionState(player.show_page, proceed=True)
-            if current is not None:
-                await run_current_page_after_hooks(current, player, state)
-            current = await advance_to_next_visible_page(None, player, state)
+            if current is None:
+                display = await visit(None, player, player.show_page + 1, again=True)
+            else:
+                display = await leave(None, player, player.show_page, current)
+            current = display.page
             assert current is expected
 
     with s.Player(*pid) as player:
