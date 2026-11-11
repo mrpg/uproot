@@ -588,7 +588,9 @@ async def show_page(
     uauth: str | None = None,
 ) -> str:
     task = asyncio.current_task()
-    assert task is not None
+    if task is None:
+        raise RuntimeError("Page requests require an asyncio task")
+
     token = PAGE_REQUEST.set((cast(t.PlayerIdentifier, t.identify(player)), ref(task)))
     try:
         display = await respond(request, player)
