@@ -218,7 +218,7 @@ def ensure_login_token() -> None:
     global LOGIN_TOKEN
 
     if LOGIN_TOKEN is None:
-        LOGIN_TOKEN = secrets.token_urlsafe()
+        LOGIN_TOKEN = secrets.token_urlsafe(24)
 
 
 async def lifespan_start(*args: Any, **kwargs: Any) -> None:
