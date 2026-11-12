@@ -33,6 +33,7 @@ import uproot.core as c
 import uproot.deployment as d
 import uproot.jobs as j
 import uproot.rooms as r
+import uproot.services.auth as auth_service
 from uproot.constraints import ensure
 from uproot.modules import ModuleManager
 from uproot.passwords import MIN_PASSWORD_LENGTH
@@ -223,6 +224,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[Never]:
             )
 
             click.echo(err=True)
+
+    # Hash plaintext admin passwords now rather than during the first request
+    auth_service.ensure_globals()
 
     if d.QUICK_ROOM is not None:
         room_url = f"{d.ORIGIN}{d.ROOT}/room/{quote(d.QUICK_ROOM, safe='')}/"

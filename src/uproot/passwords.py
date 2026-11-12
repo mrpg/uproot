@@ -74,3 +74,11 @@ class Argon2id:
 
 def hash_password(password: str) -> Argon2id:
     return Argon2id(HASHER.hash(password))
+
+
+# As costly to verify as hashes from hash_password (salt and tag are all zeros),
+# for login attempts without a hash to verify
+DUMMY_HASH = Argon2id(
+    f"$argon2id$v=19$m={HASHER.memory_cost},t={HASHER.time_cost},"
+    f"p={HASHER.parallelism}${'A' * 22}${'A' * 43}"
+)

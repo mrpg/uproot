@@ -19,10 +19,10 @@ import uproot as u
 import uproot.deployment as d
 import uproot.storage as s
 import uproot.types as t
-from uproot.passwords import Argon2id
+from uproot.passwords import DUMMY_HASH, Argon2id, hash_password
 
 # Module-level state for admin credentials
-ADMINS: dict[str, str | Argon2id | EllipsisType] = {}
+ADMINS: dict[str, Argon2id | EllipsisType] = {}
 ADMINS_HASH: str | None = None
 ADMINS_SECRET_KEY: str | None = None
 
@@ -166,8 +166,13 @@ def ensure_globals() -> None:
         )
         ADMINS_SECRET_KEY = t.sha256(f"{u.KEY}:{ADMINS_HASH}")
 
-        # Prevent direct modification of d.ADMINS
-        ADMINS = d.ADMINS
+        # Hash plaintext passwords (after deriving the secret key, which random
+        # salts would change on every start) so that every login costs one
+        # Argon2id verification. Prevent direct modification of d.ADMINS.
+        ADMINS = {
+            user: hash_password(pw) if isinstance(pw, str) else pw
+            for user, pw in d.ADMINS.items()
+        }
         del d.ADMINS
 
 
@@ -247,14 +252,13 @@ def create_token_internal(user: str) -> str:
 async def admin_credentials_valid(user: str, pw: str) -> bool:
     stored_pw = ADMINS.get(user, ...)
 
-    if isinstance(stored_pw, Argon2id):
-        valid = await asyncio.get_running_loop().run_in_executor(
-            ARGON2ID_VERIFIER, stored_pw.verify, pw
-        )
-    elif isinstance(stored_pw, str):
-        valid = hmac.compare_digest(pw.encode(), stored_pw.encode())
-    else:
-        valid = False
+    # Unknown admins and those without a password (...) cost one verification
+    # as well, so that timing does not reveal which admins exist
+    argon2id = stored_pw if isinstance(stored_pw, Argon2id) else DUMMY_HASH
+    verified = await asyncio.get_running_loop().run_in_executor(
+        ARGON2ID_VERIFIER, argon2id.verify, pw
+    )
+    valid = verified and argon2id is not DUMMY_HASH
 
     if not valid:
         d.LOGGER.debug(f"Invalid login attempt for user: {user[:32]!r}")

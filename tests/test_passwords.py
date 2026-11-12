@@ -6,7 +6,7 @@ from argon2 import PasswordHasher, Type
 
 import uproot.deployment as d
 from uproot import defaultcli, server
-from uproot.passwords import Argon2id, hash_password
+from uproot.passwords import DUMMY_HASH, Argon2id, hash_password
 from uproot.services import auth
 
 # Cheap parameters keep the tests fast and cover hashes made elsewhere
@@ -97,11 +97,25 @@ def test_auto_login_rejects_invalid_hash(admin_env):
         d.auto_login()
 
 
-async def test_admin_credentials_valid(monkeypatch):
-    monkeypatch.setattr(
-        auth,
-        "ADMINS",
-        {"admin": ..., "alice": "plaintext", "bob": Argon2id(CHEAP.hash("hashed"))},
+@pytest.fixture
+def configure_admins(monkeypatch):
+    """Configure admins as main.py does, then let auth take them over."""
+    monkeypatch.setattr(d, "ADMINS", {}, raising=False)
+    monkeypatch.setattr(auth, "ADMINS", {})
+    monkeypatch.setattr(auth, "ADMINS_HASH", None)
+    monkeypatch.setattr(auth, "ADMINS_SECRET_KEY", None)
+
+    def configure(admins):
+        d.ADMINS = admins
+        auth.ADMINS_HASH = None
+        auth.ensure_globals()
+
+    return configure
+
+
+async def test_admin_credentials_valid(configure_admins):
+    configure_admins(
+        {"admin": ..., "alice": "plaintext", "bob": Argon2id(CHEAP.hash("hashed"))}
     )
 
     assert await auth.admin_credentials_valid("alice", "plaintext")
@@ -111,6 +125,35 @@ async def test_admin_credentials_valid(monkeypatch):
     assert not await auth.admin_credentials_valid("bob", CHEAP.hash("hashed"))
     assert not await auth.admin_credentials_valid("admin", "")
     assert not await auth.admin_credentials_valid("carol", "plaintext")
+
+
+async def test_login_attempts_cost_one_verification(configure_admins, monkeypatch):
+    bob = Argon2id(CHEAP.hash("hashed"))
+    configure_admins({"admin": ..., "alice": "plaintext", "bob": bob})
+    verified = []
+    verify = Argon2id.verify
+
+    def spy(self, password):
+        verified.append(self)
+        return verify(self, password)
+
+    monkeypatch.setattr(Argon2id, "verify", spy)
+
+    for user in ("admin", "alice", "bob", "carol"):
+        assert not await auth.admin_credentials_valid(user, "wrong")
+
+    alice = auth.ADMINS["alice"]
+    assert verified == [DUMMY_HASH, alice, bob, DUMMY_HASH]
+    # The dummy costs as much as hashes from hash_password, such as alice's
+    assert DUMMY_HASH.phc.split("$")[3] == alice.phc.split("$")[3]
+
+
+def test_secret_key_survives_restarts(configure_admins):
+    configure_admins({"alice": "plaintext"})
+    key = auth.ADMINS_SECRET_KEY
+    configure_admins({"alice": "plaintext"})
+
+    assert auth.ADMINS_SECRET_KEY == key
 
 
 def test_password_length_check_skips_hashes(monkeypatch):
