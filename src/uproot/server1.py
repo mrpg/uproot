@@ -1001,9 +1001,20 @@ async def ws(
         for task in pending_tasks:
             task.cancel()
 
-        # Let live handlers finish cleanup even if the request scope is cancelled.
+        # Let live handlers finish cleanup even if this task is cancelled again.
+        # The anyio shield covers cancel scopes, but not native task.cancel().
+        cleanup = asyncio.gather(*pending_tasks, return_exceptions=True)
+        cancelled: asyncio.CancelledError | None = None
+
         with anyio.CancelScope(shield=True):
-            await asyncio.gather(*pending_tasks, return_exceptions=True)
+            while not cleanup.done():
+                try:
+                    await asyncio.shield(cleanup)
+                except asyncio.CancelledError as exc:
+                    cancelled = exc
+
+        if cancelled is not None:
+            raise cancelled
 
 
 @functools.lru_cache(maxsize=64)
