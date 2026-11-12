@@ -72,7 +72,7 @@ class ModuleManager:
         except OSError:
             d.LOGGER.warning(
                 "Cannot watch for changes in apps; is fs.inotify.max_user_watches "
-                "too low for the project directory?"
+                "too low?"
             )
 
     def stop_watching(self) -> None:
@@ -129,13 +129,13 @@ class ModuleManager:
         self.watched_dirs[str(path)] = module_name
         self.watched_dirs[str(path.resolve())] = module_name
 
-        # One recursive watch on the project directory instead of one per app:
-        # each watch takes an inotify instance, and these are scarce (often 128)
-        watching_path = str(path.resolve().parent)
+        # Only files directly in the app directory reload it (see changed), and
+        # since watchdog 7, all watches share the observer's inotify instance
+        watching_path = str(path.resolve())
 
         if watching_path not in self.watching_paths:
             handler = ModuleFileHandler(self)
-            self.observer.schedule(handler, watching_path, recursive=True)
+            self.observer.schedule(handler, watching_path, recursive=False)
             self.watching_paths.add(watching_path)
 
         return module

@@ -49,7 +49,7 @@ dependencies = [
     "setproctitle>=1.3.7; sys_platform != 'win32'",
     "sortedcontainers>=2.4.0",
     "starlette-compress>=2.0.0",
-    "watchdog>=6.0.0",
+    "watchdog>=7.0.0",
     "wtforms>=3.3.1",
 ]
 

@@ -2467,7 +2467,7 @@ requires-dist = [
     { name = "starlette-compress", specifier = ">=2.0.0" },
     { name = "strictyaml", specifier = ">=1.7.3" },
     { name = "twine", marker = "extra == 'dev'" },
-    { name = "watchdog", specifier = ">=6.0.0" },
+    { name = "watchdog", specifier = ">=7.0.0" },
     { name = "wtforms", specifier = ">=3.3.1" },
 ]
 provides-extras = ["pg", "dev", "iban"]
