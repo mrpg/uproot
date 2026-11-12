@@ -15,6 +15,7 @@ uv run isort src/uproot/
 
 # Run release checks
 uv run pytest
+./test-models.sh
 uv run mypy
 uv run bandit -r src/uproot/ -c pyproject.toml
 uvx pip-audit
