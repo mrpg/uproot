@@ -122,7 +122,9 @@ def run_new_player_callbacks(player: s.Storage) -> None:
 
 def prepare_player_callbacks(player: s.Storage) -> None:
     run_new_player_callbacks(player)
-    player.page_order = resolve_page_order(player, player.config)
+
+    if player.show_page == -1:
+        player.page_order = resolve_page_order(player, player.config)
 
 
 async def run_dropout_handlers(pid: t.PlayerIdentifier, player: s.Storage) -> None:
