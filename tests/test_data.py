@@ -25,6 +25,7 @@ from uproot.data import (
     long_to_wide,
     noop,
     partial_matrix,
+    rows_to_bytes,
     split_by_storage_kind,
     value2json,
 )
@@ -741,8 +742,9 @@ def tombstone_row():
     }
 
 
-def test_csv_out_tombstone_keeps_metadata():
-    lines = csv_out([tombstone_row()]).strip().split("\r\n")
+def test_csv_export_tombstone_keeps_metadata():
+    csv_text = rows_to_bytes([tombstone_row()], "csv").decode("utf-8")
+    lines = csv_text.strip().split("\r\n")
 
     assert lines[0] == "!context,!data,!field,!seq,!storage,!time,!unavailable"
     assert lines[1] == "app.delete:1,,choice,1,player/session1/p1,1.0,TRUE"
@@ -818,6 +820,50 @@ async def test_generate_custom_jsonl():
     rows = [{"a": "x", "b": 2}]
     chunks = [chunk async for chunk in data_service.generate_custom_jsonl(rows)]
     assert chunks == ['{"a":"x","b":2}\n']
+
+
+def test_generate_custom_csv_keeps_key_order():
+    result = data_service.generate_custom_csv([{"b": 1, "a": 2}])
+    assert result == "b,a\r\n1,2\r\n"
+
+
+def test_generate_custom_csv_orders_columns_by_first_appearance():
+    rows = [{"z": 1, "page_order": 2}, {"!x": 3, "z": 4}]
+    result = data_service.generate_custom_csv(rows)
+    assert result.split("\r\n")[0] == "z,page_order,!x"
+
+
+async def test_generate_custom_jsonl_keeps_key_order():
+    rows = [{"b": 1, "a": 2}]
+    chunks = [chunk async for chunk in data_service.generate_custom_jsonl(rows)]
+    assert chunks == ['{"b":1,"a":2}\n']
+
+
+def test_csv_export_sorts_columns():
+    rows = [{"page_order": 1, "b": 2}, {"!field": 3, "a": 4}]
+    csv_text = rows_to_bytes(rows, "csv").decode("utf-8")
+    assert csv_text.split("\r\n")[0] == "!field,a,b,page_order"
+
+
+def test_jsonl_export_sorts_columns():
+    rows = [{"page_order": 1, "b": 2, "!field": 3, "a": 4}]
+    jsonl_text = rows_to_bytes(rows, "jsonl").decode("utf-8")
+    assert list(json.loads(jsonl_text)) == ["!field", "a", "b", "page_order"]
+
+
+async def test_generate_jsonl_sorts_columns(monkeypatch):
+    rows = [{"page_order": 1, "b": 2, "!field": 3, "a": 4}]
+    monkeypatch.setattr(data_service, "generate_data", lambda *args: (rows, noop, {}))
+
+    chunks = [
+        chunk
+        async for chunk in data_service.generate_jsonl(
+            "session1", "ultralong", [], True
+        )
+    ]
+
+    assert len(chunks) == 1
+    assert list(json.loads(chunks[0])) == ["!field", "a", "b", "page_order"]
 
 
 def test_pipeline_result_display():

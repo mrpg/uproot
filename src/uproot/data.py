@@ -348,8 +348,14 @@ def take(buffer: StringIO) -> str:
     return chunk
 
 
-def csv_chunks(rows: Iterable[dict[str, Any]]) -> Iterator[str]:
-    """Yield a CSV file piece by piece: first the header, then each row."""
+def csv_chunks(
+    rows: Iterable[dict[str, Any]], *, sort_columns: bool = False
+) -> Iterator[str]:
+    """Yield a CSV file piece by piece: first the header, then each row.
+
+    Columns are kept in the order in which they first appear across the rows.
+    With `sort_columns=True`, they are sorted by `column_order` instead.
+    """
     rows = list(rows)
 
     buffer = StringIO()
@@ -358,9 +364,12 @@ def csv_chunks(rows: Iterable[dict[str, Any]]) -> Iterator[str]:
     for row in rows:
         csvfields.update(dict.fromkeys(row.keys()))
 
-    sorted_fields = sorted(csvfields, key=column_order)
+    fieldnames = list(csvfields)
 
-    dw = pycsv.DictWriter(buffer, fieldnames=sorted_fields)
+    if sort_columns:
+        fieldnames.sort(key=column_order)
+
+    dw = pycsv.DictWriter(buffer, fieldnames=fieldnames)
     dw.writeheader()
     yield take(buffer)
 
@@ -397,11 +406,11 @@ def rows_to_chunks(rows: Iterable[dict[str, Any]], filetype: str) -> Iterator[by
     ensure(filetype in ("csv", "jsonl"), ValueError, "Invalid filetype")
 
     if filetype == "csv":
-        for chunk in csv_chunks(rows):
+        for chunk in csv_chunks(rows, sort_columns=True):
             yield chunk.encode("utf-8")
     else:
         for row in rows:
-            yield jsonl_line(row).encode("utf-8")
+            yield jsonl_line(row, sort_columns=True).encode("utf-8")
 
 
 def rows_to_bytes(rows: Iterable[dict[str, Any]], filetype: str) -> bytes:
@@ -487,11 +496,13 @@ def json_ready_row(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def jsonl_line(row: dict[str, Any]) -> str:
+def jsonl_line(row: dict[str, Any], *, sort_columns: bool = False) -> str:
     ready = json_ready_row(row)
-    sorted_keys = sorted(ready, key=column_order)
 
-    return json.dumps({k: ready[k] for k in sorted_keys}).decode("utf-8") + "\n"
+    if sort_columns:
+        ready = {k: ready[k] for k in sorted(ready, key=column_order)}
+
+    return json.dumps(ready).decode("utf-8") + "\n"
 
 
 async def jsonl_out(rows: Iterable[dict[str, Any]]) -> AsyncGenerator[str, None]:
