@@ -360,8 +360,8 @@ async def generate_jsonl(
     """Generate JSONL data for a session as an async generator."""
     alldata, transformer, transkwargs = generate_data(sname, format, gvar, filters)
 
-    async for chunk in data.jsonl_out(transformer(alldata, **transkwargs)):
-        yield chunk
+    for row in transformer(alldata, **transkwargs):
+        yield data.jsonl_line(row, sort_columns=True)
         await asyncio.sleep(0)
 
 
