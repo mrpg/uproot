@@ -12,7 +12,7 @@ import sys
 import tempfile
 import time
 import zipfile
-from collections.abc import Collection, Generator
+from collections.abc import Collection, Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -105,23 +105,78 @@ def listener_kwargs(host: str, port: int, uds: str | None) -> dict[str, Any]:
     return {"bind": (f"unix:{uds}",), "uds_permissions": 0o660}
 
 
+# h2corn settings that uproot controls, with the reason shown to users
+UPROOT_H2CORN_SETTINGS = {
+    "bind": "Use --host, --port or --uds instead.",
+    "host": "Use --host instead.",
+    "port": "Use --port instead.",
+    "uds_permissions": "Use --uds and the permissions of its directory instead.",
+    # Live experiment state and database connections must stay in one process
+    # with one loop thread.
+    "workers": "uproot runs in a single process.",
+    "loop_threads": "uproot runs on a single loop thread.",
+}
+
+
+def h2corn_env_kwargs(env: Mapping[str, str]) -> dict[str, str]:
+    """h2corn settings from H2CORN_* environment variables, still unparsed."""
+    kwargs = {}
+
+    for name, value in env.items():
+        if not name.startswith("H2CORN_"):
+            continue
+
+        key = name.removeprefix("H2CORN_").lower()
+        if key in UPROOT_H2CORN_SETTINGS:
+            raise click.ClickException(
+                f"{name} is not supported because uproot sets {key} itself. "
+                f"{UPROOT_H2CORN_SETTINGS[key]}"
+            )
+        if key == "config":
+            raise click.ClickException(
+                f"{name} is not supported. Set single H2CORN_* environment "
+                "variables or upd.H2CORN_KWARGS in main.py instead."
+            )
+
+        kwargs[key] = value
+
+    return kwargs
+
+
+def h2corn_config(
+    host: str,
+    port: int,
+    uds: str | None = None,
+    env: Mapping[str, str] | None = None,
+) -> h2corn.Config:
+    """Merge h2corn settings. Environment variables override main.py."""
+    env_kwargs = h2corn_env_kwargs(os.environ if env is None else env)
+
+    try:
+        # from_mapping parses strings like h2corn's own environment variables
+        # and treats other values like the Config constructor.
+        return h2corn.Config.from_mapping(
+            d.H2CORN_KWARGS
+            | env_kwargs
+            | listener_kwargs(host, port, uds)
+            | {"workers": 1, "loop_threads": 1}
+        )
+    except (TypeError, ValueError) as e:
+        raise click.ClickException(
+            "Invalid h2corn settings in H2CORN_* environment variables or "
+            f"upd.H2CORN_KWARGS: {e}"
+        ) from e
+
+
 def run_server(host: str, port: int, uds: str | None = None) -> None:
     from main import uproot_server
 
     set_ulimit()
+    config = h2corn_config(host, port, uds)
 
     async def serve() -> None:
         # Keep live experiment state and database connections in this process.
-        server = h2corn.Server(
-            uproot_server,
-            h2corn.Config(
-                **(
-                    d.H2CORN_KWARGS
-                    | listener_kwargs(host, port, uds)
-                    | {"workers": 1, "loop_threads": 1}
-                ),
-            ),
-        )
+        server = h2corn.Server(uproot_server, config)
         loop = asyncio.get_running_loop()
         # Signal handlers interrupt the loop thread, which may hold a lock that
         # server.shutdown() takes, so defer the call to the loop.

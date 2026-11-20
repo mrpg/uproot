@@ -117,3 +117,92 @@ def test_listener_kwargs() -> None:
         "bind": ("unix:/run/u.sock",),
         "uds_permissions": 0o660,
     }
+
+
+def test_h2corn_config_defaults(monkeypatch) -> None:
+    monkeypatch.setattr(uproot_cli.d, "H2CORN_KWARGS", {"proxy_headers": True})
+
+    config = uproot_cli.h2corn_config("0.0.0.0", 8080, env={})
+
+    assert config.bind == ("0.0.0.0:8080",)
+    assert config.proxy_headers is True
+    assert config.forwarded_allow_ips == ("127.0.0.1", "::1", "unix")
+    assert (config.workers, config.loop_threads) == (1, 1)
+
+
+def test_h2corn_config_reads_environment(monkeypatch) -> None:
+    monkeypatch.setattr(uproot_cli.d, "H2CORN_KWARGS", {"proxy_headers": True})
+
+    config = uproot_cli.h2corn_config(
+        "0.0.0.0",
+        8080,
+        env={
+            "H2CORN_FORWARDED_ALLOW_IPS": "*",
+            "H2CORN_ACCESS_LOG": "false",
+            "UPROOT_ORIGIN": "https://example.com",
+        },
+    )
+
+    assert config.forwarded_allow_ips == ("*",)
+    assert config.access_log is False
+    assert config.proxy_headers is True
+
+
+def test_h2corn_config_environment_overrides_main_py(monkeypatch) -> None:
+    monkeypatch.setattr(
+        uproot_cli.d,
+        "H2CORN_KWARGS",
+        {"proxy_headers": True, "forwarded_allow_ips": ("10.0.0.0/8",)},
+    )
+
+    config = uproot_cli.h2corn_config(
+        "127.0.0.1", 8000, env={"H2CORN_FORWARDED_ALLOW_IPS": "*"}
+    )
+
+    assert config.forwarded_allow_ips == ("*",)
+
+
+def test_h2corn_config_keeps_main_py_strings(monkeypatch) -> None:
+    monkeypatch.setattr(
+        uproot_cli.d,
+        "H2CORN_KWARGS",
+        {"proxy_headers": True, "forwarded_allow_ips": "*"},
+    )
+
+    config = uproot_cli.h2corn_config("127.0.0.1", 8000, env={})
+
+    assert config.forwarded_allow_ips == ("*",)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "H2CORN_BIND",
+        "H2CORN_HOST",
+        "H2CORN_PORT",
+        "H2CORN_UDS_PERMISSIONS",
+        "H2CORN_WORKERS",
+        "H2CORN_LOOP_THREADS",
+        "H2CORN_CONFIG",
+    ],
+)
+def test_h2corn_config_rejects_settings_uproot_controls(monkeypatch, name) -> None:
+    monkeypatch.setattr(uproot_cli.d, "H2CORN_KWARGS", {"proxy_headers": True})
+
+    with pytest.raises(click.ClickException, match=name):
+        uproot_cli.h2corn_config("127.0.0.1", 8000, env={name: "2"})
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"H2CORN_NO_SUCH_SETTING": "1"},
+        {"H2CORN_FORWARDED_ALLOW_IPS": "not-an-address"},
+        {"H2CORN_ACCESS_LOG": "maybe"},
+    ],
+)
+def test_h2corn_config_rejects_invalid_environment(monkeypatch, env) -> None:
+    monkeypatch.setattr(uproot_cli.d, "H2CORN_KWARGS", {"proxy_headers": True})
+
+    with pytest.raises(click.ClickException, match="Invalid h2corn settings"):
+        uproot_cli.h2corn_config("127.0.0.1", 8000, env=env)
