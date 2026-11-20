@@ -56,6 +56,7 @@ async def roommain(
     ensure(valid_token(roomname), ValueError, "Room name invalid")
 
     new_session = False
+    url_parameters = ur.constrain_url_parameters(request.query_params)
 
     with Admin() as admin:
         label = ur.constrain_label(label)
@@ -143,6 +144,8 @@ async def roommain(
             for pid in session._uproot_players:
                 with Player(pid.sname, pid.uname) as player:
                     if player.label == label and player.started:
+                        ur.remember_url_parameters(player, url_parameters)
+
                         return RedirectResponse(
                             f"{d.ROOT}/p/{pid.sname}/{pid.uname}/", status_code=303
                         )
@@ -164,6 +167,8 @@ async def roommain(
                     if player.label != label:
                         player.label = label
 
+                    ur.remember_url_parameters(player, url_parameters)
+
                 redirect_to = f"{d.ROOT}/p/{sname}/{free_uname}/"
             else:
                 pid = c.create_player(session)
@@ -171,6 +176,7 @@ async def roommain(
                 with t.materialize(pid) as player:
                     player.started = True
                     player.label = label
+                    ur.remember_url_parameters(player, url_parameters)
 
                 redirect_to = f"{d.ROOT}/p/{sname}/{pid.uname}/"
 

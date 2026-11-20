@@ -269,6 +269,7 @@ def initialize_player(
         player.pid = pid
         player.show_page = -1
         player.started = False
+        player.url_parameters = {}
         player._uproot_adminchat = None
         player._uproot_adminchat_replies = False
         player._uproot_dropout = False

@@ -14,7 +14,7 @@ import uproot.jobs as j
 import uproot.rooms as r
 import uproot.services.room_service as room_ops
 import uproot.storage as s
-from uproot import server2, server3, server4
+from uproot import server1, server2, server3, server4
 
 CONFIG = "test-rooms"
 
@@ -473,6 +473,90 @@ def test_capacity_zero_admits_only_reentry_and_precreated_slots(monkeypatch):
     reentry = post("slot1")
     assert reentry.status_code == 303
     assert reentry.headers["location"] == claimed.headers["location"]
+
+
+def test_constrain_url_parameters():
+    longest = "x" * r.URL_PARAMETER_MAX_LENGTH
+    too_long = "x" * (r.URL_PARAMETER_MAX_LENGTH + 1)
+    query = {
+        "label": "ignored",
+        "": "empty key",
+        "turkSubmitTo": "https://www.mturk.com",
+        "a b": "a b<c>@+%",
+        "longest_value": longest,
+        "too_long_value": too_long,
+        too_long: "too long key",
+    }
+
+    assert r.constrain_url_parameters(query) == {
+        "turkSubmitTo": "https://www.mturk.com",
+        "a b": "a b<c>@+%",
+        "longest_value": longest,
+    }
+
+
+def test_url_parameters_are_stored_and_overwritten_per_key(monkeypatch):
+    monkeypatch.setattr(u, "APPS", {}, raising=False)
+    sname = setup(lab={"config": CONFIG, "labels": [], "open": True})
+
+    with s.Admin() as admin:
+        admin.rooms["lab"]["sname"] = sname
+
+    with s.Session(sname) as session:
+        c.create_players(session, n=1, data=[{"label": "slot1"}])
+
+    r.sync("lab")
+
+    app = FastAPI()
+    app.include_router(server3.router)
+    client = TestClient(app)
+
+    def post(label: str, query: str):
+        response = client.post(
+            f"{d.ROOT}/room/lab/?{query}",
+            data={"label": label},
+            follow_redirects=False,
+        )
+        assert response.status_code == 303
+
+        return response.headers["location"].split("/")[-2]
+
+    def url_parameters(uname: str) -> dict:
+        with s.Player(sname, uname) as player:
+            return player.url_parameters
+
+    newcomer = post("newcomer", "label=newcomer&STUDY_ID=s1&SESSION_ID=a")
+    assert url_parameters(newcomer) == {"STUDY_ID": "s1", "SESSION_ID": "a"}
+
+    assert post("newcomer", "label=newcomer") == newcomer
+    assert url_parameters(newcomer) == {"STUDY_ID": "s1", "SESSION_ID": "a"}
+
+    assert post("newcomer", "label=newcomer&SESSION_ID=b") == newcomer
+    assert url_parameters(newcomer) == {"STUDY_ID": "s1", "SESSION_ID": "b"}
+
+    slot = post("slot1", "label=slot1&SESSION_ID=c")
+    assert url_parameters(slot) == {"SESSION_ID": "c"}
+
+
+def test_session_wide_link_stores_url_parameters(monkeypatch):
+    monkeypatch.setattr(u, "APPS", {}, raising=False)
+    sname = setup()
+
+    with s.Session(sname) as session:
+        c.create_players(session, n=1)
+        secret = session._uproot_secret
+
+    app = FastAPI()
+    app.include_router(server1.router)
+    response = TestClient(app).post(
+        f"{d.ROOT}/s/{sname}/{secret}/?SESSION_ID=abc", follow_redirects=False
+    )
+    assert response.status_code in (302, 303, 307)
+
+    uname = response.headers["location"].split("/")[-2]
+
+    with s.Player(sname, uname) as player:
+        assert player.url_parameters == {"SESSION_ID": "abc"}
 
 
 def test_default_room_with_session_is_rejected(monkeypatch):

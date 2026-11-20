@@ -43,6 +43,7 @@ import uproot as u
 import uproot.deployment as d
 import uproot.jobs as j
 import uproot.queues as q
+import uproot.rooms as ur
 import uproot.services.auth as auth_service
 import uproot.services.player_service as player_ops
 import uproot.services.room_service as room_ops
@@ -685,6 +686,7 @@ async def sessionwide(
     # Verify sname and secret
     session_ops.session_exists(sname)
     session = Session(sname)
+    url_parameters = ur.constrain_url_parameters(request.query_params)
 
     with session:
         if not hmac.compare_digest(secret, session._uproot_secret):
@@ -698,6 +700,7 @@ async def sessionwide(
             # Redirect to player
             with Player(sname, free_uname) as p:
                 p.started = True  # This prevents race conditions
+                ur.remember_url_parameters(p, url_parameters)
 
             redirect_url = (
                 f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(free_uname, safe='')}/"

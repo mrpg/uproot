@@ -30,15 +30,17 @@ Awakened clients recheck readiness when joining. Deletion terminates existing
 subscriptions separately; a new room with the same name has a fresh signal.
 """
 
+from collections.abc import Mapping
 from typing import Any, TypeAlias
 
 import uproot as u
 import uproot.events as e
 from uproot.constraints import TOKEN_CHARS, return_or_raise, valid_token
-from uproot.storage import Admin
+from uproot.storage import Admin, Storage
 from uproot.types import Sessionname
 
 RoomType: TypeAlias = dict[str, Any]
+URL_PARAMETER_MAX_LENGTH = 1024
 
 
 def room(
@@ -124,6 +126,26 @@ def constrain_label(label: Any) -> str:
             break
 
     return newlabel
+
+
+def constrain_url_parameters(query: Mapping[str, str]) -> dict[str, str]:
+    url_parameters = {}
+
+    for key, value in query.items():
+        wanted = key not in ("", "label")
+        short_enough = max(len(key), len(value)) <= URL_PARAMETER_MAX_LENGTH
+
+        if wanted and short_enough:
+            url_parameters[key] = value
+
+    return url_parameters
+
+
+def remember_url_parameters(player: Storage, url_parameters: dict[str, str]) -> None:
+    merged = player.url_parameters | url_parameters
+
+    if merged != player.url_parameters:
+        player.url_parameters = merged
 
 
 def validate(room: RoomType, label: str) -> bool:
