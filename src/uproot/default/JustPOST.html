@@ -1,6 +1,12 @@
 {% extends "Bare.html" %}
 {% set disable_auto_start = True %}
 
+{% block form_start %}
+{% if _uproot_internal.get("label") %}
+<input type="hidden" name="label" value="{{ _uproot_internal.label }}">
+{% endif %}
+{% endblock form_start %}
+
 {% block main %}
 
 {% include app_or_default(app, "JustPOSTInfo.html") ignore missing %}
@@ -11,21 +17,7 @@
 
 <script>
     if (typeof stopHere === "undefined" || !stopHere) {
-        uproot.onStart(() => {
-            const form = document.forms[0];
-            const params = new URLSearchParams(window.location.search);
-
-            for (const [key, value] of params) {
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = key;
-                input.value = value;
-                form.appendChild(input);
-            }
-
-            form.action = window.location.pathname;
-            uproot.submitForm(form);
-        });
+        uproot.onStart(() => uproot.submit());
     }
 </script>
 

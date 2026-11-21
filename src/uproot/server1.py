@@ -672,6 +672,7 @@ async def avoid_side_effects_when_previewing(
             request,
             None,
             path2page("JustPOST.html"),
+            metadata={"label": request.query_params.get("label")},
         ),
     )
 
@@ -693,14 +694,10 @@ async def sessionwide(
         free_slot = find_free_slot(session)
 
         if free_slot is not None:
-            _, free_uname = free_slot
-
-            # Redirect to player
-            with Player(sname, free_uname) as p:
-                p.started = True  # This prevents race conditions
+            pid = player_ops.admit_player(session, free_slot, request)
 
             redirect_url = (
-                f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(free_uname, safe='')}/"
+                f"{d.ROOT}/p/{quote(sname, safe='')}/{quote(pid.uname, safe='')}/"
             )
 
             return safe_redirect_response(redirect_url)

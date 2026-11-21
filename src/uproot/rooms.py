@@ -30,6 +30,7 @@ Awakened clients recheck readiness when joining. Deletion terminates existing
 subscriptions separately; a new room with the same name has a fresh signal.
 """
 
+from dataclasses import dataclass
 from typing import Any, TypeAlias
 
 import uproot as u
@@ -39,6 +40,43 @@ from uproot.storage import Admin
 from uproot.types import Sessionname
 
 RoomType: TypeAlias = dict[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class RoomInfo:
+    """A snapshot of a room's settings and current session association."""
+
+    name: str
+    config: str | None
+    labels: tuple[str, ...] | None
+    capacity: int | None
+    open: bool
+    sname: Sessionname | None
+
+    @classmethod
+    def from_record(cls, record: RoomType) -> "RoomInfo":
+        labels = record["labels"]
+        return cls(
+            name=record["name"],
+            config=record["config"],
+            labels=None if labels is None else tuple(labels),
+            capacity=record["capacity"],
+            open=record["open"],
+            sname=record["sname"],
+        )
+
+
+def get_room(name: str | None) -> RoomInfo | None:
+    """Return a fresh snapshot for a room name, or None if there is no such room.
+
+    For the room currently associated with a session, use get_room(session.room).
+    """
+    if name is None:
+        return None
+
+    with Admin() as admin:
+        record = admin.get("rooms", {}).get(name)
+        return RoomInfo.from_record(record) if record is not None else None
 
 
 def room(

@@ -26,6 +26,7 @@ from uproot.pages import page2path, path2page
 from uproot.pages import to_filter as to
 from uproot.queries import FieldReferent
 from uproot.queues import enqueue
+from uproot.rooms import RoomInfo, get_room
 from uproot.storage import Admin, Group, Model, Player, Session, Storage
 
 PlayerLike: TypeAlias = Storage | t.PlayerIdentifier
@@ -57,6 +58,7 @@ __all__ = [
     "PlayerType",
     "RandomOrder",
     "Repeat",
+    "RoomInfo",
     "Rounds",
     "Session",
     "SessionIdentifier",
@@ -74,6 +76,7 @@ __all__ = [
     "cu",
     "data_uri",
     "fmtnum",
+    "get_room",
     "get_setting",
     "identify",
     "live",

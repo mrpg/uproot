@@ -1,4 +1,5 @@
 import asyncio
+from types import SimpleNamespace
 
 import orjson
 import pytest
@@ -14,7 +15,8 @@ import uproot.jobs as j
 import uproot.rooms as r
 import uproot.services.room_service as room_ops
 import uproot.storage as s
-from uproot import server2, server3, server4
+from uproot import server1, server2, server3, server4
+from uproot.smithereens import RoomInfo, get_room
 
 CONFIG = "test-rooms"
 
@@ -473,6 +475,168 @@ def test_capacity_zero_admits_only_reentry_and_precreated_slots(monkeypatch):
     reentry = post("slot1")
     assert reentry.status_code == 303
     assert reentry.headers["location"] == claimed.headers["location"]
+
+
+def test_get_room_returns_a_read_only_snapshot():
+    setup(lab={"labels": ["desk"], "capacity": 1}, online={"labels": []}, foyer={})
+    room = get_room("lab")
+    assert room == RoomInfo("lab", None, ("desk",), 1, False, None)
+    assert get_room("online").labels == ()
+    assert get_room("foyer").labels is None
+    assert get_room(None) is None
+    assert get_room("missing") is None
+
+    with pytest.raises(AttributeError):
+        room.open = True
+    with pytest.raises(TypeError):
+        room.labels[0] = "other"
+
+    asyncio.run(room_ops.set_room_capacity("lab", 3))
+    assert room.capacity == 1
+    assert get_room("lab").capacity == 3
+    asyncio.run(room_ops.delete_room("lab"))
+    assert get_room("lab") is None
+
+
+def entry_client(monkeypatch, capture):
+    monkeypatch.setitem(u.CONFIGS, CONFIG, ["capture"])
+    monkeypatch.setattr(
+        u, "APPS", {"capture": SimpleNamespace(entry_data=capture)}, raising=False
+    )
+    app = FastAPI()
+    app.include_router(server1.router)
+    app.include_router(server3.router)
+    return TestClient(app, follow_redirects=False)
+
+
+def test_room_entry_data_on_admission_and_reentry(monkeypatch):
+    setup(lab={"labels": ["desk", "guest"], "config": CONFIG})
+    visits = []
+
+    def capture(room, request):
+        visits.append(room)
+        query = request.query_params
+        return {key: query.getlist(key) for key in ("source", "tag") if key in query}
+
+    client = entry_client(monkeypatch, capture)
+    url = f"{d.ROOT}/room/lab/?tag=a%2Bb&tag=&tag=c&ignored=value"
+
+    assert client.get(url).status_code == 200
+    for label in ("", "invalid", "desk"):
+        assert client.post(url, data={"label": label}).status_code == 200
+    assert visits == []
+
+    asyncio.run(room_ops.set_room_open("lab", True))
+    admitted = client.post(url, data={"label": "desk"})
+    assert admitted.status_code == 303
+    sname, uname = admitted.headers["location"].strip("/").split("/")[-2:]
+    assert visits == [get_room("lab")]
+    assert visits[0].sname == sname
+
+    with s.Session(sname) as session:
+        slot = c.create_player(session, data={"label": "guest"})
+
+    with s.Player(sname, uname) as player:
+        assert get_room(player.session.room) == visits[0]
+        assert player.entry_data == {"tag": ["a+b", "", "c"]}
+
+    base = f"{d.ROOT}/room/lab/"
+    for query in ("?source=one", "?source=two", ""):
+        reentry = client.post(base + query, data={"label": "desk"})
+        assert reentry.headers["location"] == admitted.headers["location"]
+    claimed = client.post(base + "?tag=other", data={"label": "guest"})
+    assert claimed.headers["location"] == f"{d.ROOT}/p/{sname}/{slot.uname}/"
+    with s.Player(sname, uname) as player, s.Player(*slot) as guest:
+        assert player.entry_data == {"tag": ["a+b", "", "c"], "source": ["two"]}
+        assert guest.entry_data == {"tag": ["other"]}
+    assert visits == [get_room("lab")] * 5
+
+
+def test_sessionwide_entry_uses_the_request_that_claimed_the_slot(monkeypatch):
+    sname = setup(lab={})
+    visits = []
+
+    def capture(room, request):
+        visits.append(room)
+        return {
+            "referral": request.query_params["ref"],
+            "language": request.headers["Accept-Language"],
+        }
+
+    client = entry_client(monkeypatch, capture)
+    with s.Admin() as admin, s.Session(sname) as session:
+        admin.rooms["lab"]["sname"] = sname
+        session.room = "lab"
+        session.apps = ["capture"]
+        pid = c.create_player(session)
+        secret = session._uproot_secret
+
+    url = f"{d.ROOT}/s/{sname}/{secret}/?ref=East%2FWest&unwanted=x"
+    assert client.get(url).status_code == 200
+    assert client.post(f"{d.ROOT}/s/{sname}/wrong/").status_code == 401
+    assert visits == []
+    claimed = client.post(url, headers={"Accept-Language": "de"})
+    assert claimed.headers["location"] == f"{d.ROOT}/p/{sname}/{pid.uname}/"
+    assert client.post(url).status_code == 423
+    assert visits == [None]
+    with s.Player(*pid) as player:
+        assert player.entry_data == {"referral": "East/West", "language": "de"}
+        assert get_room(player.session.room).name == "lab"
+
+
+@pytest.mark.parametrize(
+    "bad_value, error", [("bad", ValueError), ("object", TypeError)]
+)
+def test_failed_entry_data_can_be_retried_without_consuming_a_slot(
+    monkeypatch, bad_value, error
+):
+    setup(lab={"config": CONFIG, "open": True, "capacity": 1})
+
+    def capture(room, request):
+        cohort = request.query_params["cohort"]
+        return {"cohort": object() if cohort == "object" else int(cohort)}
+
+    client = entry_client(monkeypatch, capture)
+    url = f"{d.ROOT}/room/lab/"
+    with pytest.raises(error):
+        client.post(url + "?cohort=" + bad_value)
+    with s.Session(get_room("lab").sname) as session:
+        assert list(session.players) == []
+        pid = c.create_player(session)
+    with pytest.raises(error):
+        client.post(url + "?cohort=" + bad_value)
+    with s.Player(*pid) as player:
+        assert not player.started
+        assert player.entry_data == {}
+
+    claimed = client.post(url + "?cohort=2")
+    assert claimed.headers["location"] == f"{d.ROOT}/p/{pid.sname}/{pid.uname}/"
+    with s.Player(*pid) as player:
+        assert player.entry_data == {"cohort": 2}
+    assert client.post(url).status_code == 423
+
+
+def test_entry_data_is_opt_in_and_uses_config_order(monkeypatch):
+    setup(lab={"config": CONFIG, "open": True}, plain={"config": "plain", "open": True})
+    client = entry_client(
+        monkeypatch, lambda room, request: {"cohort": 1, "site": "lab"}
+    )
+    monkeypatch.setitem(u.APPS, "plain", SimpleNamespace())
+    monkeypatch.setitem(
+        u.APPS,
+        "second",
+        SimpleNamespace(entry_data=lambda room, request: {"cohort": 2}),
+    )
+    monkeypatch.setitem(u.CONFIGS, "plain", ["plain"])
+    monkeypatch.setitem(u.CONFIGS, CONFIG, ["capture", "plain", "second"])
+
+    for name, expected in (("plain", {}), ("lab", {"cohort": 2, "site": "lab"})):
+        response = client.post(f"{d.ROOT}/room/{name}/?cohort=99&started=false")
+        assert response.status_code == 303
+        sname, uname = response.headers["location"].strip("/").split("/")[-2:]
+        with s.Player(sname, uname) as player:
+            assert player.entry_data == expected
+            assert player.started
 
 
 def test_default_room_with_session_is_rejected(monkeypatch):

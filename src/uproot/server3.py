@@ -26,6 +26,7 @@ import uproot.deployment as d
 import uproot.events as e
 import uproot.jobs as j
 import uproot.rooms as ur
+import uproot.services.player_service as player_ops
 import uproot.types as t
 from uproot.constraints import ensure, valid_token
 from uproot.pages import path2page, render
@@ -139,43 +140,22 @@ async def roommain(
         if new_session:
             session.room = roomname
 
-        if label != "":
-            for pid in session._uproot_players:
-                with Player(pid.sname, pid.uname) as player:
+        pid = None
+        if label:
+            for member in session._uproot_players:
+                with Player(*member) as player:
                     if player.label == label and player.started:
-                        return RedirectResponse(
-                            f"{d.ROOT}/p/{pid.sname}/{pid.uname}/", status_code=303
-                        )
+                        pid = member
+                        break
 
-        free_slot = c.find_free_slot(session, label)
+        if pid is None:
+            pid = c.find_free_slot(session, label)
 
         if (
-            ur.freejoin(room)
-            or len(session._uproot_players) < capacity
-            or free_slot is not None
+            pid is None
+            and not ur.freejoin(room)
+            and len(session._uproot_players) >= capacity
         ):
-            sname = room["sname"]
-
-            if free_slot is not None:
-                _, free_uname = free_slot
-
-                with Player(sname, free_uname) as player:
-                    player.started = True
-                    if player.label != label:
-                        player.label = label
-
-                redirect_to = f"{d.ROOT}/p/{sname}/{free_uname}/"
-            else:
-                pid = c.create_player(session)
-
-                with t.materialize(pid) as player:
-                    player.started = True
-                    player.label = label
-
-                redirect_to = f"{d.ROOT}/p/{sname}/{pid.uname}/"
-
-            return RedirectResponse(redirect_to, status_code=303)
-        else:
             return HTMLResponse(
                 await render(
                     request.app,
@@ -186,6 +166,11 @@ async def roommain(
                 ),
                 status_code=423,
             )
+
+        pid = player_ops.admit_player(
+            session, pid, request, room=ur.RoomInfo.from_record(room), label=label
+        )
+        return RedirectResponse(f"{d.ROOT}/p/{pid.sname}/{pid.uname}/", status_code=303)
 
 
 @router.websocket("/roomws/{roomname}/")

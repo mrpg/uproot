@@ -3,9 +3,12 @@
 
 """Player operations service."""
 
+from inspect import iscoroutinefunction
 from math import isfinite
 from time import time
 from typing import Any
+
+from fastapi import Request
 
 import uproot as u
 import uproot.deployment as d
@@ -14,12 +17,56 @@ import uproot.storage as s
 import uproot.types as t
 from uproot import chat
 from uproot.constraints import ensure
-from uproot.core import reach_end, resolve_page_order, starts_segment
+from uproot.core import create_player, reach_end, resolve_page_order, starts_segment
+from uproot.rooms import RoomInfo
 from uproot.services.session_service import (
     players_exist,
     run_new_session_callbacks,
     session_exists,
 )
+from uproot.stable import encode
+
+
+def admit_player(
+    session: s.Storage,
+    pid: t.PlayerIdentifier | None,
+    request: Request,
+    *,
+    room: RoomInfo | None = None,
+    label: str | None = None,
+) -> t.PlayerIdentifier:
+    """Admit the selected player, creating one if the room allows growth.
+
+    An app's synchronous entry_data(room, request) returns a dict to keep from
+    the admission POST. Room links supply their RoomInfo and session-wide links
+    supply None. Apps run in config order. Each returned key updates
+    player.entry_data, including when a labelled player returns.
+    """
+    data: dict[str, Any] = {}
+    for name in session.apps:
+        if name in u.APPS and (capture := getattr(u.APPS[name], "entry_data", None)):
+            if iscoroutinefunction(capture):
+                raise TypeError(f"{name}.entry_data() must be synchronous")
+            values = capture(room=room, request=request)
+            if not isinstance(values, dict):
+                raise TypeError(f"{name}.entry_data() must return a dict")
+            data.update(values)
+
+    if pid is None:
+        # Check the app's result before allocating a player.
+        if data:
+            encode(data)
+        pid = create_player(session)
+
+    with t.materialize(pid) as player:
+        if data:
+            player.entry_data = player.entry_data | data
+        if label is not None and player.label != label:
+            player.label = label
+        if not player.started:
+            player.started = True
+
+    return pid
 
 
 async def info_online(sname: t.Sessionname) -> dict[t.Username, Any]:
