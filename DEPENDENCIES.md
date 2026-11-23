@@ -26,4 +26,4 @@ See `pyproject.toml`.
 
 | Source | Used for | License |
 |---|---|---|
-| [Tailwind CSS](https://tailwindcss.com/docs/font-family) | Font stacks in `style.css` | MIT |
+| [Tailwind CSS default font stacks](https://github.com/tailwindlabs/tailwindcss/blob/v3.4.17/stubs/config.full.js#L302-L323) | Font stacks in `style.css` | [MIT](https://github.com/tailwindlabs/tailwindcss/blob/v3.4.17/LICENSE) |

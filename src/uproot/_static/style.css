@@ -92,7 +92,9 @@
 }
 
 /* Dedicated classes for switching to sans-serif and serif font */
-/* Adapted from https://tailwindcss.com/docs/font-family, extending Bootstrap’s default fonts  */
+/* Extends Bootstrap’s default font stacks using Tailwind CSS’s MIT-licensed defaults.
+ * https://github.com/tailwindlabs/tailwindcss/blob/v3.4.17/stubs/config.full.js#L302-L323
+ */
 :root {
     --bs-font-math: "STIX Two Math", "Latin Modern Math", "Cambria Math", "XITS Math", "DejaVu Math TeX Gyre", "Asana Math", "Noto Sans Math", "Symbola", math, serif;
     --bs-font-monospace: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
