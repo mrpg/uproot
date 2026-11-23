@@ -6,7 +6,7 @@
 - When asked to review code, output "OK" on a separate line at the end if the code is acceptable.
 - Use `uv run` to run tests, linters, or other dev tools, but always with a strict reasonable timeout.
 - Tools like `ruff` and `black` must NOT be run in read-only mode. Allow them to directly fix files.
-- Do not preserve or introduce backwards compatibility unless specifically instructed to do so. Work with RECKLESS abandon.
+- Do not preserve or introduce backwards compatibility unless specifically instructed to do so. Work with RECKLESS abandon. Correctness, cleanliness, and the use of best practices are key.
 - Prefer deleting code (on net) if at all possible, excluding tests/.
 - As of 2026-11-12, `uproot-proofs` (github.com/mrpg/uproot-proofs) tracks these behaviors using targeted formalizations in Lean:
   - Room lifecycle (`UprootProofs/Rooms.lean`): creation, settings, opening/closing, deletion, defaults and restarts; readiness signals; loaded configs; valid, mutually consistent room/session associations and at most one room per session.

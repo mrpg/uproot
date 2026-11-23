@@ -47,13 +47,18 @@ uv run uproot run
 You may then log in to the admin area, or [run an example experiment](http://127.0.0.1:8000/room/test/).
 You can find other examples [here](https://github.com/mrpg/uproot-examples).
 
-## License
+## Contributing
 
-*uproot* is licensed under the [GNU LGPLv3](https://www.gnu.org/licenses/lgpl-3.0.html), or, at your option, any later version. Among other things, that means: (1) there is no warranty; (2) changes to uproot’s core are automatically licensed under the LGPL as well, (3) you are free to license your own experiments under whatever license you deem appropriate, or no license at all.
+*uproot* is open source **and** open-contribution.
 
-*uproot*’s dependencies have their own licenses. The bundled JavaScript libraries and fonts are under permissive licenses (MIT and SIL OFL 1.1, respectively), and the Python dependencies are under permissive or weak copyleft licenses (e.g., MPL 2.0). See [DEPENDENCIES.md](DEPENDENCIES.md) for details.
+Interested in contributing? See our [Contributing Guide](CONTRIBUTING.md) for development setup, coding standards, and workflow information.
 
-© [Max R. P. Grossmann](https://max.pm/), [Holger Gerhardt](https://www.econ.uni-bonn.de/iame/en/team/gerhardt), et al., 2026. A full alphabetical overview of contributors may be viewed [here](CONTRIBUTORS.md).
+## Related repositories
+
+- [uproot-examples](https://github.com/mrpg/uproot-examples)
+- [uproot-skill](https://github.com/mrpg/uproot-skill)
+- [uproot-docs](https://github.com/mrpg/uproot-docs)
+- [uproot-proofs](https://github.com/mrpg/uproot-proofs)
 
 ## Citation
 
@@ -68,6 +73,10 @@ You can find other examples [here](https://github.com/mrpg/uproot-examples).
 }
 ```
 
-## Contributing
+## License
 
-Interested in contributing? See our [Contributing Guide](CONTRIBUTING.md) for development setup, coding standards, and workflow information.
+*uproot* is licensed under the [GNU LGPLv3](https://www.gnu.org/licenses/lgpl-3.0.html), or, at your option, any later version. Among other things, that means: (1) there is no warranty; (2) changes to uproot’s core are automatically licensed under the LGPL as well, (3) you are free to license your own experiments under whatever license you deem appropriate, or no license at all.
+
+*uproot*’s dependencies have their own licenses. The bundled JavaScript libraries and fonts are under permissive licenses (MIT and SIL OFL 1.1, respectively), and the Python dependencies are under permissive or weak copyleft licenses (e.g., MPL 2.0). See [DEPENDENCIES.md](DEPENDENCIES.md) for details.
+
+© [Max R. P. Grossmann](https://max.pm/), [Holger Gerhardt](https://www.econ.uni-bonn.de/iame/en/team/gerhardt), et al., 2026. A full overview of contributors may be viewed [here](CONTRIBUTORS.md).

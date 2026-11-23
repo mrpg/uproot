@@ -10,31 +10,10 @@ uproot requires Python 3.12 or newer and uses [uv](https://docs.astral.sh/uv/) t
 git clone https://github.com/mrpg/uproot.git
 cd uproot
 uv sync --extra dev
-source .venv/bin/activate
-pre-commit install
 ```
 
 On Windows, activate the environment with `.venv\Scripts\activate` instead.
 
 ## Make and check changes
 
-Add or update tests for behavioural changes. Before opening a pull request, run:
-
-```console
-ruff check --fix src/uproot
-black src/uproot
-isort src/uproot
-mypy
-python check_translations.py
-pytest
-```
-
-The formatters and Ruff may update files. Review those changes before committing. You can also run every configured hook with:
-
-```console
-pre-commit run --all-files
-```
-
-CI runs these checks across the supported Python versions and performs additional security and dependency checks.
-
-For release steps and the versioning policy, see [RELEASE-WORKFLOW.md](RELEASE-WORKFLOW.md).
+Please run `uv run pre-commit install`. We recommend running `uv run pytest -v` when making changes.
