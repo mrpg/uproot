@@ -7,8 +7,8 @@
 1. Update `recommendedVersion` in `announcements.json` in [uproot-docs](https://github.com/mrpg/uproot-docs), and add or update the matching version-specific announcement if needed. Deploy docs.
 1. Run `./release.sh vX.Y.Z`. Ensure CI passes.
 1. Upload to PyPI: `uv run twine upload dist/uproot*.whl`.
-1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable. Signatures use GnuPG and [botan-slhdsa-signing](https://github.com/mrpg/botan-slhdsa-signing).
-    - Verifiers, see [here](https://max.pm/security/).
+1. Create [GitHub release](https://github.com/mrpg/uproot/releases/new) with `uproot*.whl` and signatures attached, if applicable.
+    - Verifiers, see [here](SECURITY.md#Signatures).
 
 # Versioning policy
 
@@ -19,6 +19,7 @@
 
 # Versions
 
+- `0.13.0` (2026-11-23)
 - `0.12.0` (2026-11-12)
 - `0.11.0` (2026-11-02)
 - `0.10.1` (2026-10-24)
