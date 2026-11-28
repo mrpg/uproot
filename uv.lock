@@ -2141,15 +2141,15 @@ wheels = [
 
 [[package]]
 name = "schwifty"
-version = "2026.11.3"
+version = "2026.11.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pycountry" },
     { name = "rstr" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5d/24/439ab3b2530c860fafc731539ae25548ac1119fb8ecd6381242efafc4bd7/schwifty-2026.11.3.tar.gz", hash = "sha256:dba7564bc00cca1e785e04c2f405efecf150e7de2c940c0428d0ba394c8fff5f", size = 1033314, upload-time = "2026-11-17T11:36:42.232Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/18/12dca33b6cf89068fa7dfa5c841c2febe05ed21004e987f35d17e27cf194/schwifty-2026.11.4.tar.gz", hash = "sha256:5ba924c679d1265d05c44ba4bcf0e2b4faee5c2735f011c0761b02bc4f948fbd", size = 1065176, upload-time = "2026-11-23T13:49:44.168Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/c6/428321ea510eb71e68caff443079da124e2a96acfad15b461e6756bdb604/schwifty-2026.11.3-py3-none-any.whl", hash = "sha256:390845d8ffb051fe5939046f40a5a5c11227c8e2b58721a453d579d0d598606e", size = 494418, upload-time = "2026-11-17T11:36:40.62Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/0e/919e6dd22cb322cfd3519dbc989e0d5f2a10bfc0a4e88f349463f37aa789/schwifty-2026.11.4-py3-none-any.whl", hash = "sha256:64fbb693f42c68a74aa85514052f9b165c10c08b2c874bbd742c99bf842e7bd9", size = 499618, upload-time = "2026-11-23T13:49:43.014Z" },
 ]
 
 [[package]]
